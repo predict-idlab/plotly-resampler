@@ -451,4 +451,4 @@ class Dashboard:
 if __name__ == "__main__":
     # app.run_server(mode="external", port=8053, debug=False)
     db = Dashboard()
-    db.app.run_server(port=8056, debug=True, host="192.168.50.218")
+    db.app.run_server(port=8056, debug=True)
