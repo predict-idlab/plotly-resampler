@@ -19,18 +19,23 @@ from dash.dependencies import Input, Output, State
 class PlotlyDataMirror(go.Figure):
     """Mirrors the figures' `data` attribute to allow resampling on the back-end."""
 
-    def __init__(self, figure: go.Figure):
+    def __init__(self, figure: go.Figure, verbose: bool = False):
         """Instantiate a data mirror.
 
         Parameters
         ----------
         figure: go.Figure
             The figure that will be decorated.
+        verbose: bool
+            Whether some verbose messages will be printed or not
 
         """
         self._hf_data: List[dict] = []
+        self._print_verbose = verbose
+
         # downsampling method, optional
         self._downsampler = None
+
         super().__init__(figure)
 
     def _query_hf_data(self, trace: dict) -> Optional[dict]:
@@ -315,7 +320,8 @@ class PlotlyDataMirror(go.Figure):
             # these traces will determine the autoscale -> so also store when
             # `cut_points_to_view` is set.
             if numb_samples > max_n_samples or cut_points_to_view:
-                print(f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
+                if self._print_verbose:
+                    print(f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
 
                 # we will re-create this each time as df_hf wittholds
                 df_hf = pd.DataFrame(data={"timestamp": orig_x, trace["name"]: orig_y})
@@ -324,7 +330,7 @@ class PlotlyDataMirror(go.Figure):
                 if self._downsampler is None:
                     df_res = self._resample_df(
                         df_hf, max_n_samples=max_n_samples
-                        )
+                    )
                     trace.x = df_res.index
                     trace.y = df_res[trace["name"]]
                 else:
@@ -347,12 +353,14 @@ class PlotlyDataMirror(go.Figure):
                     }
                 )
             else:
-                print(f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
+                if self._print_verbose:
+                    print(f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
                 trace.x = orig_x
                 trace.y = orig_y
                 return super_add_trace(self)
         else:
-            print(f"trace {trace['type']} is not a high-dimensional trace")
+            if self._print_verbose:
+                print(f"trace {trace['type']} is not a high-dimensional trace")
 
             # orig_x and orig_y have priority over the traces' data
             trace["x"] = trace["x"] if orig_x is not None else orig_x
@@ -379,7 +387,8 @@ class PlotlyDataMirror(go.Figure):
         )
         def update_graph(changed_layout: dict, current_graph):
             if changed_layout:
-                print("-" * 100, "\n", "changed layout", changed_layout)
+                if self._print_verbose:
+                    print("-" * 100, "\n", "changed layout", changed_layout)
 
                 if "xaxis.range[0]" in changed_layout:
                     t_start = to_datetime(changed_layout["xaxis.range[0]"])
