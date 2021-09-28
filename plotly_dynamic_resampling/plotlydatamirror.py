@@ -19,18 +19,26 @@ from dash.dependencies import Input, Output, State
 class PlotlyDataMirror(go.Figure):
     """Mirrors the figures' `data` attribute to allow resampling on the back-end."""
 
-    def __init__(self, figure: go.Figure, verbose: bool = False):
+    def __init__(
+            self,
+            figure: go.Figure,
+            global_n_shown_samples: int,
+            verbose: bool = False
+    ):
         """Instantiate a data mirror.
 
         Parameters
         ----------
         figure: go.Figure
             The figure that will be decorated.
+        global_n_shown_samples: int
+            The global set number of samples that will be shown for each trace.
         verbose: bool
             Whether some verbose messages will be printed or not
 
         """
         self._hf_data: List[dict] = []
+        self._global_n_shown_samples = global_n_shown_samples
         self._print_verbose = verbose
 
         # downsampling method, optional
@@ -214,7 +222,7 @@ class PlotlyDataMirror(go.Figure):
         orig_x=None,  # Use this if you have high-dimensional data
         orig_y=None,  # Use this if you have high-dimensional data
         # resample_method="",
-        max_n_samples=6000,
+        max_n_samples=None,
     ):
         """Add a trace to the figure.
 
@@ -289,7 +297,8 @@ class PlotlyDataMirror(go.Figure):
             trace's data.
         max_n_samples : int, optional
             The maximum number of samples that will be shown by the trace.
-            By default 6000
+            .. note::
+                If this variable is not set; `_global_n_shown_samples` will be used.
 
         Returns
         -------
@@ -297,6 +306,8 @@ class PlotlyDataMirror(go.Figure):
             The Figure that add_trace was called on
 
         """
+        if max_n_samples is None:
+            max_n_samples = self._global_n_shown_samples
 
         def super_add_trace(self):
             return super().add_trace(
