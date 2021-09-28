@@ -14,6 +14,7 @@ import dash_bootstrap_components as dbc
 import dash_core_components as dcc
 from jupyter_dash import JupyterDash
 from dash.dependencies import Input, Output, State
+from uuid import uuid4
 
 
 class PlotlyDataMirror(go.Figure):
@@ -61,18 +62,19 @@ class PlotlyDataMirror(go.Figure):
 
         """
         for trace_data in self._hf_data:
-            if all(
-                [trace_data[k] == trace[k] for k in ["name", "type", "xaxis", "yaxis"]]
-            ):
+            if trace_data['uid'] == trace['uid']:
                 return trace_data
 
-        trace_props = {k: trace[k] for k in ["name", "type", "xaxis", "yaxis"]}
-        print(f"[W] trace with properties {trace_props} not found")
+        trace_props = {
+            k: trace[k]
+            for k in set(trace.keys()).difference({'x', 'y'})
+        }
+        print(f"[W] trace with {trace_props} not found")
         return None
 
     def _get_hf_data_props(self) -> List[dict]:
         return [
-            {k: hf[k] for k in ["name", "type", "xaxis", "yaxis"]}
+            {k: hf[k] for k in set(hf.keys()).difference({'x', 'y'})}
             for hf in self._hf_data
         ]
 
@@ -106,23 +108,20 @@ class PlotlyDataMirror(go.Figure):
         """
         hf_data = self._query_hf_data(trace)
         if hf_data is not None:
-            df_res: pd.DataFrame = self._resample_df(
+            df_res: pd.Series = self._resample_series(
                 df_data=hf_data["df_hf"],
                 max_n_samples=hf_data["max_n_samples"],
                 t_start=t_start,
                 t_stop=t_stop,
-                # max_gap_s=hf_data.get("max_gap_s", None),
             )
-
-            # print("resampled dataFrame\n", df_res)
-            trace["x"] = pd.to_datetime(df_res.index)
-            trace["y"] = df_res[trace["name"]].values
+            trace["x"] = df_res.index
+            trace["y"] = df_res.values
 
     def check_update_figure_dict(
-        self,
-        figure: dict,
-        t_start: Optional[pd.Timestamp] = None,
-        t_stop: Optional[pd.Timestamp] = None,
+            self,
+            figure: dict,
+            t_start: Optional[pd.Timestamp] = None,
+            t_stop: Optional[pd.Timestamp] = None,
     ):
         """Check and update the traces within the figure dict.
 
@@ -147,16 +146,18 @@ class PlotlyDataMirror(go.Figure):
 
         """
         for trace in figure["data"]:
+            # print(trace.keys())
             self.check_update_trace_data(trace=trace, t_start=t_start, t_stop=t_stop)
 
     @staticmethod
-    def _resample_df(
-        df_data: pd.DataFrame,
-        max_n_samples: int = 6000,
-        t_start: Optional[pd.Timestamp] = None,
-        t_stop: Optional[pd.Timestamp] = None,
-    ) -> pd.DataFrame:
+    def _resample_series(
+            df_data: pd.Series,
+            max_n_samples: int = 6000,
+            t_start: Optional[pd.Timestamp] = None,
+            t_stop: Optional[pd.Timestamp] = None,
+    ) -> pd.Series:
         ts_tzone = df_data.index.tz
+        # todo -> maybe add ts_tzone
 
         if isinstance(t_start, pd.Timestamp):
             if ts_tzone is not None:
@@ -203,26 +204,26 @@ class PlotlyDataMirror(go.Figure):
 
         # add None data-points in between the gaps
         df_res_gap = df_res.loc[tot_diff_sec_series > max_gap_q_s].copy()
-        df_res_gap.loc[:, :] = None
+        df_res_gap.loc[:] = None
         df_res_gap.index -= pd.Timedelta(microseconds=1)
         index_name = df_res.index.name
         df_res = pd.concat(
             [df_res.reset_index(drop=False), df_res_gap.reset_index(drop=False)]
         ).set_index(index_name).sort_index()
-        return df_res
+        return df_res['data']
 
     def add_trace(
-        self,
-        trace,
-        row=None,
-        col=None,
-        secondary_y=None,
-        exclude_empty_subplots=False,
-        cut_points_to_view=False,
-        orig_x=None,  # Use this if you have high-dimensional data
-        orig_y=None,  # Use this if you have high-dimensional data
-        # resample_method="",
-        max_n_samples=None,
+            self,
+            trace,
+            row=None,
+            col=None,
+            secondary_y=None,
+            exclude_empty_subplots=False,
+            cut_points_to_view=False,
+            orig_x=None,  # Use this if you have high-dimensional data
+            orig_y=None,  # Use this if you have high-dimensional data
+            # resample_method="",
+            max_n_samples=None,
     ):
         """Add a trace to the figure.
 
@@ -320,6 +321,10 @@ class PlotlyDataMirror(go.Figure):
 
         high_dimensional_traces = ["scatter", "scattergl"]
 
+        # first add the trace, as each (even the non hf data traces), must contain this
+        # key for comparison
+        trace.uid = str(uuid4())
+
         if trace["type"] in high_dimensional_traces:
             orig_x = trace["x"] if orig_x is None else orig_x
             orig_y = trace["y"] if orig_y is None else orig_y
@@ -335,29 +340,25 @@ class PlotlyDataMirror(go.Figure):
                     print(f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
 
                 # we will re-create this each time as df_hf wittholds
-                df_hf = pd.DataFrame(data={"timestamp": orig_x, trace["name"]: orig_y})
-                df_hf = df_hf.set_index("timestamp", drop=True)
+                df_hf = pd.Series(data=orig_y, index=pd.to_datetime(orig_x), copy=False)
+                df_hf.rename('data', inplace=True)
+                df_hf.index.rename('timestamp', inplace=True)
 
                 if self._downsampler is None:
-                    df_res = self._resample_df(
+                    df_res = self._resample_series(
                         df_hf, max_n_samples=max_n_samples
                     )
                     trace.x = df_res.index
-                    trace.y = df_res[trace["name"]]
+                    trace.y = df_res.values
                 else:
                     raise NotImplementedError("Resampling method isn't supported!")
 
-                # first add the trace, as it contains the identifier for our `_hf_data`
                 super_add_trace(self)
                 self._hf_data.append(
                     {
-                        **{
-                            k: self._data[-1][k]
-                            # The identifier keys (all of type string)
-                            for k in ["name", "type", "xaxis", "yaxis"]
-                        },
                         "max_n_samples": max_n_samples,
                         "df_hf": df_hf,
+                        "uid": trace.uid
 
                         # TODO -> add support for trace-based resampling methods
                         # "resample_method": "#resample_method,
@@ -365,7 +366,8 @@ class PlotlyDataMirror(go.Figure):
                 )
             else:
                 if self._print_verbose:
-                    print(f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
+                    print(
+                        f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
                 trace.x = orig_x
                 trace.y = orig_y
                 return super_add_trace(self)
@@ -382,13 +384,17 @@ class PlotlyDataMirror(go.Figure):
 
     def show_dash(self, mode=None, **kwargs):
         app = JupyterDash("local_app")
-
         app.layout = dbc.Container(dcc.Graph(id="resampled-graph", figure=self))
 
         def to_datetime(time_str: str) -> pd.Timestamp:
-            ## TODO WOWAWIEAAA what happens here -> what happens when series timezone is UTC???
+            # TODO WOWAWIEAAA what happens here -> what happens when series
+            #  timezone is UTC???
+            # uses self -> so we need to be able to gather the time-zone if there is any
+            # and maybe not convert it to datetime if int-columns are used
+            # todo -> also need to be able to perform zooming on selected sub-trace if
+            #  uses subplots without shared x-axes
             return pd.to_datetime([time_str], infer_datetime_format=True).tz_localize(
-                "Europe/Brussels"
+                'Europe/Brussels'
             )[0]
 
         @app.callback(
