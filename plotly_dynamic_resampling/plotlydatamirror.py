@@ -173,6 +173,7 @@ class PlotlyDataMirror(go.Figure):
                 t_start = t_start.tz_localize(None)
 
             df_data = df_data[t_start:]
+
         if isinstance(t_stop, pd.Timestamp):
             if ts_tzone is not None:
                 if t_stop.tz is not None:
@@ -222,12 +223,12 @@ class PlotlyDataMirror(go.Figure):
             row=None,
             col=None,
             secondary_y=None,
-            exclude_empty_subplots=False,
             cut_points_to_view=False,
             orig_x=None,  # Use this if you have high-dimensional data
             orig_y=None,  # Use this if you have high-dimensional data
             # resample_method="",
             max_n_samples=None,
+            **trace_kwargs
     ):
         """Add a trace to the figure.
 
@@ -289,9 +290,6 @@ class PlotlyDataMirror(go.Figure):
                 make_subplots. See the make_subplots docstring for more info.
               * The trace argument is a 2D cartesian trace
                 (scatter, bar, etc.)
-        exclude_empty_subplots: boolean
-            If True, the trace will not be added to subplots that don't already
-            have traces.
         cut_points_to_view: boolean
             If True; the trace's datapoints will be add
         orig_x: pd.Series, optional
@@ -320,7 +318,7 @@ class PlotlyDataMirror(go.Figure):
                 row=row,
                 col=col,
                 secondary_y=secondary_y,
-                exclude_empty_subplots=exclude_empty_subplots,
+                **trace_kwargs,
             )
 
         high_dimensional_traces = ["scatter", "scattergl"]
@@ -347,6 +345,9 @@ class PlotlyDataMirror(go.Figure):
                 df_hf = pd.Series(data=orig_y, index=pd.to_datetime(orig_x), copy=False)
                 df_hf.rename('data', inplace=True)
                 df_hf.index.rename('timestamp', inplace=True)
+
+                # Checking this now avoids less interpretable `KeyError` when resampling
+                assert df_hf.index.is_monotonic_increasing
 
                 if self._downsampler is None:
                     df_res = self._resample_series(
