@@ -23,7 +23,7 @@ class PlotlyDataMirror(go.Figure):
     def __init__(
             self,
             figure: go.Figure,
-            global_n_shown_samples: int,
+            global_n_shown_samples: int = 1500,
             verbose: bool = False
     ):
         """Instantiate a data mirror.
