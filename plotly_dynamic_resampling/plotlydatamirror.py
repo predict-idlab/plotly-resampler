@@ -3,7 +3,7 @@
 Wrapper around the plotly figure to allow bookkeeping and back-end based resampling of
 HF data.
 """
-__author__ = "Jonas Van Der Donckt"
+__author__ = "Jonas Van Der Donckt, Emiel Deprost"
 
 from typing import List, Optional
 
@@ -23,7 +23,7 @@ class PlotlyDataMirror(go.Figure):
     def __init__(
             self,
             figure: go.Figure,
-            global_n_shown_samples: int,
+            global_n_shown_samples: int = 1000,
             verbose: bool = False
     ):
         """Instantiate a data mirror.
@@ -32,11 +32,11 @@ class PlotlyDataMirror(go.Figure):
         ----------
         figure: go.Figure
             The figure that will be decorated.
-        global_n_shown_samples: int
+        global_n_shown_samples: int, optional
             The global set number of samples that will be shown for each trace.
-        verbose: bool
-            Whether some verbose messages will be printed or not
-
+            by default 1000.
+        verbose: bool, optional
+            Whether some verbose messages will be printed or not, by default False
         """
         self._hf_data: List[dict] = []
         self._global_n_shown_samples = global_n_shown_samples
@@ -78,6 +78,10 @@ class PlotlyDataMirror(go.Figure):
             for hf in self._hf_data
         ]
 
+    def _print(self, *values):
+        if self._print_verbose:
+            print(*values)
+
     def check_update_trace_data(self, trace, t_start=None, t_stop=None):
         """Check and updates the passed`trace`.
 
@@ -89,7 +93,7 @@ class PlotlyDataMirror(go.Figure):
         Parameters
         ----------
         trace : BaseTraceType or dict
-             - An instances of a trace classe from the plotly.graph_objs
+             - An instances of a trace class from the plotly.graph_objs
                 package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
               - or a dicts where:
 
@@ -336,8 +340,8 @@ class PlotlyDataMirror(go.Figure):
             # these traces will determine the autoscale -> so also store when
             # `cut_points_to_view` is set.
             if numb_samples > max_n_samples or cut_points_to_view:
-                if self._print_verbose:
-                    print(f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
+                self._print(
+                    f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
 
                 # we will re-create this each time as df_hf wittholds
                 df_hf = pd.Series(data=orig_y, index=pd.to_datetime(orig_x), copy=False)
@@ -365,15 +369,13 @@ class PlotlyDataMirror(go.Figure):
                     }
                 )
             else:
-                if self._print_verbose:
-                    print(
-                        f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
+                self._print(
+                    f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
                 trace.x = orig_x
                 trace.y = orig_y
                 return super_add_trace(self)
         else:
-            if self._print_verbose:
-                print(f"trace {trace['type']} is not a high-dimensional trace")
+            self._print(f"trace {trace['type']} is not a high-dimensional trace")
 
             # orig_x and orig_y have priority over the traces' data
             trace["x"] = trace["x"] if orig_x is not None else orig_x
@@ -386,17 +388,6 @@ class PlotlyDataMirror(go.Figure):
         app = JupyterDash("local_app")
         app.layout = dbc.Container(dcc.Graph(id="resampled-graph", figure=self))
 
-        def to_datetime(time_str: str) -> pd.Timestamp:
-            # TODO WOWAWIEAAA what happens here -> what happens when series
-            #  timezone is UTC???
-            # uses self -> so we need to be able to gather the time-zone if there is any
-            # and maybe not convert it to datetime if int-columns are used
-            # todo -> also need to be able to perform zooming on selected sub-trace if
-            #  uses subplots without shared x-axes
-            return pd.to_datetime([time_str], infer_datetime_format=True).tz_localize(
-                'Europe/Brussels'
-            )[0]
-
         @app.callback(
             Output("resampled-graph", "figure"),
             Input("resampled-graph", "relayoutData"),
@@ -404,12 +395,11 @@ class PlotlyDataMirror(go.Figure):
         )
         def update_graph(changed_layout: dict, current_graph):
             if changed_layout:
-                if self._print_verbose:
-                    print("-" * 100, "\n", "changed layout", changed_layout)
+                self._print("-" * 100 + "\n", "changed layout", changed_layout)
 
                 if "xaxis.range[0]" in changed_layout:
-                    t_start = to_datetime(changed_layout["xaxis.range[0]"])
-                    t_stop = to_datetime(changed_layout["xaxis.range[1]"])
+                    t_start = pd.to_datetime(changed_layout["xaxis.range[0]"])
+                    t_stop = pd.to_datetime(changed_layout["xaxis.range[1]"])
                     self.check_update_figure_dict(current_graph, t_start, t_stop)
                 elif changed_layout.get("xaxis.autorange", False):
                     self.check_update_figure_dict(current_graph)
