@@ -23,7 +23,7 @@ class PlotlyDataMirror(go.Figure):
     def __init__(
             self,
             figure: go.Figure,
-            global_n_shown_samples: int,
+            global_n_shown_samples: int = 1500,
             verbose: bool = False
     ):
         """Instantiate a data mirror.
@@ -169,6 +169,7 @@ class PlotlyDataMirror(go.Figure):
                 t_start = t_start.tz_localize(None)
 
             df_data = df_data[t_start:]
+                        
         if isinstance(t_stop, pd.Timestamp):
             if ts_tzone is not None:
                 if t_stop.tz is not None:
@@ -338,6 +339,9 @@ class PlotlyDataMirror(go.Figure):
                 df_hf = pd.Series(data=orig_y, index=pd.to_datetime(orig_x), copy=False)
                 df_hf.rename('data', inplace=True)
                 df_hf.index.rename('timestamp', inplace=True)
+                
+                # Checking this now avoids less interpretable `KeyError` when resampling
+                assert df_hf.index.is_monotonic_increasing
 
                 if self._downsampler is None:
                     df_res = self._resample_series(
