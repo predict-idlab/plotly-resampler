@@ -218,7 +218,6 @@ class PlotlyDataMirror(go.Figure):
             row=None,
             col=None,
             secondary_y=None,
-            exclude_empty_subplots=False,
             cut_points_to_view=False,
             orig_x=None,  # Use this if you have high-dimensional data
             orig_y=None,  # Use this if you have high-dimensional data
@@ -285,9 +284,6 @@ class PlotlyDataMirror(go.Figure):
                 make_subplots. See the make_subplots docstring for more info.
               * The trace argument is a 2D cartesian trace
                 (scatter, bar, etc.)
-        exclude_empty_subplots: boolean
-            If True, the trace will not be added to subplots that don't already
-            have traces.
         cut_points_to_view: boolean
             If True; the trace's datapoints will be add
         orig_x: pd.Series, optional
@@ -316,7 +312,6 @@ class PlotlyDataMirror(go.Figure):
                 row=row,
                 col=col,
                 secondary_y=secondary_y,
-                exclude_empty_subplots=exclude_empty_subplots,
             )
 
         high_dimensional_traces = ["scatter", "scattergl"]
