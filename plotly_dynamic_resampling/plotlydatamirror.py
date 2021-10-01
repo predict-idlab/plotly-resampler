@@ -172,6 +172,7 @@ class PlotlyDataMirror(go.Figure):
                     return ts.tz_localize(reference_tz)
             elif reference_tz is None and ts.tz is not None:
                 return ts.tz_localize(None)
+            return ts
 
         return df_data[to_same_tz(t_start):to_same_tz(t_stop)]
 
