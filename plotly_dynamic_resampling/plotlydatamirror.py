@@ -9,17 +9,16 @@ Future work:
 """
 __author__ = "Jonas Van Der Donckt, Emiel Deprost"
 
-from typing import List, Optional, Union, Iterable
-
-import pandas as pd
-import plotly.graph_objects as go
+import re
+from typing import List, Optional, Union, Iterable, Tuple
+from uuid import uuid4
 
 import dash_bootstrap_components as dbc
 import dash_core_components as dcc
-from jupyter_dash import JupyterDash
+import pandas as pd
+import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
-from uuid import uuid4
-import re
+from jupyter_dash import JupyterDash
 
 
 class PlotlyDataMirror(go.Figure):
@@ -29,6 +28,8 @@ class PlotlyDataMirror(go.Figure):
             self,
             figure: go.Figure,
             global_n_shown_samples: int = 1000,
+            resampled_trace_prefix_suffix: Tuple[str, str] = (
+            '<b style="color:sandybrown">[R]</b> ', ''),
             verbose: bool = False
     ):
         """Instantiate a data mirror.
@@ -40,12 +41,19 @@ class PlotlyDataMirror(go.Figure):
         global_n_shown_samples: int, optional
             The global set number of samples that will be shown for each trace.
             by default 1000.
+        resampled_trace_prefix_suffix: str, optional
+            A tuple which contains the `prefix` and `suffix`, respectively, which
+            will be added to the trace its name when a resampled version of the trace
+            is shown.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False
         """
         self._hf_data: List[dict] = []
         self._global_n_shown_samples = global_n_shown_samples
         self._print_verbose = verbose
+        assert len(resampled_trace_prefix_suffix) == 2
+        self._prefix, self._suffix = resampled_trace_prefix_suffix
+
         self._downsampler = None  # downsampling method, still to be implemented
 
         super().__init__(figure)
@@ -111,6 +119,22 @@ class PlotlyDataMirror(go.Figure):
         hf_data = self._query_hf_data(trace)
         if hf_data is not None:
             df_data = self._slice_time(hf_data['df_hf'], t_start, t_stop)
+
+            # add a prefix when not all data is shown
+            if trace['name'] is not None:
+                name: str = trace['name']
+                if len(df_data) > hf_data["max_n_samples"]:
+                    name = ('' if name.startswith(
+                        self._prefix) else self._prefix) + name
+                    name += self._suffix if not name.endswith(self._suffix) else ''
+                    trace['name'] = name
+                else:
+                    if len(self._prefix) and name.startswith(self._prefix):
+                        trace['name'] = name[len(self._prefix):]
+                    if len(self._suffix) and name.endswith(self._suffix):
+                        trace['name'] = name[:-len(self._suffix)]
+
+            # TODO -> support for other resample methods
             df_res: pd.Series = self._resample_series(df_data, hf_data["max_n_samples"])
             trace["x"] = df_res.index
             trace["y"] = df_res.values
@@ -156,7 +180,7 @@ class PlotlyDataMirror(go.Figure):
                 #      d do not have the xaxis property
                 # * xaxis != trace['xaxis'] for NON first rows
                 if ((xaxis == 'x' and trace.get("xaxis", None) not in [None, 'x']) or
-                    (xaxis != 'x' and trace.get('xaxis', None) != xaxis)):
+                        (xaxis != 'x' and trace.get('xaxis', None) != xaxis)):
                     continue
             self.check_update_trace_data(trace=trace, t_start=t_start, t_stop=t_stop)
 
