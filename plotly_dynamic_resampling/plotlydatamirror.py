@@ -148,8 +148,16 @@ class PlotlyDataMirror(go.Figure):
             Additional trace-update filter
         """
         for trace in figure["data"]:
-            if xaxis is not None and trace.get('xaxis', None) != xaxis:
-                continue
+            if xaxis is not None:
+                # we skip when:
+                # * the change was made on the first row and the trace its xaxis is not
+                #   in [None, 'x']
+                #    -> why None: traces without row/col argument stand on first row and
+                #      d do not have the xaxis property
+                # * xaxis != trace['xaxis'] for NON first rows
+                if ((xaxis == 'x' and trace.get("xaxis", None) not in [None, 'x']) or
+                    (xaxis != 'x' and trace.get('xaxis', None) != xaxis)):
+                    continue
             self.check_update_trace_data(trace=trace, t_start=t_start, t_stop=t_stop)
 
     @staticmethod
