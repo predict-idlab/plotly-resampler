@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 """
 Wrapper around the plotly figure to allow bookkeeping and back-end based resampling of
-HF data.
+HF sequential data.
 
 Future work:
     * Add functionality to let the user define a downsampling method
+        -> would use a class based approach here!
+        -> better separation of resampling & adding none to gaps & slicing
 
 """
 __author__ = "Jonas Van Der Donckt, Emiel Deprost"
@@ -29,7 +31,7 @@ class PlotlyDataMirror(go.Figure):
             figure: go.Figure,
             global_n_shown_samples: int = 1000,
             resampled_trace_prefix_suffix: Tuple[str, str] = (
-            '<b style="color:sandybrown">[R]</b> ', ''),
+                    '<b style="color:sandybrown">[R]</b> ', ''),
             verbose: bool = False
     ):
         """Instantiate a data mirror.
@@ -39,7 +41,7 @@ class PlotlyDataMirror(go.Figure):
         figure: go.Figure
             The figure that will be decorated.
         global_n_shown_samples: int, optional
-            The global set number of samples that will be shown for each trace.
+            The global set number of samples that will be shown for each trace,
             by default 1000.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the `prefix` and `suffix`, respectively, which
@@ -88,7 +90,7 @@ class PlotlyDataMirror(go.Figure):
         if self._print_verbose:
             print(*values)
 
-    def check_update_trace_data(self, trace, t_start=None, t_stop=None):
+    def check_update_trace_data(self, trace, start=None, end=None):
         """Check and updates the passed`trace`.
 
         Note
@@ -108,17 +110,36 @@ class PlotlyDataMirror(go.Figure):
                     property then 'scatter' is assumed.
                   - All remaining properties are passed to the constructor
                     of the specified trace type.
-        t_start : Optional[pd.Timestamp], optional
-            The start time range for which we want resampled data to be updated to,
+        start : Union[float, str], optional
+            The start index for which we want resampled data to be updated to,
             by default None,
-        t_stop : Optional[pd.Timestamp], optional
-            The end time for which we want the resampled data to be updated to,
+        end : Union[float, str], optional
+            The end index for which we want the resampled data to be updated to,
             by default None
+
+        Notes
+        -----
+        * If `start` and `stop` are strings, the most likely represents a time-strings
+        * `start` and `stop` will always be of the same type (float / time-string) because the
+           underlying axis is the same.
 
         """
         hf_data = self._query_hf_data(trace)
         if hf_data is not None:
-            df_data = self._slice_time(hf_data['df_hf'], t_start, t_stop)
+            axis_type = hf_data['axis_type']
+            if axis_type == 'date':
+                df_data = self._slice_time(
+                    hf_data['df_hf'],
+                    pd.to_datetime(start),
+                    pd.to_datetime(end)
+                )
+            else:
+                df_data = hf_data['df_hf']
+                if isinstance(df_data.index, pd.Int64Index) or \
+                        isinstance(df_data.index, pd.UInt64Index):
+                    start = round(start) if start is not None else None
+                    end = round(end) if start is not None else None
+                df_data = hf_data['df_hf'][start:end]
 
             # add a prefix when not all data is shown
             if trace['name'] is not None:
@@ -144,8 +165,8 @@ class PlotlyDataMirror(go.Figure):
     def check_update_figure_dict(
             self,
             figure: dict,
-            t_start: Optional[pd.Timestamp] = None,
-            t_stop: Optional[pd.Timestamp] = None,
+            start: Optional[Union[float, str]] = None,
+            stop: Optional[Union[float, str]] = None,
             xaxis: str = None,
     ):
         """Check and update the traces within the figure dict.
@@ -162,27 +183,32 @@ class PlotlyDataMirror(go.Figure):
         ----------
         figure : dict
             The figure dict
-        t_start : Optional[pd.Timestamp], optional
+        start : Union[float, str], optional
             The start time range for which we want resampled data to be updated to,
             by default None,
-        t_stop : Optional[pd.Timestamp], optional
+        stop : Union[float, str], optional
             The end time for which we want the resampled data to be updated to,
             by default None
         xaxis: str, Optional
             Additional trace-update filter
+
         """
         for trace in figure["data"]:
             if xaxis is not None:
+                # the x-anchor of is stored in the layout data
+                y_axis = 'y' + xaxis[1:]
+                x_anchor = figure['layout'][y_axis]['anchor']
                 # we skip when:
-                # * the change was made on the first row and the trace its xaxis is not
+                # * the change was made on the first row and the trace its anchor is not
                 #   in [None, 'x']
-                #    -> why None: traces without row/col argument stand on first row and
-                #      d do not have the xaxis property
+                #    -> why None: traces without row/col argument and stand on first row
+                #       and do not have the anchor property
                 # * xaxis != trace['xaxis'] for NON first rows
-                if ((xaxis == 'x' and trace.get("xaxis", None) not in [None, 'x']) or
-                        (xaxis != 'x' and trace.get('xaxis', None) != xaxis)):
+                if ((x_anchor == 'x' and trace.get("xaxis", None) not in [None, 'x']) or
+                        (x_anchor != 'x' and trace.get('xaxis', None) != x_anchor)):
                     continue
-            self.check_update_trace_data(trace=trace, t_start=t_start, t_stop=t_stop)
+
+            self.check_update_trace_data(trace=trace, start=start, end=stop)
 
     @staticmethod
     def _slice_time(
@@ -213,17 +239,25 @@ class PlotlyDataMirror(go.Figure):
             df_data: pd.Series,
             max_n_samples,
     ) -> pd.Series:
+        # just use plain simple slicing
         df_res = df_data[:: (max(1, len(df_data) // max_n_samples))]
+
         # ------- add None where there are gaps / irregularly sampled data
-        tot_diff_sec_series = df_res.index.to_series().diff().dt.total_seconds()
+        if isinstance(df_res.index, pd.DatetimeIndex):
+            series_index_diff = df_res.index.to_series().diff().dt.total_seconds()
+        else:
+            series_index_diff = df_res.index.to_series().diff()
 
         # use a quantile based approach
-        max_gap_q_s = tot_diff_sec_series.quantile(0.95)
+        min_diff, max_gap_q_s = series_index_diff.quantile(q=[0, 0.95])
 
         # add None data-points in between the gaps
-        df_res_gap = df_res.loc[tot_diff_sec_series > max_gap_q_s].copy()
+        df_res_gap = df_res.loc[series_index_diff > max_gap_q_s].copy()
         df_res_gap.loc[:] = None
-        df_res_gap.index -= pd.Timedelta(microseconds=1)
+        if isinstance(df_res.index, pd.DatetimeIndex):
+            df_res_gap.index -= pd.Timedelta(seconds=min_diff / 2)
+        else:
+            df_res_gap.index -= (min_diff / 2)
         index_name = df_res.index.name
         df_res = pd.concat(
             [df_res.reset_index(drop=False), df_res_gap.reset_index(drop=False)]
@@ -234,7 +268,7 @@ class PlotlyDataMirror(go.Figure):
             self,
             trace,
             # Use this if you have high-dimensional data
-            orig_x: Optional[pd.DatetimeIndex] = None,
+            orig_x: Iterable = None,
             orig_y: Iterable = None,
             max_n_samples: int = None,
             cut_points_to_view: bool = False,
@@ -278,8 +312,9 @@ class PlotlyDataMirror(go.Figure):
                   - All remaining properties are passed to the constructor
                     of the specified trace type.
         orig_x: pd.Series, optional
-            The original high frequency time-index. If set, this has priority over the
-            trace's data.
+            The original high frequency series position, can be either a time-series or an
+            increasing, numerical index. If set, this has priority over the trace its
+            data.
         orig_y: pd.Series, optional
             The original high frequency values. If set, this has priority over the
             trace's data.
@@ -318,24 +353,27 @@ class PlotlyDataMirror(go.Figure):
             assert len(orig_x) == len(orig_y)
 
             numb_samples = len(orig_x)
-            # these traces will determine the autoscale
+            # These traces will determine the autoscale
             #   -> so also store when cut_points_to_view` is set.
             if numb_samples > max_n_samples or cut_points_to_view:
                 self._print(
                     f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
 
                 # we will re-create this each time as df_hf withholds
-                df_hf = pd.Series(data=orig_y, index=pd.to_datetime(orig_x), copy=False)
+                df_hf = pd.Series(data=orig_y, index=orig_x, copy=False)
                 df_hf.rename('data', inplace=True)
                 df_hf.index.rename('timestamp', inplace=True)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert df_hf.index.is_monotonic_increasing
+
+                axis_type = "date" if isinstance(orig_x, pd.DatetimeIndex) else "linear"
                 self._hf_data.append(
                     {
                         "max_n_samples": max_n_samples,
                         "df_hf": df_hf,
-                        "uid": trace.uid
+                        "uid": trace.uid,
+                        'axis_type': axis_type
                         # "resample_method": "#resample_method,
                     }
                 )
@@ -383,18 +421,21 @@ class PlotlyDataMirror(go.Figure):
                 key_list = changed_layout.keys()
                 start_matches = get_matches(re.compile(r'xaxis\d*.range\[0]'), key_list)
                 stop_matches = get_matches(re.compile(r'xaxis\d*.range\[1]'), key_list)
+
                 if len(start_matches) and len(stop_matches):
                     for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                         # check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
                         assert t_start_key.split('.')[0] == t_stop_key.split('.')[0]
+
                         self.check_update_figure_dict(
                             current_graph,
-                            t_start=pd.to_datetime(changed_layout[t_start_key]),
-                            t_stop=pd.to_datetime(changed_layout[t_stop_key]),
-                            xaxis='x' + t_start_key.split('.')[0][5:]
+                            start=changed_layout[t_start_key],
+                            stop=changed_layout[t_stop_key],
+                            xaxis=t_start_key.split('.')[0]
                         )
+
                 elif len(get_matches(re.compile(r'xaxis\d*.autorange'), key_list)):
-                    # Autorange is applied on all axes -> hence no xaxis argument
+                    # Autorange is applied on all axes -> no xaxis argument
                     self.check_update_figure_dict(current_graph)
             return current_graph
 
