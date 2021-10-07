@@ -201,12 +201,12 @@ class FigureResampler(go.Figure):
             if xaxis is not None:
                 # the x-anchor of is stored in the layout data
                 y_axis = 'y' + xaxis[1:]
-                x_anchor = figure['layout'][y_axis]['anchor']
+                x_anchor = figure['layout'][y_axis].get('anchor')
                 # we skip when:
                 # * the change was made on the first row and the trace its anchor is not
                 #   in [None, 'x']
-                #    -> why None: traces without row/col argument and stand on first row
-                #       and do not have the anchor property
+                #   -> why None: traces without row/col argument and stand on first row
+                #      and do not have the anchor property (hence the DICT.get() method)
                 # * x-anchor != trace['xaxis'] for NON first rows
                 if ((x_anchor == 'x' and trace.get("xaxis", None) not in [None, 'x']) or
                         (x_anchor != 'x' and trace.get('xaxis', None) != x_anchor)):
