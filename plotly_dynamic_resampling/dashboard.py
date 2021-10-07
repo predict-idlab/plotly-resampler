@@ -13,39 +13,36 @@ Drawback -> no support for multiple sessions.
 """
 
 
-import base64
-import io
 import ast
-import os
-import dash
+import base64
 import datetime
+import io
+import re
+from pathlib import Path
+from typing import Optional, Dict, List, Tuple, Iterable
+
+import dash
 import dash_bootstrap_components as dbc
-from dash_bootstrap_components._components.FormGroup import FormGroup
-import dash_core_components as dcc
-import dash_html_components as html
-from dash_html_components.Div import Div
 import dash_uploader as du
 import pandas as pd
 import plotly.graph_objects as go
-
-from typing import Optional, Dict, List, Union, Tuple
-from plotlydatamirror import PlotlyDataMirror
+from dash import dcc, html
 from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 from plotly.subplots import make_subplots
-from pathlib import Path
+
+from figure_resampler import FigureResampler
 
 
 class Dashboard:
     def __init__(self) -> None:
         # global figure object
-        self.fig: Optional[PlotlyDataMirror] = None
+        self.fig: Optional[FigureResampler] = None
 
         self.app = JupyterDash(
             __name__, external_stylesheets=[dbc.themes.LUX]  # , server=server
         )  # themes.lux
 
-        self.TIMEZONE = "Europe/Brussels"
         self.CACHE_FOLDER = Path(".cache_datasets")
 
         self.dataset_dict: Dict[str, pd.DataFrame] = {}
@@ -149,7 +146,7 @@ class Dashboard:
                         dbc.Col(
                             dcc.Graph(
                                 id="resampled-graph",
-                                figure=PlotlyDataMirror(go.Figure()),
+                                figure=FigureResampler(go.Figure()),
                             ),
                             md=9,
                         ),
@@ -171,10 +168,8 @@ class Dashboard:
 
         Parameters
         ----------
-        df_data : pd.DataFrame
-            The dataframe with the actual data.
-        col_names : List[str]
-            The column names, each column name will be plotted in a new row.
+        trace_keys: List[str]
+            TODO
         number_of_samples : int
             The number of samples per trace, more samples will be slower.
 
@@ -187,7 +182,7 @@ class Dashboard:
         self.df_traces.drop(keys_to_drop, axis=0, inplace=True)
 
         if self.df_traces.empty:
-            return PlotlyDataMirror(go.Figure()), 0
+            return FigureResampler(go.Figure()), 0
 
         # 0's mean add it to new row
         self.df_traces["subplot_row"].replace(
@@ -195,13 +190,13 @@ class Dashboard:
         )
         nb_rows = int(self.df_traces.subplot_row.max())
 
-        kwargs = {"vertical_spacing": 0.15 / (nb_rows)}
+        kwargs = {"vertical_spacing": 0.15 / nb_rows}
 
         subplot_titles = ["" for _ in range(nb_rows)]
         for _, params in self.df_traces.iterrows():
             subplot_titles[int(params.subplot_row) - 1] += str(params.column)
 
-        self.fig = PlotlyDataMirror(
+        self.fig = FigureResampler(
             make_subplots(
                 rows=nb_rows,
                 cols=1,
@@ -213,7 +208,7 @@ class Dashboard:
         )
 
         self.fig.update_layout(
-            height=min(1000, 400 * (nb_rows)),
+            height=min(1000, 400 * nb_rows),
             title_x=0.5,
             legend=dict(
                 orientation="h",
@@ -243,11 +238,6 @@ class Dashboard:
         return self.fig, nb_rows
 
     # --------------------------------- DASH code base ---------------------------------
-    def _to_datetime(self, time_str: str) -> pd.Timestamp:
-        return pd.to_datetime([time_str], infer_datetime_format=True).tz_localize(
-            self.TIMEZONE
-        )[0]
-
     def _callbacks(self):
         @self.app.callback(
             Output("download-config", "data"),
@@ -320,7 +310,7 @@ class Dashboard:
                         try:
                             self.dataset_dict[dataset_name] = pd.read_parquet(
                                 f"{self.CACHE_FOLDER}/{dataset_name}"
-                            ).tz_convert(self.TIMEZONE)
+                            )
                         except FileNotFoundError:
                             # Show this message in a confirm dialog
                             return (
@@ -332,7 +322,7 @@ class Dashboard:
                             )
                 self.df_traces = df.copy()
 
-                return (list(self.df_traces.index), False, "")
+                return list(self.df_traces.index), False, ""
 
             else:
                 # Updating traces list for render
@@ -349,7 +339,8 @@ class Dashboard:
                                     "trace_key": [trace_key],
                                     "dataset_name": [dataset_name],
                                     "column": [
-                                        ast.literal_eval(col)
+                                        # ast.literal_eval(col)  # TODO
+                                        col
                                     ],  # Converts col from str tuple to tuple
                                     "subplot_row": [subplot_row],
                                     "secondary_y": [secondary_y == ["secondary"]],
@@ -357,7 +348,7 @@ class Dashboard:
                             ).set_index("trace_key")
                         )
                 print(self.df_traces)
-                return (new_values, False, "")
+                return new_values, False, ""
 
         @self.app.callback(
             Output("traces-list", "options"), [Input("traces-list", "value")]
@@ -386,9 +377,10 @@ class Dashboard:
                 root_folder = self.CACHE_FOLDER
                 for filename in filenames:
                     file = root_folder / filename
+                    # TOOD -> implies that all files are pqrquets with a time-index
                     df = pd.read_parquet(file)
-                    print(df.index)
-                    self.dataset_dict[filename] = df.tz_convert(self.TIMEZONE)
+                    print(df.head(2))
+                    self.dataset_dict[filename] = df
 
                     out.append(file)
                 return html.Ul([html.Li(str(x)) for x in out])
@@ -427,22 +419,37 @@ class Dashboard:
                 return new_figure, subplot_options
 
             if current_graph is not None and len(current_graph["data"]):
-                if changed_layout:
+                # determine the start and end regex matches
+                def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
+                    matches = []
+                    for item in strings:
+                        m = regex.match(item)
+                        if m is not None:
+                            matches.append(m.string)
+                    return sorted(matches)
 
-                    if "xaxis.range[0]" in changed_layout:
-                        t_start = self._to_datetime(
-                            changed_layout["xaxis.range[0]"],
-                        )
-                        t_stop = self._to_datetime(changed_layout["xaxis.range[1]"])
-                        self.fig.check_update_figure_dict(
-                            current_graph, t_start, t_stop
-                        )
-                    elif changed_layout.get("xaxis.autorange", False):
+                if changed_layout:
+                    keys = changed_layout.keys()
+                    start_matches = get_matches(re.compile(r'xaxis\d*.range\[0]'), keys)
+                    stop_matches = get_matches(re.compile(r'xaxis\d*.range\[1]'), keys)
+
+                    if len(start_matches) and len(stop_matches):
+                        for t_start_key, t_stop_key in zip(start_matches, stop_matches):
+                            # check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
+                            assert t_start_key.split('.')[0] == t_stop_key.split('.')[0]
+
+                            self.fig.check_update_figure_dict(
+                                current_graph,
+                                start=changed_layout[t_start_key],
+                                stop=changed_layout[t_stop_key],
+                                xaxis=t_start_key.split('.')[0]
+                            )
+
+                    elif len(get_matches(re.compile(r'xaxis\d*.autorange'), keys)):
+                        # Autorange is applied on all axes -> no xaxis argument
                         self.fig.check_update_figure_dict(current_graph)
                 else:
                     t_start, t_stop = current_graph["layout"]["xaxis"]["range"]
-                    t_start = self._to_datetime(t_start)
-                    t_stop = self._to_datetime(t_stop)
                     self.fig.check_update_figure_dict(current_graph, t_start, t_stop)
                     return current_graph, subplot_options
             return current_graph, subplot_options
