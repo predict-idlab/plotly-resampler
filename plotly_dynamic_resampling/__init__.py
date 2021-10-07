@@ -1,2 +1,1 @@
-
-from .plotlydatamirror import PlotlyDataMirror
+from .figure_resampler import FigureResampler

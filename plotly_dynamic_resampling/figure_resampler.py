@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-Wrapper around the plotly figure to allow bookkeeping and back-end based resampling of
-HF sequential data.
+Wrapper around the the plotly go.Figure class which allows bookkeeping and
+back-end based resampling of high-dimensional sequential data.
 
-Future work:
-    * Add functionality to let the user define a downsampling method
-        -> would use a class based approach here!
-        -> better separation of resampling & adding none to gaps & slicing
+Future work
+------------
+* Add functionality to let the user define a downsampling method
+    -> would use a class based approach here!
+    -> better separation of resampling & adding none to gaps & slicing
+
 
 """
 __author__ = "Jonas Van Der Donckt, Emiel Deprost"
@@ -23,8 +25,9 @@ from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
 
-class PlotlyDataMirror(go.Figure):
-    """Mirrors the figures' `data` attribute to allow resampling on the back-end."""
+class FigureResampler(go.Figure):
+    """Mirrors the go.Figure's `data` attribute to allow resampling in the back-end.
+    """
 
     def __init__(
             self,
@@ -34,7 +37,7 @@ class PlotlyDataMirror(go.Figure):
                     '<b style="color:sandybrown">[R]</b> ', ''),
             verbose: bool = False
     ):
-        """Instantiate a data mirror.
+        """Instantiate a resampling data mirror.
 
         Parameters
         ----------
@@ -49,6 +52,7 @@ class PlotlyDataMirror(go.Figure):
             is shown.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False
+
         """
         self._hf_data: List[dict] = []
         self._global_n_shown_samples = global_n_shown_samples
@@ -203,7 +207,7 @@ class PlotlyDataMirror(go.Figure):
                 #   in [None, 'x']
                 #    -> why None: traces without row/col argument and stand on first row
                 #       and do not have the anchor property
-                # * xaxis != trace['xaxis'] for NON first rows
+                # * x-anchor != trace['xaxis'] for NON first rows
                 if ((x_anchor == 'x' and trace.get("xaxis", None) not in [None, 'x']) or
                         (x_anchor != 'x' and trace.get('xaxis', None) != x_anchor)):
                     continue
