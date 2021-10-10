@@ -14,7 +14,7 @@ Future work
 __author__ = "Jonas Van Der Donckt, Emiel Deprost"
 
 import re
-from typing import List, Optional, Union, Iterable, Tuple
+from typing import List, Optional, Union, Iterable, Tuple, Dict
 from uuid import uuid4
 
 import dash_bootstrap_components as dbc
@@ -54,7 +54,7 @@ class FigureResampler(go.Figure):
             Whether some verbose messages will be printed or not, by default False
 
         """
-        self._hf_data: List[dict] = []
+        self._hf_data: Dict[str, dict] = {}
         self._global_n_shown_samples = global_n_shown_samples
         self._print_verbose = verbose
         assert len(resampled_trace_prefix_suffix) == 2
@@ -78,16 +78,14 @@ class FigureResampler(go.Figure):
             The `hf_data`-trace dict if a match is found, else `None`.
 
         """
-        for trace_data in self._hf_data:
-            if trace_data['uid'] == trace['uid']:
-                return trace_data
-
-        trace_props = {
-            k: trace[k]
-            for k in set(trace.keys()).difference({'x', 'y'})
-        }
-        self._print(f"[W] trace with {trace_props} not found")
-        return None
+        trace_data = self._hf_data.get(trace['uid'])
+        if trace_data is None:
+            trace_props = {
+                k: trace[k]
+                for k in set(trace.keys()).difference({'x', 'y'})
+            }
+            self._print(f"[W] trace with {trace_props} not found")
+        return trace_data
 
     def _print(self, *values):
         """Helper method for printing if `verbose` is set to True"""
@@ -372,15 +370,13 @@ class FigureResampler(go.Figure):
                 assert df_hf.index.is_monotonic_increasing
 
                 axis_type = "date" if isinstance(orig_x, pd.DatetimeIndex) else "linear"
-                self._hf_data.append(
-                    {
-                        "max_n_samples": max_n_samples,
-                        "df_hf": df_hf,
-                        "uid": trace.uid,
-                        'axis_type': axis_type
-                        # "resample_method": "#resample_method,
-                    }
-                )
+                self._hf_data[trace.uid] = {
+                    "max_n_samples": max_n_samples,
+                    "df_hf": df_hf,
+                    'axis_type': axis_type
+                    # "resample_method": "#resample_method,
+                }
+
                 # first resample the high-dim trace b4 converting it into javascript
                 self.check_update_trace_data(trace)
                 super().add_trace(trace=trace, **trace_kwargs)
