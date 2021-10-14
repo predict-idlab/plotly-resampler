@@ -24,6 +24,8 @@ import plotly.graph_objects as go
 from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
+from .downsamplers import AbstractSeriesDownsampler, EveryNthPoint
+
 
 class FigureResampler(go.Figure):
     """Mirrors the go.Figure's `data` attribute to allow resampling in the back-end.
@@ -31,8 +33,9 @@ class FigureResampler(go.Figure):
 
     def __init__(
             self,
-            figure: go.Figure,
-            global_n_shown_samples: int = 1000,
+            figure: go.Figure = go.Figure(),
+            default_n_shown_samples: int = 1000,
+            default_downsampler: AbstractSeriesDownsampler = EveryNthPoint(),
             resampled_trace_prefix_suffix: Tuple[str, str] = (
                     '<b style="color:sandybrown">[R]</b> ', ''),
             verbose: bool = False
@@ -43,9 +46,14 @@ class FigureResampler(go.Figure):
         ----------
         figure: go.Figure
             The figure that will be decorated.
-        global_n_shown_samples: int, optional
+        default_n_shown_samples: int, optional
             The global set number of samples that will be shown for each trace,
             by default 1000.
+        default_downsampler: AbstractSeriesDownsampler
+            A instance which implements the AbstractSeriesDownsampler interface. This will
+            be used as default downsampler.<br>
+            Note, this can be overriden with the `add_trace()` method.
+            by default `EveryNthPoint`
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the `prefix` and `suffix`, respectively, which
             will be added to the trace its name when a resampled version of the trace
@@ -55,12 +63,12 @@ class FigureResampler(go.Figure):
 
         """
         self._hf_data: Dict[str, dict] = {}
-        self._global_n_shown_samples = global_n_shown_samples
+        self._global_n_shown_samples = default_n_shown_samples
         self._print_verbose = verbose
         assert len(resampled_trace_prefix_suffix) == 2
         self._prefix, self._suffix = resampled_trace_prefix_suffix
 
-        self._downsampler = None  # downsampling method, still to be implemented
+        self._global_downsampler = default_downsampler
 
         super().__init__(figure)
 
@@ -81,8 +89,7 @@ class FigureResampler(go.Figure):
         trace_data = self._hf_data.get(trace['uid'])
         if trace_data is None:
             trace_props = {
-                k: trace[k]
-                for k in set(trace.keys()).difference({'x', 'y'})
+                k: trace[k] for k in set(trace.keys()).difference({'x', 'y'})
             }
             self._print(f"[W] trace with {trace_props} not found")
         return trace_data
@@ -157,8 +164,8 @@ class FigureResampler(go.Figure):
                     if len(self._suffix) and name.endswith(self._suffix):
                         trace['name'] = name[:-len(self._suffix)]
 
-            # TODO -> support for other resample methods
-            df_res: pd.Series = self._resample_series(df_data, hf_data["max_n_samples"])
+            downsampler: AbstractSeriesDownsampler = hf_data['downsampler']
+            df_res: pd.Series =  downsampler.downsample(df_data, hf_data["max_n_samples"],)
             trace["x"] = df_res.index
             trace["y"] = df_res.values
         else:
@@ -236,36 +243,6 @@ class FigureResampler(go.Figure):
 
         return df_data[to_same_tz(t_start):to_same_tz(t_stop)]
 
-    @staticmethod
-    def _resample_series(
-            df_data: pd.Series,
-            max_n_samples,
-    ) -> pd.Series:
-        # just use plain simple slicing
-        df_res = df_data[:: (max(1, len(df_data) // max_n_samples))]
-
-        # ------- add None where there are gaps / irregularly sampled data
-        if isinstance(df_res.index, pd.DatetimeIndex):
-            series_index_diff = df_res.index.to_series().diff().dt.total_seconds()
-        else:
-            series_index_diff = df_res.index.to_series().diff()
-
-        # use a quantile based approach
-        min_diff, max_gap_q_s = series_index_diff.quantile(q=[0, 0.95])
-
-        # add None data-points in between the gaps
-        df_res_gap = df_res.loc[series_index_diff > max_gap_q_s].copy()
-        df_res_gap.loc[:] = None
-        if isinstance(df_res.index, pd.DatetimeIndex):
-            df_res_gap.index -= pd.Timedelta(seconds=min_diff / 2)
-        else:
-            df_res_gap.index -= (min_diff / 2)
-        index_name = df_res.index.name
-        df_res = pd.concat(
-            [df_res.reset_index(drop=False), df_res_gap.reset_index(drop=False)]
-        ).set_index(index_name).sort_index()
-        return df_res['data']
-
     def add_trace(
             self,
             trace,
@@ -273,6 +250,7 @@ class FigureResampler(go.Figure):
             orig_x: Iterable = None,
             orig_y: Iterable = None,
             max_n_samples: int = None,
+            downsampler: AbstractSeriesDownsampler = None,
             cut_points_to_view: bool = False,
             **trace_kwargs
     ):
@@ -284,9 +262,9 @@ class FigureResampler(go.Figure):
         long time -> it is preferred to just create an empty trace and pass the
         high dimensional to this method, using the `orig_x` and `orig_y` parameters.
         >>> from plotly.subplots import make_subplots
-        >>> df = pd.DataFrame()  # a high-dimensional dataframe
-        >>> fig = PlotlyDataMirror(make_subplots(...))
-        >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), orig_x=df.index, orig_y=.df['c'])
+        >>> d = pd.DataFrame()  # a high-dimensional dataframe
+        >>> fig = FigureResampler())
+        >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), orig_x=d.index, orig_y=.d['c'])
 
         Note
         ----
@@ -324,6 +302,7 @@ class FigureResampler(go.Figure):
             The maximum number of samples that will be shown by the trace.\n
             .. note::
                 If this variable is not set; `_global_n_shown_samples` will be used.
+        downsampler: AbstractSeriesDownsampler, optional
         cut_points_to_view: boolean, optional
             If set to True and the trace it's format is a high-dimensional trace type,
             then the trace's datapoints will be cut to the corresponding front-end view,
@@ -370,11 +349,12 @@ class FigureResampler(go.Figure):
                 assert df_hf.index.is_monotonic_increasing
 
                 axis_type = "date" if isinstance(orig_x, pd.DatetimeIndex) else "linear"
+
                 self._hf_data[trace.uid] = {
                     "max_n_samples": max_n_samples,
                     "df_hf": df_hf,
-                    'axis_type': axis_type
-                    # "resample_method": "#resample_method,
+                    'axis_type': axis_type,
+                    "downsampler": self._global_downsampler if downsampler is None else downsampler
                 }
 
                 # first resample the high-dim trace b4 converting it into javascript
