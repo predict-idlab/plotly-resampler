@@ -137,23 +137,24 @@ class FigureResampler(go.Figure):
         if hf_data is not None:
             axis_type = hf_data['axis_type']
             if axis_type == 'date':
-                df_data = self._slice_time(
-                    hf_data['df_hf'],
+                hf_series = self._slice_time(
+                    hf_data['hf_series'],
                     pd.to_datetime(start),
                     pd.to_datetime(end)
                 )
             else:
-                df_data = hf_data['df_hf']
-                if isinstance(df_data.index, pd.Int64Index) or \
-                        isinstance(df_data.index, pd.UInt64Index):
+                hf_series: pd.Series = hf_data['hf_series']
+                if isinstance(hf_series.index, pd.Int64Index) or \
+                        isinstance(hf_series.index, pd.UInt64Index):
                     start = round(start) if start is not None else None
                     end = round(end) if start is not None else None
-                df_data = hf_data['df_hf'][start:end]
+
+                hf_series = hf_series[start:end]
 
             # add a prefix when not all data is shown
             if trace['name'] is not None:
                 name: str = trace['name']
-                if len(df_data) > hf_data["max_n_samples"]:
+                if len(hf_series) > hf_data["max_n_samples"]:
                     name = ('' if name.startswith(
                         self._prefix) else self._prefix) + name
                     name += self._suffix if not name.endswith(self._suffix) else ''
@@ -165,9 +166,9 @@ class FigureResampler(go.Figure):
                         trace['name'] = name[:-len(self._suffix)]
 
             downsampler: AbstractSeriesDownsampler = hf_data['downsampler']
-            df_res: pd.Series =  downsampler.downsample(df_data, hf_data["max_n_samples"],)
-            trace["x"] = df_res.index
-            trace["y"] = df_res.values
+            s_res: pd.Series = downsampler.downsample(hf_series, hf_data["max_n_samples"],)
+            trace["x"] = s_res.index
+            trace["y"] = s_res.values
         else:
             self._print('hf_data not found')
 
@@ -221,13 +222,13 @@ class FigureResampler(go.Figure):
 
     @staticmethod
     def _slice_time(
-            df_data: pd.Series,
+            hf_series: pd.Series,
             t_start: Optional[pd.Timestamp] = None,
             t_stop: Optional[pd.Timestamp] = None,
     ) -> pd.Series:
         def to_same_tz(
                 ts: Union[pd.Timestamp, None],
-                reference_tz=df_data.index.tz
+                reference_tz=hf_series.index.tz
         ) -> Union[pd.Timestamp, None]:
             if ts is None:
                 return None
@@ -241,7 +242,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return df_data[to_same_tz(t_start):to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start):to_same_tz(t_stop)]
 
     def add_trace(
             self,
@@ -303,6 +304,7 @@ class FigureResampler(go.Figure):
             .. note::
                 If this variable is not set; `_global_n_shown_samples` will be used.
         downsampler: AbstractSeriesDownsampler, optional
+            The abstract series downsampler method
         cut_points_to_view: boolean, optional
             If set to True and the trace it's format is a high-dimensional trace type,
             then the trace's datapoints will be cut to the corresponding front-end view,
@@ -340,34 +342,39 @@ class FigureResampler(go.Figure):
                 self._print(
                     f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}")
 
-                # we will re-create this each time as df_hf withholds
-                df_hf = pd.Series(data=orig_y, index=orig_x, copy=False)
-                df_hf.rename('data', inplace=True)
-                df_hf.index.rename('timestamp', inplace=True)
+                # we will re-create this each time as orig_y and orig_x withholds
+                # high-frequency data
+                hf_series = pd.Series(data=orig_y, index=orig_x, copy=False)
+                hf_series.rename('data', inplace=True)
+                hf_series.index.rename('timestamp', inplace=True)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
-                assert df_hf.index.is_monotonic_increasing
+                assert hf_series.index.is_monotonic_increasing
 
+                # determine (1) the axis type and (2) the downsampler instance
+                # & (3) add store a  hf_data entry for the corresponding trace,
+                # identified by its UUID
                 axis_type = "date" if isinstance(orig_x, pd.DatetimeIndex) else "linear"
-
+                d = self._global_downsampler if downsampler is None else downsampler
                 self._hf_data[trace.uid] = {
                     "max_n_samples": max_n_samples,
-                    "df_hf": df_hf,
+                    "hf_series": hf_series,
                     'axis_type': axis_type,
-                    "downsampler": self._global_downsampler if downsampler is None else downsampler
+                    "downsampler": d
                 }
 
-                # first resample the high-dim trace b4 converting it into javascript
+                # NOTE: if all the raw data need sent to the javascript, and the trace
+                #  is truly high-dimensional, this would take a lot of time!
+                #  hence, you first downsample the trace.
                 self.check_update_trace_data(trace)
                 super().add_trace(trace=trace, **trace_kwargs)
             else:
-                self._print(
-                    f"[i] NOT resampling {trace['name']} - {numb_samples} samples")
+                self._print(f"[i] NOT resampling {trace['name']} - len={numb_samples}")
                 trace.x = orig_x
                 trace.y = orig_y
                 return super().add_trace(trace=trace, **trace_kwargs)
         else:
-            self._print(f"trace {trace['type']} is not a high-dimensional trace")
+            self._print(f"trace {trace['type']} is not a high-frequency trace")
 
             # orig_x and orig_y have priority over the traces' data
             trace["x"] = trace["x"] if orig_x is not None else orig_x
