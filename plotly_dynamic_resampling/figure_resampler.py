@@ -156,20 +156,19 @@ class FigureResampler(go.Figure):
 
                 hf_series = hf_series[start:end]
 
-            # add a prefix when not all data is shown
-            if trace["name"] is not None:
-                name: str = trace["name"]
-                if len(hf_series) > hf_data["max_n_samples"]:
-                    name = (
-                        "" if name.startswith(self._prefix) else self._prefix
-                    ) + name
-                    name += self._suffix if not name.endswith(self._suffix) else ""
-                    trace["name"] = name
-                else:
-                    if len(self._prefix) and name.startswith(self._prefix):
-                        trace["name"] = name[len(self._prefix) :]
-                    if len(self._suffix) and name.endswith(self._suffix):
-                        trace["name"] = name[: -len(self._suffix)]
+            # Add a prefix when the original data is downsampled
+            name: str = trace["name"]
+            if len(hf_series) > hf_data["max_n_samples"]:
+                name = (
+                    "" if name.startswith(self._prefix) else self._prefix
+                ) + name
+                name += self._suffix if not name.endswith(self._suffix) else ""
+                trace["name"] = name
+            else:
+                if len(self._prefix) and name.startswith(self._prefix):
+                    trace["name"] = name[len(self._prefix) :]
+                if len(self._suffix) and name.endswith(self._suffix):
+                    trace["name"] = name[: -len(self._suffix)]
 
             downsampler: AbstractSeriesDownsampler = hf_data["downsampler"]
             s_res: pd.Series = downsampler.downsample(
@@ -213,8 +212,12 @@ class FigureResampler(go.Figure):
         """
         for trace in figure["data"]:
             if xaxis is not None:
-                # the x-anchor of is stored in the layout data
-                y_axis = "y" + xaxis[1:]
+                # the x-anchor of the trace is stored in the layout data
+                if trace.get('yaxis') is None:
+                    # no yaxis -> we make the assumption that yaxis = xaxis
+                    y_axis = 'y' + xaxis[1:]
+                else:
+                    y_axis = 'yaxis' + trace.get('yaxis')[1:]
                 x_anchor = figure["layout"][y_axis].get("anchor")
                 # we skip when:
                 # * the change was made on the first row and the trace its anchor is not
@@ -250,7 +253,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start):to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -372,6 +375,13 @@ class FigureResampler(go.Figure):
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
+
+                # As we support prefix-suffixing of downsampled data, we assure that
+                # each trace has a name
+                # https://github.com/plotly/plotly.py/blob/ce0ed07d872c487698bde9d52e1f1aadf17aa65f/packages/python/plotly/plotly/basedatatypes.py#L539
+                # The link above indicates that the trace index is derived from `data`
+                if trace.name is None:
+                    trace.name = f"trace {len(self.data)}"
 
                 # determine (1) the axis type and (2) the downsampler instance
                 # & (3) add store a  hf_data entry for the corresponding trace,
