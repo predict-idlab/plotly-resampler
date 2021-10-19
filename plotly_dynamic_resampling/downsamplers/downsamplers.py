@@ -3,7 +3,7 @@
 """
 __author__ = "Jonas Van Der Donckt"
 
-from ..downsamplers.resampling_interface import AbstractSeriesDownsampler
+from ..downsamplers.downsampling_interface import AbstractSeriesDownsampler
 import pandas as pd
 
 import lttbc
