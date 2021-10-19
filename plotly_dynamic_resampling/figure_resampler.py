@@ -23,9 +23,9 @@ from typing import List, Optional, Union, Iterable, Tuple, Dict
 from uuid import uuid4
 
 import dash_bootstrap_components as dbc
-import dash_core_components as dcc
 import pandas as pd
 import plotly.graph_objects as go
+from dash import dcc
 from dash.dependencies import Input, Output, State
 from jupyter_dash import JupyterDash
 
