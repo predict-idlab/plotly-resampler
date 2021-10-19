@@ -24,6 +24,7 @@ from uuid import uuid4
 
 import dash_bootstrap_components as dbc
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 from dash import dcc
 from dash.dependencies import Input, Output, State
@@ -355,6 +356,13 @@ class FigureResampler(go.Figure):
                 if isinstance(orig_y, pd.Series)
                 else orig_y
             )
+            
+            # Remove NaNs for efficiency (storing less meaningless data)
+            try:
+                orig_x = orig_x[~np.isnan(orig_y)]
+                orig_y = orig_y[~np.isnan(orig_y)]
+            except:
+                pass
 
             assert len(orig_x) > 0
             assert len(orig_x) == len(orig_y)
