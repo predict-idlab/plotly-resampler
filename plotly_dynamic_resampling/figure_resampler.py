@@ -264,7 +264,7 @@ class FigureResampler(go.Figure):
         orig_y: Iterable = None,
         max_n_samples: int = None,
         downsampler: AbstractSeriesDownsampler = None,
-        cut_points_to_view: bool = False,
+        limit_to_view: bool = True,
         **trace_kwargs,
     ):
         """Add a trace to the figure.
@@ -279,17 +279,16 @@ class FigureResampler(go.Figure):
         >>> fig = FigureResampler())
         >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), orig_x=d.index, orig_y=.d['c'])
 
-        Note
-        ----
-        Sparse time-series data (e.g., a scatter of detected peaks), can hinder the
-        the automatic-zoom functionality; as these will not be stored in the data-mirror
-        and thus not be (re)sampled to the view. To circumvent this, the
-        `cut_points_to_view` argument can be set, which forces these sparse data-series
-        to be also stored in the database.
-
-        Note
-        ----
-        `orig_x` and `orig_y` have priority over the trace's data.
+        Notes
+        -----
+        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples` to the
+            size of your trace!
+        * Sparse time-series data (e.g., a scatter of detected peaks), can hinder the
+          the automatic-zoom functionality; as these will not be stored in the
+          back-end data-mirror and thus not be (re)sampled to the view.<br>
+          To circumvent this, the `cut_points_to_view` argument can be set, which forces
+          these sparse data-series to be also stored in the database.
+        * `orig_x` and `orig_y` have priority over the trace's data.
 
         Parameters
         ----------
@@ -317,10 +316,10 @@ class FigureResampler(go.Figure):
                 If this variable is not set; `_global_n_shown_samples` will be used.
         downsampler: AbstractSeriesDownsampler, optional
             The abstract series downsampler method
-        cut_points_to_view: boolean, optional
+        limit_to_view: boolean, optional
             If set to True and the trace it's format is a high-frequency trace type,
             then the trace's datapoints will be cut to the corresponding front-end view,
-            even if the total number of samples is lower than the MAX amount of samples.
+            even if the total number of samples is lower than `max_n_samples`.
         **trace_kwargs:
             Additional trace related keyword arguments
             e.g.: row=.., col=..., secondary_y=...,
@@ -370,9 +369,9 @@ class FigureResampler(go.Figure):
             assert len(orig_x) == len(orig_y)
 
             numb_samples = len(orig_x)
-            # These traces will determine the autoscale
-            #   -> so also store when cut_points_to_view` is set.
-            if numb_samples > max_n_samples or cut_points_to_view:
+            # These traces will determine the autoscale RANGE!
+            #   -> so also store when limit_to_view` is set.
+            if numb_samples > max_n_samples or limit_to_view:
                 self._print(
                     f"[i] resample {trace['name']} - {numb_samples}->{max_n_samples}"
                 )
