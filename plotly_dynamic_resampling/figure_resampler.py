@@ -356,8 +356,10 @@ class FigureResampler(go.Figure):
                 if isinstance(orig_y, pd.Series)
                 else orig_y
             )
-            
+
             # Remove NaNs for efficiency (storing less meaningless data)
+            # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
+            # the resampling algorithms
             try:
                 orig_x = orig_x[~np.isnan(orig_y)]
                 orig_y = orig_y[~np.isnan(orig_y)]
