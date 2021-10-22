@@ -52,10 +52,7 @@ class AbstractSeriesDownsampler(ABC):
             df_res_gap = s.loc[series_index_diff > max_gap_q_s].copy()
             if len(df_res_gap):
                 df_res_gap.loc[:] = None
-                if isinstance(s.index, pd.DatetimeIndex):
-                    df_res_gap.index -= pd.Timedelta(seconds=min_diff / 2)
-                else:
-                    df_res_gap.index -= df_res_gap.index.dtype.type(min_diff)
+                # note: the order of pd.concat is important for correct visualization
                 return pd.concat([df_res_gap, s], ignore_index=False).sort_index()
         return s
 
