@@ -144,11 +144,15 @@ class FigureResampler(go.Figure):
                 )
             else:
                 hf_series: pd.Series = hf_data["hf_series"]
+                start = hf_series.index[0] if start is None else start
+                end = hf_series.index[-1] if end is None else end
                 if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
-                    start = round(start) if start is not None else None
-                    end = round(end) if start is not None else None
+                    start = round(start)
+                    end = round(end)
 
-                hf_series = hf_series[start:end]
+                # Search the index-positions
+                start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
+                hf_series = hf_series[start_idx:end_idx]
 
             # Add a prefix when the original data is downsampled
             name: str = trace["name"]
