@@ -39,7 +39,7 @@ class LTTB(AbstractSeriesDownsampler):
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
         idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s.values, n_out)
         return pd.Series(
-            index=s.iloc[idx.astype(int)].index.astype(s.index.dtype),
+            index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
             data=data,
             name=s.name,
             copy=False
@@ -86,11 +86,12 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window
         # Note: this can be adjusted to .5 to center the data
-        # multiply is with the croup size to get the real index-position
-        indec_locs = (np.arange(len(s_out)) + 1) * group_size
-        indec_locs[-1] = len(s) - 1
+        # Multiply it with the group size to get the real index-position
+        # TODO: add option to select start / middle / end as index
+        idx_locs = (np.arange(len(s_out)) + 1) * group_size
+        idx_locs[-1] = len(s) - 1
         return pd.Series(
-            index=s.iloc[indec_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
+            index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
             data=s_out.values,
             name=s.name,
             copy=False
