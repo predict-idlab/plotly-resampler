@@ -55,11 +55,8 @@ class AbstractSeriesDownsampler(ABC):
                 if isinstance(s.index, pd.DatetimeIndex):
                     df_res_gap.index -= pd.Timedelta(seconds=min_diff / 2)
                 else:
-                    df_res_gap.index -= (min_diff / 2)
-                index_name = s.index.name
-                return pd.concat(
-                    [s.reset_index(drop=False), df_res_gap.reset_index(drop=False)]
-                ).set_index(index_name).sort_index().iloc[:, 0]
+                    df_res_gap.index -= df_res_gap.index.dtype.type(min_diff)
+                return pd.concat([df_res_gap, s], ignore_index=False).sort_index()
         return s
 
     def downsample(self, s: pd.Series, n_out: int) -> pd.Series:
