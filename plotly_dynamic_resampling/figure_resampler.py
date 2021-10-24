@@ -478,7 +478,6 @@ class FigureResampler(go.Figure):
             self._print(f"trace {trace['type']} is not a high-frequency trace")
 
             # hf_x and hf_y have priority over the traces' data
-            # TODO: @JONAS verify this
             trace["x"] = trace["x"] if hf_x is None else hf_x
             trace["y"] = trace["y"] if hf_y is None else hf_y
             assert len(trace["x"]) > 0
