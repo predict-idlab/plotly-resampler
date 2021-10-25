@@ -15,9 +15,10 @@ from ..downsamplers.downsampling_interface import AbstractSeriesDownsampler
 class LTTB(AbstractSeriesDownsampler):
     """LTTB downsampler method
 
-    Note
-    ----
-    Only works on numerical data is this uses distance based measures within the data.
+    Notes
+    -----
+    * Mainly designed to work on numerical data as this algorithm uses distance based
+      measures within the data.
 
     """
 
@@ -27,7 +28,8 @@ class LTTB(AbstractSeriesDownsampler):
     ):
         super().__init__(
             interleave_gaps,
-            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]],
+            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]] +
+                             ['category'],
         )
 
     # TODO -> check whether these are able to deal with non-int based datatypes
@@ -37,7 +39,10 @@ class LTTB(AbstractSeriesDownsampler):
     # create a new C-file for which we support downsampling of categorical data
     # how often would this be useful?
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
-        idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s.values, n_out)
+        s_v = s.cat.codes.values if str(s.dtype) == 'category' else s.values
+        idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s_v, n_out)
+        if str(s.dtype) == 'category':
+            data = np.vectorize(s.dtype.categories.values.item)(data.astype(s_v.dtype))
         return pd.Series(
             index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
             data=data,
@@ -48,10 +53,9 @@ class LTTB(AbstractSeriesDownsampler):
 
 class EveryNthPoint(AbstractSeriesDownsampler):
     """Naive (but fast) downsampler method which returns every n'th point."""
-
-    def _supports_dtype(self, s: pd.Series) -> bool:
+    def __init__(self, interleave_gaps: bool = True ):
         # this downsampler supports all pd.Series dtypes
-        return True
+        return super().__init__(interleave_gaps, dtype_regex_list=None)
 
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
         return s[:: max(1, math.ceil(len(s) / n_out))]
@@ -59,7 +63,6 @@ class EveryNthPoint(AbstractSeriesDownsampler):
 
 class AggregationDownsampler(AbstractSeriesDownsampler):
     """Downsampler method which uses the passed aggregation func."""
-
     def __init__(
         self, aggregation_func, interleave_gaps: bool = True, supported_dtypes=None
     ):
