@@ -413,7 +413,7 @@ class FigureResampler(go.Figure):
                 hf_y = hf_y[nan_values_mask]
                 # Note: this also converts hf_hovertext to a np.ndarray
                 if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                    hf_hovertext = np.ndarray(hf_hovertext)[nan_values_mask]
+                    hf_hovertext = np.array(hf_hovertext)[nan_values_mask]
             except:
                 pass
 
