@@ -294,7 +294,7 @@ class FigureResampler(go.Figure):
         trace,
         max_n_samples: int = None,
         downsampler: AbstractSeriesDownsampler = None,
-        limit_to_view: bool = True,
+        limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
         hf_y: Iterable = None,
@@ -351,6 +351,7 @@ class FigureResampler(go.Figure):
             If set to True and the trace it's format is a high-frequency trace type,
             then the trace's datapoints will be cut to the corresponding front-end view,
             even if the total number of samples is lower than `max_n_samples`.
+            By default False.
         hf_x: Iterable, optional
             The original high frequency series positions, can be either a time-series or
             an increasing, numerical index. If set, this has priority over the trace its
