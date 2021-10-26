@@ -13,12 +13,22 @@ from ..downsamplers.downsampling_interface import AbstractSeriesDownsampler
 
 
 class LTTB(AbstractSeriesDownsampler):
-    """LTTB downsampler method
+    """Largest Triangle Three Bucket (LTTB) downsampler method.
 
     Notes
     -----
-    * Mainly designed to work on numerical data as this algorithm uses distance based
-      measures within the data.
+    * This class is mainly designed to operate on numerical data as LTTB calculates 
+      distances on the values.<br>
+      When dealing with categories, the data is encoded into its numeric codes, 
+      these codes are the indices of the category array.
+    * To downsample category data with LTTB, your `pd.Series` must be of dtype 
+      'category'.<br>
+      **pro tip**: If there is an order in your categories, order them that way, LTTB
+       uses the ordered category codes values (se bullet above) to calculate distances
+       and make downsample decisions.
+      >>> s = pd.Series(["a", "b", "c", "a"])
+      >>> cat_type = CategoricalDtype(categories=["b", "c", "d"], ordered=True)
+      >>> s_cat = s.astype(cat_type)
 
     """
 
@@ -32,17 +42,17 @@ class LTTB(AbstractSeriesDownsampler):
                              ['category'],
         )
 
-    # TODO -> check whether these are able to deal with non-int based datatypes
-    # Wont work as you work with distances -> no categorical data downsample techniques
-    # Maybe create a proxy for categorical data
-    # but how can we ensure equidistant things? one-hot? LTTB use when one-hot?
-    # create a new C-file for which we support downsampling of categorical data
-    # how often would this be useful?
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
+        # if we have categorical data, LTTB will convert the categorical values into
+        # their numeric codes, i.e., the index position of the category array
         s_v = s.cat.codes.values if str(s.dtype) == 'category' else s.values
+
         idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s_v, n_out)
+        
         if str(s.dtype) == 'category':
+            # Reconvert the downsampled numeric codes to the category array
             data = np.vectorize(s.dtype.categories.values.item)(data.astype(s_v.dtype))
+        
         return pd.Series(
             index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
             data=data,
