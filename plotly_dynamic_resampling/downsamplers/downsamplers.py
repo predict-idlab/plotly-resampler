@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Compatible implementation for various downsample methods
-"""
+"""Compatible implementation for various downsample methods."""
+
 __author__ = "Jonas Van Der Donckt"
 
 import math
@@ -17,11 +17,11 @@ class LTTB(AbstractSeriesDownsampler):
 
     Notes
     -----
-    * This class is mainly designed to operate on numerical data as LTTB calculates 
+    * This class is mainly designed to operate on numerical data as LTTB calculates
       distances on the values.<br>
-      When dealing with categories, the data is encoded into its numeric codes, 
+      When dealing with categories, the data is encoded into its numeric codes,
       these codes are the indices of the category array.
-    * To downsample category data with LTTB, your `pd.Series` must be of dtype 
+    * To downsample category data with LTTB, your `pd.Series` must be of dtype
       'category'.<br>
       **pro tip**: If there is an order in your categories, order them that way, LTTB
        uses the ordered category codes values (se bullet above) to calculate distances
@@ -39,7 +39,7 @@ class LTTB(AbstractSeriesDownsampler):
         super().__init__(
             interleave_gaps,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]] +
-                             ['category'],
+                             ['category', 'bool'],
         )
 
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
@@ -48,11 +48,17 @@ class LTTB(AbstractSeriesDownsampler):
         s_v = s.cat.codes.values if str(s.dtype) == 'category' else s.values
 
         idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s_v, n_out)
-        
-        if str(s.dtype) == 'category':
-            # Reconvert the downsampled numeric codes to the category array
+
+        if s.dtype == "category":
+            # reconvert the downsampled numeric codes to the category array
             data = np.vectorize(s.dtype.categories.values.item)(data.astype(s_v.dtype))
-        
+        elif s.dtype == "bool":
+            # convert the bool values to uint8 (as we will display them on a y-axis)
+            data = data.astype("uint8")
+        else:
+            # default case, use the series it's dtype as return type
+            data = data.astype(s.dtype)
+
         return pd.Series(
             index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
             data=data,
@@ -68,11 +74,20 @@ class EveryNthPoint(AbstractSeriesDownsampler):
         return super().__init__(interleave_gaps, dtype_regex_list=None)
 
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
-        return s[:: max(1, math.ceil(len(s) / n_out))]
+        out = s[:: max(1, math.ceil(len(s) / n_out))]
+        return out.astype('uint8t') if s.dtype == 'bool' else out
 
 
 class AggregationDownsampler(AbstractSeriesDownsampler):
-    """Downsampler method which uses the passed aggregation func."""
+    """Downsampler method which uses the passed aggregation func.
+
+    Notes
+    -----
+    * The user has total control which aggregation_func is passed to this method,
+      hence it is the users' responisbility to handle categorical and bool-based
+      datatypes.
+
+    """
     def __init__(
         self, aggregation_func, interleave_gaps: bool = True, supported_dtypes=None
     ):
