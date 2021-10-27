@@ -49,10 +49,10 @@ class LTTB(AbstractSeriesDownsampler):
 
         idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s_v, n_out)
 
-        if s.dtype == "category":
+        if str(s.dtype) == "category":
             # reconvert the downsampled numeric codes to the category array
             data = np.vectorize(s.dtype.categories.values.item)(data.astype(s_v.dtype))
-        elif s.dtype == "bool":
+        elif str(s.dtype) == "bool":
             # convert the bool values to uint8 (as we will display them on a y-axis)
             data = data.astype("uint8")
         else:
@@ -75,7 +75,7 @@ class EveryNthPoint(AbstractSeriesDownsampler):
 
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
         out = s[:: max(1, math.ceil(len(s) / n_out))]
-        return out.astype('uint8t') if s.dtype == 'bool' else out
+        return out.astype('uint8t') if str(s.dtype) == 'bool' else out
 
 
 class AggregationDownsampler(AbstractSeriesDownsampler):
