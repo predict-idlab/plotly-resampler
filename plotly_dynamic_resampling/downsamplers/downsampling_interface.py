@@ -1,6 +1,6 @@
 """AbstractSeriesDownsampler interface-class, subclassed by concrete downsamplers."""
 
-__author__ = 'Jonas Van Der Donckt'
+__author__ = "Jonas Van Der Donckt"
 
 import re
 from abc import ABC, abstractmethod
@@ -11,10 +11,8 @@ import pandas as pd
 
 class AbstractSeriesDownsampler(ABC):
     def __init__(
-            self,
-            interleave_gaps: bool = True,
-            dtype_regex_list: List[str] = None
-    ) -> None:
+        self, interleave_gaps: bool = True, dtype_regex_list: List[str] = None
+    ):
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
         self.max_gap_q = 0.95
@@ -52,8 +50,13 @@ class AbstractSeriesDownsampler(ABC):
             df_res_gap = s.loc[series_index_diff > max_gap_q_s].copy()
             if len(df_res_gap):
                 df_res_gap.loc[:] = None
-                # note: the order of pd.concat is important for correct visualization
-                return pd.concat([df_res_gap, s], ignore_index=False).sort_index()
+                # Note:
+                #  * the order of pd.concat is important for correct visualization
+                #  * we also need a stable algorithm for sorting, i.e., the equal-index
+                #    data-entries their order will be maintained.
+                return pd.concat([df_res_gap, s], ignore_index=False).sort_index(
+                    kind="mergesort"
+                )
         return s
 
     def downsample(self, s: pd.Series, n_out: int) -> pd.Series:
