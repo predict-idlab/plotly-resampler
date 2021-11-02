@@ -27,7 +27,7 @@ class LTTB(AbstractSeriesDownsampler):
        uses the ordered category codes values (se bullet above) to calculate distances
        and make downsample decisions.
       >>> s = pd.Series(["a", "b", "c", "a"])
-      >>> cat_type = CategoricalDtype(categories=["b", "c", "d"], ordered=True)
+      >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
       >>> s_cat = s.astype(cat_type)
 
     """
