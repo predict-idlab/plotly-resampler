@@ -294,7 +294,7 @@ class FigureResampler(go.Figure):
         trace,
         max_n_samples: int = None,
         downsampler: AbstractSeriesDownsampler = None,
-        limit_to_view: bool = True,
+        limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
         hf_y: Iterable = None,
@@ -318,15 +318,15 @@ class FigureResampler(go.Figure):
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * Sparse time-series data (e.g., a scatter of detected peaks), can hinder the
-          the automatic-zoom (y-scaling) functionality; as these will not be stored in 
-          the back-end data-mirror and thus not be scaled to the view.<br>
+        * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
+          the the automatic-zoom (y-scaling) functionality as these will not be stored
+          in the back-end datamirror and thus not be scaled to the view.<br>
           To circumvent this, the `limit_to_view` argument can be set, which forces
-          these sparse data-series to be also stored in the database.
+          these low-frequency series to be also stored in the back-end.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
           of data (as it can increase the speed of this add_trace() method with ~30%)
-          Note: these arguments have priority over the trace's data and (hover)text
-            attributes.
+          Note: These arguments have priority over the trace's data and (hover)text 
+          attributes.
 
         Parameters
         ----------
@@ -348,9 +348,9 @@ class FigureResampler(go.Figure):
         downsampler: AbstractSeriesDownsampler, optional
             The abstract series downsampler method
         limit_to_view: boolean, optional
-            If set to True and the trace it's format is a high-frequency trace type,
-            then the trace's datapoints will be cut to the corresponding front-end view,
-            even if the total number of samples is lower than `max_n_samples`.
+            If set to True the trace's datapoints will be cut to the corresponding
+            front-end view, even if the total number of samples is lower than 
+            `max_n_samples`, By default False.
         hf_x: Iterable, optional
             The original high frequency series positions, can be either a time-series or
             an increasing, numerical index. If set, this has priority over the trace its
