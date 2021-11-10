@@ -473,6 +473,7 @@ class FigureResampler(go.Figure):
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
                 trace.x = hf_x
                 trace.y = hf_y
+                trace.text = hf_hovertext
                 return super().add_trace(trace=trace, **trace_kwargs)
         else:
             self._print(f"trace {trace['type']} is not a high-frequency trace")
