@@ -152,7 +152,7 @@ class FigureResampler(go.Figure):
 
                 # Search the index-positions
                 start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
-                hf_series = hf_series[start_idx:end_idx]
+                hf_series = hf_series.iloc[start_idx:end_idx]
 
             # Add a prefix when the original data is downsampled
             name: str = trace["name"]
