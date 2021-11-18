@@ -58,7 +58,7 @@ class FigureResampler(go.Figure):
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the `prefix` and `suffix`, respectively, which
             will be added to the trace its name when a resampled version of the trace
-            is shown, by default a bold, orange `[R]` is shown as prefix 
+            is shown, by default a bold, orange `[R]` is shown as prefix
             (no suffix is shown).
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
@@ -157,9 +157,7 @@ class FigureResampler(go.Figure):
             # Add a prefix when the original data is downsampled
             name: str = trace["name"]
             if len(hf_series) > hf_data["max_n_samples"]:
-                name = (
-                    "" if name.startswith(self._prefix) else self._prefix
-                ) + name
+                name = ("" if name.startswith(self._prefix) else self._prefix) + name
                 name += self._suffix if not name.endswith(self._suffix) else ""
                 trace["name"] = name
             else:
@@ -177,17 +175,17 @@ class FigureResampler(go.Figure):
             trace["y"] = s_res.values
 
             # Check if hovertext also needs to be resampled
-            hovertext = hf_data.get('hovertext')
+            hovertext = hf_data.get("hovertext")
             if isinstance(hovertext, pd.Series):
-                trace['hovertext'] = pd.merge_asof(
+                trace["hovertext"] = pd.merge_asof(
                     s_res,
                     hovertext,
                     left_index=True,
                     right_index=True,
-                    direction='nearest'
+                    direction="nearest",
                 )[hovertext.name].values
             else:
-                trace['hovertext'] = hovertext
+                trace["hovertext"] = hovertext
         else:
             self._print("hf_data not found")
 
@@ -196,7 +194,7 @@ class FigureResampler(go.Figure):
         figure: dict,
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
-        xaxis: str = None,
+        xaxis_filter: str = None,
     ):
         """Check and update the traces within the figure dict.
 
@@ -216,30 +214,36 @@ class FigureResampler(go.Figure):
             The start time for the new resampled data view, by default None.
         stop : Union[float, str], optional
             The end time for the new resampled data view, by default None.
-        xaxis: str, Optional
+        xaxis_filter: str, Optional
             Additional trace-update subplot filter.
 
         """
+        xaxis_filter_short = None
+        if xaxis_filter is not None:
+            xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis_filter")
+
         for trace in figure["data"]:
-            if xaxis is not None:
+            if xaxis_filter is not None:
                 # the x-anchor of the trace is stored in the layout data
-                if trace.get('yaxis') is None:
-                    # no yaxis -> we make the assumption that yaxis = xaxis
-                    y_axis = 'y' + xaxis[1:]
+                if trace.get("yaxis") is None:
+                    # no yaxis -> we make the assumption that yaxis = xaxis_filter_short
+                    y_axis = "y" + xaxis_filter[1:]
                 else:
-                    y_axis = 'yaxis' + trace.get('yaxis')[1:]
-                x_anchor = figure["layout"][y_axis].get("anchor")
+                    y_axis = "yaxis" + trace.get("yaxis")[1:]
+                x_anchor_trace = figure["layout"][y_axis].get("anchor")
+
                 # we skip when:
                 # * the change was made on the first row and the trace its anchor is not
                 #   in [None, 'x']
                 #   -> why None: traces without row/col argument and stand on first row
                 #      and do not have the anchor property (hence the DICT.get() method)
-                # * x-anchor != trace['xaxis'] for NON first rows
+                # * x-anchor-trace != xaxis_filter-short for NON first rows
                 if (
-                    x_anchor == "x" and trace.get("xaxis", None) not in [None, "x"]
-                ) or (x_anchor != "x" and trace.get("xaxis", None) != x_anchor):
+                    xaxis_filter_short == "x" and x_anchor_trace not in [None, "x"]
+                ) or (
+                    xaxis_filter_short != "x" and x_anchor_trace != xaxis_filter_short
+                ):
                     continue
-
             self.check_update_trace_data(trace=trace, start=start, end=stop)
 
     @staticmethod
@@ -287,7 +291,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start):to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -325,7 +329,7 @@ class FigureResampler(go.Figure):
           these low-frequency series to be also stored in the back-end.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
           of data (as it can increase the speed of this add_trace() method with ~30%)
-          Note: These arguments have priority over the trace's data and (hover)text 
+          Note: These arguments have priority over the trace's data and (hover)text
           attributes.
 
         Parameters
@@ -349,7 +353,7 @@ class FigureResampler(go.Figure):
             The abstract series downsampler method
         limit_to_view: boolean, optional
             If set to True the trace's datapoints will be cut to the corresponding
-            front-end view, even if the total number of samples is lower than 
+            front-end view, even if the total number of samples is lower than
             `max_n_samples`, By default False.
         hf_x: Iterable, optional
             The original high frequency series positions, can be either a time-series or
@@ -395,14 +399,14 @@ class FigureResampler(go.Figure):
             )
             hf_hovertext = (
                 hf_hovertext if hf_hovertext is not None
-                else trace["hovertext"] if trace['hovertext'] is not None
-                else trace['text']
+                else trace["hovertext"] if trace["hovertext"] is not None
+                else trace["text"]
             )
 
             # Make sure to set the text-attribute to None as the default plotly behavior
             # for these high-dimensional traces (scatters) is that text will be shown in
             # hovertext and not in on-graph texts (as is the case with bar-charts)
-            trace['text'] = None
+            trace["text"] = None
 
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
@@ -411,6 +415,11 @@ class FigureResampler(go.Figure):
                 nan_values_mask = ~np.isnan(hf_y)
                 hf_x = hf_x[nan_values_mask]
                 hf_y = hf_y[nan_values_mask]
+                # orjson encoding doesn't like to encode with uint8 & uint16 dtype
+                if isinstance(hf_y, (pd.Series, np.ndarray)):
+                    if str(hf_y.dtype) in ["uint8", "uint16"]:
+                        hf_y = hf_y.astype("uint32")
+
                 # Note: this also converts hf_hovertext to a np.ndarray
                 if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
                     hf_hovertext = np.array(hf_hovertext)[nan_values_mask]
@@ -425,7 +434,7 @@ class FigureResampler(go.Figure):
             #   ValueError will be thrown
             if isinstance(hf_hovertext, np.ndarray):
                 hf_hovertext = pd.Series(
-                    data=hf_hovertext, index=hf_x, copy=False, name='hovertext'
+                    data=hf_hovertext, index=hf_x, copy=False, name="hovertext"
                 )
 
             n_samples = len(hf_x)
@@ -438,7 +447,7 @@ class FigureResampler(go.Figure):
 
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
-                hf_series = pd.Series(data=hf_y, index=hf_x, copy=False).rename('data')
+                hf_series = pd.Series(data=hf_y, index=hf_x, copy=False).rename("data")
                 hf_series.index.rename("timestamp", inplace=True)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
@@ -461,7 +470,7 @@ class FigureResampler(go.Figure):
                     "hf_series": hf_series,
                     "axis_type": axis_type,
                     "downsampler": d,
-                    "hovertext": hf_hovertext
+                    "hovertext": hf_hovertext,
                 }
 
                 # NOTE: if all the raw data needs to be sent to the javascript, and
@@ -517,7 +526,8 @@ class FigureResampler(go.Figure):
         def update_graph(changed_layout: dict, current_graph):
             if changed_layout:
                 self._print("-" * 100 + "\n", "changed layout", changed_layout)
-
+                # for debugging purposes; uncomment the line below and save fig dict
+                # self._fig_dict = current_graph
                 def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
                     """Returns all the items in `strings` wich regex.match `regex`."""
                     matches = []
@@ -531,7 +541,6 @@ class FigureResampler(go.Figure):
                 cl_keys = changed_layout.keys()
                 start_matches = get_matches(re.compile(r"xaxis\d*.range\[0]"), cl_keys)
                 stop_matches = get_matches(re.compile(r"xaxis\d*.range\[1]"), cl_keys)
-
                 if len(start_matches) and len(stop_matches):
                     for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                         # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
@@ -540,15 +549,18 @@ class FigureResampler(go.Figure):
                             current_graph,
                             start=changed_layout[t_start_key],
                             stop=changed_layout[t_stop_key],
-                            xaxis=t_start_key.split(".")[0],
+                            xaxis_filter=t_start_key.split(".")[0],
                         )
                 elif len(get_matches(re.compile(r"xaxis\d*.autorange"), cl_keys)):
-                    # Autorange is applied on all axes -> no xaxis argument
+                    # Autorange is applied on all axes -> no xaxis_filter argument
                     self.check_update_figure_dict(current_graph)
             return current_graph
 
         # If figure height is specified -> re-use is for inline dash app height
-        if self.layout.height is not None and mode == "inline"\
-                and 'height' not in kwargs:
+        if (
+            self.layout.height is not None
+            and mode == "inline"
+            and "height" not in kwargs
+        ):
             kwargs["height"] = self.layout.height + 18
         app.run_server(mode=mode, **kwargs)
