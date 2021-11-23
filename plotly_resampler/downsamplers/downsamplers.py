@@ -69,9 +69,9 @@ class LTTB(AbstractSeriesDownsampler):
 
 class EveryNthPoint(AbstractSeriesDownsampler):
     """Naive (but fast) downsampler method which returns every n'th point."""
-    def __init__(self, interleave_gaps: bool = True ):
+    def __init__(self, interleave_gaps: bool = True):
         # this downsampler supports all pd.Series dtypes
-        return super().__init__(interleave_gaps, dtype_regex_list=None)
+        super().__init__(interleave_gaps, dtype_regex_list=None)
 
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
         out = s[:: max(1, math.ceil(len(s) / n_out))]

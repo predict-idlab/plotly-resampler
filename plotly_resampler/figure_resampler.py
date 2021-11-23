@@ -291,7 +291,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -316,7 +316,7 @@ class FigureResampler(go.Figure):
         >>> from plotly.subplots import make_subplots
         >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
         >>> fig = FigureResampler(go.Figure())
-        >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s, downsampler=LTTB())
+        >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
 
         Notes
         -----
@@ -527,9 +527,11 @@ class FigureResampler(go.Figure):
             if changed_layout:
                 self._print("-" * 100 + "\n", "changed layout", changed_layout)
                 # for debugging purposes; uncomment the line below and save fig dict
+                # TODO -> when verbose maybe save _fig_dict
                 # self._fig_dict = current_graph
+
                 def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
-                    """Returns all the items in `strings` wich regex.match `regex`."""
+                    """Returns all the items in `strings` which regex.match `regex`."""
                     matches = []
                     for item in strings:
                         m = regex.match(item)
