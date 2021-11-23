@@ -75,7 +75,7 @@ class EveryNthPoint(AbstractSeriesDownsampler):
 
     def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
         out = s[:: max(1, math.ceil(len(s) / n_out))]
-        return out.astype('uint8t') if str(s.dtype) == 'bool' else out
+        return out.astype('uint8') if str(s.dtype) == 'bool' else out
 
 
 class AggregationDownsampler(AbstractSeriesDownsampler):
