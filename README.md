@@ -6,7 +6,7 @@
 
 ---
 
-`plotly_resampler` enables snappy, interactive visualiziations of large sequences of data by decorating plotly figures.
+`plotly_resampler` enables interactive visualizations of large sequential data by decorating plotly figures.
 
 <p align="center">
     <a href="#readme">
@@ -29,17 +29,23 @@
 
 ## Usage
 
+To add dynamic resampling to your plotly Figure, you should;
+- Wrap the constructor of your plotly Figure with `FigureResampler`
+- [OPTIONAL] Add the trace data as `hf_x` and `hf_y` (for faster initial loading)
+- Call `.show_dash()` on the Figure
+
 ### Minimalistic example
 
 ```python
 import plotly.graph_objects as go; import numpy as np
 from plotly_resampler import FigureResampler
 
-n = 1_000_000
-x = np.arange(n)
-noisy_sin = (3 + np.sin(x / 200) + np.random.randn(n) / 10) * x / 1_000
+x = np.arange(1_000_000)
+noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
 fig = FigureResampler(go.Figure())
 fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
+
 fig.show_dash(mode='inline')
 ```
 
