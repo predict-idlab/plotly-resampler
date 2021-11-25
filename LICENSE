@@ -1,11 +1,13 @@
-Copyright (c) 2021 Ghent University and IMEC vzw with offices at
-Technologiepark 15, 9052 Ghent, Belgium - Email: info@imec.be. Permission is
-hereby granted, free of charge, to any person obtaining a copy of this software
-and associated documentation files (the "Software"), to deal in the Software
-for non-commercial educational and research use, including without limitation
-the rights to use, copy, modify, merge, publish, distribute and/or sublicense
-copies of the Software, and to permit persons to whom the Software is furnished
-to do so, subject to the following conditions:
+Copyright (c) Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost,
+2021 Ghent University and IMEC vzw with offices at Technologiepark 15, 9052 Ghent,
+Belgium - Email: info@imec.be.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software for non-commercial educational and research use, including without
+limitation the rights to use, copy, modify, merge, publish, distribute and/or
+sublicense copies of the Software, and to permit persons to whom the Software
+is furnished to do so, subject to the following conditions:
 
 1. The above copyright notice and this permission notice shall be included in
    all copies of the Software.
