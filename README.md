@@ -10,7 +10,7 @@
 
 <p align="center">
     <a href="#readme">
-        <img width=85% alt="plotly resamplign logo" src="docs/_static/basic_example.gif">
+        <img width=95% alt="example demo" src="docs/_static/basic_example.gif">
     </a>
 </p>
 
@@ -23,8 +23,8 @@
 
 | | command|
 |:--------------|:--------------|
-| [**pip**](https://pypi.org/project/figure_resampler/) | `pip install figure_resampler` | 
-| [**conda**](https://anaconda.org/conda-forge/figure_resampler/) | `conda install -c conda-forge figure_resampler` |
+| [**pip**](https://pypi.org/project/plotly_resampler/) | `pip install plotly_resampler` | 
+| [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` |
 
 
 ## Usage
@@ -55,6 +55,7 @@ fig.show_dash(mode='inline')
 
 
 <br>
+
 ---
 
 <p align="center">
