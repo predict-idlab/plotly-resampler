@@ -52,9 +52,6 @@ class LTTB(AbstractSeriesDownsampler):
         if str(s.dtype) == "category":
             # reconvert the downsampled numeric codes to the category array
             data = np.vectorize(s.dtype.categories.values.item)(data.astype(s_v.dtype))
-        elif str(s.dtype) == "bool":
-            # convert the bool values to uint8 (as we will display them on a y-axis)
-            data = data.astype("uint8")
         else:
             # default case, use the series it's dtype as return type
             data = data.astype(s.dtype)

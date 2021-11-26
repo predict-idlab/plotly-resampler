@@ -66,6 +66,10 @@ class AbstractSeriesDownsampler(ABC):
 
         self._supports_dtype(s)
 
+        # convert the bool values to uint8 (as we will display them on a y-axis)
+        if str(s.dtype) == "bool":
+            s = s.astype("uint8")
+
         if len(s) > n_out:
             s = self._downsample(s, n_out=n_out)
 
