@@ -93,7 +93,11 @@ class FigureResampler(go.Figure):
             The `hf_data`-trace dict if a match is found, else `None`.
 
         """
-        trace_data = self._hf_data.get(trace["uid"])
+        if isinstance(trace, dict):
+            uid = trace.get("uid")
+        else:
+            uid = trace['uid']
+        trace_data = self._hf_data.get(uid)
         if trace_data is None:
             trace_props = {
                 k: trace[k] for k in set(trace.keys()).difference({"x", "y"})
@@ -528,7 +532,8 @@ class FigureResampler(go.Figure):
                 self._print("-" * 100 + "\n", "changed layout", changed_layout)
                 # for debugging purposes; uncomment the line below and save fig dict
                 # TODO -> when verbose maybe save _fig_dict
-                # self._fig_dict = current_graph
+                if self._print_verbose:
+                    self._fig_dict = current_graph
 
                 def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
                     """Returns all the items in `strings` which regex.match `regex`."""
