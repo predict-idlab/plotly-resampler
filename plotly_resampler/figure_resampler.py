@@ -234,7 +234,7 @@ class FigureResampler(go.Figure):
                     y_axis = "y" + xaxis_filter[1:]
                 else:
                     y_axis = "yaxis" + trace.get("yaxis")[1:]
-                x_anchor_trace = figure["layout"][y_axis].get("anchor")
+                x_anchor_trace = figure["layout"].get(y_axis, {}).get("anchor")
 
                 # we skip when:
                 # * the change was made on the first row and the trace its anchor is not
@@ -416,17 +416,20 @@ class FigureResampler(go.Figure):
             # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
             # the resampling algorithms
             try:
-                nan_values_mask = ~np.isnan(hf_y)
-                hf_x = hf_x[nan_values_mask]
-                hf_y = hf_y[nan_values_mask]
+                # Note: this also converts hf_hovertext to a np.ndarray
+                if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
+                    hf_hovertext = np.array(hf_hovertext)
+
+                if np.isnan(hf_y).any():
+                    nan_values_mask = ~np.isnan(hf_y)
+                    hf_x = hf_x[nan_values_mask]
+                    hf_y = hf_y[nan_values_mask]
+                    hf_hovertext = hf_hovertext[nan_values_mask]
+
                 # orjson encoding doesn't like to encode with uint8 & uint16 dtype
                 if isinstance(hf_y, (pd.Series, np.ndarray)):
                     if str(hf_y.dtype) in ["uint8", "uint16"]:
                         hf_y = hf_y.astype("uint32")
-
-                # Note: this also converts hf_hovertext to a np.ndarray
-                if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                    hf_hovertext = np.array(hf_hovertext)[nan_values_mask]
             except:
                 pass
 
@@ -451,8 +454,8 @@ class FigureResampler(go.Figure):
 
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
-                hf_series = pd.Series(data=hf_y, index=hf_x, copy=False).rename("data")
-                hf_series.index.rename("timestamp", inplace=True)
+                index = pd.Index(hf_x, copy=False, name='timestamp')
+                hf_series = pd.Series(data=hf_y, index=index, copy=False, name="data")
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -520,14 +523,19 @@ class FigureResampler(go.Figure):
 
         """
         app = JupyterDash("local_app")
-        app.layout = dbc.Container(dcc.Graph(id="resampled-graph", figure=self))
+        app.layout = dbc.Container(dcc.Graph(id="resample-figure", figure=self))
 
         @app.callback(
-            Output("resampled-graph", "figure"),
-            Input("resampled-graph", "relayoutData"),
-            State("resampled-graph", "figure"),
+            Output("resample-figure", "figure"),
+            Input("resample-figure", "relayoutData"),
+            State("resample-figure", "figure"),
+            # State("resample-figure", "extendData")
         )
-        def update_graph(changed_layout: dict, current_graph):
+        def update_graph(changed_layout: dict, current_graph):#, extend_data):
+            # print(extend_data)
+            # current_graph = self.to_dict()
+            # -> todo, i think that we need to co-update the layout, but let's see
+            # print(current_graph['layout'].keys())
             if changed_layout:
                 self._print("-" * 100 + "\n", "changed layout", changed_layout)
                 # for debugging purposes; uncomment the line below and save fig dict
@@ -552,6 +560,7 @@ class FigureResampler(go.Figure):
                     for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                         # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
                         assert t_start_key.split(".")[0] == t_stop_key.split(".")[0]
+                        # -> we want to copy the layout on the back-end
                         self.check_update_figure_dict(
                             current_graph,
                             start=changed_layout[t_start_key],
