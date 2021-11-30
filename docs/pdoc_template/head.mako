@@ -1,1 +1,1 @@
-<link rel="icon" href="https://media.discordapp.net/attachments/372491075153166338/852906324417445908/icon.png">
+<link rel="icon" href="https://cdn.discordapp.com/attachments/372491075153166338/915215973114593300/icon.png">
