@@ -546,6 +546,16 @@ class FigureResampler(go.Figure):
             ]
         )
 
+        # helper function
+        def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
+            """Returns all the items in `strings` which regex.match `regex`."""
+            matches = []
+            for item in strings:
+                m = regex.match(item)
+                if m is not None:
+                    matches.append(m.string)
+            return sorted(matches)
+
         # --------------------------- define the callback ----------------------------
         @app.callback(
             Output("trace-updater", "updateData"),
@@ -559,15 +569,6 @@ class FigureResampler(go.Figure):
             updated_trace_indices, cl_k = [], []
             if changed_layout:
                 self._print("-" * 100 + "\n", "changed layout", changed_layout)
-
-                def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
-                    """Returns all the items in `strings` which regex.match `regex`."""
-                    matches = []
-                    for item in strings:
-                        m = regex.match(item)
-                        if m is not None:
-                            matches.append(m.string)
-                    return sorted(matches)
 
                 cl_k = changed_layout.keys()
 
@@ -613,7 +614,7 @@ class FigureResampler(go.Figure):
 
             # 1. Create a new dict with additional layout updates for the front-end
             extra_layout_updates = {'autosize': False}
-            # 1.1. Set autorange to False for each layout item whith a specified x-range
+            # 1.1. Set autorange to False for each layout item with a specified x-range
             xy_matches = get_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
             for range_change_axis in xy_matches:
                 axis = range_change_axis.split(".")[0]
