@@ -5,8 +5,7 @@ back-end based resampling of high-frequency sequential data.
 
 Notes
 -----
-* The term `high-frequency` actually refers very large amounts of data, see also<br>
-  https://www.sciencedirect.com/topics/social-sciences/high-frequency-data
+* The term `high-frequency` actually refers very large amounts of data.
 
 """
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
@@ -19,7 +18,7 @@ import dash_bootstrap_components as dbc
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from dash import dcc
+import dash
 from dash.dependencies import Input, Output
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
@@ -538,38 +537,28 @@ class FigureResampler(go.Figure):
             e.g.: port
 
         """
-        # construct the app layout
+        # ------------------------- Construct the app layout -------------------------
         app = JupyterDash("local_app")
         app.layout = dbc.Container(
             [
-                dcc.Graph(id="resample-figure", figure=go.Figure(self)),
+                dash.dcc.Graph(id="resample-figure", figure=go.Figure(self)),
                 TraceUpdater(id="trace-updater", gdID="resample-figure"),
             ]
         )
 
-        # variable withholding the previous relayout
-        self._prev_layout_change = None
-
+        # --------------------------- define the callback ----------------------------
         @app.callback(
             Output("trace-updater", "updateData"),
             Input("resample-figure", "relayoutData"),
             prevent_initial_call=True,
         )
         def update_graph(
-            # clicked,
             changed_layout: dict,
         ) -> List[dict]:
-            # print("update_graph clicked", clicked)
-
             current_graph = self.to_dict()
             updated_trace_indices, cl_k = [], []
             if changed_layout:
                 self._print("-" * 100 + "\n", "changed layout", changed_layout)
-
-                # edge case - current relayout did already happen -> ignore
-                if changed_layout == self._prev_layout_change:
-                    print("SAME LAYOUT")
-                    return []
 
                 def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
                     """Returns all the items in `strings` which regex.match `regex`."""
@@ -581,6 +570,7 @@ class FigureResampler(go.Figure):
                     return sorted(matches)
 
                 cl_k = changed_layout.keys()
+
                 # ------------------ HF DATA aggregation ---------------------
                 # 1. Base case - there is a x-range specified in the front-end
                 start_matches = get_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
@@ -599,6 +589,7 @@ class FigureResampler(go.Figure):
                                 xaxis_filter=xaxis,
                             )
                         )
+
                 # 2. The user clicked on either autorange | reset axes
                 autorange_matches = get_matches(re.compile(r"xaxis\d*.autorange"), cl_k)
                 spike_matches = get_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
@@ -615,7 +606,7 @@ class FigureResampler(go.Figure):
                 # 2.1. Autorange -> do nothing, the autorange will be applied on the
                 #      current front-end view
                 elif len(autorange_matches) and not len(spike_matches):
-                    pass
+                    raise dash.exceptions.PreventUpdate
 
             # -------------------- construct callback data --------------------------
             layout_traces_list: List[dict] = []  # the data
