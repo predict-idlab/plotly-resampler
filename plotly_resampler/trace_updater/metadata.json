@@ -1,0 +1,37 @@
+{
+  "src/lib/components/TraceUpdater.react.js": {
+    "description": "TraceUpdater is a component which updates the trace of a given figure.\nIt takes the properties\n - gdID - which is the DCC.graph its id\n - updatedData - A list whose\n    * first object withholds the to-be applied layout\n    * second to ... object contain the updated trace data and its corresponding\n      index under the `index` attribute",
+    "displayName": "TraceUpdater",
+    "methods": [],
+    "props": {
+      "id": {
+        "type": {
+          "name": "string"
+        },
+        "required": false,
+        "description": "The ID used to identify this component in Dash callbacks."
+      },
+      "gdID": {
+        "type": {
+          "name": "string"
+        },
+        "required": true,
+        "description": "The id of the graph-div whose traces should be"
+      },
+      "updateData": {
+        "type": {
+          "name": "array"
+        },
+        "required": false,
+        "description": "The data to update the graph with, must contain the `index` property for\neach trace; either a list of dict-traces or a single trace"
+      },
+      "setProps": {
+        "type": {
+          "name": "func"
+        },
+        "required": false,
+        "description": "Dash-assigned callback that should be called to report property changes\nto Dash, to make them available for callbacks."
+      }
+    }
+  }
+}
