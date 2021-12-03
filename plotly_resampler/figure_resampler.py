@@ -614,15 +614,15 @@ class FigureResampler(go.Figure):
 
             # 1. Create a new dict with additional layout updates for the front-end
             extra_layout_updates = {'autosize': False}
+
             # 1.1. Set autorange to False for each layout item with a specified x-range
             xy_matches = get_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
             for range_change_axis in xy_matches:
                 axis = range_change_axis.split(".")[0]
                 extra_layout_updates[f"{axis}.autorange"] = False
-            changed_layout.update(extra_layout_updates)
 
+            changed_layout.update(extra_layout_updates)
             layout_traces_list.append(changed_layout)
-            self._prev_layout_change = changed_layout
 
             # 2. Create the additional trace data for the frond-end
             # Note that only updated trace-data is sent to the client
@@ -634,6 +634,7 @@ class FigureResampler(go.Figure):
                 layout_traces_list.append(trace)
             return layout_traces_list
 
+        # --------------------------- run the app ------------------------------------
         # If figure height is specified -> re-use is for inline dash app height
         if (
             self.layout.height is not None
@@ -641,4 +642,5 @@ class FigureResampler(go.Figure):
             and "height" not in kwargs
         ):
             kwargs["height"] = self.layout.height + 18
+
         app.run_server(mode=mode, **kwargs)
