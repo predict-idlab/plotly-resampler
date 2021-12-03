@@ -43,11 +43,12 @@ class AbstractSeriesDownsampler(ABC):
             series_index_diff = s.index.to_series().diff()
 
         # use a quantile based approach
-        min_diff, max_gap_q_s = series_index_diff.quantile(q=[0, self.max_gap_q])
+        med_gap_s, max_q_gap_s = series_index_diff.quantile(q=[0.5, self.max_gap_q])
 
         # add None data-points in between the gaps
-        if min_diff is not None and max_gap_q_s is not None:
-            df_res_gap = s.loc[series_index_diff > max_gap_q_s].copy()
+        if med_gap_s is not None and max_q_gap_s is not None:
+            max_q_gap_s = max(2 * med_gap_s, max_q_gap_s)
+            df_res_gap = s.loc[series_index_diff > max_q_gap_s ].copy()
             if len(df_res_gap):
                 df_res_gap.loc[:] = None
                 # Note:
