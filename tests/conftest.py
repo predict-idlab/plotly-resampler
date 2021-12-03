@@ -15,21 +15,21 @@ from plotly_resampler.downsamplers import LTTB, EveryNthPoint
 # hyperparameters
 _nb_samples = 10_000
 data_dir = 'examples/data/'
-headless = False
 
 
 @pytest.fixture
 def driver():
     from selenium import webdriver
-    from selenium.webdriver.firefox.options import Options
-    if headless:
-        options = Options()
-        options.headless = True
-        web_driver = webdriver.Firefox(options=options)
-    else:
-        web_driver = webdriver.Firefox()
-    web_driver.set_window_size(1920, 1080)
-    return web_driver
+    from webdriver_manager.chrome import ChromeDriverManager
+    from selenium.webdriver.chrome.options import Options
+    from webdriver_manager.utils import ChromeType
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no=sandbox')
+
+    driver = webdriver.Chrome(ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=options)
+
+    return driver
 
 
 @pytest.fixture

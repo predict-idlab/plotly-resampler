@@ -27,8 +27,7 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - uses: browser-actions/setup-geckodriver@latest
-    - run: geckodriver --version
+    - uses: nanasess/setup-chromedriver@master
 
     - name: Install poetry
       uses: Gr1N/setup-poetry@v4
