@@ -542,7 +542,11 @@ class FigureResampler(go.Figure):
         app.layout = dbc.Container(
             [
                 dash.dcc.Graph(id="resample-figure", figure=go.Figure(self)),
-                TraceUpdater(id="trace-updater", gdID="resample-figure"),
+                TraceUpdater(
+                    id="trace-updater", 
+                    gdID="resample-figure",
+                    sequentialUpdate=False
+                ),
             ]
         )
 
@@ -613,7 +617,7 @@ class FigureResampler(go.Figure):
             layout_traces_list: List[dict] = []  # the data
 
             # 1. Create a new dict with additional layout updates for the front-end
-            extra_layout_updates = {'autosize': False}
+            extra_layout_updates = {}
 
             # 1.1. Set autorange to False for each layout item with a specified x-range
             xy_matches = get_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
