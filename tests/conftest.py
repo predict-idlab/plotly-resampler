@@ -15,7 +15,7 @@ from plotly_resampler.downsamplers import LTTB, EveryNthPoint
 # hyperparameters
 _nb_samples = 10_000
 data_dir = 'examples/data/'
-headless = False
+headless = True
 
 
 @pytest.fixture
