@@ -4,9 +4,10 @@
     </a>
 </p>
 
----
+[![PyPI Latest Release](https://img.shields.io/pypi/v/plotly-resampler.svg)](https://pypi.org/project/plotly-resampler/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?)](http://makeapullrequest.com)
 
-`plotly_resampler` enables visualizing large sequential data by adding resampling functionality to plotly figures.
+> `plotly_resampler` enables visualizing large sequential data by **adding resampling functionality to Plotly figures**.
 
 <p align="center">
     <a href="#readme">
@@ -14,12 +15,14 @@
     </a>
 </p>
 
+In [this Plotly-Resampler demo](examples/basic_example.ipynb) over `110,000,000` data points are visualized! 
+
 #### Useful links
 
-- [Documentation]()
-- [Example notebooks]()
+<!-- - [Documentation]() work in progress 🚧  -->
+- [Example notebooks](https://github.com/predict-idlab/plotly-resampler/tree/main/examples/)
 
-## Installation
+### Installation
 
 | | command|
 |:--------------|:--------------|
