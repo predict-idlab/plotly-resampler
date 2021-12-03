@@ -25,6 +25,7 @@ pdoc3 = "^0.10.0"
 selenium = "^4.1.0"
 pytest-selenium = "^2.0.1"
 fastparquet = "^0.7.2"
+webdriver-manager = "^3.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

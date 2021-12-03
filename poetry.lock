@@ -208,6 +208,18 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [[package]]
+name = "configparser"
+version = "5.2.0"
+description = "Updated configparser from Python 3.8 for Python 2.6+."
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.extras]
+docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)", "jaraco.tidelift (>=1.4)"]
+testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-cov", "pytest-enabler (>=1.0.1)", "types-backports", "pytest-black (>=0.3.7)", "pytest-mypy"]
+
+[[package]]
 name = "coverage"
 version = "6.2"
 description = "Code coverage measurement for Python"
@@ -228,6 +240,17 @@ description = "Thin Python bindings to de/compression algorithms in Rust"
 category = "dev"
 optional = false
 python-versions = "*"
+
+[[package]]
+name = "crayons"
+version = "0.4.0"
+description = "TextUI colors for Python."
+category = "dev"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+colorama = "*"
 
 [[package]]
 name = "cryptography"
@@ -1591,6 +1614,19 @@ optional = false
 python-versions = "*"
 
 [[package]]
+name = "webdriver-manager"
+version = "3.5.2"
+description = "Library provides the way to automatically manage drivers for different browsers"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+configparser = "*"
+crayons = "*"
+requests = "*"
+
+[[package]]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
@@ -1647,7 +1683,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.1,<3.10"
-content-hash = "05a9d1d26b7d32d846d25276ecf802a03188078f838a9041c42969abf7699e52"
+content-hash = "3ec782f4d3a640835f06d4171e3128931f02f98c27de7c5bfc306a294a0e8242"
 
 [metadata.files]
 ansi2html = [
@@ -1824,6 +1860,10 @@ colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},
     {file = "colorama-0.4.4.tar.gz", hash = "sha256:5941b2b48a20143d2267e95b1c2a7603ce057ee39fd88e7329b0c292aa16869b"},
 ]
+configparser = [
+    {file = "configparser-5.2.0-py3-none-any.whl", hash = "sha256:e8b39238fb6f0153a069aa253d349467c3c4737934f253ef6abac5fe0eca1e5d"},
+    {file = "configparser-5.2.0.tar.gz", hash = "sha256:1b35798fdf1713f1c3139016cfcbc461f09edbf099d1fb658d4b7479fcaa3daa"},
+]
 coverage = [
     {file = "coverage-6.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:6dbc1536e105adda7a6312c778f15aaabe583b0e9a0b0a324990334fd458c94b"},
     {file = "coverage-6.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:174cf9b4bef0db2e8244f82059a5a72bd47e1d40e71c68ab055425172b16b7d0"},
@@ -1935,6 +1975,10 @@ cramjam = [
     {file = "cramjam-2.5.0-pp38-pypy38_pp73-manylinux2010_x86_64.whl", hash = "sha256:6256654cccb7002dfc583d4d428cc4618771d5db2c51a313c330d35a8c3a8952"},
     {file = "cramjam-2.5.0-pp38-pypy38_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:cf98053f331ea57c4277a163cdbbf471b1ea1153103a0ffd0c61706770e80d37"},
     {file = "cramjam-2.5.0.tar.gz", hash = "sha256:a92c0c2db4c6a3804eaffa253c7ca49f849e7a893a31c902a8123d7c36b2b487"},
+]
+crayons = [
+    {file = "crayons-0.4.0-py2.py3-none-any.whl", hash = "sha256:e73ad105c78935d71fe454dd4b85c5c437ba199294e7ffd3341842bc683654b1"},
+    {file = "crayons-0.4.0.tar.gz", hash = "sha256:bd33b7547800f2cfbd26b38431f9e64b487a7de74a947b0fafc89b45a601813f"},
 ]
 cryptography = [
     {file = "cryptography-36.0.0-cp36-abi3-macosx_10_10_universal2.whl", hash = "sha256:9511416e85e449fe1de73f7f99b21b3aa04fba4c4d335d30c486ba3756e3a2a6"},
@@ -2761,6 +2805,10 @@ urllib3 = [
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
+]
+webdriver-manager = [
+    {file = "webdriver_manager-3.5.2-py2.py3-none-any.whl", hash = "sha256:1e3aa366b95b80b260bd71aea3a63ea3f19a6d14308e0cd93e1144ca46b11ef4"},
+    {file = "webdriver_manager-3.5.2.tar.gz", hash = "sha256:0a0df5e5d5d234702fd5948fec6c3884940aff904425725f15d8bb9eeaee18e8"},
 ]
 webencodings = [
     {file = "webencodings-0.5.1-py2.py3-none-any.whl", hash = "sha256:a0af1213f3c2226497a97e2b3aa01a7e4bee4f403f95be16fc9acd2947514a78"},
