@@ -15,7 +15,7 @@ from plotly_resampler.downsamplers import LTTB, EveryNthPoint
 # hyperparameters
 _nb_samples = 10_000
 data_dir = 'examples/data/'
-headless = True
+headless = False
 
 
 @pytest.fixture
@@ -25,10 +25,11 @@ def driver():
     if headless:
         options = Options()
         options.headless = True
-        return webdriver.Firefox(options=options)
+        web_driver = webdriver.Firefox(options=options)
     else:
         web_driver = webdriver.Firefox()
-        return web_driver
+    web_driver.set_window_size(1920, 1080)
+    return web_driver
 
 
 @pytest.fixture
