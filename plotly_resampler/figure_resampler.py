@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 import dash
 from dash.dependencies import Input, Output
 from jupyter_dash import JupyterDash
-from .trace_updater import TraceUpdater
+from trace_updater import TraceUpdater
 
 from .downsamplers import AbstractSeriesDownsampler, EveryNthPoint
 
