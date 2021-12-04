@@ -1,4 +1,4 @@
-This is the documentation of [**plotly\_resampler**]([htt](https://github.com/predict-idlab/plotly-resampler)); a plotly wrapper for Figures to visualize large time-series data.
+This is the documentation of [**plotly-resampler**]([htt](https://github.com/predict-idlab/plotly-resampler)); a plotly wrapper for Figures to visualize large time-series data.
 
 
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin>
@@ -19,4 +19,37 @@ This is the documentation of [**plotly\_resampler**]([htt](https://github.com/pr
 <br>
 <hr style="height: 1px; border: none; border-top: 1px solid darkgrey;">
 
+<!-- <div style="text-align: center"> -->
 <h3><b><a href="#header-submodules">Jump to API reference</a></b></h3>
+<!-- </div> -->
+
+<p align="center">
+    <a href="#readme">
+        <img width=100% alt="example demo" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/basic_example.gif">
+    </a>
+</p>
+
+## Getting started 🚀
+
+_plotly-resampler_ maintains its interactiveness on large data by applying front-end **resampling**.
+
+
+Users can interact with 2 components:
+
+* `FigureResampler`: a wrapper for _plotly.graph\_ojbects_  which serves the adaptive resampling functionality.
+* `downsamplers`: this module withholds various downsampling methods.
+
+### Working example ✅
+
+```python
+import plotly.graph_objects as go; import numpy as np
+from plotly_resampler import FigureResampler
+
+x = np.arange(1_000_000)
+sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
+fig = FigureResampler(go.Figure())
+fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=sin)
+
+fig.show_dash(mode='inline')
+```
