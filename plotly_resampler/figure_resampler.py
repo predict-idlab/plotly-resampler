@@ -343,8 +343,9 @@ class FigureResampler(go.Figure):
           To circumvent this, the `limit_to_view` argument can be set, which forces
           these low-frequency series to be also stored in the back-end.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%)
-          Note: These arguments have priority over the trace's data and (hover)text
+           of data (as it can increase the speed of this add_trace() method with ~30%).
+           <br>
+          **Note**: These arguments have priority over the trace's data and (hover)text
           attributes.
 
         Parameters
@@ -543,9 +544,7 @@ class FigureResampler(go.Figure):
             [
                 dash.dcc.Graph(id="resample-figure", figure=go.Figure(self)),
                 TraceUpdater(
-                    id="trace-updater", 
-                    gdID="resample-figure",
-                    sequentialUpdate=False
+                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
                 ),
             ]
         )
@@ -566,9 +565,7 @@ class FigureResampler(go.Figure):
             Input("resample-figure", "relayoutData"),
             prevent_initial_call=True,
         )
-        def update_graph(
-            changed_layout: dict,
-        ) -> List[dict]:
+        def update_graph(changed_layout: dict) -> List[dict]:
             current_graph = self.to_dict()
             updated_trace_indices, cl_k = [], []
             if changed_layout:
@@ -624,9 +621,7 @@ class FigureResampler(go.Figure):
             for range_change_axis in xy_matches:
                 axis = range_change_axis.split(".")[0]
                 extra_layout_updates[f"{axis}.autorange"] = False
-
-            changed_layout.update(extra_layout_updates)
-            layout_traces_list.append(changed_layout)
+            layout_traces_list.append(extra_layout_updates)
 
             # 2. Create the additional trace data for the frond-end
             # Note that only updated trace-data is sent to the client
