@@ -68,6 +68,18 @@ fig.show_dash(mode='inline')
 * Interface for **various downsampling algorithms**:
   * ability to define your preffered sequence aggregation method
 
+
+### Important considerations & tips
+
+* When running the code on a server, you should forward the port of the `FigureResampler.show_dash` method to your local machine.
+* In general, when using downsamplingm one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.  
+  The <a style="color:orange">[R]</a> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not.
+
+## Future work 🔨
+
+* Add downsampler methods that take aliasing into account
+* Parallelize the resampling
+
 <br>
 
 ---

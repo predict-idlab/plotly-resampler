@@ -5,7 +5,7 @@ This is the documentation of [**plotly-resampler**]([htt](https://github.com/pre
 
 <div class="container" style="text-align: center">
         <h3><strong>Installation</strong></h3><br>
-        <a title="plotly_resampler on PyPI" href="https://pypi.org/project/plotly_resampler/" style="margin-right:.8em; background-color: #48c774; border-color: transparent; color: #fff; padding: 0.75rem; border-radius: 4px;"
+        <a title="plotly_resampler on PyPI" href="https://pypi.org/project/plotly-resampler/" style="margin-right:.8em; background-color: #48c774; border-color: transparent; color: #fff; padding: 0.75rem; border-radius: 4px;"
                    itemprop="downloadUrl" data-ga-event-category="PyPI">
                     <span class="icon"><i class="fa fa-download"></i></span>
                     <span><b>PyPI</b></span>
@@ -67,4 +67,4 @@ fig.show_dash(mode='inline')
 
 * When running the code on a server, you should forward the port of the `FigureResampler.show_dash` method to your local machine.
 * In general, when using downsamplingm one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.  
-  The <a style="color:orange">[R]</a> in the legend indicates when the correspond trace is being resampled (and thus possibly distorted) or not.
+  The <a style="color:orange">[R]</a> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not.
