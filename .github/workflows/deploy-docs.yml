@@ -1,0 +1,39 @@
+name: Deploy docs
+on:
+  push:
+      branches: 
+        - main
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    
+    - name: Install poetry
+      uses: Gr1N/setup-poetry@v4
+    - name: Cache poetry
+      id: cached-poetry-dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.8
+    - run: poetry --version
+    - name: Install dependencies
+      run: poetry install
+      # Do not use caching (anymore)
+#      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+    
+    - name: Build docs
+      run: poetry run pdoc3 --template-dir docs/pdoc_template/ --output-dir docs --html plotly-resampler/
+    - name: Deploy docs
+      env:
+        GH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      run: .github/deploy-gh-pages.sh
