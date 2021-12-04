@@ -32,7 +32,7 @@ jobs:
 #      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
     
     - name: Build docs
-      run: poetry run pdoc3 --template-dir docs/pdoc_template/ --output-dir docs --html plotly-resampler/
+      run: poetry run pdoc3 --template-dir docs/pdoc_template/ --output-dir docs --html plotly_resampler/
     - name: Deploy docs
       env:
         GH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
