@@ -1,7 +1,7 @@
 #!/bin/bash
 set -eu
 
-if [ ! -d docs/plotly-resampler ]; then
+if [ ! -d docs/plotly_resampler ]; then
     echo 'Error: invalid directory. Deploy from repo root.'
     exit 1
 fi
@@ -14,7 +14,7 @@ head=$(git rev-parse HEAD)
 
 git clone -b gh-pages "https://kernc:$GH_PASSWORD@github.com/$GITHUB_REPOSITORY.git" gh-pages
 mkdir -p gh-pages/docs/
-cp -R docs/plotly-resampler/* gh-pages/docs/
+cp -R docs/plotly_resampler/* gh-pages/docs/
 cd gh-pages
 git add *
 if git diff --staged --quiet; then
