@@ -27,7 +27,7 @@ alt="" width="33" height="25"></button>
 </header>
 <section id="section-intro">
 <p><b>plotly_resampler</b>: interactive visualiziations of large sequences of data</p>
-<p>This is the documentation of <a href="[htt](https://github.com/predict-idlab/plotly-resampler)"><strong>plotly_resampler</strong></a>; a plotly wrapper for Figures to visualize large time-series data.</p>
+<p>This is the documentation of <a href="[htt](https://github.com/predict-idlab/plotly-resampler)"><strong>plotly-resampler</strong></a>; a plotly wrapper for Figures to visualize large time-series data.</p>
 <p><link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" integrity="sha512-HK5fgLBL+xu6dm/Ii3z4xhlSUyZgTT9tuc/hSrtw6uzJOvgRr2a9jyxxT1ely+B+xFAmJKVSTbpM/CuL7qxO8w==" crossorigin></p>
 <div class="container" style="text-align: center">
 <h3><strong>Installation</strong></h3><br>
@@ -44,7 +44,34 @@ data-ga-event-category="GitHub">
 </div>
 <p><br></p>
 <hr style="height: 1px; border: none; border-top: 1px solid darkgrey;">
+<!-- <div style="text-align: center"> -->
 <h3><b><a href="#header-submodules">Jump to API reference</a></b></h3>
+<!-- </div> -->
+<p align="center">
+<a href="#readme">
+<img width=100% alt="example demo" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/basic_example.gif">
+</a>
+</p>
+<h2 id="getting-started">Getting started 🚀</h2>
+<p><em>plotly-resampler</em> maintains its interactiveness on large data by applying front-end <strong>resampling</strong>.</p>
+<p>Users can interact with 2 components:</p>
+<ul>
+<li><code><a title="plotly_resampler.FigureResampler" href="#plotly_resampler.FigureResampler">FigureResampler</a></code>: a wrapper for <em>plotly.graph_ojbects</em>
+which serves the adaptive resampling functionality.</li>
+<li><code><a title="plotly_resampler.downsamplers" href="downsamplers/index.html">.downsamplers</a></code>: this module withholds various downsampling methods.</li>
+</ul>
+<h3 id="working-example">Working example ✅</h3>
+<pre><code class="language-python">import plotly.graph_objects as go; import numpy as np
+from plotly_resampler import FigureResampler
+
+x = np.arange(1_000_000)
+sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
+fig = FigureResampler(go.Figure())
+fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=sin)
+
+fig.show_dash(mode='inline')
+</code></pre>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1659,7 +1686,12 @@ alt="logo should be displayed here" width="95%"></a>
 </header>
 <h1>Index</h1>
 <div class="toc">
-<ul></ul>
+<ul>
+<li><a href="#getting-started">Getting started 🚀</a><ul>
+<li><a href="#working-example">Working example ✅</a></li>
+</ul>
+</li>
+</ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-submodules">plotly_resampler: API reference</a></h3>
