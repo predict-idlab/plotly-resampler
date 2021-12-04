@@ -60,6 +60,16 @@ data-ga-event-category="GitHub">
 which serves the adaptive resampling functionality.</li>
 <li><code><a title="plotly_resampler.downsamplers" href="downsamplers/index.html">.downsamplers</a></code>: this module withholds various downsampling methods.</li>
 </ul>
+<h3 id="how-to-use">How to use 📈</h3>
+<p>To <strong>add dynamic resampling to your plotly Figure</strong>, you should;
+</p>
+<ol>
+<li>wrap the constructor of your plotly Figure with <code><a title="plotly_resampler.FigureResampler" href="#plotly_resampler.FigureResampler">FigureResampler</a></code>
+</li>
+<li>call <code>.show_dash()</code> on the Figure</li>
+</ol>
+<p style="color:#545454">[OPTIONAL]
+add the trace data as <code>hf\_x</code> and <code>hf\_y</code> (for faster initial loading)</p>
 <h3 id="working-example">Working example ✅</h3>
 <pre><code class="language-python">import plotly.graph_objects as go; import numpy as np
 from plotly_resampler import FigureResampler
@@ -72,6 +82,12 @@ fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=sin
 
 fig.show_dash(mode='inline')
 </code></pre>
+<h3 id="important-considerations-tips">Important considerations &amp; tips 🚨</h3>
+<ul>
+<li>When running the code on a server, you should forward the port of the <code><a title="plotly_resampler.FigureResampler.show_dash" href="#plotly_resampler.FigureResampler.show_dash">.show_dash()</a></code> method to your local machine.</li>
+<li>In general, when using downsamplingm one should be aware of (possible) <a href="https://en.wikipedia.org/wiki/Aliasing">aliasing</a> effects.<br>
+The <a style="color:orange">[R]</a> in the legend indicates when the correspond trace is being resampled (and thus possibly distorted) or not.</li>
+</ul>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -1688,7 +1704,9 @@ alt="logo should be displayed here" width="95%"></a>
 <div class="toc">
 <ul>
 <li><a href="#getting-started">Getting started 🚀</a><ul>
+<li><a href="#how-to-use">How to use 📈</a></li>
 <li><a href="#working-example">Working example ✅</a></li>
+<li><a href="#important-considerations-tips">Important considerations &amp; tips 🚨</a></li>
 </ul>
 </li>
 </ul>
