@@ -20,10 +20,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        lfs: true
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+
+    - uses: nanasess/setup-chromedriver@master
 
     - name: Install poetry
       uses: Gr1N/setup-poetry@v4

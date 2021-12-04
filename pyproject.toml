@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "plotly-resampler"
 version = "0.1.0"
-description = ""
-authors = ["Jonas Van Der Donckt", "Emiel Deprost", "Jeroen Van Der Donckt"]
+description = "Visualizing large time series"
+authors = ["Jonas Van Der Donckt", "Jeroen Van Der Donckt", "Emiel Deprost"]
 
 [tool.poetry.dependencies]
 python = ">=3.7.1,<3.10"
@@ -12,6 +12,7 @@ plotly = "^5.3.1"
 dash = "^2.0.0"
 lttbc = "^0.2.0"
 orjson = "^3.6.4"
+trace-updater = "^0.0.2"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.2.0"
@@ -21,6 +22,10 @@ pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
 black = {version = "^21.11b1", allow-prereleases = true}
 pdoc3 = "^0.10.0"
+selenium = "^4.1.0"
+pytest-selenium = "^2.0.1"
+fastparquet = "^0.7.2"
+webdriver-manager = "^3.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

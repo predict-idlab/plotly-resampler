@@ -3,9 +3,6 @@ import pandas as pd
 import numpy as np
 import pytest
 
-from .utils import float_series, cat_series, bool_series
-
-
 # --------------------------------- EveryNthPoint ------------------------------------
 def test_every_nth_point_float_time_data(float_series):
     float_series.index = pd.date_range(

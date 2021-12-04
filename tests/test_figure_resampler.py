@@ -3,11 +3,11 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
+import numpy as np
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler
 from plotly_resampler.downsamplers import LTTB, EveryNthPoint
-from .utils import float_series, bool_series, cat_series
 
 
 def test_add_trace(float_series, bool_series, cat_series):
@@ -56,3 +56,40 @@ def test_add_trace(float_series, bool_series, cat_series):
             limit_to_view=True,
         )
 
+
+def test_add_trace_not_resampling(float_series):
+    # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+
+    fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+
+    fig.add_trace(
+        go.Scatter(x=float_series.index[:800], y=float_series[:800], name="float_series"),
+        row=1,
+        col=1,
+        hf_hovertext="text"
+    )
+
+
+def test_nan_removed_input(float_series):
+    # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+
+    fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    
+    float_series = float_series.copy()
+    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    fig.add_trace(
+        go.Scatter(x=float_series.index, y=float_series, name="float_series"),
+        row=1,
+        col=1,
+        hf_hovertext="text"
+    )

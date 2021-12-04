@@ -4,9 +4,14 @@
     </a>
 </p>
 
----
+[![PyPI Latest Release](https://img.shields.io/pypi/v/plotly-resampler.svg)](https://pypi.org/project/plotly-resampler/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?)](http://makeapullrequest.com)
+<!-- [![Documentation](https://github.com/predict-idlab/plotly-resampler/actions/workflows/deploy-docs.yml/badge.svg)](https://github.com/predict-idlab/plotly-resampler/actions/workflows/deploy-docs.yml)
+[![Testing](https://github.com/predict-idlab/plotly-resampler/actions/workflows/test.yml/badge.svg)](https://github.com/predict-idlab/plotly-resampler/actions/workflows/test.yml) -->
 
-`plotly_resampler` enables visualizing large sequential data by adding resampling functionality to plotly figures.
+<!-- [![Downloads](https://pepy.tech/badge/plotly-resampler)](https://pepy.tech/project/plotly-resampler) -->
+
+> `plotly_resampler` enables visualizing large sequential data by **adding resampling functionality to Plotly figures**.
 
 <p align="center">
     <a href="#readme">
@@ -14,17 +19,18 @@
     </a>
 </p>
 
-#### Useful links
+In [this Plotly-Resampler demo](examples/basic_example.ipynb) over `110,000,000` data points are visualized! 
 
-- [Documentation]()
-- [Example notebooks]()
+<!-- #### Useful links -->
 
-## Installation
+<!-- - [Documentation]() work in progress 🚧  -->
+<!-- - [Example notebooks](https://github.com/predict-idlab/plotly-resampler/tree/main/examples/) -->
 
-| | command|
-|:--------------|:--------------|
-| [**pip**](https://pypi.org/project/plotly_resampler/) | `pip install plotly_resampler` | 
-| [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` |
+### Installation
+
+| [**pip**](https://pypi.org/project/plotly_resampler/) | `pip install plotly-resampler` | 
+| ---| ----|
+<!-- | [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` | -->
 
 
 ## Usage
