@@ -52,13 +52,13 @@ jobs:
     - name: Test with pytest
       run: |
         poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests
-    # - name: Upload pytest test results
-    #   uses: actions/upload-artifact@v2
-    #   with:
-    #     name: pytest-results-${{ matrix.python-version }}
-    #     path: junit/test-results-${{ matrix.python-version }}.xml
-    #     # Use always() to always run this step to publish test results when there are test failures
-    #   if: ${{ always() }}
+    - name: Upload pytest test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: pytest-results-${{ matrix.python-version }}
+        path: junit/test-results-${{ matrix.python-version }}.xml
+        # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() }}
 
-    # - name: Upload coverage to Codecov
-    #   uses: codecov/codecov-action@v1
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
