@@ -467,8 +467,9 @@ back-end based resampling of high-frequency sequential data …</p></div>
           To circumvent this, the `limit_to_view` argument can be set, which forces
           these low-frequency series to be also stored in the back-end.
         * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%)
-          Note: These arguments have priority over the trace&#39;s data and (hover)text
+           of data (as it can increase the speed of this add_trace() method with ~30%).
+           &lt;br&gt;
+          **Note**: These arguments have priority over the trace&#39;s data and (hover)text
           attributes.
 
         Parameters
@@ -667,9 +668,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             [
                 dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=go.Figure(self)),
                 TraceUpdater(
-                    id=&#34;trace-updater&#34;, 
-                    gdID=&#34;resample-figure&#34;,
-                    sequentialUpdate=False
+                    id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
                 ),
             ]
         )
@@ -690,9 +689,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             Input(&#34;resample-figure&#34;, &#34;relayoutData&#34;),
             prevent_initial_call=True,
         )
-        def update_graph(
-            changed_layout: dict,
-        ) -&gt; List[dict]:
+        def update_graph(changed_layout: dict) -&gt; List[dict]:
             current_graph = self.to_dict()
             updated_trace_indices, cl_k = [], []
             if changed_layout:
@@ -748,9 +745,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             for range_change_axis in xy_matches:
                 axis = range_change_axis.split(&#34;.&#34;)[0]
                 extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
-
-            changed_layout.update(extra_layout_updates)
-            layout_traces_list.append(changed_layout)
+            layout_traces_list.append(extra_layout_updates)
 
             # 2. Create the additional trace data for the frond-end
             # Note that only updated trace-data is sent to the client
@@ -1085,8 +1080,9 @@ modalities which are updated.</dd>
       To circumvent this, the `limit_to_view` argument can be set, which forces
       these low-frequency series to be also stored in the back-end.
     * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-      of data (as it can increase the speed of this add_trace() method with ~30%)
-      Note: These arguments have priority over the trace&#39;s data and (hover)text
+       of data (as it can increase the speed of this add_trace() method with ~30%).
+       &lt;br&gt;
+      **Note**: These arguments have priority over the trace&#39;s data and (hover)text
       attributes.
 
     Parameters
@@ -1279,8 +1275,9 @@ in the back-end datamirror and thus not be scaled to the view.<br>
 To circumvent this, the <code>limit_to_view</code> argument can be set, which forces
 these low-frequency series to be also stored in the back-end.</li>
 <li><code>hf_x</code>, <code>hf_y</code>, and 'hf_hovertext` are useful when you deal with large amounts
-of data (as it can increase the speed of this add_trace() method with ~30%)
-Note: These arguments have priority over the trace's data and (hover)text
+of data (as it can increase the speed of this add_trace() method with ~30%).
+<br>
+<strong>Note</strong>: These arguments have priority over the trace's data and (hover)text
 attributes.</li>
 </ul>
 <h2 id="parameters">Parameters</h2>
@@ -1370,9 +1367,7 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
         [
             dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=go.Figure(self)),
             TraceUpdater(
-                id=&#34;trace-updater&#34;, 
-                gdID=&#34;resample-figure&#34;,
-                sequentialUpdate=False
+                id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
             ),
         ]
     )
@@ -1393,9 +1388,7 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
         Input(&#34;resample-figure&#34;, &#34;relayoutData&#34;),
         prevent_initial_call=True,
     )
-    def update_graph(
-        changed_layout: dict,
-    ) -&gt; List[dict]:
+    def update_graph(changed_layout: dict) -&gt; List[dict]:
         current_graph = self.to_dict()
         updated_trace_indices, cl_k = [], []
         if changed_layout:
@@ -1451,9 +1444,7 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
         for range_change_axis in xy_matches:
             axis = range_change_axis.split(&#34;.&#34;)[0]
             extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
-
-        changed_layout.update(extra_layout_updates)
-        layout_traces_list.append(changed_layout)
+        layout_traces_list.append(extra_layout_updates)
 
         # 2. Create the additional trace data for the frond-end
         # Note that only updated trace-data is sent to the client
