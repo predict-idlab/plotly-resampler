@@ -256,7 +256,6 @@ class FigureResamplerGUITests:
     def autoscale(self):
         for btn in self._get_modebar_btns():
             data_title = btn.get_attribute("data-title")
-            print(data_title)
             if data_title == "Autoscale":
                 btn.click()
                 return
@@ -264,9 +263,18 @@ class FigureResamplerGUITests:
     def reset_axes(self):
         for btn in self._get_modebar_btns():
             data_title = btn.get_attribute("data-title")
-            print(data_title)
             if data_title == "Reset axes":
                 btn.click()
+                return
+
+    def click_legend_item(self, legend_name):
+        WebDriverWait(self.driver, 3).until(
+            EC.presence_of_element_located((By.CLASS_NAME, "modebar-group"))
+        )
+        for legend_item in self.driver.find_elements(By.CLASS_NAME, "legendtext"):
+            if legend_name in legend_item.get_attribute("data-unformatted"):
+                # get the parent and click it
+                legend_item.find_element(By.XPATH, './..').click()
                 return
 
     # ------------------------------ DATA MODEL METHODS  ------------------------------
