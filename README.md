@@ -13,7 +13,7 @@
 
 <!-- [![Downloads](https://pepy.tech/badge/plotly-resampler)](https://pepy.tech/project/plotly-resampler) -->
 
-> `plotly_resampler` enables visualizing large sequential data by **adding resampling functionality to Plotly figures**.
+> `plotly_resampler`: visualize large sequential data by **adding resampling functionality to Plotly figures**
 
 [Plotly](https://github.com/plotly/plotly.py) is an awesome interactive visualization library, however it can get pretty slow when a lot of data points are visualized (100 000+ datapoints). This library solves this by downsampling the signal for the currently selected time window and then plotting the downsampled points. When you interact with the plot (panning, zooming, ...), [dash](https://github.com/plotly/dash) callbacks are used to resample and redraw the figures. 
 
