@@ -15,6 +15,8 @@
 
 > `plotly_resampler` enables visualizing large sequential data by **adding resampling functionality to Plotly figures**.
 
+[Plotly](https://github.com/plotly/plotly.py) is an awesome interactive visualization library, however it can get pretty slow when a lot of data points are visualized (100 000+ datapoints). This library solves this by downsampling the signal for the currently selected time window and then plotting the downsampled points. When you interact with the plot (panning, zooming, ...), [dash](https://github.com/plotly/dash) callbacks are used to resample and redraw the figures. 
+
 <p align="center">
     <a href="#readme">
         <img width=95% alt="example demo" src="docs/_static/basic_example.gif">
@@ -61,18 +63,18 @@ fig.show_dash(mode='inline')
 ### Features
 
 * **Convenient** to use:
-  * just add the `FigureResampler` decorator around a plotly Figure consructor and call `.show_dash()`
+  * just add the `FigureResampler` decorator around a plotly Figure constructor and call `.show_dash()`
   * allows all other ploty figure construction flexibility to be used!
 * **Environment-independent** 
   * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, as application (on a server)
 * Interface for **various downsampling algorithms**:
-  * ability to define your preffered sequence aggregation method
+  * ability to define your preferred sequence aggregation method
 
 
 ### Important considerations & tips
 
 * When running the code on a server, you should forward the port of the `FigureResampler.show_dash` method to your local machine.
-* In general, when using downsamplingm one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.  
+* In general, when using downsampling one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.  
   The <a style="color:orange">[R]</a> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not.
 
 ## Future work 🔨
