@@ -62,7 +62,7 @@ from dash.dependencies import Input, Output
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
-from .downsamplers import AbstractSeriesDownsampler, EveryNthPoint
+from .downsamplers import AbstractSeriesDownsampler, LTTB
 
 
 class FigureResampler(go.Figure):
@@ -72,7 +72,7 @@ class FigureResampler(go.Figure):
         self,
         figure: go.Figure = go.Figure(),
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = EveryNthPoint(),
+        default_downsampler: AbstractSeriesDownsampler = LTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             &#39;&lt;b style=&#34;color:sandybrown&#34;&gt;[R]&lt;/b&gt; &#39;,
             &#34;&#34;,
@@ -91,7 +91,7 @@ class FigureResampler(go.Figure):
             * **Note**: this can be overridden within the `add_trace()` method.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface,
-            by default `EveryNthPoint`.
+            by default `LTTB`.
             This will be used as default downsampler.\n
             * **Note**: this can be overridden within the `add_trace()` method.
         resampled_trace_prefix_suffix: str, optional
@@ -697,7 +697,7 @@ class FigureResampler(go.Figure):
 <span>class <span class="ident">FigureResampler</span></span>
 <span>(</span><span>figure=Figure({
 'data': [], 'layout': {'template': '...'}
-}), default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.EveryNthPoint object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), verbose=False)</span>
+}), default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.LTTB object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), verbose=False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -711,7 +711,7 @@ class FigureResampler(go.Figure):
         self,
         figure: go.Figure = go.Figure(),
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = EveryNthPoint(),
+        default_downsampler: AbstractSeriesDownsampler = LTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             &#39;&lt;b style=&#34;color:sandybrown&#34;&gt;[R]&lt;/b&gt; &#39;,
             &#34;&#34;,
@@ -730,7 +730,7 @@ class FigureResampler(go.Figure):
             * **Note**: this can be overridden within the `add_trace()` method.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface,
-            by default `EveryNthPoint`.
+            by default `LTTB`.
             This will be used as default downsampler.\n
             * **Note**: this can be overridden within the `add_trace()` method.
         resampled_trace_prefix_suffix: str, optional
@@ -1338,7 +1338,7 @@ by default 1000.</p>
 <dt><strong><code>default_downsampler</code></strong> :&ensp;<code>AbstractSeriesDownsampler</code></dt>
 <dd>
 <p>An instance which implements the AbstractSeriesDownsampler interface,
-by default <code>EveryNthPoint</code>.
+by default <code>LTTB</code>.
 This will be used as default downsampler.</p>
 <ul>
 <li><strong>Note</strong>: this can be overridden within the <code>add_trace()</code> method.</li>
