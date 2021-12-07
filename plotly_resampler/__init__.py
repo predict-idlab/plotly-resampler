@@ -10,7 +10,7 @@ from .downsamplers import LTTB, EveryNthPoint, AggregationDownsampler
 
 __docformat__ = "numpy"
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 __pdoc__ = {}
 
