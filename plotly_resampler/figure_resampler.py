@@ -23,7 +23,7 @@ from dash.dependencies import Input, Output
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
-from .downsamplers import AbstractSeriesDownsampler, EveryNthPoint
+from .downsamplers import AbstractSeriesDownsampler, LTTB
 
 
 class FigureResampler(go.Figure):
@@ -33,7 +33,7 @@ class FigureResampler(go.Figure):
         self,
         figure: go.Figure = go.Figure(),
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = EveryNthPoint(),
+        default_downsampler: AbstractSeriesDownsampler = LTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -52,7 +52,7 @@ class FigureResampler(go.Figure):
             * **Note**: this can be overridden within the `add_trace()` method.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface,
-            by default `EveryNthPoint`.
+            by default `LTTB`.
             This will be used as default downsampler.\n
             * **Note**: this can be overridden within the `add_trace()` method.
         resampled_trace_prefix_suffix: str, optional
