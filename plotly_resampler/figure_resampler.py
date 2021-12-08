@@ -626,11 +626,13 @@ class FigureResampler(go.Figure):
             # 2. Create the additional trace data for the frond-end
             # Note that only updated trace-data is sent to the client
             for idx in updated_trace_indices:
-                trace = current_graph["data"][idx].copy()
+                trace = current_graph["data"][idx]
                 # store the index into the corresponding to-be-sent trace-data so
                 # the client front-end can know which trace needs to be updated
-                trace.update({"index": idx})
-                layout_traces_list.append(trace)
+                relevant_keys = ['x', 'y', 'text', 'hovertext', 'name']
+                trace_r = {k: trace[k] for k in relevant_keys if k in trace}
+                trace_r.update({"index": idx})
+                layout_traces_list.append(trace_r)
             return layout_traces_list
 
         # --------------------------- run the app ------------------------------------
