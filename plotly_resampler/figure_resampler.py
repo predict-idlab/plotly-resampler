@@ -33,7 +33,7 @@ class FigureResampler(go.Figure):
         self,
         figure: go.Figure = go.Figure(),
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(),
+        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=False),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -67,6 +67,7 @@ class FigureResampler(go.Figure):
         self._hf_data: Dict[str, dict] = {}
         self._global_n_shown_samples = default_n_shown_samples
         self._print_verbose = verbose
+
         assert len(resampled_trace_prefix_suffix) == 2
         self._prefix, self._suffix = resampled_trace_prefix_suffix
 
@@ -97,13 +98,14 @@ class FigureResampler(go.Figure):
             uid = trace.get("uid")
         else:
             uid = trace["uid"]
-        trace_data = self._hf_data.get(uid)
-        if trace_data is None:
+
+        hf_trace_data = self._hf_data.get(uid)
+        if hf_trace_data is None:
             trace_props = {
                 k: trace[k] for k in set(trace.keys()).difference({"x", "y"})
             }
             self._print(f"[W] trace with {trace_props} not found")
-        return trace_data
+        return hf_trace_data
 
     def check_update_trace_data(self, trace, start=None, end=None):
         """Check and updates the passed`trace`.
@@ -139,15 +141,17 @@ class FigureResampler(go.Figure):
            because their underlying axis is the same.
 
         """
-        hf_data = self._query_hf_data(trace)
-        if hf_data is not None:
-            axis_type = hf_data["axis_type"]
+        hf_trace_data = self._query_hf_data(trace)
+        if hf_trace_data is not None:
+            axis_type = hf_trace_data["axis_type"]
             if axis_type == "date":
                 hf_series = self._slice_time(
-                    hf_data["hf_series"], pd.to_datetime(start), pd.to_datetime(end)
+                    hf_trace_data["hf_series"],
+                    pd.to_datetime(start),
+                    pd.to_datetime(end),
                 )
             else:
-                hf_series: pd.Series = hf_data["hf_series"]
+                hf_series: pd.Series = hf_trace_data["hf_series"]
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
                 if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
@@ -160,27 +164,27 @@ class FigureResampler(go.Figure):
 
             # Add a prefix when the original data is downsampled
             name: str = trace["name"]
-            if len(hf_series) > hf_data["max_n_samples"]:
+            if len(hf_series) > hf_trace_data["max_n_samples"]:
                 name = ("" if name.startswith(self._prefix) else self._prefix) + name
                 name += self._suffix if not name.endswith(self._suffix) else ""
                 trace["name"] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace["name"] = name[len(self._prefix):]
+                    trace["name"] = name[len(self._prefix) :]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace["name"] = name[: -len(self._suffix)]
 
             # Downsample the data and store it in the trace-fields
-            downsampler: AbstractSeriesDownsampler = hf_data["downsampler"]
+            downsampler: AbstractSeriesDownsampler = hf_trace_data["downsampler"]
             s_res: pd.Series = downsampler.downsample(
-                hf_series, hf_data["max_n_samples"]
+                hf_series, hf_trace_data["max_n_samples"]
             )
             trace["x"] = s_res.index
             trace["y"] = s_res.values
             # todo -> first draft & not MP safe
 
             # Check if hovertext also needs to be resampled
-            hovertext = hf_data.get("hovertext")
+            hovertext = hf_trace_data.get("hovertext")
             if isinstance(hovertext, pd.Series):
                 trace["hovertext"] = pd.merge_asof(
                     s_res,
@@ -306,7 +310,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -337,16 +341,18 @@ class FigureResampler(go.Figure):
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
-          the the automatic-zoom (y-scaling) functionality as these will not be stored
-          in the back-end datamirror and thus not be scaled to the view.<br>
-          To circumvent this, the `limit_to_view` argument can be set, which forces
-          these low-frequency series to be also stored in the back-end.
+        * The `NaN` values in either `hf_y` or trace.y will be omitted! We do not allow
+          `NaN` values in `hf_x` or trace.x.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
            of data (as it can increase the speed of this add_trace() method with ~30%).
            <br>
           **Note**: These arguments have priority over the trace's data and (hover)text
           attributes.
+        * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
+          the the automatic-zoom (y-scaling) functionality as these will not be stored
+          in the back-end datamirror and thus not be scaled to the view.<br>
+          To circumvent this, the `limit_to_view` argument can be set, which forces
+          these low-frequency series to be also stored in the back-end.
 
         Parameters
         ----------
@@ -428,26 +434,24 @@ class FigureResampler(go.Figure):
             # hovertext and not in on-graph texts (as is the case with bar-charts)
             trace["text"] = None
 
+            # Note: this also converts hf_hovertext to a np.ndarray
+            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
+                hf_hovertext = np.asarray(hf_hovertext)
+
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
             # the resampling algorithms
-            try:
-                # Note: this also converts hf_hovertext to a np.ndarray
-                if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                    hf_hovertext = np.array(hf_hovertext)
+            if pd.isna(hf_y).any():
+                not_nan_mask = ~pd.isna(hf_y)
+                hf_x = hf_x[not_nan_mask]
+                hf_y = hf_y[not_nan_mask]
+                if isinstance(hf_hovertext, np.ndarray):
+                    hf_hovertext = hf_hovertext[not_nan_mask]
 
-                if np.isnan(hf_y).any():
-                    nan_values_mask = ~np.isnan(hf_y)
-                    hf_x = hf_x[nan_values_mask]
-                    hf_y = hf_y[nan_values_mask]
-                    hf_hovertext = hf_hovertext[nan_values_mask]
-
-                # orjson encoding doesn't like to encode with uint8 & uint16 dtype
-                if isinstance(hf_y, (pd.Series, np.ndarray)):
-                    if str(hf_y.dtype) in ["uint8", "uint16"]:
-                        hf_y = hf_y.astype("uint32")
-            except:
-                pass
+            # orjson encoding doesn't like to encode with uint8 & uint16 dtype
+            if isinstance(hf_y, (pd.Series, np.ndarray)):
+                if str(hf_y.dtype) in ["uint8", "uint16"]:
+                    hf_y = hf_y.astype("uint32")
 
             assert len(hf_x) > 0
             assert len(hf_x) == len(hf_y)
@@ -517,40 +521,27 @@ class FigureResampler(go.Figure):
             assert len(trace["x"] == len(trace["y"]))
             return super().add_trace(trace=trace, **trace_kwargs)
 
-    def show_dash(self, mode=None, **kwargs):
-        """Show the figure in a Dash web-app.
+    # def add_traces(*args, **kwargs):
+    #     raise NotImplementedError("This functionality is not (yet) supported")
+
+    def register_update_graph_callback(
+        self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
+    ):
+        """Register the `update_graph` callback to the passed dash-app.
 
         Parameters
         ----------
-        mode: str, optional
-            Display mode. One of: \n
-            * ``"external"``: The URL of the app will be displayed in the notebook
-                output cell. Clicking this URL will open the app in the default
-                web browser.<br>
-            * ``"inline"``: The app will be displayed inline in the notebook output cell
-                in an iframe.<br>
-            * ``"jupyterlab"``: The app will be displayed in a dedicate tab in the
-                JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
-                extension.<br>
-            By default None, which will result in the same behavior as ``"external"``.
-        **kwargs: dict
-            Additional app.run_server() kwargs.<br>/
-            e.g.: port
+        app: Union[dash.Dash, JupyterDash]
+            The app in which the callback will be registered
+        graph_id:
+            The id of the `dcc.Graph`-component which withholds the to-be resampled
+            Figure.
+        trace_updater_id
+            The id of the `TraceUpdater` component
 
         """
-        # ------------------------- Construct the app layout -------------------------
-        app = JupyterDash("local_app")
-        app.layout = dbc.Container(
-            [
-                dash.dcc.Graph(id="resample-figure", figure=go.Figure(self)),
-                TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
-                ),
-            ]
-        )
 
-        # helper function
-        def get_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
+        def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
             """Returns all the items in `strings` which regex.match `regex`."""
             matches = []
             for item in strings:
@@ -559,13 +550,12 @@ class FigureResampler(go.Figure):
                     matches.append(m.string)
             return sorted(matches)
 
-        # --------------------------- define the callback ----------------------------
         @app.callback(
-            Output("trace-updater", "updateData"),
-            Input("resample-figure", "relayoutData"),
+            Output(trace_updater_id, "updateData"),
+            Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
         )
-        def update_graph(changed_layout: dict) -> List[dict]:
+        def _update_graph(changed_layout: dict) -> List[dict]:
             current_graph = self.to_dict()
             updated_trace_indices, cl_k = [], []
             if changed_layout:
@@ -575,8 +565,8 @@ class FigureResampler(go.Figure):
 
                 # ------------------ HF DATA aggregation ---------------------
                 # 1. Base case - there is a x-range specified in the front-end
-                start_matches = get_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
-                stop_matches = get_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
+                start_matches = _re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
+                stop_matches = _re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
                 if len(start_matches) and len(stop_matches):
                     for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                         # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
@@ -593,8 +583,8 @@ class FigureResampler(go.Figure):
                         )
 
                 # 2. The user clicked on either autorange | reset axes
-                autorange_matches = get_matches(re.compile(r"xaxis\d*.autorange"), cl_k)
-                spike_matches = get_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
+                autorange_matches = _re_matches(re.compile(r"xaxis\d*.autorange"), cl_k)
+                spike_matches = _re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
                 # 2.1 Reset-axes -> autorange & reset to the global data view
                 if len(autorange_matches) and len(spike_matches):
                     for autorange_key in autorange_matches:
@@ -617,29 +607,65 @@ class FigureResampler(go.Figure):
             extra_layout_updates = {}
 
             # 1.1. Set autorange to False for each layout item with a specified x-range
-            xy_matches = get_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
+            xy_matches = _re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
             for range_change_axis in xy_matches:
                 axis = range_change_axis.split(".")[0]
                 extra_layout_updates[f"{axis}.autorange"] = False
             layout_traces_list.append(extra_layout_updates)
 
             # 2. Create the additional trace data for the frond-end
-            # Note that only updated trace-data is sent to the client
+            relevant_keys = ["x", "y", "text", "hovertext", "name"]
+            # Note that only updated trace-data will be sent to the client
             for idx in updated_trace_indices:
-                trace = current_graph["data"][idx].copy()
+                trace = current_graph["data"][idx]
+                trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
+
                 # store the index into the corresponding to-be-sent trace-data so
                 # the client front-end can know which trace needs to be updated
-                trace.update({"index": idx})
-                layout_traces_list.append(trace)
+                trace_reduced.update({"index": idx})
+                layout_traces_list.append(trace_reduced)
             return layout_traces_list
 
-        # --------------------------- run the app ------------------------------------
-        # If figure height is specified -> re-use is for inline dash app height
+    def show_dash(self, mode=None, **kwargs):
+        """Registers the `update_graph` callback & show the figure in a dash app.
+
+        Parameters
+        ----------
+        mode: str, optional
+            Display mode. One of: \n
+            * ``"external"``: The URL of the app will be displayed in the notebook
+                output cell. Clicking this URL will open the app in the default
+                web browser.<br>
+            * ``"inline"``: The app will be displayed inline in the notebook output cell
+                in an iframe.<br>
+            * ``"jupyterlab"``: The app will be displayed in a dedicate tab in the
+                JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
+                extension.<br>
+            By default None, which will result in the same behavior as ``"external"``.
+        **kwargs: dict
+            Additional app.run_server() kwargs.<br>/
+            e.g.: port
+
+        """
+        # 1. Construct the Dash app layout
+        app = JupyterDash("local_app")
+        app.layout = dbc.Container(
+            [
+                dash.dcc.Graph(id="resample-figure", figure=self),
+                TraceUpdater(
+                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
+                ),
+            ]
+        )
+        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
+
+        # 2. Run the app
         if (
             self.layout.height is not None
             and mode == "inline"
             and "height" not in kwargs
         ):
+            # If figure height is specified -> re-use is for inline dash app height
             kwargs["height"] = self.layout.height + 18
 
         app.run_server(mode=mode, **kwargs)

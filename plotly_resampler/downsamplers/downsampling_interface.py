@@ -10,9 +10,23 @@ import pandas as pd
 
 
 class AbstractSeriesDownsampler(ABC):
+    """"""
+
     def __init__(
         self, interleave_gaps: bool = True, dtype_regex_list: List[str] = None
     ):
+        """Constructor of AbstractSeriesDownsampler.
+
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly 
+            sampled data. A quantile based approach is used to determine the gaps /
+            irregularly sampled data. By default True.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes, by default None.
+        
+        """
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
         self.max_gap_q = 0.95
