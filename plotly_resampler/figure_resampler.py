@@ -341,16 +341,18 @@ class FigureResampler(go.Figure):
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
-          the the automatic-zoom (y-scaling) functionality as these will not be stored
-          in the back-end datamirror and thus not be scaled to the view.<br>
-          To circumvent this, the `limit_to_view` argument can be set, which forces
-          these low-frequency series to be also stored in the back-end.
+        * The `NaN` values in either `hf_y` or trace.y will be omitted! We do not allow
+          `NaN` values in `hf_x` or trace.x.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
            of data (as it can increase the speed of this add_trace() method with ~30%).
            <br>
           **Note**: These arguments have priority over the trace's data and (hover)text
           attributes.
+        * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
+          the the automatic-zoom (y-scaling) functionality as these will not be stored
+          in the back-end datamirror and thus not be scaled to the view.<br>
+          To circumvent this, the `limit_to_view` argument can be set, which forces
+          these low-frequency series to be also stored in the back-end.
 
         Parameters
         ----------
@@ -439,12 +441,12 @@ class FigureResampler(go.Figure):
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
             # the resampling algorithms
-            if np.isnan(hf_y).any():
-                nan_values_mask = ~np.isnan(hf_y)
-                hf_x = hf_x[nan_values_mask]
-                hf_y = hf_y[nan_values_mask]
+            if pd.isna(hf_y).any():
+                not_nan_mask = ~pd.isna(hf_y)
+                hf_x = hf_x[not_nan_mask]
+                hf_y = hf_y[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
-                    hf_hovertext = hf_hovertext[nan_values_mask]
+                    hf_hovertext = hf_hovertext[not_nan_mask]
 
             # orjson encoding doesn't like to encode with uint8 & uint16 dtype
             if isinstance(hf_y, (pd.Series, np.ndarray)):
@@ -519,6 +521,9 @@ class FigureResampler(go.Figure):
             assert len(trace["x"] == len(trace["y"]))
             return super().add_trace(trace=trace, **trace_kwargs)
 
+    # def add_traces(*args, **kwargs):
+    #     raise NotImplementedError("This functionality is not (yet) supported")
+
     def register_update_graph_callback(
         self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
     ):
@@ -533,6 +538,7 @@ class FigureResampler(go.Figure):
             Figure.
         trace_updater_id
             The id of the `TraceUpdater` component
+
         """
 
         def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
@@ -608,15 +614,16 @@ class FigureResampler(go.Figure):
             layout_traces_list.append(extra_layout_updates)
 
             # 2. Create the additional trace data for the frond-end
-            # Note that only updated trace-data is sent to the client
+            relevant_keys = ["x", "y", "text", "hovertext", "name"]
+            # Note that only updated trace-data will be sent to the client
             for idx in updated_trace_indices:
                 trace = current_graph["data"][idx]
+                trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
+
                 # store the index into the corresponding to-be-sent trace-data so
                 # the client front-end can know which trace needs to be updated
-                relevant_keys = ["x", "y", "text", "hovertext", "name"]
-                trace_r = {k: trace[k] for k in relevant_keys if k in trace}
-                trace_r.update({"index": idx})
-                layout_traces_list.append(trace_r)
+                trace_reduced.update({"index": idx})
+                layout_traces_list.append(trace_reduced)
             return layout_traces_list
 
     def show_dash(self, mode=None, **kwargs):
