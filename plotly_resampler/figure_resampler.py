@@ -436,7 +436,7 @@ class FigureResampler(go.Figure):
 
             # Note: this also converts hf_hovertext to a np.ndarray
             if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                hf_hovertext = np.array(hf_hovertext)
+                hf_hovertext = np.asarray(hf_hovertext)
 
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
