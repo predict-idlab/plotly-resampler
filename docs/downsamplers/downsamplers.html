@@ -246,7 +246,17 @@ s_cat = s.astype(cat_type)</p>
 </blockquote>
 </blockquote>
 </li>
-</ul></div>
+</ul>
+<p>Constructor of AbstractSeriesDownsampler.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether None values should be added when there are gaps / irregularly
+sampled data. A quantile based approach is used to determine the gaps /
+irregularly sampled data. By default True.</dd>
+<dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
+<dd>List containing the regex matching the supported datatypes, by default None.</dd>
+</dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="plotly_resampler.downsamplers.downsampling_interface.AbstractSeriesDownsampler" href="downsampling_interface.html#plotly_resampler.downsamplers.downsampling_interface.AbstractSeriesDownsampler">AbstractSeriesDownsampler</a></li>
@@ -272,7 +282,17 @@ s_cat = s.astype(cat_type)</p>
         out = s[:: max(1, math.ceil(len(s) / n_out))]
         return out.astype(&#39;uint8&#39;) if str(s.dtype) == &#39;bool&#39; else out</code></pre>
 </details>
-<div class="desc"><p>Naive (but fast) downsampler method which returns every n'th point.</p></div>
+<div class="desc"><p>Naive (but fast) downsampler method which returns every n'th point.</p>
+<p>Constructor of AbstractSeriesDownsampler.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether None values should be added when there are gaps / irregularly
+sampled data. A quantile based approach is used to determine the gaps /
+irregularly sampled data. By default True.</dd>
+<dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
+<dd>List containing the regex matching the supported datatypes, by default None.</dd>
+</dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="plotly_resampler.downsamplers.downsampling_interface.AbstractSeriesDownsampler" href="downsampling_interface.html#plotly_resampler.downsamplers.downsampling_interface.AbstractSeriesDownsampler">AbstractSeriesDownsampler</a></li>
@@ -341,7 +361,17 @@ s_cat = s.astype(cat_type)</p>
 <li>The user has total control which aggregation_func is passed to this method,
 hence it is the users' responisbility to handle categorical and bool-based
 datatypes.</li>
-</ul></div>
+</ul>
+<p>Constructor of AbstractSeriesDownsampler.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether None values should be added when there are gaps / irregularly
+sampled data. A quantile based approach is used to determine the gaps /
+irregularly sampled data. By default True.</dd>
+<dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
+<dd>List containing the regex matching the supported datatypes, by default None.</dd>
+</dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li><a title="plotly_resampler.downsamplers.downsampling_interface.AbstractSeriesDownsampler" href="downsampling_interface.html#plotly_resampler.downsamplers.downsampling_interface.AbstractSeriesDownsampler">AbstractSeriesDownsampler</a></li>

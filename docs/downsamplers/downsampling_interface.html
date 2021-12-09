@@ -43,9 +43,23 @@ import pandas as pd
 
 
 class AbstractSeriesDownsampler(ABC):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
     def __init__(
         self, interleave_gaps: bool = True, dtype_regex_list: List[str] = None
     ):
+        &#34;&#34;&#34;Constructor of AbstractSeriesDownsampler.
+
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly 
+            sampled data. A quantile based approach is used to determine the gaps /
+            irregularly sampled data. By default True.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes, by default None.
+        
+        &#34;&#34;&#34;
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
         self.max_gap_q = 0.95
@@ -132,9 +146,23 @@ class AbstractSeriesDownsampler(ABC):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AbstractSeriesDownsampler(ABC):
+    &#34;&#34;&#34;&#34;&#34;&#34;
+
     def __init__(
         self, interleave_gaps: bool = True, dtype_regex_list: List[str] = None
     ):
+        &#34;&#34;&#34;Constructor of AbstractSeriesDownsampler.
+
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly 
+            sampled data. A quantile based approach is used to determine the gaps /
+            irregularly sampled data. By default True.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes, by default None.
+        
+        &#34;&#34;&#34;
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
         self.max_gap_q = 0.95
@@ -201,8 +229,16 @@ class AbstractSeriesDownsampler(ABC):
 
         return s</code></pre>
 </details>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>Constructor of AbstractSeriesDownsampler.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether None values should be added when there are gaps / irregularly
+sampled data. A quantile based approach is used to determine the gaps /
+irregularly sampled data. By default True.</dd>
+<dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
+<dd>List containing the regex matching the supported datatypes, by default None.</dd>
+</dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
 <li>abc.ABC</li>
