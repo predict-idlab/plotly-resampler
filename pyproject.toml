@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotly-resampler"  # Do not forget to update the __init__.py __version__ variable
-version = "0.2.2"
+version = "0.2.3"
 description = "Visualizing large time series with plotly"
 authors = ["Jonas Van Der Donckt", "Jeroen Van Der Donckt", "Emiel Deprost"]
 readme = "README.md"
@@ -16,7 +16,7 @@ plotly = "^5.3.1"
 dash = "^2.0.0"
 lttbc = "^0.2.0"
 orjson = "^3.6.4"
-trace-updater = "^0.0.5"
+trace-updater = "^0.0.6"
 
 [tool.poetry.dev-dependencies]
 jupyterlab = "^3.2.0"
