@@ -157,7 +157,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
         self,
         figure: go.Figure = go.Figure(),
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=False),
+        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             &#39;&lt;b style=&#34;color:sandybrown&#34;&gt;[R]&lt;/b&gt; &#39;,
             &#34;&#34;,
