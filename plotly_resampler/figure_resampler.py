@@ -33,7 +33,7 @@ class FigureResampler(go.Figure):
         self,
         figure: go.Figure = go.Figure(),
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=False),
+        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
