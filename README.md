@@ -75,7 +75,7 @@ fig.show_dash(mode='inline')
 
 ### Important considerations & tips
 
-* When running the code on a server, you should forward the port of the `FigureResampler.show_dash` method to your local machine.
+* When running the code on a server, you should forward the port of the `FigureResampler.show_dash()` method to your local machine.
 * In general, when using downsampling one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.  
   The <b><a style="color:orange">[R]</a></b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not.
 
