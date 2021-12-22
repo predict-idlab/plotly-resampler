@@ -7,7 +7,6 @@ import numpy as np
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import selenium
 from plotly_resampler import FigureResampler
 from plotly_resampler.downsamplers import LTTB, EveryNthPoint
 from typing import List, Tuple, Union
@@ -17,23 +16,30 @@ from typing import List, Tuple, Union
 _nb_samples = 10_000
 data_dir = "examples/data/"
 headless = True
+TESTING_LOCAL = True
 
 
 @pytest.fixture
 def driver():
-    from selenium import webdriver
+    from seleniumwire import webdriver
     from webdriver_manager.chrome import ChromeDriverManager
     from selenium.webdriver.chrome.options import Options
     from webdriver_manager.utils import ChromeType
 
-    options = Options()
-    if headless:
-        options.add_argument("--headless")
-    options.add_argument("--no=sandbox")
+    if not TESTING_LOCAL:
+        options = Options()
+        if headless:
+            options.add_argument("--headless")
+        # options.add_argument("--no=sandbox")
 
-    driver = webdriver.Chrome(
-        ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=options
-    )
+        driver = webdriver.Chrome(
+            ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
+            options=options,
+        )
+    else:
+        driver = webdriver.Firefox(
+            # executable_path="./home/jonas/git/gIDLaB/plotly-dynamic-resampling/examples/geckodriver",
+        )
 
     return driver
 
