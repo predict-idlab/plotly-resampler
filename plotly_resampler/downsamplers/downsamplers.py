@@ -59,7 +59,7 @@ class LTTB(AbstractSeriesDownsampler):
         return pd.Series(
             index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
             data=data,
-            name=s.name,
+            name=str(s.name),
             copy=False
         )
 
@@ -81,7 +81,7 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
     Notes
     -----
     * The user has total control which aggregation_func is passed to this method,
-      hence it is the users' responisbility to handle categorical and bool-based
+      hence it is the users' responsibility to handle categorical and bool-based
       datatypes.
 
     """
@@ -118,6 +118,6 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
         return pd.Series(
             index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
             data=s_out.values,
-            name=s.name,
+            name=str(s.name),
             copy=False
         )
