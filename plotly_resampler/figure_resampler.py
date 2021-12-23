@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Wrapper around the the plotly go.Figure class which allows bookkeeping and
+Wrapper around the plotly go.Figure class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.
 
 Notes
@@ -14,12 +14,10 @@ import re
 from typing import List, Optional, Union, Iterable, Tuple, Dict
 from uuid import uuid4
 
-import dash_bootstrap_components as dbc
+import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import dash
-from dash.dependencies import Input, Output
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
@@ -170,7 +168,7 @@ class FigureResampler(go.Figure):
                 trace["name"] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace["name"] = name[len(self._prefix) :]
+                    trace["name"] = name[len(self._prefix):]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace["name"] = name[: -len(self._suffix)]
 
@@ -310,7 +308,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -551,8 +549,8 @@ class FigureResampler(go.Figure):
             return sorted(matches)
 
         @app.callback(
-            Output(trace_updater_id, "updateData"),
-            Input(graph_id, "relayoutData"),
+            dash.dependencies.Output(trace_updater_id, "updateData"),
+            dash.dependencies.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
         )
         def _update_graph(changed_layout: dict) -> List[dict]:
@@ -638,7 +636,7 @@ class FigureResampler(go.Figure):
                 web browser.<br>
             * ``"inline"``: The app will be displayed inline in the notebook output cell
                 in an iframe.<br>
-            * ``"jupyterlab"``: The app will be displayed in a dedicate tab in the
+            * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.<br>
             By default None, which will result in the same behavior as ``"external"``.
@@ -649,7 +647,7 @@ class FigureResampler(go.Figure):
         """
         # 1. Construct the Dash app layout
         app = JupyterDash("local_app")
-        app.layout = dbc.Container(
+        app.layout = dash.html.Div(
             [
                 dash.dcc.Graph(id="resample-figure", figure=self),
                 TraceUpdater(
