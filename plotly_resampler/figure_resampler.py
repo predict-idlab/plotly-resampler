@@ -406,14 +406,14 @@ class FigureResampler(go.Figure):
         high_frequency_traces = ["scatter", "scattergl"]
         if trace["type"].lower() in high_frequency_traces:
             hf_x = (
-                trace["x"]
+                list(trace["x"])
                 if hf_x is None
                 else hf_x.values
                 if isinstance(hf_x, pd.Series)
                 else hf_x
             )
             hf_y = (
-                trace["y"]
+                list(trace["y"])
                 if hf_y is None
                 else hf_y.values
                 if isinstance(hf_y, pd.Series)
