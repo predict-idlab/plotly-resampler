@@ -1,22 +1,22 @@
 """Fixtures and helper functions for testing"""
 
 
-import pytest
-import pandas as pd
-import numpy as np
+from typing import Union
 
+import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
+import pytest
 from plotly.subplots import make_subplots
+
 from plotly_resampler import FigureResampler
 from plotly_resampler.downsamplers import LTTB, EveryNthPoint
-from typing import List, Tuple, Union
-
 
 # hyperparameters
 _nb_samples = 10_000
 data_dir = "examples/data/"
 headless = True
-TESTING_LOCAL = True
+TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
 
 
 @pytest.fixture
@@ -37,10 +37,7 @@ def driver():
             options=options,
         )
     else:
-        driver = webdriver.Firefox(
-            # executable_path="./home/jonas/git/gIDLaB/plotly-dynamic-resampling/examples/geckodriver",
-        )
-
+        driver = webdriver.Firefox()
     return driver
 
 
@@ -65,8 +62,8 @@ def bool_series() -> pd.Series:
 
 @pytest.fixture
 def example_figure() -> FigureResampler:
-    df_gusb = pd.read_parquet(f"{data_dir}df_gusb.parquet", engine="fastparquet")
-    df_data_pc = pd.read_parquet(f"{data_dir}df_pc_test.parquet", engine="fastparquet")
+    df_gusb = pd.read_parquet(f"{data_dir}df_gusb.parquet")
+    df_data_pc = pd.read_parquet(f"{data_dir}df_pc_test.parquet")
 
     n = 110_000  # _000
     np_series = np.array(
@@ -203,7 +200,7 @@ def gsr_figure() -> FigureResampler:
         df_grouped["next_start"] = df_grouped.start.shift(-1).fillna(df_grouped["end"])
         return df_grouped
 
-    df_gsr = pd.read_parquet(f"{data_dir}processed_gsr.parquet", engine="fastparquet")
+    df_gsr = pd.read_parquet(f"{data_dir}processed_gsr.parquet")
 
     fig = FigureResampler(
         make_subplots(
