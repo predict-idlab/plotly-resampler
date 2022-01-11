@@ -13,6 +13,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Union
 import warnings
+from selenium.webdriver.common import action_chains
 
 from seleniumwire import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
@@ -84,7 +85,6 @@ class FigureResamplerGUITests:
         if delete:
             del self.driver.requests
 
-
     def drag_and_zoom(self, div_classname, x0=0.25, x1=0.5, y0=0.25, y1=0.5):
         """
         Drags and zooms the div with the given classname.
@@ -136,14 +136,14 @@ class FigureResamplerGUITests:
         for btn in self._get_modebar_btns():
             data_title = btn.get_attribute("data-title")
             if data_title == "Autoscale":
-                btn.click()
+                ActionChains(self.driver).move_to_element(btn).click().perform()
                 return
 
     def reset_axes(self):
         for btn in self._get_modebar_btns():
             data_title = btn.get_attribute("data-title")
             if data_title == "Reset axes":
-                btn.click()
+                ActionChains(self.driver).move_to_element(btn).click().perform()
                 return
 
     def click_legend_item(self, legend_name):
@@ -153,15 +153,15 @@ class FigureResamplerGUITests:
         for legend_item in self.driver.find_elements(By.CLASS_NAME, "legendtext"):
             if legend_name in legend_item.get_attribute("data-unformatted"):
                 # move to the center of the item and click it
-                size = legend_item.size
-                w, h = size["width"], size["height"]
-                actions = ActionChains(self.driver)
-                actions.move_to_element_with_offset(legend_item, w//2, h//2)
-                actions.pause(0.1)
-                actions.click()
-                actions.perform()
+                (
+                    ActionChains(self.driver)
+                    .move_to_element(legend_item)
+                    .pause(0.1)
+                    .click()
+                    .perform()
+                )
                 return
 
     # ------------------------------ DATA MODEL METHODS  ------------------------------
     def __del__(self):
-        self.close_driver()
+        self.driver.close()
