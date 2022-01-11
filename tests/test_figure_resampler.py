@@ -10,7 +10,7 @@ from plotly_resampler import FigureResampler
 from plotly_resampler.downsamplers import LTTB, EveryNthPoint
 
 
-def test_add_trace(float_series, bool_series, cat_series):
+def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
     base_fig = make_subplots(
         rows=2,
@@ -38,7 +38,7 @@ def test_add_trace(float_series, bool_series, cat_series):
         )
 
         fig.add_trace(
-            go.Scatter(x=[], y=[], text="text", name="bool_series"),
+            go.Scatter(text="text", name="bool_series"),
             hf_x=bool_series.index,
             hf_y=bool_series,
             row=1,
@@ -47,7 +47,7 @@ def test_add_trace(float_series, bool_series, cat_series):
         )
 
         fig.add_trace(
-            go.Scattergl(x=[], y=[], text="text", name="cat_series"),
+            go.Scattergl(text="text", name="cat_series"),
             row=2,
             col=1,
             downsampler=EveryNthPoint(interleave_gaps=True),
@@ -55,6 +55,7 @@ def test_add_trace(float_series, bool_series, cat_series):
             hf_y=cat_series,
             limit_to_view=True,
         )
+
 
 
 def test_add_trace_not_resampling(float_series):
@@ -73,6 +74,42 @@ def test_add_trace_not_resampling(float_series):
         col=1,
         hf_hovertext="text"
     )
+
+    fig.add_trace(
+        go.Scatter(name="float_series"),
+        limit_to_view=False,
+        row=1,
+        col=1,
+        hf_x=float_series.index[-800:],
+        hf_y=float_series[-800:],
+        hf_hovertext="text"
+    )
+    
+    
+def test_add_not_a_hf_trace(float_series):
+    # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+
+    fig = FigureResampler(base_fig, default_n_shown_samples=1000, verbose=True)
+
+    fig.add_trace(
+        go.Scatter(x=float_series.index[:800], y=float_series[:800], name="float_series"),
+        row=1,
+        col=1,
+        hf_hovertext="text"
+    )
+
+    # add a not hf-trace
+    fig.add_trace(
+        go.Histogram(x=float_series, name="float_series",),
+        row=2,
+        col=1,
+    )
+
 
 
 def test_nan_removed_input(float_series):

@@ -1,7 +1,7 @@
-from .fr_selenium import FigureResamplerGUITests
 import multiprocessing
 import time
 
+from .fr_selenium import FigureResamplerGUITests
 
 
 def test_basic_example_gui(driver, example_figure):
@@ -17,13 +17,15 @@ def test_basic_example_gui(driver, example_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        fr.parse_requests(delete=True, warn=False)
         # box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
         fr.drag_and_zoom("x2y2", x0=0.3, x1=0.7, y0=0.1, y1=1)
-        time.sleep(0.5)
-        del fr.driver.requests # clear the requests
+        time.sleep(1)
+        fr.parse_requests(delete=True, warn=True)  # clear the requests
+        time.sleep(0.1)
         fr.drag_and_zoom("x2y2", x0=0.25, x1=0.5, y0=0.2, y1=0.2)
-        time.sleep(0.5)
+        time.sleep(1)
         fr.parse_requests(warn=True, delete=True)
         fr.click_legend_item('room 3')
         fr.parse_requests(warn=True, delete=True)
@@ -54,7 +56,6 @@ def test_basic_example_gui(driver, example_figure):
         raise e
     finally:
         proc.terminate()
-        driver.close()
 
 
 # def test_gsr_gui(driver, gsr_figure):
