@@ -9,13 +9,13 @@ Selenium wrapper class withholding methods for testing the plolty-figureResample
 
 __author__ = "Jonas Van Der Donckt"
 
+from os import stat
 import time
 from datetime import datetime, timedelta
-from typing import Union
-import warnings
-from selenium.webdriver.common import action_chains
+from typing import List, Union
 
 from seleniumwire import webdriver
+from seleniumwire.request import Request
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -25,6 +25,22 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
 # and credate a parameterized driver.get method
+
+
+class RequestParser:
+    @staticmethod
+    def filter_callback_requests(requests: List[Request]) -> List[Request]:
+        valid_requests = []
+        for r in requests:
+            if r.method.upper() != 'POST':
+                # note; the `_reload_hash` GET request will thus be filtered out
+                continue
+
+            if not r.url.endswith("_dash-update-component"):
+                continue
+
+            valid_requests.append(r)
+        return valid_requests
 
 
 class FigureResamplerGUITests:
@@ -77,13 +93,15 @@ class FigureResamplerGUITests:
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
 
-    def parse_requests(self, warn=True, delete: bool = True):
-        requests = self.driver.requests
-        if warn:
-            warnings.warn("request" + str(requests))
+    def clear_requests(self):
+        del self.driver.requests
 
+    def get_requests(self, delete: bool = True):
+        requests = self.driver.requests
         if delete:
-            del self.driver.requests
+            self.clear_requests()
+
+        return requests
 
     def drag_and_zoom(self, div_classname, x0=0.25, x1=0.5, y0=0.25, y1=0.5):
         """
