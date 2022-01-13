@@ -126,7 +126,7 @@ class RequestParser:
             assert len(requests) >= 1
             if len(requests) == 2:
                 fetch_data_request, relayout_request = requests
-                RequestParser.assert_front_end_relayout_request(relayout_request)
+                # RequestParser.assert_front_end_relayout_request(relayout_request)
             else:
                 fetch_data_request = requests[0]
 
@@ -147,9 +147,7 @@ class RequestParser:
 
 
 class FigureResamplerGUITests:
-    """Fetches data from Empatica's
-    `E4Connect <https://www.empatica.com/connect/login.php>`_ platform
-    """
+    """Wrapper for performing figure-resampler GUI. """
 
     def __init__(self, driver: webdriver, port: int):
         """Construct an instance of A firefox selenium driver to fetch wearable data.
@@ -170,29 +168,9 @@ class FigureResamplerGUITests:
         self.driver: Union[webdriver.Firefox, webdriver.Chrome] = driver
         self.on_page = False
 
-    # def setup_create_driver(self):
-    #     """Witholds logic to create and set up the driver"""
-    #     # custom profile so we won't get a download prompt :)
-    #     # self.profile = webdriver.FirefoxProfile()
-    #     if self.headless:
-    #         opts = Options()
-    #         opts.headless = True
-    #         print("Headless mode enabled")
-    #         self.driver = webdriver.Firefox(
-    #             options=opts,
-    #             executable_path="/home/jonas/git/gIDLaB/plotly-dynamic-resampling/examples/geckodriver",
-    #         )
-    #     else:
-    #         print("Headless mode disabled")
-    #         self.driver = webdriver.Firefox(
-    #             executable_path="./home/jonas/git/gIDLaB/plotly-dynamic-resampling/examples/geckodriver",
-    #         )  # firefox_profile=self.profile)list_packages
-
     def go_to_page(self):
         """Navigate to FigureResampler page."""
-        time.sleep(3)
-        # if self.driver is None:
-        #     self.setup_create_driver()
+        time.sleep(1)
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
 
