@@ -28,15 +28,15 @@ class FigureResampler(go.Figure):
     """"""
 
     def __init__(
-            self,
-            figure: go.Figure = go.Figure(),
-            default_n_shown_samples: int = 1000,
-            default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
-            resampled_trace_prefix_suffix: Tuple[str, str] = (
-                    '<b style="color:sandybrown">[R]</b> ',
-                    "",
-            ),
-            verbose: bool = False,
+        self,
+        figure: go.Figure = go.Figure(),
+        default_n_shown_samples: int = 1000,
+        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
+        resampled_trace_prefix_suffix: Tuple[str, str] = (
+            '<b style="color:sandybrown">[R]</b> ',
+            "",
+        ),
+        verbose: bool = False,
     ):
         """Instantiate a resampling data mirror.
 
@@ -197,11 +197,11 @@ class FigureResampler(go.Figure):
             self._print("hf_data not found")
 
     def check_update_figure_dict(
-            self,
-            figure: dict,
-            start: Optional[Union[float, str]] = None,
-            stop: Optional[Union[float, str]] = None,
-            xaxis_filter: str = None,
+        self,
+        figure: dict,
+        start: Optional[Union[float, str]] = None,
+        stop: Optional[Union[float, str]] = None,
+        xaxis_filter: str = None,
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -253,9 +253,9 @@ class FigureResampler(go.Figure):
                 #      and do not have the anchor property (hence the DICT.get() method)
                 # * x-anchor-trace != xaxis_filter-short for NON first rows
                 if (
-                        xaxis_filter_short == "x" and x_anchor_trace not in [None, "x"]
+                    xaxis_filter_short == "x" and x_anchor_trace not in [None, "x"]
                 ) or (
-                        xaxis_filter_short != "x" and x_anchor_trace != xaxis_filter_short
+                    xaxis_filter_short != "x" and x_anchor_trace != xaxis_filter_short
                 ):
                     continue
             self.check_update_trace_data(trace=trace, start=start, end=stop)
@@ -264,9 +264,9 @@ class FigureResampler(go.Figure):
 
     @staticmethod
     def _slice_time(
-            hf_series: pd.Series,
-            t_start: Optional[pd.Timestamp] = None,
-            t_stop: Optional[pd.Timestamp] = None,
+        hf_series: pd.Series,
+        t_start: Optional[pd.Timestamp] = None,
+        t_stop: Optional[pd.Timestamp] = None,
     ) -> pd.Series:
         """Slice the time-indexed `hf_series` for the passed pd.Timestamps.
 
@@ -293,7 +293,7 @@ class FigureResampler(go.Figure):
         """
 
         def to_same_tz(
-                ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
+            ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
         ) -> Union[pd.Timestamp, None]:
             """Adjust `ts` its timezone to the `reference_tz`."""
             if ts is None:
@@ -311,16 +311,16 @@ class FigureResampler(go.Figure):
         return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
-            self,
-            trace,
-            max_n_samples: int = None,
-            downsampler: AbstractSeriesDownsampler = None,
-            limit_to_view: bool = False,
-            # Use these if you want some speedups (and are working with really large data)
-            hf_x: Iterable = None,
-            hf_y: Iterable = None,
-            hf_hovertext: Union[str, Iterable] = None,
-            **trace_kwargs,
+        self,
+        trace,
+        max_n_samples: int = None,
+        downsampler: AbstractSeriesDownsampler = None,
+        limit_to_view: bool = False,
+        # Use these if you want some speedups (and are working with really large data)
+        hf_x: Iterable = None,
+        hf_y: Iterable = None,
+        hf_hovertext: Union[str, Iterable] = None,
+        **trace_kwargs,
     ):
         """Add a trace to the figure.
 
@@ -428,7 +428,7 @@ class FigureResampler(go.Figure):
             hf_hovertext
             if hf_hovertext is not None
             else trace["hovertext"]
-            if hasattr(trace, "hovertext") and trace["hovertext"]is not None
+            if hasattr(trace, "hovertext") and trace["hovertext"] is not None
             else trace["text"] if hasattr(trace, "text")
             else None
         )
@@ -453,6 +453,10 @@ class FigureResampler(go.Figure):
                 hf_y = hf_y[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
+
+            # if the categorical or string-like hf-y data is send to
+            if isinstance(hf_y, np.ndarray) and hf_y.dtype == 'object':
+                hf_y = hf_y.astype('str')
 
             # orjson encoding doesn't like to encode with uint8 & uint16 dtype
             if isinstance(hf_y, (pd.Series, np.ndarray)):
@@ -481,7 +485,12 @@ class FigureResampler(go.Figure):
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
                 index = pd.Index(hf_x, copy=False, name="timestamp")
-                hf_series = pd.Series(data=hf_y, index=index, copy=False, name="data")
+                print(hf_y.dtype)
+                hf_series = pd.Series(
+                    data=hf_y, index=index, copy=False, name="data",
+                    dtype='category' if hf_y.dtype.type == np.str_ else hf_y.dtype
+                )
+                print(hf_series, hf_series.dtype)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -529,7 +538,7 @@ class FigureResampler(go.Figure):
 
             if hasattr(trace, "text") and hasattr(trace, "hovertext"):
                 trace["text"] = None
-                trace['hovertext'] = hf_hovertext
+                trace["hovertext"] = hf_hovertext
 
             return super().add_trace(trace=trace, **trace_kwargs)
 
@@ -537,8 +546,7 @@ class FigureResampler(go.Figure):
     #     raise NotImplementedError("This functionality is not (yet) supported")
 
     def register_update_graph_callback(
-            self, app: Union[dash.Dash, JupyterDash], graph_id: str,
-            trace_updater_id: str
+        self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
     ):
         """Register the `update_graph` callback to the passed dash-app.
 
@@ -615,7 +623,7 @@ class FigureResampler(go.Figure):
                     # relayout post request
                     raise dash.exceptions.PreventUpdate()
 
-            # If we do not have any traces to be updated, we will return an empty 
+            # If we do not have any traces to be updated, we will return an empty
             # request response
             if len(updated_trace_indices) == 0:
                 # preventupdate retursn a 204 status-code response on the relayout post
@@ -683,9 +691,9 @@ class FigureResampler(go.Figure):
 
         # 2. Run the app
         if (
-                self.layout.height is not None
-                and mode == "inline"
-                and "height" not in kwargs
+            self.layout.height is not None
+            and mode == "inline"
+            and "height" not in kwargs
         ):
             # If figure height is specified -> re-use is for inline dash app height
             kwargs["height"] = self.layout.height + 18
