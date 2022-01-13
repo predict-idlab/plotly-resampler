@@ -131,6 +131,7 @@ def test_gsr_gui(driver, gsr_figure):
         # Note: we have shared-xaxes so all traces will be updated using this command
         fr.clear_requests()
         fr.drag_and_zoom("x2y3", x0=0.25, x1=0.5, y0=0.2, y1=0.2)
+        time.sleep(1)
         RequestParser.browser_independent_single_callback_request_assert(
             fr=fr,
             relayout_keys=[
@@ -187,7 +188,7 @@ def test_gsr_gui(driver, gsr_figure):
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(vertical_requests) == 1
         assert vertical_requests[0].response.status_code == 204
-        
+
         # autoscale
         # we autoscale to the current front-end view, no updated dat will be sent from
         # the server to the front-end, however, a callback will still be made, but
@@ -200,9 +201,42 @@ def test_gsr_gui(driver, gsr_figure):
         assert len(autoscale_requests) == 1
         assert autoscale_requests[0].response.status_code == 204
 
-
         fr.reset_axes()
         time.sleep(0.2)
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
+
+
+def test_cat_gui(driver, cat_series_box_hist_figure):
+    from pytest_cov.embed import cleanup_on_sigterm
+
+    cleanup_on_sigterm()
+
+    port = 9032
+    proc = multiprocessing.Process(
+        target=cat_series_box_hist_figure.show_dash,
+        kwargs=dict(mode="external", port=port),
+    )
+    proc.start()
+    try:
+        time.sleep(1)
+        fr = FigureResamplerGUITests(driver, port=port)
+
+         # First, apply some box based zooms
+        fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
+        time.sleep(1)
+        fr.drag_and_zoom("x2y2", x0=0.3, x1=0.7, y0=0.1, y1=1)
+        time.sleep(1)
+
+        fr.autoscale()
+        time.sleep(1)
+
+        fr.reset_axes()
+        time.sleep(1)
+
+
     except Exception as e:
         raise e
     finally:
