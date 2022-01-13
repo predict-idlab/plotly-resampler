@@ -611,7 +611,16 @@ class FigureResampler(go.Figure):
                 # 2.1. Autorange -> do nothing, the autorange will be applied on the
                 #      current front-end view
                 elif len(autorange_matches) and not len(spike_matches):
-                    raise dash.exceptions.PreventUpdate
+                    # preventupdate returns a 204 status code response on the
+                    # relayout post request
+                    raise dash.exceptions.PreventUpdate()
+
+            # If we do not have any traces to be updated, we will return an empty 
+            # request response
+            if len(updated_trace_indices) == 0:
+                # preventupdate retursn a 204 status-code response on the relayout post
+                # request
+                raise dash.exceptions.PreventUpdate()
 
             # -------------------- construct callback data --------------------------
             layout_traces_list: List[dict] = []  # the data
