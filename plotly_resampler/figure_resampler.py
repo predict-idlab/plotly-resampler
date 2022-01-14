@@ -18,6 +18,7 @@ import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
@@ -105,13 +106,15 @@ class FigureResampler(go.Figure):
             self._print(f"[W] trace with {trace_props} not found")
         return hf_trace_data
 
-    def check_update_trace_data(self, trace, start=None, end=None):
+    def check_update_trace_data(
+        self, trace, start=None, end=None
+    ) -> Optional[Union[dict, BaseTraceType]]:
         """Check and updates the passed`trace`.
 
         Note
         ----
-        This is a pass by reference. The passed trace object will be updated.
-        No new view of this trace will be created!
+        This is a pass by reference. The passed trace object will be updated and
+        returned if found in `hf_data`.
 
         Parameters
         ----------
@@ -131,6 +134,12 @@ class FigureResampler(go.Figure):
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
+
+        Returns
+        -------
+        Optional[Union[dict, BaseTraceType]]
+            If the matching hf_series is found in hf_dict, a(n updated) trace will be
+            returned, otherwise None.
 
         Notes
         -----
@@ -193,8 +202,10 @@ class FigureResampler(go.Figure):
                 )[hovertext.name].values
             else:
                 trace["hovertext"] = hovertext
+            return trace
         else:
             self._print("hf_data not found")
+            return None
 
     def check_update_figure_dict(
         self,
@@ -258,8 +269,12 @@ class FigureResampler(go.Figure):
                     xaxis_filter_short != "x" and x_anchor_trace != xaxis_filter_short
                 ):
                     continue
-            self.check_update_trace_data(trace=trace, start=start, end=stop)
-            updated_trace_indices.append(idx)
+
+            # if we managed to find and update the trace, it will return the trace
+            # and thus not None.
+            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
+            if updated_trace is not None:
+                updated_trace_indices.append(idx)
         return updated_trace_indices
 
     @staticmethod
@@ -455,8 +470,8 @@ class FigureResampler(go.Figure):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
             # if the categorical or string-like hf-y data is send to
-            if isinstance(hf_y, np.ndarray) and hf_y.dtype == 'object':
-                hf_y = hf_y.astype('str')
+            if isinstance(hf_y, np.ndarray) and hf_y.dtype == "object":
+                hf_y = hf_y.astype("str")
 
             # orjson encoding doesn't like to encode with uint8 & uint16 dtype
             if isinstance(hf_y, (pd.Series, np.ndarray)):
@@ -485,12 +500,13 @@ class FigureResampler(go.Figure):
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
                 index = pd.Index(hf_x, copy=False, name="timestamp")
-                print(hf_y.dtype)
                 hf_series = pd.Series(
-                    data=hf_y, index=index, copy=False, name="data",
-                    dtype='category' if hf_y.dtype.type == np.str_ else hf_y.dtype
+                    data=hf_y,
+                    index=index,
+                    copy=False,
+                    name="data",
+                    dtype="category" if hf_y.dtype.type == np.str_ else hf_y.dtype,
                 )
-                print(hf_series, hf_series.dtype)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -518,7 +534,8 @@ class FigureResampler(go.Figure):
                 # NOTE: if all the raw data needs to be sent to the javascript, and
                 #  the trace is truly high-frequency, this would take significant time!
                 #  hence, you first downsample the trace.
-                self.check_update_trace_data(trace)
+                trace = self.check_update_trace_data(trace)
+                assert trace is not None
                 super().add_trace(trace=trace, **trace_kwargs)
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
