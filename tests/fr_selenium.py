@@ -174,7 +174,8 @@ class FigureResamplerGUITests:
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
 
-    def clear_requests(self):
+    def clear_requests(self, sleep_time_s=1):
+        time.sleep(1)
         del self.driver.requests
 
     def get_requests(self, delete: bool = True):

@@ -26,10 +26,9 @@ def test_basic_example_gui(driver, example_figure):
         # First, apply some box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
         fr.drag_and_zoom("x2y2", x0=0.3, x1=0.7, y0=0.1, y1=1)
-        time.sleep(1)
 
         # Clear the requests till now
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         # Perform a zoom operation, and capture the request output
         fr.drag_and_zoom("x2y2", x0=0.25, x1=0.5, y0=0.2, y1=0.2)
         time.sleep(1)
@@ -48,7 +47,7 @@ def test_basic_example_gui(driver, example_figure):
         # y remains the same - zoom horizontally
         fr.drag_and_zoom("x2y2", x0=0.25, x1=0.5, y0=0.3, y1=0.3)
 
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("x3y3", x0=0.4, x1=0.5, y0=0.5, y1=0.5)
         time.sleep(1)
         RequestParser.browser_independent_single_callback_request_assert(
@@ -69,7 +68,7 @@ def test_basic_example_gui(driver, example_figure):
         # This will trigger a relayout callback, however as only y-values are updated,
         # no new data points will be send to the front-end and a - NO CONTENT response
         # will be returned.
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("x2y2", x0=0.5, x1=0.5, y0=0.1, y1=0.5)
         time.sleep(1)
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
@@ -80,7 +79,7 @@ def test_basic_example_gui(driver, example_figure):
         # the server to the front-end, however, a callback will still be made, but
         # will return a 204 response status (no content), as we do not need new data
         # to autoscale to the current front-end view.
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.autoscale()
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
@@ -129,7 +128,7 @@ def test_gsr_gui(driver, gsr_figure):
         fr.drag_and_zoom("x2y3", x0=0.3, x1=0.7, y0=0.1, y1=1)
 
         # Note: we have shared-xaxes so all traces will be updated using this command
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("x2y3", x0=0.25, x1=0.5, y0=0.2, y1=0.2)
         time.sleep(1)
         RequestParser.browser_independent_single_callback_request_assert(
@@ -145,15 +144,15 @@ def test_gsr_gui(driver, gsr_figure):
 
         # A toggle operation
         # This does not trigger the relayout callback, no new requests should be made
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.click_legend_item("EDA_Phasic")
-        time.sleep(0.1)
+        time.sleep(0.2)
         fr.click_legend_item("SCR peaks")
         time.sleep(1)
         assert len(RequestParser.filter_callback_requests(fr.get_requests())) == 0
 
         # A reset axes operation resets the front-end view to the global data view
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.reset_axes()
         time.sleep(1)
         RequestParser.browser_independent_single_callback_request_assert(
@@ -168,7 +167,7 @@ def test_gsr_gui(driver, gsr_figure):
         )
 
         # y remains the same - zoom horizontally
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("x2y3", x0=0.25, x1=0.5, y0=0.3, y1=0.3)
 
         # y remains the same - zom horizontally
@@ -182,7 +181,7 @@ def test_gsr_gui(driver, gsr_figure):
         # This will trigger a relayout callback, however as only y-values are updated,
         # no new data points will be send to the front-end and a - NO CONTENT response
         # will be returned.
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("x2y3", x0=0.2, x1=0.2, y0=0.1, y1=0.5)
         time.sleep(1)
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
@@ -194,7 +193,7 @@ def test_gsr_gui(driver, gsr_figure):
         # the server to the front-end, however, a callback will still be made, but
         # will return a 204 response status (no content), as we do not need new data
         # to autoscale to the current front-end view.
-        fr.clear_requests()
+        fr.clear_requests(sleep_time_s=1)
         fr.autoscale()
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
@@ -214,7 +213,7 @@ def test_cat_gui(driver, cat_series_box_hist_figure):
 
     cleanup_on_sigterm()
 
-    port = 9032
+    port = 9034
     proc = multiprocessing.Process(
         target=cat_series_box_hist_figure.show_dash,
         kwargs=dict(mode="external", port=port),
@@ -224,18 +223,56 @@ def test_cat_gui(driver, cat_series_box_hist_figure):
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
 
-         # First, apply some box based zooms
-        fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
+        # First, apply some horizontal based zooms
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+        fr.clear_requests(sleep_time_s=1)
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
         time.sleep(1)
-        fr.drag_and_zoom("x2y2", x0=0.3, x1=0.7, y0=0.1, y1=1)
-        time.sleep(1)
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=["xaxis.range[0]", "xaxis.range[1]"],
+            n_updated_traces=1,
+        )
 
+        # The right top subplot withholds a boxplot, which is NOT a high-freq trace
+        # so no new data should be send from the server to the client -> 204 status code
+        fr.clear_requests(sleep_time_s=1)
+        fr.drag_and_zoom("x2y2", x0=0.3, x1=0.7, y0=0.2, y1=0.8)
+        time.sleep(1)
+        vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
+        assert len(vertical_requests) == 1
+        assert vertical_requests[0].response.status_code == 204
+
+        fr.clear_requests(sleep_time_s=1)
         fr.autoscale()
         time.sleep(1)
+        autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
+        assert len(autoscale_requests) == 1
+        assert autoscale_requests[0].response.status_code == 204
 
+        # Note: as there is only 1 hf-scatter-trace, the reset axes command will only
+        # update a single trace
+        fr.clear_requests(sleep_time_s=1)
         fr.reset_axes()
         time.sleep(1)
-
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=[
+                "xaxis.autorange",
+                "xaxis.showspikes",
+                "xaxis2.autorange",
+                "xaxis2.showspikes",
+                "xaxis3.autorange",
+                "xaxis3.showspikes",
+                "yaxis.autorange",
+                "yaxis.showspikes",
+                "yaxis2.autorange",
+                "yaxis2.showspikes",
+                "yaxis3.autorange",
+                "yaxis3.showspikes",
+            ],
+            n_updated_traces=1,
+        )
 
     except Exception as e:
         raise e
