@@ -138,7 +138,7 @@ class FigureResampler(go.Figure):
         Returns
         -------
         Optional[Union[dict, BaseTraceType]]
-            If the matching hf_series is found in hf_dict, a(n updated) trace will be
+            If the matching hf_series is found in hf_dict, an (updated) trace will be
             returned, otherwise None.
 
         Notes
@@ -469,7 +469,10 @@ class FigureResampler(go.Figure):
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
-            # if the categorical or string-like hf-y data is send to
+            # if the categorical or string-like hf_y data is of type object (happens 
+            # when y argument is used for the trace constructor instead of hf_y), we 
+            # transform it to type string as such it will be sent as categorical data
+            # to the downsampling algorithm
             if isinstance(hf_y, np.ndarray) and hf_y.dtype == "object":
                 hf_y = hf_y.astype("str")
 
@@ -636,14 +639,14 @@ class FigureResampler(go.Figure):
                 # 2.1. Autorange -> do nothing, the autorange will be applied on the
                 #      current front-end view
                 elif len(autorange_matches) and not len(spike_matches):
-                    # preventupdate returns a 204 status code response on the
+                    # PreventUpdate returns a 204 status code response on the
                     # relayout post request
                     raise dash.exceptions.PreventUpdate()
 
             # If we do not have any traces to be updated, we will return an empty
             # request response
             if len(updated_trace_indices) == 0:
-                # preventupdate retursn a 204 status-code response on the relayout post
+                # PreventUpdate returns a 204 status-code response on the relayout post
                 # request
                 raise dash.exceptions.PreventUpdate()
 
