@@ -92,7 +92,7 @@ class LTTB(AbstractSeriesDownsampler):
         return pd.Series(
             index=s.iloc[idx.astype(&#34;uint32&#34;)].index.astype(s.index.dtype),
             data=data,
-            name=s.name,
+            name=str(s.name),
             copy=False
         )
 
@@ -114,7 +114,7 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
     Notes
     -----
     * The user has total control which aggregation_func is passed to this method,
-      hence it is the users&#39; responisbility to handle categorical and bool-based
+      hence it is the users&#39; responsibility to handle categorical and bool-based
       datatypes.
 
     &#34;&#34;&#34;
@@ -151,7 +151,7 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
         return pd.Series(
             index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
             data=s_out.values,
-            name=s.name,
+            name=str(s.name),
             copy=False
         )</code></pre>
 </details>
@@ -221,7 +221,7 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
         return pd.Series(
             index=s.iloc[idx.astype(&#34;uint32&#34;)].index.astype(s.index.dtype),
             data=data,
-            name=s.name,
+            name=str(s.name),
             copy=False
         )</code></pre>
 </details>
@@ -253,7 +253,7 @@ s_cat = s.astype(cat_type)</p>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile based approach is used to determine the gaps /
-irregularly sampled data. By default True.</dd>
+irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
 </dl></div>
@@ -289,7 +289,7 @@ irregularly sampled data. By default True.</dd>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile based approach is used to determine the gaps /
-irregularly sampled data. By default True.</dd>
+irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
 </dl></div>
@@ -314,7 +314,7 @@ irregularly sampled data. By default True.</dd>
     Notes
     -----
     * The user has total control which aggregation_func is passed to this method,
-      hence it is the users&#39; responisbility to handle categorical and bool-based
+      hence it is the users&#39; responsibility to handle categorical and bool-based
       datatypes.
 
     &#34;&#34;&#34;
@@ -351,7 +351,7 @@ irregularly sampled data. By default True.</dd>
         return pd.Series(
             index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
             data=s_out.values,
-            name=s.name,
+            name=str(s.name),
             copy=False
         )</code></pre>
 </details>
@@ -359,7 +359,7 @@ irregularly sampled data. By default True.</dd>
 <h2 id="notes">Notes</h2>
 <ul>
 <li>The user has total control which aggregation_func is passed to this method,
-hence it is the users' responisbility to handle categorical and bool-based
+hence it is the users' responsibility to handle categorical and bool-based
 datatypes.</li>
 </ul>
 <p>Constructor of AbstractSeriesDownsampler.</p>
@@ -368,7 +368,7 @@ datatypes.</li>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile based approach is used to determine the gaps /
-irregularly sampled data. By default True.</dd>
+irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
 </dl></div>

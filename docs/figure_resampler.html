@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
 <title>plotly_resampler.figure_resampler API documentation</title>
-<meta name="description" content="Wrapper around the the plotly go.Figure class which allows bookkeeping and
+<meta name="description" content="Wrapper around the plotly go.Figure class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data …" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -27,7 +27,7 @@ alt="" width="33" height="25"></button>
 <h1 class="title">Module <code>plotly_resampler.figure_resampler</code></h1>
 </header>
 <section id="section-intro">
-<p>Wrapper around the the plotly go.Figure class which allows bookkeeping and
+<p>Wrapper around the plotly go.Figure class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.</p>
 <h2 id="notes">Notes</h2>
 <ul>
@@ -39,7 +39,7 @@ back-end based resampling of high-frequency sequential data.</p>
 </summary>
 <pre><code class="python"># -*- coding: utf-8 -*-
 &#34;&#34;&#34;
-Wrapper around the the plotly go.Figure class which allows bookkeeping and
+Wrapper around the plotly go.Figure class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.
 
 Notes
@@ -53,12 +53,11 @@ import re
 from typing import List, Optional, Union, Iterable, Tuple, Dict
 from uuid import uuid4
 
-import dash_bootstrap_components as dbc
+import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import dash
-from dash.dependencies import Input, Output
+from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
@@ -146,13 +145,15 @@ class FigureResampler(go.Figure):
             self._print(f&#34;[W] trace with {trace_props} not found&#34;)
         return hf_trace_data
 
-    def check_update_trace_data(self, trace, start=None, end=None):
+    def check_update_trace_data(
+        self, trace, start=None, end=None
+    ) -&gt; Optional[Union[dict, BaseTraceType]]:
         &#34;&#34;&#34;Check and updates the passed`trace`.
 
         Note
         ----
-        This is a pass by reference. The passed trace object will be updated.
-        No new view of this trace will be created!
+        This is a pass by reference. The passed trace object will be updated and
+        returned if found in `hf_data`.
 
         Parameters
         ----------
@@ -172,6 +173,12 @@ class FigureResampler(go.Figure):
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
+
+        Returns
+        -------
+        Optional[Union[dict, BaseTraceType]]
+            If the matching hf_series is found in hf_dict, an (updated) trace will be
+            returned, otherwise None.
 
         Notes
         -----
@@ -209,7 +216,7 @@ class FigureResampler(go.Figure):
                 trace[&#34;name&#34;] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = name[len(self._prefix) :]
+                    trace[&#34;name&#34;] = name[len(self._prefix):]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace[&#34;name&#34;] = name[: -len(self._suffix)]
 
@@ -234,8 +241,10 @@ class FigureResampler(go.Figure):
                 )[hovertext.name].values
             else:
                 trace[&#34;hovertext&#34;] = hovertext
+            return trace
         else:
             self._print(&#34;hf_data not found&#34;)
+            return None
 
     def check_update_figure_dict(
         self,
@@ -299,8 +308,12 @@ class FigureResampler(go.Figure):
                     xaxis_filter_short != &#34;x&#34; and x_anchor_trace != xaxis_filter_short
                 ):
                     continue
-            self.check_update_trace_data(trace=trace, start=start, end=stop)
-            updated_trace_indices.append(idx)
+
+            # if we managed to find and update the trace, it will return the trace
+            # and thus not None.
+            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
+            if updated_trace is not None:
+                updated_trace_indices.append(idx)
         return updated_trace_indices
 
     @staticmethod
@@ -349,7 +362,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -444,30 +457,38 @@ class FigureResampler(go.Figure):
         # key for comparison
         trace.uid = str(uuid4())
 
+        hf_x = (
+            trace[&#34;x&#34;]
+            if hasattr(trace, &#34;x&#34;) and hf_x is None
+            else hf_x.values
+            if isinstance(hf_x, pd.Series)
+            else hf_x
+        )
+        if isinstance(hf_x, tuple):
+            hf_x = list(hf_x)
+
+        hf_y = (
+            trace[&#34;y&#34;]
+            if hasattr(trace, &#34;y&#34;) and hf_y is None
+            else hf_y.values
+            if isinstance(hf_y, pd.Series)
+            else hf_y
+        )
+        if isinstance(hf_y, tuple):
+            hf_y = list(hf_y)
+
+        # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
+        hf_hovertext = (
+            hf_hovertext
+            if hf_hovertext is not None
+            else trace[&#34;hovertext&#34;]
+            if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
+            else trace[&#34;text&#34;] if hasattr(trace, &#34;text&#34;)
+            else None
+        )
+
         high_frequency_traces = [&#34;scatter&#34;, &#34;scattergl&#34;]
         if trace[&#34;type&#34;].lower() in high_frequency_traces:
-            hf_x = (
-                trace[&#34;x&#34;]
-                if hf_x is None
-                else hf_x.values
-                if isinstance(hf_x, pd.Series)
-                else hf_x
-            )
-            hf_y = (
-                trace[&#34;y&#34;]
-                if hf_y is None
-                else hf_y.values
-                if isinstance(hf_y, pd.Series)
-                else hf_y
-            )
-            hf_hovertext = (
-                hf_hovertext
-                if hf_hovertext is not None
-                else trace[&#34;hovertext&#34;]
-                if trace[&#34;hovertext&#34;] is not None
-                else trace[&#34;text&#34;]
-            )
-
             # Make sure to set the text-attribute to None as the default plotly behavior
             # for these high-dimensional traces (scatters) is that text will be shown in
             # hovertext and not in on-graph texts (as is the case with bar-charts)
@@ -486,6 +507,13 @@ class FigureResampler(go.Figure):
                 hf_y = hf_y[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
+
+            # if the categorical or string-like hf_y data is of type object (happens 
+            # when y argument is used for the trace constructor instead of hf_y), we 
+            # transform it to type string as such it will be sent as categorical data
+            # to the downsampling algorithm
+            if isinstance(hf_y, np.ndarray) and hf_y.dtype == &#34;object&#34;:
+                hf_y = hf_y.astype(&#34;str&#34;)
 
             # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
             if isinstance(hf_y, (pd.Series, np.ndarray)):
@@ -514,7 +542,13 @@ class FigureResampler(go.Figure):
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
                 index = pd.Index(hf_x, copy=False, name=&#34;timestamp&#34;)
-                hf_series = pd.Series(data=hf_y, index=index, copy=False, name=&#34;data&#34;)
+                hf_series = pd.Series(
+                    data=hf_y,
+                    index=index,
+                    copy=False,
+                    name=&#34;data&#34;,
+                    dtype=&#34;category&#34; if hf_y.dtype.type == np.str_ else hf_y.dtype,
+                )
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -542,7 +576,8 @@ class FigureResampler(go.Figure):
                 # NOTE: if all the raw data needs to be sent to the javascript, and
                 #  the trace is truly high-frequency, this would take significant time!
                 #  hence, you first downsample the trace.
-                self.check_update_trace_data(trace)
+                trace = self.check_update_trace_data(trace)
+                assert trace is not None
                 super().add_trace(trace=trace, **trace_kwargs)
             else:
                 self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
@@ -554,10 +589,16 @@ class FigureResampler(go.Figure):
             self._print(f&#34;trace {trace[&#39;type&#39;]} is not a high-frequency trace&#34;)
 
             # hf_x and hf_y have priority over the traces&#39; data
-            trace[&#34;x&#34;] = trace[&#34;x&#34;] if hf_x is None else hf_x
-            trace[&#34;y&#34;] = trace[&#34;y&#34;] if hf_y is None else hf_y
-            assert len(trace[&#34;x&#34;]) &gt; 0
-            assert len(trace[&#34;x&#34;] == len(trace[&#34;y&#34;]))
+            if hasattr(trace, &#34;x&#34;):
+                trace[&#34;x&#34;] = hf_x
+
+            if hasattr(trace, &#34;y&#34;):
+                trace[&#34;y&#34;] = hf_y
+
+            if hasattr(trace, &#34;text&#34;) and hasattr(trace, &#34;hovertext&#34;):
+                trace[&#34;text&#34;] = None
+                trace[&#34;hovertext&#34;] = hf_hovertext
+
             return super().add_trace(trace=trace, **trace_kwargs)
 
     # def add_traces(*args, **kwargs):
@@ -590,8 +631,8 @@ class FigureResampler(go.Figure):
             return sorted(matches)
 
         @app.callback(
-            Output(trace_updater_id, &#34;updateData&#34;),
-            Input(graph_id, &#34;relayoutData&#34;),
+            dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
+            dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
             prevent_initial_call=True,
         )
         def _update_graph(changed_layout: dict) -&gt; List[dict]:
@@ -637,7 +678,16 @@ class FigureResampler(go.Figure):
                 # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
                 #      current front-end view
                 elif len(autorange_matches) and not len(spike_matches):
-                    raise dash.exceptions.PreventUpdate
+                    # PreventUpdate returns a 204 status code response on the
+                    # relayout post request
+                    raise dash.exceptions.PreventUpdate()
+
+            # If we do not have any traces to be updated, we will return an empty
+            # request response
+            if len(updated_trace_indices) == 0:
+                # PreventUpdate returns a 204 status-code response on the relayout post
+                # request
+                raise dash.exceptions.PreventUpdate()
 
             # -------------------- construct callback data --------------------------
             layout_traces_list: List[dict] = []  # the data
@@ -677,7 +727,7 @@ class FigureResampler(go.Figure):
                 web browser.&lt;br&gt;
             * ``&#34;inline&#34;``: The app will be displayed inline in the notebook output cell
                 in an iframe.&lt;br&gt;
-            * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicate tab in the
+            * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.&lt;br&gt;
             By default None, which will result in the same behavior as ``&#34;external&#34;``.
@@ -688,7 +738,7 @@ class FigureResampler(go.Figure):
         &#34;&#34;&#34;
         # 1. Construct the Dash app layout
         app = JupyterDash(&#34;local_app&#34;)
-        app.layout = dbc.Container(
+        app.layout = dash.html.Div(
             [
                 dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=self),
                 TraceUpdater(
@@ -811,13 +861,15 @@ class FigureResampler(go.Figure):
             self._print(f&#34;[W] trace with {trace_props} not found&#34;)
         return hf_trace_data
 
-    def check_update_trace_data(self, trace, start=None, end=None):
+    def check_update_trace_data(
+        self, trace, start=None, end=None
+    ) -&gt; Optional[Union[dict, BaseTraceType]]:
         &#34;&#34;&#34;Check and updates the passed`trace`.
 
         Note
         ----
-        This is a pass by reference. The passed trace object will be updated.
-        No new view of this trace will be created!
+        This is a pass by reference. The passed trace object will be updated and
+        returned if found in `hf_data`.
 
         Parameters
         ----------
@@ -837,6 +889,12 @@ class FigureResampler(go.Figure):
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
+
+        Returns
+        -------
+        Optional[Union[dict, BaseTraceType]]
+            If the matching hf_series is found in hf_dict, an (updated) trace will be
+            returned, otherwise None.
 
         Notes
         -----
@@ -874,7 +932,7 @@ class FigureResampler(go.Figure):
                 trace[&#34;name&#34;] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = name[len(self._prefix) :]
+                    trace[&#34;name&#34;] = name[len(self._prefix):]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace[&#34;name&#34;] = name[: -len(self._suffix)]
 
@@ -899,8 +957,10 @@ class FigureResampler(go.Figure):
                 )[hovertext.name].values
             else:
                 trace[&#34;hovertext&#34;] = hovertext
+            return trace
         else:
             self._print(&#34;hf_data not found&#34;)
+            return None
 
     def check_update_figure_dict(
         self,
@@ -964,8 +1024,12 @@ class FigureResampler(go.Figure):
                     xaxis_filter_short != &#34;x&#34; and x_anchor_trace != xaxis_filter_short
                 ):
                     continue
-            self.check_update_trace_data(trace=trace, start=start, end=stop)
-            updated_trace_indices.append(idx)
+
+            # if we managed to find and update the trace, it will return the trace
+            # and thus not None.
+            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
+            if updated_trace is not None:
+                updated_trace_indices.append(idx)
         return updated_trace_indices
 
     @staticmethod
@@ -1014,7 +1078,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -1109,30 +1173,38 @@ class FigureResampler(go.Figure):
         # key for comparison
         trace.uid = str(uuid4())
 
+        hf_x = (
+            trace[&#34;x&#34;]
+            if hasattr(trace, &#34;x&#34;) and hf_x is None
+            else hf_x.values
+            if isinstance(hf_x, pd.Series)
+            else hf_x
+        )
+        if isinstance(hf_x, tuple):
+            hf_x = list(hf_x)
+
+        hf_y = (
+            trace[&#34;y&#34;]
+            if hasattr(trace, &#34;y&#34;) and hf_y is None
+            else hf_y.values
+            if isinstance(hf_y, pd.Series)
+            else hf_y
+        )
+        if isinstance(hf_y, tuple):
+            hf_y = list(hf_y)
+
+        # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
+        hf_hovertext = (
+            hf_hovertext
+            if hf_hovertext is not None
+            else trace[&#34;hovertext&#34;]
+            if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
+            else trace[&#34;text&#34;] if hasattr(trace, &#34;text&#34;)
+            else None
+        )
+
         high_frequency_traces = [&#34;scatter&#34;, &#34;scattergl&#34;]
         if trace[&#34;type&#34;].lower() in high_frequency_traces:
-            hf_x = (
-                trace[&#34;x&#34;]
-                if hf_x is None
-                else hf_x.values
-                if isinstance(hf_x, pd.Series)
-                else hf_x
-            )
-            hf_y = (
-                trace[&#34;y&#34;]
-                if hf_y is None
-                else hf_y.values
-                if isinstance(hf_y, pd.Series)
-                else hf_y
-            )
-            hf_hovertext = (
-                hf_hovertext
-                if hf_hovertext is not None
-                else trace[&#34;hovertext&#34;]
-                if trace[&#34;hovertext&#34;] is not None
-                else trace[&#34;text&#34;]
-            )
-
             # Make sure to set the text-attribute to None as the default plotly behavior
             # for these high-dimensional traces (scatters) is that text will be shown in
             # hovertext and not in on-graph texts (as is the case with bar-charts)
@@ -1151,6 +1223,13 @@ class FigureResampler(go.Figure):
                 hf_y = hf_y[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
+
+            # if the categorical or string-like hf_y data is of type object (happens 
+            # when y argument is used for the trace constructor instead of hf_y), we 
+            # transform it to type string as such it will be sent as categorical data
+            # to the downsampling algorithm
+            if isinstance(hf_y, np.ndarray) and hf_y.dtype == &#34;object&#34;:
+                hf_y = hf_y.astype(&#34;str&#34;)
 
             # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
             if isinstance(hf_y, (pd.Series, np.ndarray)):
@@ -1179,7 +1258,13 @@ class FigureResampler(go.Figure):
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
                 index = pd.Index(hf_x, copy=False, name=&#34;timestamp&#34;)
-                hf_series = pd.Series(data=hf_y, index=index, copy=False, name=&#34;data&#34;)
+                hf_series = pd.Series(
+                    data=hf_y,
+                    index=index,
+                    copy=False,
+                    name=&#34;data&#34;,
+                    dtype=&#34;category&#34; if hf_y.dtype.type == np.str_ else hf_y.dtype,
+                )
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -1207,7 +1292,8 @@ class FigureResampler(go.Figure):
                 # NOTE: if all the raw data needs to be sent to the javascript, and
                 #  the trace is truly high-frequency, this would take significant time!
                 #  hence, you first downsample the trace.
-                self.check_update_trace_data(trace)
+                trace = self.check_update_trace_data(trace)
+                assert trace is not None
                 super().add_trace(trace=trace, **trace_kwargs)
             else:
                 self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
@@ -1219,10 +1305,16 @@ class FigureResampler(go.Figure):
             self._print(f&#34;trace {trace[&#39;type&#39;]} is not a high-frequency trace&#34;)
 
             # hf_x and hf_y have priority over the traces&#39; data
-            trace[&#34;x&#34;] = trace[&#34;x&#34;] if hf_x is None else hf_x
-            trace[&#34;y&#34;] = trace[&#34;y&#34;] if hf_y is None else hf_y
-            assert len(trace[&#34;x&#34;]) &gt; 0
-            assert len(trace[&#34;x&#34;] == len(trace[&#34;y&#34;]))
+            if hasattr(trace, &#34;x&#34;):
+                trace[&#34;x&#34;] = hf_x
+
+            if hasattr(trace, &#34;y&#34;):
+                trace[&#34;y&#34;] = hf_y
+
+            if hasattr(trace, &#34;text&#34;) and hasattr(trace, &#34;hovertext&#34;):
+                trace[&#34;text&#34;] = None
+                trace[&#34;hovertext&#34;] = hf_hovertext
+
             return super().add_trace(trace=trace, **trace_kwargs)
 
     # def add_traces(*args, **kwargs):
@@ -1255,8 +1347,8 @@ class FigureResampler(go.Figure):
             return sorted(matches)
 
         @app.callback(
-            Output(trace_updater_id, &#34;updateData&#34;),
-            Input(graph_id, &#34;relayoutData&#34;),
+            dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
+            dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
             prevent_initial_call=True,
         )
         def _update_graph(changed_layout: dict) -&gt; List[dict]:
@@ -1302,7 +1394,16 @@ class FigureResampler(go.Figure):
                 # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
                 #      current front-end view
                 elif len(autorange_matches) and not len(spike_matches):
-                    raise dash.exceptions.PreventUpdate
+                    # PreventUpdate returns a 204 status code response on the
+                    # relayout post request
+                    raise dash.exceptions.PreventUpdate()
+
+            # If we do not have any traces to be updated, we will return an empty
+            # request response
+            if len(updated_trace_indices) == 0:
+                # PreventUpdate returns a 204 status-code response on the relayout post
+                # request
+                raise dash.exceptions.PreventUpdate()
 
             # -------------------- construct callback data --------------------------
             layout_traces_list: List[dict] = []  # the data
@@ -1342,7 +1443,7 @@ class FigureResampler(go.Figure):
                 web browser.&lt;br&gt;
             * ``&#34;inline&#34;``: The app will be displayed inline in the notebook output cell
                 in an iframe.&lt;br&gt;
-            * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicate tab in the
+            * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.&lt;br&gt;
             By default None, which will result in the same behavior as ``&#34;external&#34;``.
@@ -1353,7 +1454,7 @@ class FigureResampler(go.Figure):
         &#34;&#34;&#34;
         # 1. Construct the Dash app layout
         app = JupyterDash(&#34;local_app&#34;)
-        app.layout = dbc.Container(
+        app.layout = dash.html.Div(
             [
                 dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=self),
                 TraceUpdater(
@@ -1419,13 +1520,15 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def check_update_trace_data(self, trace, start=None, end=None):
+<pre><code class="python">def check_update_trace_data(
+    self, trace, start=None, end=None
+) -&gt; Optional[Union[dict, BaseTraceType]]:
     &#34;&#34;&#34;Check and updates the passed`trace`.
 
     Note
     ----
-    This is a pass by reference. The passed trace object will be updated.
-    No new view of this trace will be created!
+    This is a pass by reference. The passed trace object will be updated and
+    returned if found in `hf_data`.
 
     Parameters
     ----------
@@ -1445,6 +1548,12 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
     end : Union[float, str], optional
         The end index for which we want the resampled data to be updated to,
         by default None
+
+    Returns
+    -------
+    Optional[Union[dict, BaseTraceType]]
+        If the matching hf_series is found in hf_dict, an (updated) trace will be
+        returned, otherwise None.
 
     Notes
     -----
@@ -1482,7 +1591,7 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
             trace[&#34;name&#34;] = name
         else:
             if len(self._prefix) and name.startswith(self._prefix):
-                trace[&#34;name&#34;] = name[len(self._prefix) :]
+                trace[&#34;name&#34;] = name[len(self._prefix):]
             if len(self._suffix) and name.endswith(self._suffix):
                 trace[&#34;name&#34;] = name[: -len(self._suffix)]
 
@@ -1507,13 +1616,15 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
             )[hovertext.name].values
         else:
             trace[&#34;hovertext&#34;] = hovertext
+        return trace
     else:
-        self._print(&#34;hf_data not found&#34;)</code></pre>
+        self._print(&#34;hf_data not found&#34;)
+        return None</code></pre>
 </details>
 <div class="desc"><p>Check and updates the passed<code>trace</code>.</p>
 <h2 id="note">Note</h2>
-<p>This is a pass by reference. The passed trace object will be updated.
-No new view of this trace will be created!</p>
+<p>This is a pass by reference. The passed trace object will be updated and
+returned if found in <code>hf_data</code>.</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>trace</code></strong> :&ensp;<code>BaseTraceType</code> or <code>dict</code></dt>
@@ -1539,6 +1650,12 @@ by default None,</dd>
 <dt><strong><code>end</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
 <dd>The end index for which we want the resampled data to be updated to,
 by default None</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>Optional[Union[dict, BaseTraceType]]</code></dt>
+<dd>If the matching hf_series is found in hf_dict, an (updated) trace will be
+returned, otherwise None.</dd>
 </dl>
 <h2 id="notes">Notes</h2>
 <ul>
@@ -1617,8 +1734,12 @@ because their underlying axis is the same.</li>
                 xaxis_filter_short != &#34;x&#34; and x_anchor_trace != xaxis_filter_short
             ):
                 continue
-        self.check_update_trace_data(trace=trace, start=start, end=stop)
-        updated_trace_indices.append(idx)
+
+        # if we managed to find and update the trace, it will return the trace
+        # and thus not None.
+        updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
+        if updated_trace is not None:
+            updated_trace_indices.append(idx)
     return updated_trace_indices</code></pre>
 </details>
 <div class="desc"><p>Check and update the traces within the figure dict.</p>
@@ -1746,30 +1867,38 @@ modalities which are updated.</dd>
     # key for comparison
     trace.uid = str(uuid4())
 
+    hf_x = (
+        trace[&#34;x&#34;]
+        if hasattr(trace, &#34;x&#34;) and hf_x is None
+        else hf_x.values
+        if isinstance(hf_x, pd.Series)
+        else hf_x
+    )
+    if isinstance(hf_x, tuple):
+        hf_x = list(hf_x)
+
+    hf_y = (
+        trace[&#34;y&#34;]
+        if hasattr(trace, &#34;y&#34;) and hf_y is None
+        else hf_y.values
+        if isinstance(hf_y, pd.Series)
+        else hf_y
+    )
+    if isinstance(hf_y, tuple):
+        hf_y = list(hf_y)
+
+    # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
+    hf_hovertext = (
+        hf_hovertext
+        if hf_hovertext is not None
+        else trace[&#34;hovertext&#34;]
+        if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
+        else trace[&#34;text&#34;] if hasattr(trace, &#34;text&#34;)
+        else None
+    )
+
     high_frequency_traces = [&#34;scatter&#34;, &#34;scattergl&#34;]
     if trace[&#34;type&#34;].lower() in high_frequency_traces:
-        hf_x = (
-            trace[&#34;x&#34;]
-            if hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
-        )
-        hf_y = (
-            trace[&#34;y&#34;]
-            if hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, pd.Series)
-            else hf_y
-        )
-        hf_hovertext = (
-            hf_hovertext
-            if hf_hovertext is not None
-            else trace[&#34;hovertext&#34;]
-            if trace[&#34;hovertext&#34;] is not None
-            else trace[&#34;text&#34;]
-        )
-
         # Make sure to set the text-attribute to None as the default plotly behavior
         # for these high-dimensional traces (scatters) is that text will be shown in
         # hovertext and not in on-graph texts (as is the case with bar-charts)
@@ -1788,6 +1917,13 @@ modalities which are updated.</dd>
             hf_y = hf_y[not_nan_mask]
             if isinstance(hf_hovertext, np.ndarray):
                 hf_hovertext = hf_hovertext[not_nan_mask]
+
+        # if the categorical or string-like hf_y data is of type object (happens 
+        # when y argument is used for the trace constructor instead of hf_y), we 
+        # transform it to type string as such it will be sent as categorical data
+        # to the downsampling algorithm
+        if isinstance(hf_y, np.ndarray) and hf_y.dtype == &#34;object&#34;:
+            hf_y = hf_y.astype(&#34;str&#34;)
 
         # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
         if isinstance(hf_y, (pd.Series, np.ndarray)):
@@ -1816,7 +1952,13 @@ modalities which are updated.</dd>
             # We will re-create this each time as hf_x and hf_y withholds
             # high-frequency data
             index = pd.Index(hf_x, copy=False, name=&#34;timestamp&#34;)
-            hf_series = pd.Series(data=hf_y, index=index, copy=False, name=&#34;data&#34;)
+            hf_series = pd.Series(
+                data=hf_y,
+                index=index,
+                copy=False,
+                name=&#34;data&#34;,
+                dtype=&#34;category&#34; if hf_y.dtype.type == np.str_ else hf_y.dtype,
+            )
 
             # Checking this now avoids less interpretable `KeyError` when resampling
             assert hf_series.index.is_monotonic_increasing
@@ -1844,7 +1986,8 @@ modalities which are updated.</dd>
             # NOTE: if all the raw data needs to be sent to the javascript, and
             #  the trace is truly high-frequency, this would take significant time!
             #  hence, you first downsample the trace.
-            self.check_update_trace_data(trace)
+            trace = self.check_update_trace_data(trace)
+            assert trace is not None
             super().add_trace(trace=trace, **trace_kwargs)
         else:
             self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
@@ -1856,10 +1999,16 @@ modalities which are updated.</dd>
         self._print(f&#34;trace {trace[&#39;type&#39;]} is not a high-frequency trace&#34;)
 
         # hf_x and hf_y have priority over the traces&#39; data
-        trace[&#34;x&#34;] = trace[&#34;x&#34;] if hf_x is None else hf_x
-        trace[&#34;y&#34;] = trace[&#34;y&#34;] if hf_y is None else hf_y
-        assert len(trace[&#34;x&#34;]) &gt; 0
-        assert len(trace[&#34;x&#34;] == len(trace[&#34;y&#34;]))
+        if hasattr(trace, &#34;x&#34;):
+            trace[&#34;x&#34;] = hf_x
+
+        if hasattr(trace, &#34;y&#34;):
+            trace[&#34;y&#34;] = hf_y
+
+        if hasattr(trace, &#34;text&#34;) and hasattr(trace, &#34;hovertext&#34;):
+            trace[&#34;text&#34;] = None
+            trace[&#34;hovertext&#34;] = hf_hovertext
+
         return super().add_trace(trace=trace, **trace_kwargs)</code></pre>
 </details>
 <div class="desc"><p>Add a trace to the figure.</p>
@@ -1977,8 +2126,8 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
         return sorted(matches)
 
     @app.callback(
-        Output(trace_updater_id, &#34;updateData&#34;),
-        Input(graph_id, &#34;relayoutData&#34;),
+        dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
+        dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
         prevent_initial_call=True,
     )
     def _update_graph(changed_layout: dict) -&gt; List[dict]:
@@ -2024,7 +2173,16 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
             # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
             #      current front-end view
             elif len(autorange_matches) and not len(spike_matches):
-                raise dash.exceptions.PreventUpdate
+                # PreventUpdate returns a 204 status code response on the
+                # relayout post request
+                raise dash.exceptions.PreventUpdate()
+
+        # If we do not have any traces to be updated, we will return an empty
+        # request response
+        if len(updated_trace_indices) == 0:
+            # PreventUpdate returns a 204 status-code response on the relayout post
+            # request
+            raise dash.exceptions.PreventUpdate()
 
         # -------------------- construct callback data --------------------------
         layout_traces_list: List[dict] = []  # the data
@@ -2084,7 +2242,7 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
             web browser.&lt;br&gt;
         * ``&#34;inline&#34;``: The app will be displayed inline in the notebook output cell
             in an iframe.&lt;br&gt;
-        * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicate tab in the
+        * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicated tab in the
             JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
             extension.&lt;br&gt;
         By default None, which will result in the same behavior as ``&#34;external&#34;``.
@@ -2095,7 +2253,7 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
     &#34;&#34;&#34;
     # 1. Construct the Dash app layout
     app = JupyterDash(&#34;local_app&#34;)
-    app.layout = dbc.Container(
+    app.layout = dash.html.Div(
         [
             dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=self),
             TraceUpdater(
@@ -2128,7 +2286,7 @@ output cell. Clicking this URL will open the app in the default
 web browser.<br></li>
 <li><code>"inline"</code>: The app will be displayed inline in the notebook output cell
 in an iframe.<br></li>
-<li><code>"jupyterlab"</code>: The app will be displayed in a dedicate tab in the
+<li><code>"jupyterlab"</code>: The app will be displayed in a dedicated tab in the
 JupyterLab interface. Requires JupyterLab and the <code>jupyterlab-dash</code>
 extension.<br>
 By default None, which will result in the same behavior as <code>"external"</code>.</li>
