@@ -22,7 +22,7 @@ class AbstractSeriesDownsampler(ABC):
         interleave_gaps: bool, optional
             Whether None values should be added when there are gaps / irregularly 
             sampled data. A quantile based approach is used to determine the gaps /
-            irregularly sampled data. By default True.
+            irregularly sampled data. By default, True.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.
         

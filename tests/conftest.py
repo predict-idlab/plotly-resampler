@@ -1,40 +1,43 @@
 """Fixtures and helper functions for testing"""
 
 
-import pytest
-import pandas as pd
-import numpy as np
+from typing import Union
 
+import numpy as np
+import pandas as pd
 import plotly.graph_objects as go
+import pytest
 from plotly.subplots import make_subplots
-import selenium
+
 from plotly_resampler import FigureResampler
 from plotly_resampler.downsamplers import LTTB, EveryNthPoint
-from typing import List, Tuple, Union
-
 
 # hyperparameters
 _nb_samples = 10_000
 data_dir = "examples/data/"
 headless = True
+TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
 
 
 @pytest.fixture
 def driver():
-    from selenium import webdriver
+    from seleniumwire import webdriver
     from webdriver_manager.chrome import ChromeDriverManager
     from selenium.webdriver.chrome.options import Options
     from webdriver_manager.utils import ChromeType
 
-    options = Options()
-    if headless:
-        options.add_argument("--headless")
-    options.add_argument("--no=sandbox")
+    if not TESTING_LOCAL:
+        options = Options()
+        if headless:
+            options.add_argument("--headless")
+        # options.add_argument("--no=sandbox")
 
-    driver = webdriver.Chrome(
-        ChromeDriverManager(chrome_type=ChromeType.CHROMIUM).install(), options=options
-    )
-
+        driver = webdriver.Chrome(
+            ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
+            options=options,
+        )
+    else:
+        driver = webdriver.Firefox()
     return driver
 
 
@@ -59,8 +62,8 @@ def bool_series() -> pd.Series:
 
 @pytest.fixture
 def example_figure() -> FigureResampler:
-    df_gusb = pd.read_parquet(f"{data_dir}df_gusb.parquet", engine="fastparquet")
-    df_data_pc = pd.read_parquet(f"{data_dir}df_pc_test.parquet", engine="fastparquet")
+    df_gusb = pd.read_parquet(f"{data_dir}df_gusb.parquet")
+    df_data_pc = pd.read_parquet(f"{data_dir}df_pc_test.parquet")
 
     n = 110_000  # _000
     np_series = np.array(
@@ -197,7 +200,7 @@ def gsr_figure() -> FigureResampler:
         df_grouped["next_start"] = df_grouped.start.shift(-1).fillna(df_grouped["end"])
         return df_grouped
 
-    df_gsr = pd.read_parquet(f"{data_dir}processed_gsr.parquet", engine="fastparquet")
+    df_gsr = pd.read_parquet(f"{data_dir}processed_gsr.parquet")
 
     fig = FigureResampler(
         make_subplots(
@@ -266,4 +269,52 @@ def gsr_figure() -> FigureResampler:
         col=1,
     )
 
+    return fig
+
+
+
+# Which figure types do seem interesting to you peeps?
+# A figure with categorical data 
+# A Histogram / box plot :)
+
+@pytest.fixture
+def cat_series_box_hist_figure() -> FigureResampler:
+    # Create a categorical series, with mostly a's, but a few sparse b's and c's
+    cats_list = np.array(list("aaaaaaaaaa" * 1000))
+    cats_list[np.random.choice(len(cats_list), 100, replace=False)] = "b"
+    cats_list[np.random.choice(len(cats_list), 50, replace=False)] = "c"
+    cat_series = pd.Series(cats_list, dtype="category")
+
+    x = np.arange(_nb_samples).astype(np.uint32)
+    y = np.sin(x / 300).astype(np.float32) + np.random.randn(_nb_samples) / 5
+    float_series = pd.Series(index=x, data=y)
+
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+    fig = FigureResampler(base_fig, default_n_shown_samples=1000, verbose=True)
+
+    fig.add_trace(
+        go.Scattergl(name="cat_series", x=cat_series.index, y=cat_series),
+        row=1,
+        col=1,
+        hf_hovertext="text",
+    )
+
+    fig.add_trace(go.Box(x=float_series.values, name="float_series"), row=1, col=2)
+    fig.add_trace(
+        go.Box(x=float_series.values ** 2, name="float_series**2"), row=1, col=2
+    )
+
+    # add a not hf-trace
+    fig.add_trace(
+        go.Histogram(
+            x=float_series,
+            name="float_series",
+        ),
+        row=2,
+        col=1,
+    )
     return fig
