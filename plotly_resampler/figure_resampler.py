@@ -435,8 +435,7 @@ class FigureResampler(go.Figure):
             if isinstance(hf_y, pd.Series)
             else hf_y
         )
-        if isinstance(hf_y, tuple):
-            hf_y = list(hf_y)
+        hf_y = np.asarray(hf_y)
 
         # Note: "hovertext" takes precedence over "text"
         hf_hovertext = (
@@ -473,13 +472,12 @@ class FigureResampler(go.Figure):
             # when y argument is used for the trace constructor instead of hf_y), we 
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
-            if isinstance(hf_y, np.ndarray) and hf_y.dtype == "object":
+            if hf_y.dtype == "object":
                 hf_y = hf_y.astype("str")
 
             # orjson encoding doesn't like to encode with uint8 & uint16 dtype
-            if isinstance(hf_y, (pd.Series, np.ndarray)):
-                if str(hf_y.dtype) in ["uint8", "uint16"]:
-                    hf_y = hf_y.astype("uint32")
+            if str(hf_y.dtype) in ["uint8", "uint16"]:
+                hf_y = hf_y.astype("uint32")
 
             assert len(hf_x) > 0
             assert len(hf_x) == len(hf_y)
