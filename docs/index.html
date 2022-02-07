@@ -560,8 +560,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             if isinstance(hf_y, pd.Series)
             else hf_y
         )
-        if isinstance(hf_y, tuple):
-            hf_y = list(hf_y)
+        hf_y = np.asarray(hf_y)
 
         # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
         hf_hovertext = (
@@ -598,13 +597,12 @@ back-end based resampling of high-frequency sequential data …</p></div>
             # when y argument is used for the trace constructor instead of hf_y), we 
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
-            if isinstance(hf_y, np.ndarray) and hf_y.dtype == &#34;object&#34;:
+            if hf_y.dtype == &#34;object&#34;:
                 hf_y = hf_y.astype(&#34;str&#34;)
 
             # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
-            if isinstance(hf_y, (pd.Series, np.ndarray)):
-                if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
-                    hf_y = hf_y.astype(&#34;uint32&#34;)
+            if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
+                hf_y = hf_y.astype(&#34;uint32&#34;)
 
             assert len(hf_x) &gt; 0
             assert len(hf_x) == len(hf_y)
@@ -1254,8 +1252,7 @@ modalities which are updated.</dd>
         if isinstance(hf_y, pd.Series)
         else hf_y
     )
-    if isinstance(hf_y, tuple):
-        hf_y = list(hf_y)
+    hf_y = np.asarray(hf_y)
 
     # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
     hf_hovertext = (
@@ -1292,13 +1289,12 @@ modalities which are updated.</dd>
         # when y argument is used for the trace constructor instead of hf_y), we 
         # transform it to type string as such it will be sent as categorical data
         # to the downsampling algorithm
-        if isinstance(hf_y, np.ndarray) and hf_y.dtype == &#34;object&#34;:
+        if hf_y.dtype == &#34;object&#34;:
             hf_y = hf_y.astype(&#34;str&#34;)
 
         # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
-        if isinstance(hf_y, (pd.Series, np.ndarray)):
-            if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
-                hf_y = hf_y.astype(&#34;uint32&#34;)
+        if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
+            hf_y = hf_y.astype(&#34;uint32&#34;)
 
         assert len(hf_x) &gt; 0
         assert len(hf_x) == len(hf_y)
