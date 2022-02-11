@@ -189,6 +189,35 @@ def test_cat_box_histogram(float_series):
     fig.update_layout(height=700)
 
 
+def test_replace_figure(float_series):
+     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+
+    fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+
+    go_fig = go.Figure()
+    go_fig.add_trace(go.Scattergl(x=float_series.index, y=float_series, name='fs'))
+
+    fr_fig.replace(go_fig, convert_existing_traces=False)
+    # assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]['x']) == len(float_series)
+    # the orig float series data must still be the orig shape (we passed a view so 
+    # we must check this)
+    assert len(go_fig.data[0]['x']) == len(float_series)
+
+    fr_fig.replace(go_fig, convert_existing_traces=True)
+    # assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]['x']) == 1000
+
+    # the orig float series data must still be the orig shape (we passed a view so 
+    # we must check this)
+    assert len(go_fig.data[0]['x']) == len(float_series)
+
+
 
 def test_nan_removed_input(float_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
