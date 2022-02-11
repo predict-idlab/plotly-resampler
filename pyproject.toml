@@ -30,6 +30,8 @@ pytest-selenium = "^2.0.1"
 webdriver-manager = "^3.5.2"
 pyarrow = "^6.0.1"
 selenium-wire = "^4.5.6"
+pyfunctional = "^1.4.3"
+dash-bootstrap-components = "^1.0.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
