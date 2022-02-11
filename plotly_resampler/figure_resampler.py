@@ -34,8 +34,8 @@ class FigureResampler(go.Figure):
     def __init__(
         self,
         figure: go.Figure = go.Figure(),
-        default_n_shown_samples: int = 1000,
         convert_existing_traces: bool = True,
+        default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
@@ -49,6 +49,9 @@ class FigureResampler(go.Figure):
         ----------
         figure: go.Figure
             The figure that will be decorated.
+        convert_existing_traces: bool
+            A bool indicating whether the hf-traces of the passed `figure` should be
+            downsampled, by default True.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
@@ -77,11 +80,16 @@ class FigureResampler(go.Figure):
         self._global_downsampler = default_downsampler
 
         if convert_existing_traces:
+            # call __init__ with the correct layout and set the `_grid_ref` of the 
+            # to-be-converted figure
+            f_ = go.Figure(layout=figure.layout)
+            f_._grid_ref = figure._grid_ref
+            super().__init__(f_)
+
             for trace in figure.data:
                 self.add_trace(trace)
-            figure.data = []
-
-        super().__init__(figure)
+        else:
+            super().__init__(figure)
 
     def _print(self, *values):
         """Helper method for printing if `verbose` is set to True."""
@@ -603,8 +611,18 @@ class FigureResampler(go.Figure):
         self.data = []
         self.layout = {}
 
-    def replace(self, figure: go.Figure, convert_existing_traces):
-        """Replace the current figure layout with the passed figure object"""
+    def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
+        """Replace the current figure layout with the passed figure object.
+
+        Parameters
+        ----------
+        figure: go.Figure
+            The figure object which will replace the existing figure.
+        convert_existing_traces: bool, Optional
+             A bool indicating whether the hf-traces of the passed `figure` should be
+            downsampled, by default True.
+
+        """
         self._clear_figure()
         self.__init__(
             figure=figure,
@@ -622,12 +640,13 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         app: Union[dash.Dash, JupyterDash]
-            The app in which the callback will be registered
+            The app in which the callback will be registered.
         graph_id:
             The id of the `dcc.Graph`-component which withholds the to-be resampled
             Figure.
         trace_updater_id
-            The id of the `TraceUpdater` component
+            The id of the `TraceUpdater` component. This component is leverage by
+            `FigureResampler` to efficiently POST the to-be-updated data towards.
 
         """
 
