@@ -80,7 +80,7 @@ class FigureResampler(go.Figure):
         self._global_downsampler = default_downsampler
 
         if convert_existing_traces:
-            # call __init__ with the correct layout and set the `_grid_ref` of the 
+            # call __init__ with the correct layout and set the `_grid_ref` of the
             # to-be-converted figure
             f_ = go.Figure(layout=figure.layout)
             f_._grid_ref = figure._grid_ref
@@ -176,10 +176,11 @@ class FigureResampler(go.Figure):
         if hf_trace_data is not None:
             axis_type = hf_trace_data["axis_type"]
             if axis_type == "date":
+                start, end = pd.to_datetime(start), pd.to_datetime(end)
                 hf_series = self._slice_time(
                     hf_trace_data["hf_series"],
-                    pd.to_datetime(start),
-                    pd.to_datetime(end),
+                    start,
+                    end,
                 )
             else:
                 hf_series: pd.Series = hf_trace_data["hf_series"]
@@ -214,9 +215,17 @@ class FigureResampler(go.Figure):
                 trace["name"] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace["name"] = name[len(self._prefix) :]
+                    trace["name"] = trace["name"][len(self._prefix) :]
                 if len(self._suffix) and name.endswith(self._suffix):
-                    trace["name"] = name[: -len(self._suffix)]
+                    trace["name"] = trace["name"][: -len(self._suffix)]
+
+            # Return an invisible, single-point, trace when the sliced hf_series doesn't
+            # contain any data
+            if len(hf_series) == 0:
+                trace["x"] = [start]
+                trace["y"] = [None]
+                trace["hovertext"] = ""
+                return trace
 
             # Downsample the data and store it in the trace-fields
             downsampler: AbstractSeriesDownsampler = hf_trace_data["downsampler"]
