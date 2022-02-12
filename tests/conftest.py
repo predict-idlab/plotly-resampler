@@ -279,6 +279,10 @@ def gsr_figure() -> FigureResampler:
             shared_xaxes=True,
         ),
         default_n_shown_samples=1_000,
+        resampled_trace_prefix_suffix=(
+            '<b style="color:sandybrown">[R]</b>',
+            '<b style="color:sandybrown">[R]</b>',
+        ),
         verbose=False,
     )
     fig.update_layout(height=700)
@@ -341,10 +345,38 @@ def gsr_figure() -> FigureResampler:
     return fig
 
 
-# Which figure types do seem interesting to you peeps?
-# A figure with categorical data
-# A Histogram / box plot :)
+@pytest.fixture
+def multiple_tz_figure() -> FigureResampler:
+    n = 5_050
 
+    dr = pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC")
+    dr_v = np.random.randn(n)
+
+    cs = [
+        dr,
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fr_fig = FigureResampler(
+        make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
+        default_n_shown_samples=500,
+        convert_existing_traces=False,
+        verbose=True,
+    )
+    fr_fig.update_layout(height=min(700, 250 * len(cs)))
+
+    for i, date_range in enumerate(cs, 1):
+        fr_fig.add_trace(
+            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            hf_x=date_range,
+            hf_y=dr_v,
+            row=i,
+            col=1,
+        )
+    return fr_fig
 
 @pytest.fixture
 def cat_series_box_hist_figure() -> FigureResampler:
