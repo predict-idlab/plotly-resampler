@@ -143,7 +143,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
 <span>class <span class="ident">FigureResampler</span></span>
 <span>(</span><span>figure=Figure({
 'data': [], 'layout': {'template': '...'}
-}), default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.LTTB object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), verbose=False)</span>
+}), convert_existing_traces=True, default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.LTTB object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), verbose=False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -156,6 +156,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
     def __init__(
         self,
         figure: go.Figure = go.Figure(),
+        convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
@@ -169,7 +170,12 @@ back-end based resampling of high-frequency sequential data …</p></div>
         Parameters
         ----------
         figure: go.Figure
-            The figure that will be decorated.
+            The figure that will be decorated. Can be either an empty figure 
+            (e.g., go.Figure() or make_subplots()) or an existing figure.
+        convert_existing_traces: bool
+            A bool indicating whether the traces of the passed `figure` should be
+            resampled, by default True. Hence, when set to False, the traces of the 
+            passed `figure` will note be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
@@ -197,7 +203,17 @@ back-end based resampling of high-frequency sequential data …</p></div>
 
         self._global_downsampler = default_downsampler
 
-        super().__init__(figure)
+        if convert_existing_traces:
+            # call __init__ with the correct layout and set the `_grid_ref` of the
+            # to-be-converted figure
+            f_ = go.Figure(layout=figure.layout)
+            f_._grid_ref = figure._grid_ref
+            super().__init__(f_)
+
+            for trace in figure.data:
+                self.add_trace(trace)
+        else:
+            super().__init__(figure)
 
     def _print(self, *values):
         &#34;&#34;&#34;Helper method for printing if `verbose` is set to True.&#34;&#34;&#34;
@@ -232,9 +248,12 @@ back-end based resampling of high-frequency sequential data …</p></div>
         return hf_trace_data
 
     def check_update_trace_data(
-        self, trace, start=None, end=None
+        self,
+        trace: Dict, # TODO
+        start=None,
+        end=None,
     ) -&gt; Optional[Union[dict, BaseTraceType]]:
-        &#34;&#34;&#34;Check and updates the passed`trace`.
+        &#34;&#34;&#34;Check and updates the passed `trace`.
 
         Note
         ----
@@ -259,6 +278,9 @@ back-end based resampling of high-frequency sequential data …</p></div>
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
+        copy_trace: bool, optional
+            If set to true, the trace object will be copied (no pass by reference)
+            before the trace it&#39;s data is updated.
 
         Returns
         -------
@@ -277,10 +299,11 @@ back-end based resampling of high-frequency sequential data …</p></div>
         if hf_trace_data is not None:
             axis_type = hf_trace_data[&#34;axis_type&#34;]
             if axis_type == &#34;date&#34;:
+                start, end = pd.to_datetime(start), pd.to_datetime(end)
                 hf_series = self._slice_time(
                     hf_trace_data[&#34;hf_series&#34;],
-                    pd.to_datetime(start),
-                    pd.to_datetime(end),
+                    start,
+                    end,
                 )
             else:
                 hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
@@ -302,9 +325,17 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 trace[&#34;name&#34;] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = name[len(self._prefix):]
+                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
                 if len(self._suffix) and name.endswith(self._suffix):
-                    trace[&#34;name&#34;] = name[: -len(self._suffix)]
+                    trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
+
+            # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
+            # contain any data in the current view
+            if len(hf_series) == 0:
+                trace[&#34;x&#34;] = [start]
+                trace[&#34;y&#34;] = [None]
+                trace[&#34;hovertext&#34;] = &#34;&#34;
+                return trace
 
             # Downsample the data and store it in the trace-fields
             downsampler: AbstractSeriesDownsampler = hf_trace_data[&#34;downsampler&#34;]
@@ -448,11 +479,11 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
         self,
-        trace,
+        trace: Union[BaseTraceType, dict],
         max_n_samples: int = None,
         downsampler: AbstractSeriesDownsampler = None,
         limit_to_view: bool = False,
@@ -467,44 +498,45 @@ back-end based resampling of high-frequency sequential data …</p></div>
         Note
         ----
         Constructing traces with **very large data amounts** really takes some time.
-        To speed up this `add_trace()` method -&gt; just create a trace with no data
-        (empty lists) and pass the high frequency data to this method,
+        To speed this up; use this `add_trace()` method -&gt; just create a trace with no 
+        data (empty lists) and pass the high frequency data to this method,
         using the `hf_x` and `hf_y` parameters. See the example below:
         &gt;&gt;&gt; from plotly.subplots import make_subplots
         &gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
         &gt;&gt;&gt; fig = FigureResampler(go.Figure())
         &gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
 
+        TODO: explain why adding x and y to a trace is so slow
+
         Notes
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * The `NaN` values in either `hf_y` or trace.y will be omitted! We do not allow
-          `NaN` values in `hf_x` or trace.x.
+        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+          allow `NaN` values in `hf_x` or `trace.x`.
         * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-           of data (as it can increase the speed of this add_trace() method with ~30%).
-           &lt;br&gt;
+          of data (as it can increase the speed of this add_trace() method with ~30%).
+          &lt;br&gt;
           **Note**: These arguments have priority over the trace&#39;s data and (hover)text
           attributes.
-        * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
-          the the automatic-zoom (y-scaling) functionality as these will not be stored
-          in the back-end datamirror and thus not be scaled to the view.&lt;br&gt;
-          To circumvent this, the `limit_to_view` argument can be set, which forces
-          these low-frequency series to be also stored in the back-end.
+        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+          the the automatic-zooming (y-scaling) as these will not be stored in the
+          back-end and thus not be scaled to the view.&lt;br&gt;
+          To circumvent this, the `limit_to_view` argument can be set, resulting in also
+          storing the low-frequency series in the back-end.
 
         Parameters
         ----------
         trace : BaseTraceType or dict
-            Either:
+            Either:\n
               - An instances of a trace class from the plotly.graph_objs
                 package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dict where:
-
-                  - The &#39;type&#39; property specifies the trace type (e.g.
-                    &#39;scatter&#39;, &#39;bar&#39;, &#39;area&#39;, etc.). If the dict has no &#39;type&#39;
-                    property then &#39;scatter&#39; is assumed.
-                  - All remaining properties are passed to the constructor
-                    of the specified trace type.
+              - or a dict where:\n
+                - The type property specifies the trace type (e.g. scatter, bar,
+                  area, etc.). If the dict has no &#39;type&#39; property then scatter is
+                  assumed.
+                - All remaining properties are passed to the constructor
+                  of the specified trace type.
         max_n_samples : int, optional
             The maximum number of samples that will be shown by the trace.\n
             .. note::
@@ -568,7 +600,8 @@ back-end based resampling of high-frequency sequential data …</p></div>
             if hf_hovertext is not None
             else trace[&#34;hovertext&#34;]
             if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
-            else trace[&#34;text&#34;] if hasattr(trace, &#34;text&#34;)
+            else trace[&#34;text&#34;]
+            if hasattr(trace, &#34;text&#34;)
             else None
         )
 
@@ -593,8 +626,8 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
-            # if the categorical or string-like hf_y data is of type object (happens 
-            # when y argument is used for the trace constructor instead of hf_y), we 
+            # if the categorical or string-like hf_y data is of type object (happens
+            # when y argument is used for the trace constructor instead of hf_y), we
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
             if hf_y.dtype == &#34;object&#34;:
@@ -657,12 +690,28 @@ back-end based resampling of high-frequency sequential data …</p></div>
                     &#34;hovertext&#34;: hf_hovertext,
                 }
 
-                # NOTE: if all the raw data needs to be sent to the javascript, and
-                #  the trace is truly high-frequency, this would take significant time!
-                #  hence, you first downsample the trace.
+
+                # Before we update the trace, we create a new pointer to that trace in 
+                # which the downsampled data will be stored. This way, the original 
+                # data of the trace to this `add_trace` method will not be altered.
+                # We copy (by reference) all the non-data properties of the trace in
+                # the new trace.
+                if not isinstance(trace, dict):
+                    trace = trace.to_plotly_json()
+                trace = {
+                    k: trace[k]
+                    for k in set(trace.keys()).difference(
+                        {&#34;text&#34;, &#34;hovertext&#34;, &#34;x&#34;, &#34;y&#34;}
+                    )
+                }
+
+                # NOTE:
+                # If all the raw data needs to be sent to the javascript, and the trace 
+                # is high-frequency, this would take significant time! 
+                # Hence, you first downsample the trace.
                 trace = self.check_update_trace_data(trace)
                 assert trace is not None
-                super().add_trace(trace=trace, **trace_kwargs)
+                return super().add_trace(trace=trace, **trace_kwargs)
             else:
                 self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
                 trace.x = hf_x
@@ -688,6 +737,33 @@ back-end based resampling of high-frequency sequential data …</p></div>
     # def add_traces(*args, **kwargs):
     #     raise NotImplementedError(&#34;This functionality is not (yet) supported&#34;)
 
+    def _clear_figure(self):
+        &#34;&#34;&#34;Clear the current figure object it&#39;s data and layout.&#34;&#34;&#34;
+        self._hf_data = {}
+        self.data = []
+        self.layout = {}
+
+    def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
+        &#34;&#34;&#34;Replace the current figure layout with the passed figure object.
+
+        Parameters
+        ----------
+        figure: go.Figure
+            The figure object which will replace the existing figure.
+        convert_existing_traces: bool, Optional
+            A bool indicating whether the traces of the passed `figure` should be
+            resampled, by default True.
+
+        &#34;&#34;&#34;
+        self._clear_figure()
+        self.__init__(
+            figure=figure,
+            convert_existing_traces=convert_existing_traces,
+            default_n_shown_samples=self._global_n_shown_samples,
+            default_downsampler=self._global_downsampler,
+            resampled_trace_prefix_suffix=(self._prefix, self._suffix),
+        )
+
     def register_update_graph_callback(
         self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
     ):
@@ -696,12 +772,14 @@ back-end based resampling of high-frequency sequential data …</p></div>
         Parameters
         ----------
         app: Union[dash.Dash, JupyterDash]
-            The app in which the callback will be registered
+            The app in which the callback will be registered.
         graph_id:
             The id of the `dcc.Graph`-component which withholds the to-be resampled
             Figure.
         trace_updater_id
-            The id of the `TraceUpdater` component
+            The id of the `TraceUpdater` component. This component is leveraged by
+            `FigureResampler` to efficiently POST the to-be-updated data to the 
+            front-end.
 
         &#34;&#34;&#34;
 
@@ -847,7 +925,12 @@ back-end based resampling of high-frequency sequential data …</p></div>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>figure</code></strong> :&ensp;<code>go.Figure</code></dt>
-<dd>The figure that will be decorated.</dd>
+<dd>The figure that will be decorated. Can be either an empty figure
+(e.g., go.Figure() or make_subplots()) or an existing figure.</dd>
+<dt><strong><code>convert_existing_traces</code></strong> :&ensp;<code>bool</code></dt>
+<dd>A bool indicating whether the traces of the passed <code>figure</code> should be
+resampled, by default True. Hence, when set to False, the traces of the
+passed <code>figure</code> will note be resampled.</dd>
 <dt><strong><code>default_n_shown_samples</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>
 <p>The default number of samples that will be shown for each trace,
@@ -889,9 +972,12 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def check_update_trace_data(
-    self, trace, start=None, end=None
+    self,
+    trace: Dict, # TODO
+    start=None,
+    end=None,
 ) -&gt; Optional[Union[dict, BaseTraceType]]:
-    &#34;&#34;&#34;Check and updates the passed`trace`.
+    &#34;&#34;&#34;Check and updates the passed `trace`.
 
     Note
     ----
@@ -916,6 +1002,9 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
     end : Union[float, str], optional
         The end index for which we want the resampled data to be updated to,
         by default None
+    copy_trace: bool, optional
+        If set to true, the trace object will be copied (no pass by reference)
+        before the trace it&#39;s data is updated.
 
     Returns
     -------
@@ -934,10 +1023,11 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
     if hf_trace_data is not None:
         axis_type = hf_trace_data[&#34;axis_type&#34;]
         if axis_type == &#34;date&#34;:
+            start, end = pd.to_datetime(start), pd.to_datetime(end)
             hf_series = self._slice_time(
                 hf_trace_data[&#34;hf_series&#34;],
-                pd.to_datetime(start),
-                pd.to_datetime(end),
+                start,
+                end,
             )
         else:
             hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
@@ -959,9 +1049,17 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
             trace[&#34;name&#34;] = name
         else:
             if len(self._prefix) and name.startswith(self._prefix):
-                trace[&#34;name&#34;] = name[len(self._prefix):]
+                trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
             if len(self._suffix) and name.endswith(self._suffix):
-                trace[&#34;name&#34;] = name[: -len(self._suffix)]
+                trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
+
+        # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
+        # contain any data in the current view
+        if len(hf_series) == 0:
+            trace[&#34;x&#34;] = [start]
+            trace[&#34;y&#34;] = [None]
+            trace[&#34;hovertext&#34;] = &#34;&#34;
+            return trace
 
         # Downsample the data and store it in the trace-fields
         downsampler: AbstractSeriesDownsampler = hf_trace_data[&#34;downsampler&#34;]
@@ -989,7 +1087,7 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
         self._print(&#34;hf_data not found&#34;)
         return None</code></pre>
 </details>
-<div class="desc"><p>Check and updates the passed<code>trace</code>.</p>
+<div class="desc"><p>Check and updates the passed <code>trace</code>.</p>
 <h2 id="note">Note</h2>
 <p>This is a pass by reference. The passed trace object will be updated and
 returned if found in <code>hf_data</code>.</p>
@@ -1018,6 +1116,9 @@ by default None,</dd>
 <dt><strong><code>end</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
 <dd>The end index for which we want the resampled data to be updated to,
 by default None</dd>
+<dt><strong><code>copy_trace</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If set to true, the trace object will be copied (no pass by reference)
+before the trace it's data is updated.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -1144,7 +1245,7 @@ modalities which are updated.</dd>
 </summary>
 <pre><code class="python">def add_trace(
     self,
-    trace,
+    trace: Union[BaseTraceType, dict],
     max_n_samples: int = None,
     downsampler: AbstractSeriesDownsampler = None,
     limit_to_view: bool = False,
@@ -1159,44 +1260,45 @@ modalities which are updated.</dd>
     Note
     ----
     Constructing traces with **very large data amounts** really takes some time.
-    To speed up this `add_trace()` method -&gt; just create a trace with no data
-    (empty lists) and pass the high frequency data to this method,
+    To speed this up; use this `add_trace()` method -&gt; just create a trace with no 
+    data (empty lists) and pass the high frequency data to this method,
     using the `hf_x` and `hf_y` parameters. See the example below:
     &gt;&gt;&gt; from plotly.subplots import make_subplots
     &gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
     &gt;&gt;&gt; fig = FigureResampler(go.Figure())
     &gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
 
+    TODO: explain why adding x and y to a trace is so slow
+
     Notes
     -----
     * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
       to the size of your trace!
-    * The `NaN` values in either `hf_y` or trace.y will be omitted! We do not allow
-      `NaN` values in `hf_x` or trace.x.
+    * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+      allow `NaN` values in `hf_x` or `trace.x`.
     * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-       of data (as it can increase the speed of this add_trace() method with ~30%).
-       &lt;br&gt;
+      of data (as it can increase the speed of this add_trace() method with ~30%).
+      &lt;br&gt;
       **Note**: These arguments have priority over the trace&#39;s data and (hover)text
       attributes.
-    * Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
-      the the automatic-zoom (y-scaling) functionality as these will not be stored
-      in the back-end datamirror and thus not be scaled to the view.&lt;br&gt;
-      To circumvent this, the `limit_to_view` argument can be set, which forces
-      these low-frequency series to be also stored in the back-end.
+    * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+      the the automatic-zooming (y-scaling) as these will not be stored in the
+      back-end and thus not be scaled to the view.&lt;br&gt;
+      To circumvent this, the `limit_to_view` argument can be set, resulting in also
+      storing the low-frequency series in the back-end.
 
     Parameters
     ----------
     trace : BaseTraceType or dict
-        Either:
+        Either:\n
           - An instances of a trace class from the plotly.graph_objs
             package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-          - or a dict where:
-
-              - The &#39;type&#39; property specifies the trace type (e.g.
-                &#39;scatter&#39;, &#39;bar&#39;, &#39;area&#39;, etc.). If the dict has no &#39;type&#39;
-                property then &#39;scatter&#39; is assumed.
-              - All remaining properties are passed to the constructor
-                of the specified trace type.
+          - or a dict where:\n
+            - The type property specifies the trace type (e.g. scatter, bar,
+              area, etc.). If the dict has no &#39;type&#39; property then scatter is
+              assumed.
+            - All remaining properties are passed to the constructor
+              of the specified trace type.
     max_n_samples : int, optional
         The maximum number of samples that will be shown by the trace.\n
         .. note::
@@ -1260,7 +1362,8 @@ modalities which are updated.</dd>
         if hf_hovertext is not None
         else trace[&#34;hovertext&#34;]
         if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
-        else trace[&#34;text&#34;] if hasattr(trace, &#34;text&#34;)
+        else trace[&#34;text&#34;]
+        if hasattr(trace, &#34;text&#34;)
         else None
     )
 
@@ -1285,8 +1388,8 @@ modalities which are updated.</dd>
             if isinstance(hf_hovertext, np.ndarray):
                 hf_hovertext = hf_hovertext[not_nan_mask]
 
-        # if the categorical or string-like hf_y data is of type object (happens 
-        # when y argument is used for the trace constructor instead of hf_y), we 
+        # if the categorical or string-like hf_y data is of type object (happens
+        # when y argument is used for the trace constructor instead of hf_y), we
         # transform it to type string as such it will be sent as categorical data
         # to the downsampling algorithm
         if hf_y.dtype == &#34;object&#34;:
@@ -1349,12 +1452,28 @@ modalities which are updated.</dd>
                 &#34;hovertext&#34;: hf_hovertext,
             }
 
-            # NOTE: if all the raw data needs to be sent to the javascript, and
-            #  the trace is truly high-frequency, this would take significant time!
-            #  hence, you first downsample the trace.
+
+            # Before we update the trace, we create a new pointer to that trace in 
+            # which the downsampled data will be stored. This way, the original 
+            # data of the trace to this `add_trace` method will not be altered.
+            # We copy (by reference) all the non-data properties of the trace in
+            # the new trace.
+            if not isinstance(trace, dict):
+                trace = trace.to_plotly_json()
+            trace = {
+                k: trace[k]
+                for k in set(trace.keys()).difference(
+                    {&#34;text&#34;, &#34;hovertext&#34;, &#34;x&#34;, &#34;y&#34;}
+                )
+            }
+
+            # NOTE:
+            # If all the raw data needs to be sent to the javascript, and the trace 
+            # is high-frequency, this would take significant time! 
+            # Hence, you first downsample the trace.
             trace = self.check_update_trace_data(trace)
             assert trace is not None
-            super().add_trace(trace=trace, **trace_kwargs)
+            return super().add_trace(trace=trace, **trace_kwargs)
         else:
             self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
             trace.x = hf_x
@@ -1380,43 +1499,51 @@ modalities which are updated.</dd>
 <div class="desc"><p>Add a trace to the figure.</p>
 <h2 id="note">Note</h2>
 <p>Constructing traces with <strong>very large data amounts</strong> really takes some time.
-To speed up this <code>add_trace()</code> method -&gt; just create a trace with no data
-(empty lists) and pass the high frequency data to this method,
+To speed this up; use this <code>add_trace()</code> method -&gt; just create a trace with no
+data (empty lists) and pass the high frequency data to this method,
 using the <code>hf_x</code> and <code>hf_y</code> parameters. See the example below:</p>
 <pre><code class="language-python-repl">&gt;&gt;&gt; from plotly.subplots import make_subplots
 &gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
 &gt;&gt;&gt; fig = FigureResampler(go.Figure())
 &gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
 </code></pre>
+<p>TODO: explain why adding x and y to a trace is so slow</p>
 <h2 id="notes">Notes</h2>
 <ul>
 <li><strong>Pro tip</strong>: if you do <code>not want to downsample</code> your data, set <code>max_n_samples</code>
 to the size of your trace!</li>
-<li>The <code>NaN</code> values in either <code>hf_y</code> or trace.y will be omitted! We do not allow
-<code>NaN</code> values in <code>hf_x</code> or trace.x.</li>
+<li>The <code>NaN</code> values in either <code>hf_y</code> or <code>trace.y</code> will be omitted! We do not
+allow <code>NaN</code> values in <code>hf_x</code> or <code>trace.x</code>.</li>
 <li><code>hf_x</code>, <code>hf_y</code>, and 'hf_hovertext` are useful when you deal with large amounts
 of data (as it can increase the speed of this add_trace() method with ~30%).
 <br>
 <strong>Note</strong>: These arguments have priority over the trace's data and (hover)text
 attributes.</li>
-<li>Low-frequency time-series data (e.g., a scatter of detected peaks), can hinder
-the the automatic-zoom (y-scaling) functionality as these will not be stored
-in the back-end datamirror and thus not be scaled to the view.<br>
-To circumvent this, the <code>limit_to_view</code> argument can be set, which forces
-these low-frequency series to be also stored in the back-end.</li>
+<li>Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+the the automatic-zooming (y-scaling) as these will not be stored in the
+back-end and thus not be scaled to the view.<br>
+To circumvent this, the <code>limit_to_view</code> argument can be set, resulting in also
+storing the low-frequency series in the back-end.</li>
 </ul>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>trace</code></strong> :&ensp;<code>BaseTraceType</code> or <code>dict</code></dt>
-<dd>Either:
-- An instances of a trace class from the plotly.graph_objs
-package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-- or a dict where:<pre><code>  - The 'type' property specifies the trace type (e.g.
-    'scatter', 'bar', 'area', etc.). If the dict has no 'type'
-    property then 'scatter' is assumed.
-  - All remaining properties are passed to the constructor
-    of the specified trace type.
-</code></pre>
+<dd>
+<p>Either:</p>
+<ul>
+<li>An instances of a trace class from the plotly.graph_objs
+package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)</li>
+<li>
+<p>or a dict where:</p>
+<ul>
+<li>The type property specifies the trace type (e.g. scatter, bar,
+area, etc.). If the dict has no 'type' property then scatter is
+assumed.</li>
+<li>All remaining properties are passed to the constructor
+of the specified trace type.</li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt><strong><code>max_n_samples</code></strong> :&ensp;<code>int</code>, optional</dt>
 <dd>
@@ -1457,6 +1584,45 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
 <dd>The Figure on which <code>add_trace</code> was called on; i.e. self.</dd>
 </dl></div>
 </dd>
+<dt id="plotly_resampler.FigureResampler.replace"><code class="name flex">
+<span>def <span class="ident">replace</span></span>(<span>self, figure, convert_existing_traces=True)</span>
+</code></dt>
+<dd>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
+    &#34;&#34;&#34;Replace the current figure layout with the passed figure object.
+
+    Parameters
+    ----------
+    figure: go.Figure
+        The figure object which will replace the existing figure.
+    convert_existing_traces: bool, Optional
+        A bool indicating whether the traces of the passed `figure` should be
+        resampled, by default True.
+
+    &#34;&#34;&#34;
+    self._clear_figure()
+    self.__init__(
+        figure=figure,
+        convert_existing_traces=convert_existing_traces,
+        default_n_shown_samples=self._global_n_shown_samples,
+        default_downsampler=self._global_downsampler,
+        resampled_trace_prefix_suffix=(self._prefix, self._suffix),
+    )</code></pre>
+</details>
+<div class="desc"><p>Replace the current figure layout with the passed figure object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>figure</code></strong> :&ensp;<code>go.Figure</code></dt>
+<dd>The figure object which will replace the existing figure.</dd>
+<dt><strong><code>convert_existing_traces</code></strong> :&ensp;<code>bool, Optional</code></dt>
+<dd>A bool indicating whether the traces of the passed <code>figure</code> should be
+resampled, by default True.</dd>
+</dl></div>
+</dd>
 <dt id="plotly_resampler.FigureResampler.register_update_graph_callback"><code class="name flex">
 <span>def <span class="ident">register_update_graph_callback</span></span>(<span>self, app, graph_id, trace_updater_id)</span>
 </code></dt>
@@ -1473,12 +1639,14 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
     Parameters
     ----------
     app: Union[dash.Dash, JupyterDash]
-        The app in which the callback will be registered
+        The app in which the callback will be registered.
     graph_id:
         The id of the `dcc.Graph`-component which withholds the to-be resampled
         Figure.
     trace_updater_id
-        The id of the `TraceUpdater` component
+        The id of the `TraceUpdater` component. This component is leveraged by
+        `FigureResampler` to efficiently POST the to-be-updated data to the 
+        front-end.
 
     &#34;&#34;&#34;
 
@@ -1580,12 +1748,14 @@ e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
 <h2 id="parameters">Parameters</h2>
 <dl>
 <dt><strong><code>app</code></strong> :&ensp;<code>Union[dash.Dash, JupyterDash]</code></dt>
-<dd>The app in which the callback will be registered</dd>
+<dd>The app in which the callback will be registered.</dd>
 <dt>graph_id:</dt>
 <dt>The id of the <code>dcc.Graph</code>-component which withholds the to-be resampled</dt>
 <dt>Figure.</dt>
 <dt><strong><code>trace_updater_id</code></strong></dt>
-<dd>The id of the <code>TraceUpdater</code> component</dd>
+<dd>The id of the <code>TraceUpdater</code> component. This component is leveraged by
+<code><a title="plotly_resampler.FigureResampler" href="#plotly_resampler.FigureResampler">FigureResampler</a></code> to efficiently POST the to-be-updated data to the
+front-end.</dd>
 </dl></div>
 </dd>
 <dt id="plotly_resampler.FigureResampler.show_dash"><code class="name flex">
@@ -1920,6 +2090,7 @@ alt="logo should be displayed here" width="95%"></a>
 <li><code><a title="plotly_resampler.FigureResampler.check_update_trace_data" href="#plotly_resampler.FigureResampler.check_update_trace_data">check_update_trace_data</a></code></li>
 <li><code><a title="plotly_resampler.FigureResampler.check_update_figure_dict" href="#plotly_resampler.FigureResampler.check_update_figure_dict">check_update_figure_dict</a></code></li>
 <li><code><a title="plotly_resampler.FigureResampler.add_trace" href="#plotly_resampler.FigureResampler.add_trace">add_trace</a></code></li>
+<li><code><a title="plotly_resampler.FigureResampler.replace" href="#plotly_resampler.FigureResampler.replace">replace</a></code></li>
 <li><code><a title="plotly_resampler.FigureResampler.register_update_graph_callback" href="#plotly_resampler.FigureResampler.register_update_graph_callback">register_update_graph_callback</a></code></li>
 <li><code><a title="plotly_resampler.FigureResampler.show_dash" href="#plotly_resampler.FigureResampler.show_dash">show_dash</a></code></li>
 </ul>
