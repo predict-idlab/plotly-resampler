@@ -91,23 +91,18 @@ def example_figure() -> FigureResampler:
     )
 
     # ------------ swimming pool data -----------
-    df_gusb_pool = df_gusb[df_gusb.zone == "zwembad"]
-    df_gusb_pool = df_gusb_pool[df_gusb_pool["aantal aanwezigen"] < 3_000].last("4D")
+    df_gusb_pool = df_gusb["zwembad"].last("4D").dropna()
     fig.add_trace(
         go.Scattergl(
             x=df_gusb_pool.index,
-            y=df_gusb_pool["aantal aanwezigen"].astype("uint16"),
+            y=df_gusb_pool.astype("uint16"),
             mode="markers",
             marker_size=5,
             name="occupancy",
             showlegend=True,
         ),
         hf_hovertext="mean last hour: "
-        + df_gusb_pool["aantal aanwezigen"]
-        .rolling("1h")
-        .mean()
-        .astype(int)
-        .astype(str),
+        + df_gusb_pool.rolling("1h").mean().astype(int).astype(str),
         downsampler=EveryNthPoint(interleave_gaps=False),
         row=1,
         col=1,
@@ -141,6 +136,80 @@ def example_figure() -> FigureResampler:
     fig.update_yaxes(title_text="Watt/hour", row=2, col=1)
     fig.update_layout(
         title="<b>Plotly-Resampler demo</b>",
+        title_x=0.5,
+        legend_traceorder="normal",
+    )
+    return fig
+
+
+@pytest.fixture
+def example_figure_fig() -> go.Figure:
+    df_gusb = pd.read_parquet(f"{data_dir}df_gusb.parquet")
+    df_data_pc = pd.read_parquet(f"{data_dir}df_pc_test.parquet")
+
+    n = 110_000  # _000
+    np_series = np.array(
+        (3 + np.sin(np.arange(n) / 200_000) + np.random.randn(n) / 10)
+        * np.arange(n)
+        / 100_000,
+        dtype=np.float32,
+    )
+    x = np.arange(len(np_series))
+
+    # construct a normal figure object instead of a figureResample object
+    fig = make_subplots(
+            rows=2,
+            cols=2,
+            specs=[[{}, {}], [{"colspan": 2}, None]],
+            subplot_titles=("GUSB swimming pool", "Generated sine", "Power consumption"),
+            vertical_spacing=0.12,
+        )
+
+
+    # ------------ swimming pool data -----------
+    df_gusb_pool = df_gusb['zwembad'].last("4D").dropna()
+    fig.add_trace(
+        go.Scattergl(
+            x=df_gusb_pool.index,
+            y=df_gusb_pool,#.astype("uint16"),
+            mode="markers",
+            marker_size=5,
+            name="occupancy",
+            showlegend=True,
+            hovertext="mean last hour: "
+        + df_gusb_pool.rolling("1h").mean().astype(int).astype(str),
+        ),
+        # downsampler=EveryNthPoint(interleave_gaps=False),
+        row=1,
+        col=1,
+    )
+    fig.update_yaxes(title_text="Occupancy", row=1, col=1)
+
+
+    # ----------------- generated sine -----------
+    fig.add_trace(
+        go.Scattergl(name="sin", line_color="#26b2e0", x=x, y=np_series),
+        row=1,
+        col=2,
+    )
+
+    # ------------- Power consumption data -------------
+    df_data_pc = df_data_pc.last("190D")
+    for i, c in enumerate(df_data_pc.columns):
+        fig.add_trace(
+            go.Scattergl(
+                name=f"room {i+1}",
+                x=df_data_pc.index,
+                y=df_data_pc[c],
+            ),
+            row=2,
+            col=1,
+        )
+
+    fig.update_layout(height=600)
+    fig.update_yaxes(title_text="Watt/hour", row=2, col=1)
+    fig.update_layout(
+        title="<b>Plotly-Resampler demo - fig base</b>",
         title_x=0.5,
         legend_traceorder="normal",
     )
@@ -210,6 +279,10 @@ def gsr_figure() -> FigureResampler:
             shared_xaxes=True,
         ),
         default_n_shown_samples=1_000,
+        resampled_trace_prefix_suffix=(
+            '<b style="color:sandybrown">[R]</b>',
+            '<b style="color:sandybrown">[R]</b>',
+        ),
         verbose=False,
     )
     fig.update_layout(height=700)
@@ -272,10 +345,38 @@ def gsr_figure() -> FigureResampler:
     return fig
 
 
+@pytest.fixture
+def multiple_tz_figure() -> FigureResampler:
+    n = 5_050
 
-# Which figure types do seem interesting to you peeps?
-# A figure with categorical data 
-# A Histogram / box plot :)
+    dr = pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC")
+    dr_v = np.random.randn(n)
+
+    cs = [
+        dr,
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fr_fig = FigureResampler(
+        make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
+        default_n_shown_samples=500,
+        convert_existing_traces=False,
+        verbose=True,
+    )
+    fr_fig.update_layout(height=min(700, 250 * len(cs)))
+
+    for i, date_range in enumerate(cs, 1):
+        fr_fig.add_trace(
+            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            hf_x=date_range,
+            hf_y=dr_v,
+            row=i,
+            col=1,
+        )
+    return fr_fig
 
 @pytest.fixture
 def cat_series_box_hist_figure() -> FigureResampler:

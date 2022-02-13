@@ -31,7 +31,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
         fig = FigureResampler(base_fig, **kwarg_space)
 
         fig.add_trace(
-            go.Scatter(x=float_series.index, y=float_series, name="float_series"),
+            go.Scatter(x=float_series.index, y=float_series),
             row=1,
             col=1,
             limit_to_view=False,
@@ -189,6 +189,34 @@ def test_cat_box_histogram(float_series):
     fig.update_layout(height=700)
 
 
+def test_replace_figure(float_series):
+    # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+
+    fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+
+    go_fig = go.Figure()
+    go_fig.add_trace(go.Scattergl(x=float_series.index, y=float_series, name="fs"))
+
+    fr_fig.replace(go_fig, convert_existing_traces=False)
+    # assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]["x"]) == len(float_series)
+    # the orig float series data must still be the orig shape (we passed a view so
+    # we must check this)
+    assert len(go_fig.data[0]["x"]) == len(float_series)
+
+    fr_fig.replace(go_fig, convert_existing_traces=True)
+    # assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]["x"]) == 1000
+
+    # the orig float series data must still be the orig shape (we passed a view so
+    # we must check this)
+    assert len(go_fig.data[0]["x"]) == len(float_series)
+
 
 def test_nan_removed_input(float_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
@@ -198,7 +226,14 @@ def test_nan_removed_input(float_series):
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
 
-    fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    fig = FigureResampler(
+        base_fig,
+        default_n_shown_samples=1000,
+        resampled_trace_prefix_suffix=(
+            '<b style="color:sandybrown">[R]</b>',
+            '<b style="color:sandybrown">[R]</b>',
+        ),
+    )
 
     float_series = float_series.copy()
     float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
@@ -208,3 +243,57 @@ def test_nan_removed_input(float_series):
         col=1,
         hf_hovertext="text",
     )
+
+    # here we test whether we are able to deal with not-nan output
+    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    fig.add_trace(
+        go.Scatter(
+            x=float_series.index, y=float_series
+        ),  # we explicitly do not add a name
+        hf_hovertext="mean" + float_series.rolling(10).mean().round(2).astype("str"),
+        row=2,
+        col=1,
+    )
+
+    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    fig.add_trace(
+        go.Scattergl(
+            x=float_series.index,
+            y=float_series,
+            text="mean" + float_series.rolling(10).mean().round(2).astype("str"),
+        ),
+        row=1,
+        col=2,
+    )
+
+
+def test_multiple_timezones():
+    n = 5_050
+
+    dr = pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC")
+    dr_v = np.random.randn(n)
+
+    cs = [
+        dr,
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fr_fig = FigureResampler(
+        make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
+        default_n_shown_samples=500,
+        convert_existing_traces=False,
+        verbose=True,
+    )
+    fr_fig.update_layout(height=min(300, 250 * len(cs)))
+
+    for i, date_range in enumerate(cs, 1):
+        fr_fig.add_trace(
+            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            hf_x=date_range,
+            hf_y=dr_v,
+            row=i,
+            col=1,
+        )
