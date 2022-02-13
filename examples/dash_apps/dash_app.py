@@ -26,6 +26,11 @@ from callback_helpers import multiple_folder_file_selector
 # Globals
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 fig: FigureResampler = FigureResampler()
+# NOTE, this reference to a FigureResampler is essential to preserve throughout the 
+# whole dash app! If your dash apps want to create a new go.Figure(), you should not 
+# construct a new FigureResampler object, but replace the figure of this FigureResampler 
+# object by using the FigureResampler.replace() method.
+# Example: see the plot_multiple_files function in this file.
 
 
 # ------------------------------- File selection logic -------------------------------
