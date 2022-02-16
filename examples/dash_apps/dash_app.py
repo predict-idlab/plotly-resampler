@@ -74,7 +74,9 @@ def serve_layout() -> dbc.Container:
                         [
                             dcc.Graph(id="graph-id", figure=go.Figure()),
                             trace_updater.TraceUpdater(
-                                id="trace-updater", gdID="graph-id"
+                                id="trace-updater",
+                                gdID="graph-id",
+                                sequentialUpdate=False,
                             ),
                         ],
                         md=10,

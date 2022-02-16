@@ -127,7 +127,7 @@ class FigureResampler(go.Figure):
 
     def check_update_trace_data(
         self,
-        trace: Dict, # TODO
+        trace: dict,
         start=None,
         end=None,
     ) -> Optional[Union[dict, BaseTraceType]]:
@@ -156,9 +156,6 @@ class FigureResampler(go.Figure):
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
-        copy_trace: bool, optional
-            If set to true, the trace object will be copied (no pass by reference)
-            before the trace it's data is updated.
 
         Returns
         -------
@@ -203,7 +200,7 @@ class FigureResampler(go.Figure):
                 trace["name"] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace["name"] = trace["name"][len(self._prefix) :]
+                    trace["name"] = trace["name"][len(self._prefix):]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace["name"] = trace["name"][: -len(self._suffix)]
 
@@ -357,7 +354,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -495,7 +492,7 @@ class FigureResampler(go.Figure):
                 hf_hovertext = np.asarray(hf_hovertext)
 
             # Remove NaNs for efficiency (storing less meaningless data)
-            # NaNs introduce gaps between enclosing non-NaN datapoints & might distort
+            # NaNs introduce gaps between enclosing non-NaN data points & might distort
             # the resampling algorithms
             if pd.isna(hf_y).any():
                 not_nan_mask = ~pd.isna(hf_y)
@@ -567,7 +564,6 @@ class FigureResampler(go.Figure):
                     "downsampler": d,
                     "hovertext": hf_hovertext,
                 }
-
 
                 # Before we update the trace, we create a new pointer to that trace in 
                 # which the downsampled data will be stored. This way, the original 
