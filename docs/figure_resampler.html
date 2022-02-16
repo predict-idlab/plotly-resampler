@@ -166,7 +166,7 @@ class FigureResampler(go.Figure):
 
     def check_update_trace_data(
         self,
-        trace: Dict, # TODO
+        trace: dict,
         start=None,
         end=None,
     ) -&gt; Optional[Union[dict, BaseTraceType]]:
@@ -195,9 +195,6 @@ class FigureResampler(go.Figure):
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
-        copy_trace: bool, optional
-            If set to true, the trace object will be copied (no pass by reference)
-            before the trace it&#39;s data is updated.
 
         Returns
         -------
@@ -242,7 +239,7 @@ class FigureResampler(go.Figure):
                 trace[&#34;name&#34;] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
+                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix):]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
 
@@ -396,7 +393,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -534,7 +531,7 @@ class FigureResampler(go.Figure):
                 hf_hovertext = np.asarray(hf_hovertext)
 
             # Remove NaNs for efficiency (storing less meaningless data)
-            # NaNs introduce gaps between enclosing non-NaN datapoints &amp; might distort
+            # NaNs introduce gaps between enclosing non-NaN data points &amp; might distort
             # the resampling algorithms
             if pd.isna(hf_y).any():
                 not_nan_mask = ~pd.isna(hf_y)
@@ -606,7 +603,6 @@ class FigureResampler(go.Figure):
                     &#34;downsampler&#34;: d,
                     &#34;hovertext&#34;: hf_hovertext,
                 }
-
 
                 # Before we update the trace, we create a new pointer to that trace in 
                 # which the downsampled data will be stored. This way, the original 
@@ -958,7 +954,7 @@ class FigureResampler(go.Figure):
 
     def check_update_trace_data(
         self,
-        trace: Dict, # TODO
+        trace: dict,
         start=None,
         end=None,
     ) -&gt; Optional[Union[dict, BaseTraceType]]:
@@ -987,9 +983,6 @@ class FigureResampler(go.Figure):
         end : Union[float, str], optional
             The end index for which we want the resampled data to be updated to,
             by default None
-        copy_trace: bool, optional
-            If set to true, the trace object will be copied (no pass by reference)
-            before the trace it&#39;s data is updated.
 
         Returns
         -------
@@ -1034,7 +1027,7 @@ class FigureResampler(go.Figure):
                 trace[&#34;name&#34;] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
+                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix):]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
 
@@ -1188,7 +1181,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -1326,7 +1319,7 @@ class FigureResampler(go.Figure):
                 hf_hovertext = np.asarray(hf_hovertext)
 
             # Remove NaNs for efficiency (storing less meaningless data)
-            # NaNs introduce gaps between enclosing non-NaN datapoints &amp; might distort
+            # NaNs introduce gaps between enclosing non-NaN data points &amp; might distort
             # the resampling algorithms
             if pd.isna(hf_y).any():
                 not_nan_mask = ~pd.isna(hf_y)
@@ -1398,7 +1391,6 @@ class FigureResampler(go.Figure):
                     &#34;downsampler&#34;: d,
                     &#34;hovertext&#34;: hf_hovertext,
                 }
-
 
                 # Before we update the trace, we create a new pointer to that trace in 
                 # which the downsampled data will be stored. This way, the original 
@@ -1682,7 +1674,7 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
 </summary>
 <pre><code class="python">def check_update_trace_data(
     self,
-    trace: Dict, # TODO
+    trace: dict,
     start=None,
     end=None,
 ) -&gt; Optional[Union[dict, BaseTraceType]]:
@@ -1711,9 +1703,6 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
     end : Union[float, str], optional
         The end index for which we want the resampled data to be updated to,
         by default None
-    copy_trace: bool, optional
-        If set to true, the trace object will be copied (no pass by reference)
-        before the trace it&#39;s data is updated.
 
     Returns
     -------
@@ -1758,7 +1747,7 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
             trace[&#34;name&#34;] = name
         else:
             if len(self._prefix) and name.startswith(self._prefix):
-                trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
+                trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix):]
             if len(self._suffix) and name.endswith(self._suffix):
                 trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
 
@@ -1825,9 +1814,6 @@ by default None,</dd>
 <dt><strong><code>end</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
 <dd>The end index for which we want the resampled data to be updated to,
 by default None</dd>
-<dt><strong><code>copy_trace</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>If set to true, the trace object will be copied (no pass by reference)
-before the trace it's data is updated.</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <dl>
@@ -2088,7 +2074,7 @@ modalities which are updated.</dd>
             hf_hovertext = np.asarray(hf_hovertext)
 
         # Remove NaNs for efficiency (storing less meaningless data)
-        # NaNs introduce gaps between enclosing non-NaN datapoints &amp; might distort
+        # NaNs introduce gaps between enclosing non-NaN data points &amp; might distort
         # the resampling algorithms
         if pd.isna(hf_y).any():
             not_nan_mask = ~pd.isna(hf_y)
@@ -2160,7 +2146,6 @@ modalities which are updated.</dd>
                 &#34;downsampler&#34;: d,
                 &#34;hovertext&#34;: hf_hovertext,
             }
-
 
             # Before we update the trace, we create a new pointer to that trace in 
             # which the downsampled data will be stored. This way, the original 
