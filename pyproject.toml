@@ -32,6 +32,9 @@ pyarrow = "^6.0.1"
 selenium-wire = "^4.5.6"
 pyfunctional = "^1.4.3"
 dash-bootstrap-components = "^1.0.3"
+Sphinx = "^4.4.0"
+pydata-sphinx-theme = "^0.8.0"
+sphinx-autodoc-typehints = "^1.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
