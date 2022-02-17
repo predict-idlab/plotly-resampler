@@ -145,3 +145,4 @@ cython_debug/
 # pycharm
 .idea
 .vscode
+sphinx/_build
