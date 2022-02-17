@@ -1,7 +1,4 @@
-"""<b>plotly\_resampler</b>: interactive visualizations of large sequences of data
-
-.. include:: ../docs/pdoc_include/root_documentation.md
-
+"""**plotly\_resampler**: interactive visualizations of large sequences of data
 
 """
 

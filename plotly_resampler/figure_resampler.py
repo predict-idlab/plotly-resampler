@@ -3,9 +3,9 @@
 Wrapper around the plotly go.Figure class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.
 
-Notes
------
-* The term `high-frequency` actually refers very large amounts of data.
+Note
+----
+The term `high-frequency` actually refers very large amounts of sequential data.
 
 """
 
@@ -846,7 +846,7 @@ class FigureResampler(go.Figure):
         ----------
         mode: str, optional
             Display mode. One of: \n
-            * ``"external"``: The URL of the app will be displayed in the notebook
+            * ``external``: The URL of the app will be displayed in the notebook
                 output cell. Clicking this URL will open the app in the default
                 web browser.<br>
             * ``"inline"``: The app will be displayed inline in the notebook output cell
