@@ -146,3 +146,4 @@ cython_debug/
 .idea
 .vscode
 sphinx/_build
+sphinx/_autosummary

@@ -33,15 +33,16 @@ release = "0.2.3.6"
 # ones.
 extensions = [
     "sphinx.ext.autodoc",
-    "sphinx.ext.napoleon",  # load napoleon b4 sphinx autodoc typehints 
+    "sphinx.ext.napoleon",  # load napoleon b4 sphinx autodoc typehints
+    "sphinx.ext.autosummary",
     "sphinx_autodoc_typehints",
-    # 'sphinx.ext.viewcode',
+    "sphinx.ext.viewcode",
     # 'sphinx.ext.githubpages',
 ]
 
 
 # NApoleon conf
-napoleon_include_init_with_doc = True
+# napoleon_include_init_with_doc = True
 
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,6 +56,12 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # TODO: I added this
 autoclass_content = "both"
+autodoc_typehints = "description"
+autodoc_typehints_format = "short"
+autodoc_preserve_defaults = False
+autosummary_generate = True
+
+# typehints_defaults = 'comma'
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -64,11 +71,12 @@ autoclass_content = "both"
 #
 # html_theme = 'alabaster'
 html_theme = "pydata_sphinx_theme"
-html_logo = "../docs/_static/logo.png"
+html_logo = "_static/logo.png"
+html_favicon = "_static/icon.png"
 
 html_theme_options = {
-    "show_nav_level": 2,
-    "collapse_navigation": True,
+    # "show_nav_level": 2,
+    # "collapse_navigation": True,
     "icon_links": [
         {
             # Label for this link
@@ -82,6 +90,7 @@ html_theme_options = {
         }
     ],
 }
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

@@ -1,12 +1,9 @@
 Modules
 =======
 
-.. automodule:: plotly_resampler.figure_resampler
-    :members:
-    :undoc-members:
-    :show-inheritance:
+.. toctree::
+    :maxdepth: 4
+    :caption: Contents:
 
-.. automodule:: plotly_resampler.downsamplers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+    figure_resampler
+    downsamplers

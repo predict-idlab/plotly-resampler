@@ -6,14 +6,28 @@
 Welcome to plotly-resampler's documentation!
 ============================================
 
-.. include:: ../docs/pdoc_include/root_documentation.md
+This is the documentation of `plotly-resampler <https://github.com/predict-idlab/plotly-resampler>`_; a plotly wrapper for Figures to visualize large time-series data.
+
+
+.. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/basic_example.gif
+
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 5
+
    :caption: Contents:
 
-   modules
+   getting_started
 
+
+
+API reference
+-------------
+.. autosummary::
+   :toctree: _autosummary
+   :recursive:
+
+   plotly_resampler
 
 Indices and tables
 ==================
