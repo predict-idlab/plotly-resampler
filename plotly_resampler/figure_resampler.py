@@ -143,7 +143,7 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         trace : BaseTraceType or dict
-             - An instances of a trace class from the plotly.graph_objs
+             - An instances of a trace class from the plotly.graph_objs (go)
                 package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
               - or a dicts where:
 
@@ -152,6 +152,7 @@ class FigureResampler(go.Figure):
                     property then 'scatter' is assumed.
                   - All remaining properties are passed to the constructor
                     of the specified trace type.
+
         start : Union[float, str], optional
             The start index for which we want resampled data to be updated to,
             by default None,
@@ -419,50 +420,23 @@ class FigureResampler(go.Figure):
     ):
         """Add a trace to the figure.
 
-        Note
-        ----
-        Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -> just create a trace with no
-        data (empty lists) and pass the high frequency data to this method,
-        using the `hf_x` and `hf_y` parameters. See the example below:
-        >>> from plotly.subplots import make_subplots
-        >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-        >>> fig = FigureResampler(go.Figure())
-        >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
-
-        TODO: explain why adding x and y to a trace is so slow
-
-        Notes
-        -----
-        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
-          to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
-          allow `NaN` values in `hf_x` or `trace.x`.
-        * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%).
-          <br>
-          **Note**: These arguments have priority over the trace's data and (hover)text
-          attributes.
-        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-          the the automatic-zooming (y-scaling) as these will not be stored in the
-          back-end and thus not be scaled to the view.<br>
-          To circumvent this, the `limit_to_view` argument can be set, resulting in also
-          storing the low-frequency series in the back-end.
-
         Parameters
         ----------
         trace : BaseTraceType or dict
-            Either:\n
+            Either:
+
               - An instances of a trace class from the plotly.graph_objs
                 package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dict where:\n
+              - or a dict where:
+
                 - The type property specifies the trace type (e.g. scatter, bar,
                   area, etc.). If the dict has no 'type' property then scatter is
                   assumed.
                 - All remaining properties are passed to the constructor
                   of the specified trace type.
         max_n_samples : int, optional
-            The maximum number of samples that will be shown by the trace.\n
+            The maximum number of samples that will be shown by the trace.
+
             .. note::
                 If this variable is not set; `_global_n_shown_samples` will be used.
         downsampler: AbstractSeriesDownsampler, optional
@@ -480,16 +454,56 @@ class FigureResampler(go.Figure):
             trace its data.
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
-            `text` or `hovertext` argument.
+            trace its ``text`` or ``hovertext`` argument.
         **trace_kwargs: dict
-            Additional trace related keyword arguments.<br>
-            e.g.: row=.., col=..., secondary_y=...\n
-            * Also check out [Figure.add_trace() docs](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces)
+            Additional trace related keyword arguments.
+            e.g.: row=.., col=..., secondary_y=...
+
+            .. seealso::
+                `Figure.add_trace <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace>`_ docs.
 
         Returns
         -------
         BaseFigure
             The Figure on which `add_trace` was called on; i.e. self.
+
+        Note
+        ----
+        Constructing traces with **very large data amounts** really takes some time.
+        To speed this up; use this ``.add_trace`` method and
+
+        1. Create a trace with no data (empty lists) 
+        2. pass the high frequency data to this method using the `hf_x` and `hf_y` 
+           parameters. 
+
+        See the example below:
+
+            >>> from plotly.subplots import make_subplots
+            >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
+            >>> fig = FigureResampler(go.Figure())
+            >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
+
+        .. TODO::
+            explain why adding x and y to a trace is so slow
+
+        Tip
+        ---
+        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
+          to the size of your trace!
+
+        Attention
+        ---------
+        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+          allow `NaN` values in `hf_x` or `trace.x`.
+        * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
+          of data (as it can increase the speed of this add_trace() method with ~30%).
+          **Note**: These arguments have priority over the trace's data and (hover)text
+          attributes.
+        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+          the the automatic-zooming (y-scaling) as these will not be stored in the
+          back-end and thus not be scaled to the view.
+          To circumvent this, the `limit_to_view` argument can be set, resulting in also
+          storing the low-frequency series in the back-end.
 
         """
         if max_n_samples is None:
@@ -845,15 +859,16 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         mode: str, optional
-            Display mode. One of: \n
+            Display mode. One of:
+
             * ``external``: The URL of the app will be displayed in the notebook
                 output cell. Clicking this URL will open the app in the default
-                web browser.<br>
+                web browser.
             * ``"inline"``: The app will be displayed inline in the notebook output cell
-                in an iframe.<br>
+                in an iframe.
             * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
-                extension.<br>
+                extension.
             By default None, which will result in the same behavior as ``"external"``.
         config: dict, optional
             The configuration options for displaying this figure, by default None.
@@ -868,7 +883,7 @@ class FigureResampler(go.Figure):
             `config` parameter for this property in this method.
             See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
-            Additional app.run_server() kwargs.<br>/
+            Additional app.run_server() kwargs.
             e.g.: port
 
         """
