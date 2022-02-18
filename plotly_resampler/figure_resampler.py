@@ -48,11 +48,11 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure 
+            The figure that will be decorated. Can be either an empty figure
             (e.g., go.Figure() or make_subplots()) or an existing figure.
         convert_existing_traces: bool
             A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the 
+            resampled, by default True. Hence, when set to False, the traces of the
             passed `figure` will note be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
@@ -244,6 +244,7 @@ class FigureResampler(go.Figure):
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
+        updated_trace_indices: List[int] = []
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -275,10 +276,13 @@ class FigureResampler(go.Figure):
         """
         xaxis_filter_short = None
         if xaxis_filter is not None:
-            xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis_filter")
+            xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
 
-        updated_trace_indices: List[int] = []
         for idx, trace in enumerate(figure["data"]):
+            # We skip when the trace-indice already has been updated.
+            if idx in updated_trace_indices:
+                continue
+
             if xaxis_filter is not None:
                 # the x-anchor of the trace is stored in the layout data
                 if trace.get("yaxis") is None:
@@ -286,18 +290,36 @@ class FigureResampler(go.Figure):
                     y_axis = "y" + xaxis_filter[1:]
                 else:
                     y_axis = "yaxis" + trace.get("yaxis")[1:]
+
+                # Next to the x-anchor, we also fetch the xaxis which matches the 
+                # current trace (i.e. if this value is not None, the axis shares the
+                # x-axis with one or more traces).
                 x_anchor_trace = figure["layout"].get(y_axis, {}).get("anchor")
+                xaxis_matches = figure['layout'].get(
+                    'xaxis' + x_anchor_trace.lstrip('x'), {}).get("matches")
+
+                # print(
+                #     f"x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} ",
+                #     f"- xaxis_matches: {xaxis_matches}"
+                # )
 
                 # we skip when:
                 # * the change was made on the first row and the trace its anchor is not
-                #   in [None, 'x']
+                #   in [None, 'x'] and the matching (a.k.a. shared) xaxis is not equal
+                #   to the xaxis filter argument.
                 #   -> why None: traces without row/col argument and stand on first row
                 #      and do not have the anchor property (hence the DICT.get() method)
-                # * x-anchor-trace != xaxis_filter-short for NON first rows
+                # * x_axis_filter_short not in [x_anchor or xaxis matches] for 
+                #   NON first rows
                 if (
-                    xaxis_filter_short == "x" and x_anchor_trace not in [None, "x"]
+                    xaxis_filter_short == "x" and (
+                        x_anchor_trace not in [None, "x"]
+                        and xaxis_matches != xaxis_filter_short
+                        )
                 ) or (
-                    xaxis_filter_short != "x" and x_anchor_trace != xaxis_filter_short
+                    xaxis_filter_short != "x" and (
+                         xaxis_filter_short not in [x_anchor_trace, xaxis_matches]
+                    )
                 ):
                     continue
 
@@ -373,7 +395,7 @@ class FigureResampler(go.Figure):
         Note
         ----
         Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -> just create a trace with no 
+        To speed this up; use this `add_trace()` method -> just create a trace with no
         data (empty lists) and pass the high frequency data to this method,
         using the `hf_x` and `hf_y` parameters. See the example below:
         >>> from plotly.subplots import make_subplots
@@ -387,7 +409,7 @@ class FigureResampler(go.Figure):
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
           allow `NaN` values in `hf_x` or `trace.x`.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
           of data (as it can increase the speed of this add_trace() method with ~30%).
@@ -565,8 +587,8 @@ class FigureResampler(go.Figure):
                     "hovertext": hf_hovertext,
                 }
 
-                # Before we update the trace, we create a new pointer to that trace in 
-                # which the downsampled data will be stored. This way, the original 
+                # Before we update the trace, we create a new pointer to that trace in
+                # which the downsampled data will be stored. This way, the original
                 # data of the trace to this `add_trace` method will not be altered.
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
@@ -580,8 +602,8 @@ class FigureResampler(go.Figure):
                 }
 
                 # NOTE:
-                # If all the raw data needs to be sent to the javascript, and the trace 
-                # is high-frequency, this would take significant time! 
+                # If all the raw data needs to be sent to the javascript, and the trace
+                # is high-frequency, this would take significant time!
                 # Hence, you first downsample the trace.
                 trace = self.check_update_trace_data(trace)
                 assert trace is not None
@@ -652,7 +674,7 @@ class FigureResampler(go.Figure):
             Figure.
         trace_updater_id
             The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the 
+            `FigureResampler` to efficiently POST the to-be-updated data to the
             front-end.
 
         """
@@ -689,13 +711,12 @@ class FigureResampler(go.Figure):
                         xaxis = t_start_key.split(".")[0]
                         assert xaxis == t_stop_key.split(".")[0]
                         # -> we want to copy the layout on the back-end
-                        updated_trace_indices.extend(
-                            self.check_update_figure_dict(
-                                current_graph,
-                                start=changed_layout[t_start_key],
-                                stop=changed_layout[t_stop_key],
-                                xaxis_filter=xaxis,
-                            )
+                        self.check_update_figure_dict(
+                            current_graph,
+                            start=changed_layout[t_start_key],
+                            stop=changed_layout[t_stop_key],
+                            xaxis_filter=xaxis,
+                            updated_trace_indices=updated_trace_indices
                         )
 
                 # 2. The user clicked on either autorange | reset axes
@@ -706,10 +727,9 @@ class FigureResampler(go.Figure):
                     for autorange_key in autorange_matches:
                         if changed_layout[autorange_key]:
                             xaxis = autorange_key.split(".")[0]
-                            updated_trace_indices.extend(
-                                self.check_update_figure_dict(
-                                    current_graph, xaxis_filter=xaxis
-                                )
+                            self.check_update_figure_dict(
+                                current_graph, xaxis_filter=xaxis,
+                                updated_trace_indices=updated_trace_indices
                             )
                 # 2.1. Autorange -> do nothing, the autorange will be applied on the
                 #      current front-end view
