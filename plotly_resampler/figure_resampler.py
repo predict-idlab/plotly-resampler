@@ -48,11 +48,11 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure 
+            The figure that will be decorated. Can be either an empty figure
             (e.g., go.Figure() or make_subplots()) or an existing figure.
         convert_existing_traces: bool
             A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the 
+            resampled, by default True. Hence, when set to False, the traces of the
             passed `figure` will note be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
@@ -200,7 +200,7 @@ class FigureResampler(go.Figure):
                 trace["name"] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace["name"] = trace["name"][len(self._prefix):]
+                    trace["name"] = trace["name"][len(self._prefix) :]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace["name"] = trace["name"][: -len(self._suffix)]
 
@@ -354,7 +354,7 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -373,7 +373,7 @@ class FigureResampler(go.Figure):
         Note
         ----
         Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -> just create a trace with no 
+        To speed this up; use this `add_trace()` method -> just create a trace with no
         data (empty lists) and pass the high frequency data to this method,
         using the `hf_x` and `hf_y` parameters. See the example below:
         >>> from plotly.subplots import make_subplots
@@ -387,7 +387,7 @@ class FigureResampler(go.Figure):
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
           allow `NaN` values in `hf_x` or `trace.x`.
         * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
           of data (as it can increase the speed of this add_trace() method with ~30%).
@@ -565,8 +565,8 @@ class FigureResampler(go.Figure):
                     "hovertext": hf_hovertext,
                 }
 
-                # Before we update the trace, we create a new pointer to that trace in 
-                # which the downsampled data will be stored. This way, the original 
+                # Before we update the trace, we create a new pointer to that trace in
+                # which the downsampled data will be stored. This way, the original
                 # data of the trace to this `add_trace` method will not be altered.
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
@@ -580,8 +580,8 @@ class FigureResampler(go.Figure):
                 }
 
                 # NOTE:
-                # If all the raw data needs to be sent to the javascript, and the trace 
-                # is high-frequency, this would take significant time! 
+                # If all the raw data needs to be sent to the javascript, and the trace
+                # is high-frequency, this would take significant time!
                 # Hence, you first downsample the trace.
                 trace = self.check_update_trace_data(trace)
                 assert trace is not None
@@ -652,7 +652,7 @@ class FigureResampler(go.Figure):
             Figure.
         trace_updater_id
             The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the 
+            `FigureResampler` to efficiently POST the to-be-updated data to the
             front-end.
 
         """
@@ -751,7 +751,13 @@ class FigureResampler(go.Figure):
                 layout_traces_list.append(trace_reduced)
             return layout_traces_list
 
-    def show_dash(self, mode=None, **kwargs):
+    def show_dash(
+        self,
+        mode=None,
+        config: dict | None = None,
+        graph_properties: dict | None = None,
+        **kwargs,
+    ):
         """Registers the `update_graph` callback & show the figure in a dash app.
 
         Parameters
@@ -767,16 +773,32 @@ class FigureResampler(go.Figure):
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.<br>
             By default None, which will result in the same behavior as ``"external"``.
+        config: dict, optional
+            The configuration options for displaying this figure, by default None. 
+            This `config` parameter is the same as the dict that you would pass as 
+            `config` argument to the `.show()` method.
+            See more https://plotly.com/python/configuration-options/
+        graph_properties: dict, optional
+            Dictionary of (keyword, value) for the properties that should be passed to 
+            the dcc.Graph, by default None.
+            e.g.: {"style": {"width": "50%"}}
+            Note: "config" is not allowed as key in this dict, as there is a distinct
+            `config` parameter for this property in this method.
+            See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
             Additional app.run_server() kwargs.<br>/
             e.g.: port
 
         """
+        graph_properties = {} if graph_properties is None else graph_properties
+        assert "config" not in graph_properties.keys()  # There is a param for config
         # 1. Construct the Dash app layout
         app = JupyterDash("local_app")
         app.layout = dash.html.Div(
             [
-                dash.dcc.Graph(id="resample-figure", figure=self),
+                dash.dcc.Graph(
+                    id="resample-figure", figure=self, config=config, **graph_properties
+                ),
                 TraceUpdater(
                     id="trace-updater", gdID="resample-figure", sequentialUpdate=False
                 ),

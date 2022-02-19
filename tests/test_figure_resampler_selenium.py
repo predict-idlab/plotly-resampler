@@ -1,14 +1,9 @@
 import multiprocessing
 import time
 
-import json
-
-from seleniumwire.request import Response
-
 from plotly_resampler.figure_resampler import FigureResampler
 
 from .fr_selenium import FigureResamplerGUITests, RequestParser
-import warnings
 
 
 def test_multiple_tz(driver, multiple_tz_figure):
@@ -84,8 +79,10 @@ def test_basic_example_gui(driver, example_figure):
     cleanup_on_sigterm()
 
     port = 9012
+    config = {"displayModeBar": True}
     proc = multiprocessing.Process(
-        target=example_figure.show_dash, kwargs=dict(mode="external", port=port)
+        target=example_figure.show_dash,
+        kwargs=dict(mode="external", port=port, config=config),
     )
     proc.start()
     try:
