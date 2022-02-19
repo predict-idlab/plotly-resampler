@@ -15,20 +15,21 @@ from ..downsamplers.downsampling_interface import AbstractSeriesDownsampler
 class LTTB(AbstractSeriesDownsampler):
     """Largest Triangle Three Bucket (LTTB) downsampler method.
 
-    Notes
-    -----
+    Note
+    ----
     * This class is mainly designed to operate on numerical data as LTTB calculates
       distances on the values.<br>
       When dealing with categories, the data is encoded into its numeric codes,
       these codes are the indices of the category array.
-    * To downsample category data with LTTB, your `pd.Series` must be of dtype
+    * To downsample category data with LTTB, your ``pd.Series`` must be of dtype
       'category'.<br>
-      **pro tip**: If there is an order in your categories, order them that way, LTTB
-       uses the ordered category codes values (se bullet above) to calculate distances
-       and make downsample decisions.
-      >>> s = pd.Series(["a", "b", "c", "a"])
-      >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
-      >>> s_cat = s.astype(cat_type)
+      **Tip**: ff there is an order in your categories, order them that way, LTTB
+      uses the ordered category codes values (se bullet above) to calculate distances
+      and make downsample decisions.
+      .. code::
+        >>> s = pd.Series(["a", "b", "c", "a"])
+        >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
+        >>> s_cat = s.astype(cat_type)
 
     """
 
@@ -78,11 +79,10 @@ class EveryNthPoint(AbstractSeriesDownsampler):
 class AggregationDownsampler(AbstractSeriesDownsampler):
     """Downsampler method which uses the passed aggregation func.
 
-    Notes
-    -----
-    * The user has total control which aggregation_func is passed to this method,
-      hence it is the users' responsibility to handle categorical and bool-based
-      datatypes.
+    Note
+    ----
+    The user has total control which aggregation_func is passed to this method, hence it
+    is the users' responsibility to handle categorical and bool-based datatypes.
 
     """
     def __init__(

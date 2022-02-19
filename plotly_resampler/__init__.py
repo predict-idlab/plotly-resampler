@@ -1,4 +1,4 @@
-"""**plotly\_resampler**: interactive visualizations of large sequences of data
+"""**plotly\_resampler**: visualizing large sequences
 
 """
 

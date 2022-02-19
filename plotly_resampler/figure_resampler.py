@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Wrapper around the plotly go.Figure class which allows bookkeeping and
+Wrapper around the plotly ``go.Figure`` class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.
 
 Note
@@ -50,25 +50,26 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure
-            (e.g., go.Figure() or make_subplots()) or an existing figure.
+            The figure that will be decorated. Can be either an empty figure 
+            (e.g., ``go.Figure()`` or ``make_subplots()``) or an existing figure.
         convert_existing_traces: bool
-            A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the
-            passed `figure` will note be resampled.
+            A bool indicating whether the traces of the passed ``figure`` should be
+            resampled, by default True. Hence, when set to False, the traces of the 
+            passed ``figure`` will not be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
+            * **Note**: this can be overridden within the :func:`add_trace` method.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface,
-            by default `LTTB`.
+            by default ``LTTB``.
             This will be used as default downsampler.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
+            .. note::
+                This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
-            A tuple which contains the `prefix` and `suffix`, respectively, which
+            A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its name when a resampled version of the trace
-            is shown, by default a bold, orange `[R]` is shown as prefix
+            is shown, by default a bold, orange ``[R]`` is shown as prefix
             (no suffix is shown).
         show_mean_aggregation_size: bool, optional
             Whether the mean aggregation bin size will be added as a suffix to the trace
@@ -100,12 +101,13 @@ class FigureResampler(go.Figure):
             super().__init__(figure)
 
     def _print(self, *values):
-        """Helper method for printing if `verbose` is set to True."""
+        """Helper method for printing if ``verbose`` is set to True."""
         if self._print_verbose:
             print(*values)
 
     def _query_hf_data(self, trace: dict) -> Optional[dict]:
-        """Query the internal `_hf_data` attribute and returns a match based on `uid`.
+        """Query the internal ``_hf_data`` attribute and returns a match based on 
+        ``uid``.
 
         Parameters
         ----------
@@ -115,7 +117,7 @@ class FigureResampler(go.Figure):
         Returns
         -------
         Optional[dict]
-            The `hf_data`-trace dict if a match is found, else `None`.
+            The ``hf_data``-trace dict if a match is found, else ``None``.
 
         """
         uid = trace["uid"]
@@ -133,19 +135,19 @@ class FigureResampler(go.Figure):
         start=None,
         end=None,
     ) -> Optional[Union[dict, BaseTraceType]]:
-        """Check and updates the passed `trace`.
+        """Check and updates the passed ``trace``.
 
         Note
         ----
         This is a pass by reference. The passed trace object will be updated and
-        returned if found in `hf_data`.
+        returned if found in ``hf_data``.
 
         Parameters
         ----------
         trace : BaseTraceType or dict
-             - An instances of a trace class from the plotly.graph_objs (go)
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dicts where:
+             - An instances of a trace class from the ``plotly.graph_objects`` (go)
+                package (e.g, ``go.Scatter``, ``go.Bar``)
+             - or a dict where:
 
                   - The 'type' property specifies the trace type (e.g.
                     'scatter', 'bar', 'area', etc.). If the dict has no 'type'
@@ -163,13 +165,13 @@ class FigureResampler(go.Figure):
         Returns
         -------
         Optional[Union[dict, BaseTraceType]]
-            If the matching hf_series is found in hf_dict, an (updated) trace will be
-            returned, otherwise None.
+            If the matching ``hf_series`` is found in ``hf_dict``, an (updated) trace
+            will be returned, otherwise None.
 
-        Notes
-        -----
-        * If `start` and `stop` are strings, they most likely represent time-strings
-        * `start` and `stop` will always be of the same type (float / time-string)
+        Note
+        ----
+        * If ``start`` and ``stop`` are strings, they most likely represent time-strings
+        * ``start`` and ``stop`` will always be of the same type (float / time-string)
            because their underlying axis is the same.
 
         """
@@ -261,7 +263,7 @@ class FigureResampler(go.Figure):
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
-        This method will most likely be used within a `Dash` callback to resample the
+        This method will most likely be used within a ``Dash`` callback to resample the
         view, based on the configured number of parameters.
 
         Note
@@ -361,11 +363,11 @@ class FigureResampler(go.Figure):
         t_start: Optional[pd.Timestamp] = None,
         t_stop: Optional[pd.Timestamp] = None,
     ) -> pd.Series:
-        """Slice the time-indexed `hf_series` for the passed pd.Timestamps.
+        """Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.
 
         Note
         ----
-        This returns a **view** of hf_series!
+        This returns a **view** of ``hf_series``!
 
         Parameters
         ----------
@@ -425,8 +427,8 @@ class FigureResampler(go.Figure):
         trace : BaseTraceType or dict
             Either:
 
-              - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
+              - An instances of a trace class from the ``plotly.graph_objects`` (go)
+                package (e.g., ``go.Scatter``, ``go.Bar``)
               - or a dict where:
 
                 - The type property specifies the trace type (e.g. scatter, bar,
@@ -438,13 +440,13 @@ class FigureResampler(go.Figure):
             The maximum number of samples that will be shown by the trace.
 
             .. note::
-                If this variable is not set; `_global_n_shown_samples` will be used.
+                If this variable is not set; ``_global_n_shown_samples`` will be used.
         downsampler: AbstractSeriesDownsampler, optional
             The abstract series downsampler method
         limit_to_view: boolean, optional
             If set to True the trace's datapoints will be cut to the corresponding
             front-end view, even if the total number of samples is lower than
-            `max_n_samples`, By default False.
+            ``max_n_samples``, By default False.
         hf_x: Iterable, optional
             The original high frequency series positions, can be either a time-series or
             an increasing, numerical index. If set, this has priority over the trace its
@@ -465,15 +467,15 @@ class FigureResampler(go.Figure):
         Returns
         -------
         BaseFigure
-            The Figure on which `add_trace` was called on; i.e. self.
+            The Figure on which ``add_trace`` was called on; i.e. self.
 
         Note
         ----
         Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this ``.add_trace`` method and
+        To speed this up; use this :func:`add_trace` method and
 
         1. Create a trace with no data (empty lists) 
-        2. pass the high frequency data to this method using the `hf_x` and `hf_y` 
+        2. pass the high frequency data to this method using the ``hf_x`` and ``hf_y`` 
            parameters. 
 
         See the example below:
@@ -488,22 +490,25 @@ class FigureResampler(go.Figure):
 
         Tip
         ---
-        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
-          to the size of your trace!
+        * **Pro tip**: if you do `not want to downsample` your data, set
+          ``max_n_samples`` to the size of your trace!
 
         Attention
         ---------
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
-          allow `NaN` values in `hf_x` or `trace.x`.
-        * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%).
-          **Note**: These arguments have priority over the trace's data and (hover)text
-          attributes.
+        * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do 
+          not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
+        * ``hf_x``, ``hf_y``, and 'hf_hovertext` are useful when you deal with large 
+          amounts of data (as it can increase the speed of this add_trace() method with
+          ~30%).
+
+          .. note::
+            These arguments have priority over the trace's data and (hover)text
+            attributes.
         * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
           the the automatic-zooming (y-scaling) as these will not be stored in the
           back-end and thus not be scaled to the view.
-          To circumvent this, the `limit_to_view` argument can be set, resulting in also
-          storing the low-frequency series in the back-end.
+          To circumvent this, the ``limit_to_view`` argument can be set, resulting in 
+          also storing the low-frequency series in the back-end.
 
         """
         if max_n_samples is None:
@@ -869,6 +874,7 @@ class FigureResampler(go.Figure):
             * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.
+            
             By default None, which will result in the same behavior as ``"external"``.
         config: dict, optional
             The configuration options for displaying this figure, by default None.
