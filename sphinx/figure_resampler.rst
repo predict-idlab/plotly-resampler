@@ -1,5 +1,5 @@
 ----------------
-figure_resampler
+FigureResampler
 ----------------
 
 .. automodule:: plotly_resampler.figure_resampler

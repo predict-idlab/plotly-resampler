@@ -11,7 +11,7 @@ Getting started 🚀
 
 Users can interact with 2 components:
 
-* :ref:`FigureResampler <figure_resampler>`: a wrapper for *plotly.graph\_objects* that serves the adaptive resampling functionality.
+* :ref:`FigureResampler <FigureResampler>`: a wrapper for *plotly.graph\_objects* that serves the adaptive resampling functionality.
 * :ref:`downsamplers <downsamplers>`: this module withholds various downsampling methods.
 
 Installation ⚙️
