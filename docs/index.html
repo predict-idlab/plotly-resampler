@@ -170,11 +170,11 @@ back-end based resampling of high-frequency sequential data …</p></div>
         Parameters
         ----------
         figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure 
+            The figure that will be decorated. Can be either an empty figure
             (e.g., go.Figure() or make_subplots()) or an existing figure.
         convert_existing_traces: bool
             A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the 
+            resampled, by default True. Hence, when set to False, the traces of the
             passed `figure` will note be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
@@ -322,7 +322,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 trace[&#34;name&#34;] = name
             else:
                 if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix):]
+                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
                 if len(self._suffix) and name.endswith(self._suffix):
                     trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
 
@@ -476,7 +476,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 return ts.tz_localize(None)
             return ts
 
-        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
         self,
@@ -495,7 +495,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
         Note
         ----
         Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -&gt; just create a trace with no 
+        To speed this up; use this `add_trace()` method -&gt; just create a trace with no
         data (empty lists) and pass the high frequency data to this method,
         using the `hf_x` and `hf_y` parameters. See the example below:
         &gt;&gt;&gt; from plotly.subplots import make_subplots
@@ -509,7 +509,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
         -----
         * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
           to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
           allow `NaN` values in `hf_x` or `trace.x`.
         * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
           of data (as it can increase the speed of this add_trace() method with ~30%).
@@ -687,8 +687,8 @@ back-end based resampling of high-frequency sequential data …</p></div>
                     &#34;hovertext&#34;: hf_hovertext,
                 }
 
-                # Before we update the trace, we create a new pointer to that trace in 
-                # which the downsampled data will be stored. This way, the original 
+                # Before we update the trace, we create a new pointer to that trace in
+                # which the downsampled data will be stored. This way, the original
                 # data of the trace to this `add_trace` method will not be altered.
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
@@ -702,8 +702,8 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 }
 
                 # NOTE:
-                # If all the raw data needs to be sent to the javascript, and the trace 
-                # is high-frequency, this would take significant time! 
+                # If all the raw data needs to be sent to the javascript, and the trace
+                # is high-frequency, this would take significant time!
                 # Hence, you first downsample the trace.
                 trace = self.check_update_trace_data(trace)
                 assert trace is not None
@@ -774,7 +774,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             Figure.
         trace_updater_id
             The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the 
+            `FigureResampler` to efficiently POST the to-be-updated data to the
             front-end.
 
         &#34;&#34;&#34;
@@ -873,7 +873,13 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 layout_traces_list.append(trace_reduced)
             return layout_traces_list
 
-    def show_dash(self, mode=None, **kwargs):
+    def show_dash(
+        self,
+        mode=None,
+        config: dict | None = None,
+        graph_properties: dict | None = None,
+        **kwargs,
+    ):
         &#34;&#34;&#34;Registers the `update_graph` callback &amp; show the figure in a dash app.
 
         Parameters
@@ -889,16 +895,32 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.&lt;br&gt;
             By default None, which will result in the same behavior as ``&#34;external&#34;``.
+        config: dict, optional
+            The configuration options for displaying this figure, by default None. 
+            This `config` parameter is the same as the dict that you would pass as 
+            `config` argument to the `.show()` method.
+            See more https://plotly.com/python/configuration-options/
+        graph_properties: dict, optional
+            Dictionary of (keyword, value) for the properties that should be passed to 
+            the dcc.Graph, by default None.
+            e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
+            Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
+            `config` parameter for this property in this method.
+            See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
             Additional app.run_server() kwargs.&lt;br&gt;/
             e.g.: port
 
         &#34;&#34;&#34;
+        graph_properties = {} if graph_properties is None else graph_properties
+        assert &#34;config&#34; not in graph_properties.keys()  # There is a param for config
         # 1. Construct the Dash app layout
         app = JupyterDash(&#34;local_app&#34;)
         app.layout = dash.html.Div(
             [
-                dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=self),
+                dash.dcc.Graph(
+                    id=&#34;resample-figure&#34;, figure=self, config=config, **graph_properties
+                ),
                 TraceUpdater(
                     id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
                 ),
@@ -1042,7 +1064,7 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
             trace[&#34;name&#34;] = name
         else:
             if len(self._prefix) and name.startswith(self._prefix):
-                trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix):]
+                trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
             if len(self._suffix) and name.endswith(self._suffix):
                 trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
 
@@ -1250,7 +1272,7 @@ modalities which are updated.</dd>
     Note
     ----
     Constructing traces with **very large data amounts** really takes some time.
-    To speed this up; use this `add_trace()` method -&gt; just create a trace with no 
+    To speed this up; use this `add_trace()` method -&gt; just create a trace with no
     data (empty lists) and pass the high frequency data to this method,
     using the `hf_x` and `hf_y` parameters. See the example below:
     &gt;&gt;&gt; from plotly.subplots import make_subplots
@@ -1264,7 +1286,7 @@ modalities which are updated.</dd>
     -----
     * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
       to the size of your trace!
-    * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not 
+    * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
       allow `NaN` values in `hf_x` or `trace.x`.
     * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
       of data (as it can increase the speed of this add_trace() method with ~30%).
@@ -1442,8 +1464,8 @@ modalities which are updated.</dd>
                 &#34;hovertext&#34;: hf_hovertext,
             }
 
-            # Before we update the trace, we create a new pointer to that trace in 
-            # which the downsampled data will be stored. This way, the original 
+            # Before we update the trace, we create a new pointer to that trace in
+            # which the downsampled data will be stored. This way, the original
             # data of the trace to this `add_trace` method will not be altered.
             # We copy (by reference) all the non-data properties of the trace in
             # the new trace.
@@ -1457,8 +1479,8 @@ modalities which are updated.</dd>
             }
 
             # NOTE:
-            # If all the raw data needs to be sent to the javascript, and the trace 
-            # is high-frequency, this would take significant time! 
+            # If all the raw data needs to be sent to the javascript, and the trace
+            # is high-frequency, this would take significant time!
             # Hence, you first downsample the trace.
             trace = self.check_update_trace_data(trace)
             assert trace is not None
@@ -1634,7 +1656,7 @@ resampled, by default True.</dd>
         Figure.
     trace_updater_id
         The id of the `TraceUpdater` component. This component is leveraged by
-        `FigureResampler` to efficiently POST the to-be-updated data to the 
+        `FigureResampler` to efficiently POST the to-be-updated data to the
         front-end.
 
     &#34;&#34;&#34;
@@ -1748,14 +1770,20 @@ front-end.</dd>
 </dl></div>
 </dd>
 <dt id="plotly_resampler.FigureResampler.show_dash"><code class="name flex">
-<span>def <span class="ident">show_dash</span></span>(<span>self, mode=None, **kwargs)</span>
+<span>def <span class="ident">show_dash</span></span>(<span>self, mode=None, config=None, graph_properties=None, **kwargs)</span>
 </code></dt>
 <dd>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def show_dash(self, mode=None, **kwargs):
+<pre><code class="python">def show_dash(
+    self,
+    mode=None,
+    config: dict | None = None,
+    graph_properties: dict | None = None,
+    **kwargs,
+):
     &#34;&#34;&#34;Registers the `update_graph` callback &amp; show the figure in a dash app.
 
     Parameters
@@ -1771,16 +1799,32 @@ front-end.</dd>
             JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
             extension.&lt;br&gt;
         By default None, which will result in the same behavior as ``&#34;external&#34;``.
+    config: dict, optional
+        The configuration options for displaying this figure, by default None. 
+        This `config` parameter is the same as the dict that you would pass as 
+        `config` argument to the `.show()` method.
+        See more https://plotly.com/python/configuration-options/
+    graph_properties: dict, optional
+        Dictionary of (keyword, value) for the properties that should be passed to 
+        the dcc.Graph, by default None.
+        e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
+        Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
+        `config` parameter for this property in this method.
+        See more https://dash.plotly.com/dash-core-components/graph
     **kwargs: dict
         Additional app.run_server() kwargs.&lt;br&gt;/
         e.g.: port
 
     &#34;&#34;&#34;
+    graph_properties = {} if graph_properties is None else graph_properties
+    assert &#34;config&#34; not in graph_properties.keys()  # There is a param for config
     # 1. Construct the Dash app layout
     app = JupyterDash(&#34;local_app&#34;)
     app.layout = dash.html.Div(
         [
-            dash.dcc.Graph(id=&#34;resample-figure&#34;, figure=self),
+            dash.dcc.Graph(
+                id=&#34;resample-figure&#34;, figure=self, config=config, **graph_properties
+            ),
             TraceUpdater(
                 id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
             ),
@@ -1817,6 +1861,18 @@ extension.<br>
 By default None, which will result in the same behavior as <code>"external"</code>.</li>
 </ul>
 </dd>
+<dt><strong><code>config</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>The configuration options for displaying this figure, by default None.
+This <code>config</code> parameter is the same as the dict that you would pass as
+<code>config</code> argument to the <code>.show()</code> method.
+See more <a href="https://plotly.com/python/configuration-options/">https://plotly.com/python/configuration-options/</a></dd>
+<dt><strong><code>graph_properties</code></strong> :&ensp;<code>dict</code>, optional</dt>
+<dd>Dictionary of (keyword, value) for the properties that should be passed to
+the dcc.Graph, by default None.
+e.g.: {"style": {"width": "50%"}}
+Note: "config" is not allowed as key in this dict, as there is a distinct
+<code>config</code> parameter for this property in this method.
+See more <a href="https://dash.plotly.com/dash-core-components/graph">https://dash.plotly.com/dash-core-components/graph</a></dd>
 <dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
 <dd>Additional app.run_server() kwargs.<br>/
 e.g.: port</dd>
