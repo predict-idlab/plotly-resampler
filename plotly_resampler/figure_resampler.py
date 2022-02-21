@@ -244,7 +244,7 @@ class FigureResampler(go.Figure):
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
-        updated_trace_indices: List[int] = []
+        updated_trace_indices: List[int] = None
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -265,7 +265,9 @@ class FigureResampler(go.Figure):
         stop : Union[float, str], optional
             The end time for the new resampled data view, by default None.
         xaxis_filter: str, Optional
-            Additional trace-update subplot filter.
+            Additional trace-update subplot filter, by default None.
+        updated_trace_indices: List[int], optional
+            List of trace indices that already have been updated, by default None.
 
         Returns
         -------
@@ -278,8 +280,11 @@ class FigureResampler(go.Figure):
         if xaxis_filter is not None:
             xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
 
+        if updated_trace_indices is None:
+            updated_trace_indices = []
+
         for idx, trace in enumerate(figure["data"]):
-            # We skip when the trace-indice already has been updated.
+            # We skip when the trace-idx already has been updated.
             if idx in updated_trace_indices:
                 continue
 
@@ -294,6 +299,7 @@ class FigureResampler(go.Figure):
                 # Next to the x-anchor, we also fetch the xaxis which matches the 
                 # current trace (i.e. if this value is not None, the axis shares the
                 # x-axis with one or more traces).
+                # This is relevant when e.g. fig.update_traces(xaxis='x...') was called.
                 x_anchor_trace = figure["layout"].get(y_axis, {}).get("anchor")
                 xaxis_matches = figure['layout'].get(
                     'xaxis' + x_anchor_trace.lstrip('x'), {}).get("matches")
@@ -303,7 +309,7 @@ class FigureResampler(go.Figure):
                 #     f"- xaxis_matches: {xaxis_matches}"
                 # )
 
-                # we skip when:
+                # We skip when:
                 # * the change was made on the first row and the trace its anchor is not
                 #   in [None, 'x'] and the matching (a.k.a. shared) xaxis is not equal
                 #   to the xaxis filter argument.
@@ -323,7 +329,7 @@ class FigureResampler(go.Figure):
                 ):
                     continue
 
-            # if we managed to find and update the trace, it will return the trace
+            # If we managed to find and update the trace, it will return the trace
             # and thus not None.
             updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
             if updated_trace is not None:
@@ -523,7 +529,7 @@ class FigureResampler(go.Figure):
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
-            # if the categorical or string-like hf_y data is of type object (happens
+            # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
