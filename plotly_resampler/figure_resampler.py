@@ -717,7 +717,7 @@ class FigureResampler(go.Figure):
                         xaxis = t_start_key.split(".")[0]
                         assert xaxis == t_stop_key.split(".")[0]
                         # -> we want to copy the layout on the back-end
-                        self.check_update_figure_dict(
+                        updated_trace_indices = self.check_update_figure_dict(
                             current_graph,
                             start=changed_layout[t_start_key],
                             stop=changed_layout[t_stop_key],
@@ -733,7 +733,7 @@ class FigureResampler(go.Figure):
                     for autorange_key in autorange_matches:
                         if changed_layout[autorange_key]:
                             xaxis = autorange_key.split(".")[0]
-                            self.check_update_figure_dict(
+                            updated_trace_indices = self.check_update_figure_dict(
                                 current_graph, xaxis_filter=xaxis,
                                 updated_trace_indices=updated_trace_indices
                             )
