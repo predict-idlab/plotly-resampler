@@ -244,6 +244,7 @@ class FigureResampler(go.Figure):
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
+        updated_trace_indices: List[int] = None
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -263,8 +264,10 @@ class FigureResampler(go.Figure):
             The start time for the new resampled data view, by default None.
         stop : Union[float, str], optional
             The end time for the new resampled data view, by default None.
-        xaxis_filter: str, Optional
-            Additional trace-update subplot filter.
+        xaxis_filter: str, optional
+            Additional trace-update subplot filter, by default None.
+        updated_trace_indices: List[int], optional
+            List of trace indices that already have been updated, by default None.
 
         Returns
         -------
@@ -275,10 +278,16 @@ class FigureResampler(go.Figure):
         """
         xaxis_filter_short = None
         if xaxis_filter is not None:
-            xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis_filter")
+            xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
 
-        updated_trace_indices: List[int] = []
+        if updated_trace_indices is None:
+            updated_trace_indices = []
+
         for idx, trace in enumerate(figure["data"]):
+            # We skip when the trace-idx already has been updated.
+            if idx in updated_trace_indices:
+                continue
+
             if xaxis_filter is not None:
                 # the x-anchor of the trace is stored in the layout data
                 if trace.get("yaxis") is None:
@@ -286,22 +295,41 @@ class FigureResampler(go.Figure):
                     y_axis = "y" + xaxis_filter[1:]
                 else:
                     y_axis = "yaxis" + trace.get("yaxis")[1:]
-                x_anchor_trace = figure["layout"].get(y_axis, {}).get("anchor")
 
-                # we skip when:
+                # Next to the x-anchor, we also fetch the xaxis which matches the 
+                # current trace (i.e. if this value is not None, the axis shares the
+                # x-axis with one or more traces).
+                # This is relevant when e.g. fig.update_traces(xaxis='x...') was called.
+                x_anchor_trace = figure["layout"].get(y_axis, {}).get("anchor")
+                xaxis_matches = figure['layout'].get(
+                    'xaxis' + x_anchor_trace.lstrip('x'), {}).get("matches")
+
+                # print(
+                #     f"x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} ",
+                #     f"- xaxis_matches: {xaxis_matches}"
+                # )
+
+                # We skip when:
                 # * the change was made on the first row and the trace its anchor is not
-                #   in [None, 'x']
+                #   in [None, 'x'] and the matching (a.k.a. shared) xaxis is not equal
+                #   to the xaxis filter argument.
                 #   -> why None: traces without row/col argument and stand on first row
                 #      and do not have the anchor property (hence the DICT.get() method)
-                # * x-anchor-trace != xaxis_filter-short for NON first rows
+                # * x_axis_filter_short not in [x_anchor or xaxis matches] for 
+                #   NON first rows
                 if (
-                    xaxis_filter_short == "x" and x_anchor_trace not in [None, "x"]
+                    xaxis_filter_short == "x" and (
+                        x_anchor_trace not in [None, "x"]
+                        and xaxis_matches != xaxis_filter_short
+                        )
                 ) or (
-                    xaxis_filter_short != "x" and x_anchor_trace != xaxis_filter_short
+                    xaxis_filter_short != "x" and (
+                         xaxis_filter_short not in [x_anchor_trace, xaxis_matches]
+                    )
                 ):
                     continue
 
-            # if we managed to find and update the trace, it will return the trace
+            # If we managed to find and update the trace, it will return the trace
             # and thus not None.
             updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
             if updated_trace is not None:
@@ -501,7 +529,7 @@ class FigureResampler(go.Figure):
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
-            # if the categorical or string-like hf_y data is of type object (happens
+            # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
@@ -689,13 +717,12 @@ class FigureResampler(go.Figure):
                         xaxis = t_start_key.split(".")[0]
                         assert xaxis == t_stop_key.split(".")[0]
                         # -> we want to copy the layout on the back-end
-                        updated_trace_indices.extend(
-                            self.check_update_figure_dict(
-                                current_graph,
-                                start=changed_layout[t_start_key],
-                                stop=changed_layout[t_stop_key],
-                                xaxis_filter=xaxis,
-                            )
+                        updated_trace_indices = self.check_update_figure_dict(
+                            current_graph,
+                            start=changed_layout[t_start_key],
+                            stop=changed_layout[t_stop_key],
+                            xaxis_filter=xaxis,
+                            updated_trace_indices=updated_trace_indices
                         )
 
                 # 2. The user clicked on either autorange | reset axes
@@ -706,10 +733,9 @@ class FigureResampler(go.Figure):
                     for autorange_key in autorange_matches:
                         if changed_layout[autorange_key]:
                             xaxis = autorange_key.split(".")[0]
-                            updated_trace_indices.extend(
-                                self.check_update_figure_dict(
-                                    current_graph, xaxis_filter=xaxis
-                                )
+                            updated_trace_indices = self.check_update_figure_dict(
+                                current_graph, xaxis_filter=xaxis,
+                                updated_trace_indices=updated_trace_indices
                             )
                 # 2.1. Autorange -> do nothing, the autorange will be applied on the
                 #      current front-end view

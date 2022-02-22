@@ -419,3 +419,24 @@ def cat_series_box_hist_figure() -> FigureResampler:
         col=1,
     )
     return fig
+
+
+@pytest.fixture
+def shared_hover_figure() -> FigureResampler:
+    fig = FigureResampler(make_subplots(rows=3, cols=1, shared_xaxes=True), verbose=1)
+
+    x = np.array(range(100_000))
+    y = np.sin(x / 120) + np.random.random(len(x)) / 10
+
+    for i in range(1,4):
+        fig.add_trace(
+            go.Scatter(x=[], y=[]),
+            hf_x=x, hf_y=y, 
+            row=i, col=1
+        )
+
+    fig.update_layout(template="plotly_white", height=900)
+    fig.update_traces(xaxis='x3')
+    fig.update_xaxes(spikemode='across', showspikes = True) 
+
+    return fig

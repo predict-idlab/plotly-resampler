@@ -449,3 +449,76 @@ def test_cat_gui(driver, cat_series_box_hist_figure):
         raise e
     finally:
         proc.terminate()
+
+
+def test_shared_hover_gui(driver, shared_hover_figure):
+    from pytest_cov.embed import cleanup_on_sigterm
+
+    cleanup_on_sigterm()
+
+    port = 9038
+    proc = multiprocessing.Process(
+        target=shared_hover_figure.show_dash,
+        kwargs=dict(mode="external", port=port),
+    )
+    proc.start()
+    try:
+        time.sleep(1)
+        fr = FigureResamplerGUITests(driver, port=port)
+
+        # First, apply some horizontal based zooms
+        fr.drag_and_zoom("x3y", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+        fr.clear_requests(sleep_time_s=1)
+        fr.drag_and_zoom("x3y", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+        time.sleep(1)
+        # As all axes are shared, we expect at least 3 updated
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=["xaxis3.range[0]", "xaxis3.range[1]"],
+            n_updated_traces=3,
+        )
+
+        # Note: as there is only 1 hf-scatter-trace, the reset axes command will only
+        # update a single trace
+        fr.clear_requests(sleep_time_s=1)
+        fr.reset_axes()
+        time.sleep(1)
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=[
+                "xaxis3.autorange",
+                "xaxis3.showspikes",
+                "yaxis.autorange",
+                "yaxis.showspikes",
+                "yaxis2.autorange",
+                "yaxis2.showspikes",
+                "yaxis3.autorange",
+                "yaxis3.showspikes",
+            ],
+            n_updated_traces=3,
+        )
+
+        fr.drag_and_zoom("x3y2", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+
+       # First, apply some horizontal based zooms
+        fr.clear_requests(sleep_time_s=1)
+        fr.drag_and_zoom("x3y3", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+        time.sleep(1)
+        # As all axes are shared, we expect at least 3 updated
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=["xaxis3.range[0]", "xaxis3.range[1]"],
+            n_updated_traces=3,
+        )
+
+        fr.clear_requests(sleep_time_s=1)
+        fr.autoscale()
+        time.sleep(1)
+        autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
+        assert len(autoscale_requests) == 1
+        assert autoscale_requests[0].response.status_code == 204
+
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
