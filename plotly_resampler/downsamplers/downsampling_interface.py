@@ -80,6 +80,21 @@ class AbstractSeriesDownsampler(ABC):
         return None
 
     def downsample(self, s: pd.Series, n_out: int) -> pd.Series:
+        """Downsample the given input series to the given n_out samples.
+
+        Parameters
+        ----------
+        s: pd.Series
+            The series that has to be downsampled.
+        n_out: int
+            The number of samples that the downsampled series should contain.
+
+        Returns
+        -------
+        pd.Series
+            The downsampled series.
+
+        """
         # base case: the passed series is empty
         if s.empty:
             return s
