@@ -264,7 +264,7 @@ class FigureResampler(go.Figure):
             The start time for the new resampled data view, by default None.
         stop : Union[float, str], optional
             The end time for the new resampled data view, by default None.
-        xaxis_filter: str, Optional
+        xaxis_filter: str, optional
             Additional trace-update subplot filter, by default None.
         updated_trace_indices: List[int], optional
             List of trace indices that already have been updated, by default None.
