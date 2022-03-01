@@ -26,18 +26,22 @@ def driver():
     from selenium.webdriver.chrome.options import Options
     from webdriver_manager.utils import ChromeType
 
+    options = Options()
     if not TESTING_LOCAL:
-        options = Options()
         if headless:
             options.add_argument("--headless")
         # options.add_argument("--no=sandbox")
-
         driver = webdriver.Chrome(
             ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
             options=options,
         )
     else:
-        driver = webdriver.Firefox()
+        options.add_argument("--remote-debugging-port=9222")
+        driver = webdriver.Chrome(
+            options=options,
+            # executable_path="/home/jonas/git/gIDLaB/plotly-dynamic-resampling/chromedriver",
+        )
+        # driver = webdriver.Firefox(executable_path='/home/jonas/git/gIDLaB/plotly-dynamic-resampling/geckodriver')
     return driver
 
 
@@ -158,33 +162,31 @@ def example_figure_fig() -> go.Figure:
 
     # construct a normal figure object instead of a figureResample object
     fig = make_subplots(
-            rows=2,
-            cols=2,
-            specs=[[{}, {}], [{"colspan": 2}, None]],
-            subplot_titles=("GUSB swimming pool", "Generated sine", "Power consumption"),
-            vertical_spacing=0.12,
-        )
-
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+        subplot_titles=("GUSB swimming pool", "Generated sine", "Power consumption"),
+        vertical_spacing=0.12,
+    )
 
     # ------------ swimming pool data -----------
-    df_gusb_pool = df_gusb['zwembad'].last("4D").dropna()
+    df_gusb_pool = df_gusb["zwembad"].last("4D").dropna()
     fig.add_trace(
         go.Scattergl(
             x=df_gusb_pool.index,
-            y=df_gusb_pool,#.astype("uint16"),
+            y=df_gusb_pool,  # .astype("uint16"),
             mode="markers",
             marker_size=5,
             name="occupancy",
             showlegend=True,
             hovertext="mean last hour: "
-        + df_gusb_pool.rolling("1h").mean().astype(int).astype(str),
+            + df_gusb_pool.rolling("1h").mean().astype(int).astype(str),
         ),
         # downsampler=EveryNthPoint(interleave_gaps=False),
         row=1,
         col=1,
     )
     fig.update_yaxes(title_text="Occupancy", row=1, col=1)
-
 
     # ----------------- generated sine -----------
     fig.add_trace(
@@ -378,6 +380,7 @@ def multiple_tz_figure() -> FigureResampler:
         )
     return fr_fig
 
+
 @pytest.fixture
 def cat_series_box_hist_figure() -> FigureResampler:
     # Create a categorical series, with mostly a's, but a few sparse b's and c's
@@ -428,15 +431,29 @@ def shared_hover_figure() -> FigureResampler:
     x = np.array(range(100_000))
     y = np.sin(x / 120) + np.random.random(len(x)) / 10
 
-    for i in range(1,4):
-        fig.add_trace(
-            go.Scatter(x=[], y=[]),
-            hf_x=x, hf_y=y, 
-            row=i, col=1
-        )
+    for i in range(1, 4):
+        fig.add_trace(go.Scatter(x=[], y=[]), hf_x=x, hf_y=y, row=i, col=1)
 
     fig.update_layout(template="plotly_white", height=900)
-    fig.update_traces(xaxis='x3')
-    fig.update_xaxes(spikemode='across', showspikes = True) 
+    fig.update_traces(xaxis="x3")
+    fig.update_xaxes(spikemode="across", showspikes=True)
 
+    return fig
+
+
+@pytest.fixture
+def multi_trace_go_figure() -> FigureResampler:
+    fig = FigureResampler(go.Figure())
+
+    n = 500_000  # nb points per sensor
+    x = np.arange(n)
+    y = np.sin(x / 20) + np.random.random(len(x)) / 10
+
+    for i in range(30):  # 30 sensors
+        fig.add_trace(
+            go.Scattergl(name=str(i)),
+            hf_x=x,
+            hf_y=y + i,
+        )
+    fig.update_layout(height=800)
     return fig
