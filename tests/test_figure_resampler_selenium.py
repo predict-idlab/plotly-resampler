@@ -522,3 +522,73 @@ def test_shared_hover_gui(driver, shared_hover_figure):
         raise e
     finally:
         proc.terminate()
+
+
+def test_multi_trace_go_figure(driver, multi_trace_go_figure):
+    from pytest_cov.embed import cleanup_on_sigterm
+
+    cleanup_on_sigterm()
+
+    port = 9038
+    proc = multiprocessing.Process(
+        target=multi_trace_go_figure.show_dash,
+        kwargs=dict(mode="external", port=port),
+    )
+    proc.start()
+    try:
+        time.sleep(1)
+        fr = FigureResamplerGUITests(driver, port=port)
+
+        # First, apply some horizontal based zooms
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+        fr.clear_requests(sleep_time_s=3)
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
+        time.sleep(3)
+        # As all axes are shared, we expect at least 3 updated
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=["xaxis.range[0]", "xaxis.range[1]"],
+            n_updated_traces=30,
+        )
+
+        # Note: as there is only 1 hf-scatter-trace, the reset axes command will only
+        # update a single trace
+        fr.clear_requests(sleep_time_s=1)
+        fr.reset_axes()
+        time.sleep(3)
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=[
+                "xaxis.autorange",
+                "xaxis.showspikes",
+                "yaxis.autorange",
+                "yaxis.showspikes",
+            ],
+            n_updated_traces=30,
+        )
+
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.3, y0=0.6, y1=0.9)
+        fr.clear_requests(sleep_time_s=3)
+
+       # First, apply some horizontal based zooms
+        fr.clear_requests(sleep_time_s=1)
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.2, y0=0.5, y1=0.5)
+        time.sleep(3)
+        # As all axes are shared, we expect at least 3 updated
+        RequestParser.browser_independent_single_callback_request_assert(
+            fr=fr,
+            relayout_keys=["xaxis.range[0]", "xaxis.range[1]"],
+            n_updated_traces=30,
+        )
+
+        fr.clear_requests(sleep_time_s=3)
+        fr.autoscale()
+        time.sleep(3)
+        autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
+        assert len(autoscale_requests) == 1
+        assert autoscale_requests[0].response.status_code == 204
+
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
