@@ -283,7 +283,7 @@ class FigureResampler(go.Figure):
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
-        updated_trace_indices: List[int] = None
+        updated_trace_indices: List[int] = None,
     ) -&gt; List[int]:
         &#34;&#34;&#34;Check and update the traces within the figure dict.
 
@@ -335,13 +335,19 @@ class FigureResampler(go.Figure):
                 else:
                     y_axis = &#34;yaxis&#34; + trace.get(&#34;yaxis&#34;)[1:]
 
-                # Next to the x-anchor, we also fetch the xaxis which matches the 
+                # Next to the x-anchor, we also fetch the xaxis which matches the
                 # current trace (i.e. if this value is not None, the axis shares the
                 # x-axis with one or more traces).
                 # This is relevant when e.g. fig.update_traces(xaxis=&#39;x...&#39;) was called.
                 x_anchor_trace = figure[&#34;layout&#34;].get(y_axis, {}).get(&#34;anchor&#34;)
-                xaxis_matches = figure[&#39;layout&#39;].get(
-                    &#39;xaxis&#39; + x_anchor_trace.lstrip(&#39;x&#39;), {}).get(&#34;matches&#34;)
+                if x_anchor_trace is not None:
+                    xaxis_matches = (
+                        figure[&#34;layout&#34;]
+                        .get(&#34;xaxis&#34; + x_anchor_trace.lstrip(&#34;x&#34;), {})
+                        .get(&#34;matches&#34;)
+                    )
+                else:
+                    xaxis_matches = figure[&#34;layout&#34;].get(&#34;xaxis&#34;, {}).get(&#34;matches&#34;)
 
                 # print(
                 #     f&#34;x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} &#34;,
@@ -354,17 +360,17 @@ class FigureResampler(go.Figure):
                 #   to the xaxis filter argument.
                 #   -&gt; why None: traces without row/col argument and stand on first row
                 #      and do not have the anchor property (hence the DICT.get() method)
-                # * x_axis_filter_short not in [x_anchor or xaxis matches] for 
+                # * x_axis_filter_short not in [x_anchor or xaxis matches] for
                 #   NON first rows
                 if (
-                    xaxis_filter_short == &#34;x&#34; and (
+                    xaxis_filter_short == &#34;x&#34;
+                    and (
                         x_anchor_trace not in [None, &#34;x&#34;]
                         and xaxis_matches != xaxis_filter_short
-                        )
-                ) or (
-                    xaxis_filter_short != &#34;x&#34; and (
-                         xaxis_filter_short not in [x_anchor_trace, xaxis_matches]
                     )
+                ) or (
+                    xaxis_filter_short != &#34;x&#34;
+                    and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
                 ):
                     continue
 
@@ -761,7 +767,7 @@ class FigureResampler(go.Figure):
                             start=changed_layout[t_start_key],
                             stop=changed_layout[t_stop_key],
                             xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices
+                            updated_trace_indices=updated_trace_indices,
                         )
 
                 # 2. The user clicked on either autorange | reset axes
@@ -773,8 +779,9 @@ class FigureResampler(go.Figure):
                         if changed_layout[autorange_key]:
                             xaxis = autorange_key.split(&#34;.&#34;)[0]
                             updated_trace_indices = self.check_update_figure_dict(
-                                current_graph, xaxis_filter=xaxis,
-                                updated_trace_indices=updated_trace_indices
+                                current_graph,
+                                xaxis_filter=xaxis,
+                                updated_trace_indices=updated_trace_indices,
                             )
                 # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
                 #      current front-end view
@@ -839,12 +846,12 @@ class FigureResampler(go.Figure):
                 extension.&lt;br&gt;
             By default None, which will result in the same behavior as ``&#34;external&#34;``.
         config: dict, optional
-            The configuration options for displaying this figure, by default None. 
-            This `config` parameter is the same as the dict that you would pass as 
+            The configuration options for displaying this figure, by default None.
+            This `config` parameter is the same as the dict that you would pass as
             `config` argument to the `.show()` method.
             See more https://plotly.com/python/configuration-options/
         graph_properties: dict, optional
-            Dictionary of (keyword, value) for the properties that should be passed to 
+            Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
             e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
             Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
@@ -1119,7 +1126,7 @@ class FigureResampler(go.Figure):
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
-        updated_trace_indices: List[int] = None
+        updated_trace_indices: List[int] = None,
     ) -&gt; List[int]:
         &#34;&#34;&#34;Check and update the traces within the figure dict.
 
@@ -1171,13 +1178,19 @@ class FigureResampler(go.Figure):
                 else:
                     y_axis = &#34;yaxis&#34; + trace.get(&#34;yaxis&#34;)[1:]
 
-                # Next to the x-anchor, we also fetch the xaxis which matches the 
+                # Next to the x-anchor, we also fetch the xaxis which matches the
                 # current trace (i.e. if this value is not None, the axis shares the
                 # x-axis with one or more traces).
                 # This is relevant when e.g. fig.update_traces(xaxis=&#39;x...&#39;) was called.
                 x_anchor_trace = figure[&#34;layout&#34;].get(y_axis, {}).get(&#34;anchor&#34;)
-                xaxis_matches = figure[&#39;layout&#39;].get(
-                    &#39;xaxis&#39; + x_anchor_trace.lstrip(&#39;x&#39;), {}).get(&#34;matches&#34;)
+                if x_anchor_trace is not None:
+                    xaxis_matches = (
+                        figure[&#34;layout&#34;]
+                        .get(&#34;xaxis&#34; + x_anchor_trace.lstrip(&#34;x&#34;), {})
+                        .get(&#34;matches&#34;)
+                    )
+                else:
+                    xaxis_matches = figure[&#34;layout&#34;].get(&#34;xaxis&#34;, {}).get(&#34;matches&#34;)
 
                 # print(
                 #     f&#34;x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} &#34;,
@@ -1190,17 +1203,17 @@ class FigureResampler(go.Figure):
                 #   to the xaxis filter argument.
                 #   -&gt; why None: traces without row/col argument and stand on first row
                 #      and do not have the anchor property (hence the DICT.get() method)
-                # * x_axis_filter_short not in [x_anchor or xaxis matches] for 
+                # * x_axis_filter_short not in [x_anchor or xaxis matches] for
                 #   NON first rows
                 if (
-                    xaxis_filter_short == &#34;x&#34; and (
+                    xaxis_filter_short == &#34;x&#34;
+                    and (
                         x_anchor_trace not in [None, &#34;x&#34;]
                         and xaxis_matches != xaxis_filter_short
-                        )
-                ) or (
-                    xaxis_filter_short != &#34;x&#34; and (
-                         xaxis_filter_short not in [x_anchor_trace, xaxis_matches]
                     )
+                ) or (
+                    xaxis_filter_short != &#34;x&#34;
+                    and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
                 ):
                     continue
 
@@ -1597,7 +1610,7 @@ class FigureResampler(go.Figure):
                             start=changed_layout[t_start_key],
                             stop=changed_layout[t_stop_key],
                             xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices
+                            updated_trace_indices=updated_trace_indices,
                         )
 
                 # 2. The user clicked on either autorange | reset axes
@@ -1609,8 +1622,9 @@ class FigureResampler(go.Figure):
                         if changed_layout[autorange_key]:
                             xaxis = autorange_key.split(&#34;.&#34;)[0]
                             updated_trace_indices = self.check_update_figure_dict(
-                                current_graph, xaxis_filter=xaxis,
-                                updated_trace_indices=updated_trace_indices
+                                current_graph,
+                                xaxis_filter=xaxis,
+                                updated_trace_indices=updated_trace_indices,
                             )
                 # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
                 #      current front-end view
@@ -1675,12 +1689,12 @@ class FigureResampler(go.Figure):
                 extension.&lt;br&gt;
             By default None, which will result in the same behavior as ``&#34;external&#34;``.
         config: dict, optional
-            The configuration options for displaying this figure, by default None. 
-            This `config` parameter is the same as the dict that you would pass as 
+            The configuration options for displaying this figure, by default None.
+            This `config` parameter is the same as the dict that you would pass as
             `config` argument to the `.show()` method.
             See more https://plotly.com/python/configuration-options/
         graph_properties: dict, optional
-            Dictionary of (keyword, value) for the properties that should be passed to 
+            Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
             e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
             Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
@@ -1938,7 +1952,7 @@ because their underlying axis is the same.</li>
     start: Optional[Union[float, str]] = None,
     stop: Optional[Union[float, str]] = None,
     xaxis_filter: str = None,
-    updated_trace_indices: List[int] = None
+    updated_trace_indices: List[int] = None,
 ) -&gt; List[int]:
     &#34;&#34;&#34;Check and update the traces within the figure dict.
 
@@ -1990,13 +2004,19 @@ because their underlying axis is the same.</li>
             else:
                 y_axis = &#34;yaxis&#34; + trace.get(&#34;yaxis&#34;)[1:]
 
-            # Next to the x-anchor, we also fetch the xaxis which matches the 
+            # Next to the x-anchor, we also fetch the xaxis which matches the
             # current trace (i.e. if this value is not None, the axis shares the
             # x-axis with one or more traces).
             # This is relevant when e.g. fig.update_traces(xaxis=&#39;x...&#39;) was called.
             x_anchor_trace = figure[&#34;layout&#34;].get(y_axis, {}).get(&#34;anchor&#34;)
-            xaxis_matches = figure[&#39;layout&#39;].get(
-                &#39;xaxis&#39; + x_anchor_trace.lstrip(&#39;x&#39;), {}).get(&#34;matches&#34;)
+            if x_anchor_trace is not None:
+                xaxis_matches = (
+                    figure[&#34;layout&#34;]
+                    .get(&#34;xaxis&#34; + x_anchor_trace.lstrip(&#34;x&#34;), {})
+                    .get(&#34;matches&#34;)
+                )
+            else:
+                xaxis_matches = figure[&#34;layout&#34;].get(&#34;xaxis&#34;, {}).get(&#34;matches&#34;)
 
             # print(
             #     f&#34;x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} &#34;,
@@ -2009,17 +2029,17 @@ because their underlying axis is the same.</li>
             #   to the xaxis filter argument.
             #   -&gt; why None: traces without row/col argument and stand on first row
             #      and do not have the anchor property (hence the DICT.get() method)
-            # * x_axis_filter_short not in [x_anchor or xaxis matches] for 
+            # * x_axis_filter_short not in [x_anchor or xaxis matches] for
             #   NON first rows
             if (
-                xaxis_filter_short == &#34;x&#34; and (
+                xaxis_filter_short == &#34;x&#34;
+                and (
                     x_anchor_trace not in [None, &#34;x&#34;]
                     and xaxis_matches != xaxis_filter_short
-                    )
-            ) or (
-                xaxis_filter_short != &#34;x&#34; and (
-                     xaxis_filter_short not in [x_anchor_trace, xaxis_matches]
                 )
+            ) or (
+                xaxis_filter_short != &#34;x&#34;
+                and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
             ):
                 continue
 
@@ -2507,7 +2527,7 @@ resampled, by default True.</dd>
                         start=changed_layout[t_start_key],
                         stop=changed_layout[t_stop_key],
                         xaxis_filter=xaxis,
-                        updated_trace_indices=updated_trace_indices
+                        updated_trace_indices=updated_trace_indices,
                     )
 
             # 2. The user clicked on either autorange | reset axes
@@ -2519,8 +2539,9 @@ resampled, by default True.</dd>
                     if changed_layout[autorange_key]:
                         xaxis = autorange_key.split(&#34;.&#34;)[0]
                         updated_trace_indices = self.check_update_figure_dict(
-                            current_graph, xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices
+                            current_graph,
+                            xaxis_filter=xaxis,
+                            updated_trace_indices=updated_trace_indices,
                         )
             # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
             #      current front-end view
@@ -2607,12 +2628,12 @@ front-end.</dd>
             extension.&lt;br&gt;
         By default None, which will result in the same behavior as ``&#34;external&#34;``.
     config: dict, optional
-        The configuration options for displaying this figure, by default None. 
-        This `config` parameter is the same as the dict that you would pass as 
+        The configuration options for displaying this figure, by default None.
+        This `config` parameter is the same as the dict that you would pass as
         `config` argument to the `.show()` method.
         See more https://plotly.com/python/configuration-options/
     graph_properties: dict, optional
-        Dictionary of (keyword, value) for the properties that should be passed to 
+        Dictionary of (keyword, value) for the properties that should be passed to
         the dcc.Graph, by default None.
         e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
         Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
