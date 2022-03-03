@@ -26,6 +26,7 @@ from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
 from .downsamplers import AbstractSeriesDownsampler, LTTB
+from .utils import round_td_str
 
 
 class FigureResampler(go.Figure):
@@ -41,6 +42,7 @@ class FigureResampler(go.Figure):
             '<b style="color:sandybrown">[R]</b> ',
             "",
         ),
+        show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
         """Instantiate a resampling data mirror.
@@ -68,6 +70,9 @@ class FigureResampler(go.Figure):
             will be added to the trace its name when a resampled version of the trace
             is shown, by default a bold, orange `[R]` is shown as prefix
             (no suffix is shown).
+        show_mean_aggregation_size: bool, optional
+            Whether the mean aggregation bin size will be added as a suffix to the trace
+            its name, by default True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
 
@@ -75,6 +80,7 @@ class FigureResampler(go.Figure):
         self._hf_data: Dict[str, dict] = {}
         self._global_n_shown_samples = default_n_shown_samples
         self._print_verbose = verbose
+        self._show_mean_aggregation_size = show_mean_aggregation_size
 
         assert len(resampled_trace_prefix_suffix) == 2
         self._prefix, self._suffix = resampled_trace_prefix_suffix
@@ -192,18 +198,6 @@ class FigureResampler(go.Figure):
                 start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
                 hf_series = hf_series.iloc[start_idx:end_idx]
 
-            # Add a prefix when the original data is downsampled
-            name: str = trace["name"]
-            if len(hf_series) > hf_trace_data["max_n_samples"]:
-                name = ("" if name.startswith(self._prefix) else self._prefix) + name
-                name += self._suffix if not name.endswith(self._suffix) else ""
-                trace["name"] = name
-            else:
-                if len(self._prefix) and name.startswith(self._prefix):
-                    trace["name"] = trace["name"][len(self._prefix) :]
-                if len(self._suffix) and name.endswith(self._suffix):
-                    trace["name"] = trace["name"][: -len(self._suffix)]
-
             # Return an invisible, single-point, trace when the sliced hf_series doesn't
             # contain any data in the current view
             if len(hf_series) == 0:
@@ -220,6 +214,27 @@ class FigureResampler(go.Figure):
             trace["x"] = s_res.index
             trace["y"] = s_res.values
             # todo -> first draft & not MP safe
+
+            agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
+            name: str = trace["name"].split(agg_prefix)[0]
+
+            if len(hf_series) > hf_trace_data["max_n_samples"]:
+                name = ("" if name.startswith(self._prefix) else self._prefix) + name
+                name += self._suffix if not name.endswith(self._suffix) else ""
+                # Add the mean aggregation bin size to the trace name
+                if self._show_mean_aggregation_size:
+                    agg_mean = s_res.index.to_series().diff().mean()
+                    if isinstance(agg_mean, pd.Timedelta):
+                        agg_mean = round_td_str(agg_mean)
+                    else:
+                        agg_mean = round(agg_mean)
+                    name += f"{agg_prefix}{agg_mean}{agg_suffix}"
+            else:
+                if len(self._prefix) and name.startswith(self._prefix):
+                    name = name[len(self._prefix) :]
+                if len(self._suffix) and trace["name"].endswith(self._suffix):
+                    name = name[: -len(self._suffix)]
+            trace["name"] = name
 
             # Check if hovertext also needs to be resampled
             hovertext = hf_trace_data.get("hovertext")

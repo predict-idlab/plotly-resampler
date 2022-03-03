@@ -182,7 +182,7 @@ def test_basic_example_gui_existing(driver, example_figure_fig):
     fig = FigureResampler(
         resampled_trace_prefix_suffix=(
             '<b style="color:sandybrown">[R]</b>',
-            '<b style="color:sandybrown">[R]</b>',
+            '<b style="color:darkcyan">[R]</b>',
         )
     )
     fig.replace(example_figure_fig)
