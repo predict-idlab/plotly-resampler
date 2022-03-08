@@ -528,7 +528,7 @@ class FigureResampler(go.Figure):
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN data points & might distort
             # the resampling algorithms
-            if pd.isna(hf_y).any():
+            if pd.isna(hf_y).any() and hf_y.ndim == 1:
                 not_nan_mask = ~pd.isna(hf_y)
                 hf_x = hf_x[not_nan_mask]
                 hf_y = hf_y[not_nan_mask]
@@ -546,8 +546,8 @@ class FigureResampler(go.Figure):
             if str(hf_y.dtype) in ["uint8", "uint16"]:
                 hf_y = hf_y.astype("uint32")
 
-            assert len(hf_x) > 0
-            assert len(hf_x) == len(hf_y)
+            assert len(hf_x) > 0, "No data to plot!"
+            assert len(hf_x) == len(hf_y), "x and y have different length!"
 
             # Convert the hovertext to a pd.Series if it's now a np.ndarray
             # Note: The size of hovertext must be the same size as hf_x otherwise a
