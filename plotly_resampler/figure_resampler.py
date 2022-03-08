@@ -501,7 +501,7 @@ class FigureResampler(go.Figure):
             if isinstance(hf_y, pd.Series)
             else hf_y
         )
-        hf_y = np.asarray(hf_y)
+        hf_y = np.asarray(hf_y).squeeze()
 
         # Note: "hovertext" takes precedence over "text"
         hf_hovertext = (
@@ -546,8 +546,8 @@ class FigureResampler(go.Figure):
             if str(hf_y.dtype) in ["uint8", "uint16"]:
                 hf_y = hf_y.astype("uint32")
 
-            assert len(hf_x) > 0
-            assert len(hf_x) == len(hf_y)
+            assert len(hf_x) > 0, "No data to plot!"
+            assert len(hf_x) == len(hf_y), "x and y have different length!"
 
             # Convert the hovertext to a pd.Series if it's now a np.ndarray
             # Note: The size of hovertext must be the same size as hf_x otherwise a
