@@ -3,6 +3,7 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
+import pytest
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -297,3 +298,50 @@ def test_multiple_timezones():
             row=i,
             col=1,
         )
+
+
+def test_proper_copy_of_wrapped_fig(float_series):
+    plotly_fig = go.Figure()
+    plotly_fig.add_trace(
+        go.Scatter(
+            x=float_series.index,
+            y=float_series,
+        )
+    )
+
+    plotly_resampler_fig = FigureResampler(plotly_fig, default_n_shown_samples=500)
+
+    assert len(plotly_fig.data) == 1
+    assert all(plotly_fig.data[0].x == float_series.index)
+    assert all(plotly_fig.data[0].y == float_series.values)
+    assert (len(plotly_fig.data[0].x) > 500) & (len(plotly_fig.data[0].y) > 500)
+
+    assert len(plotly_resampler_fig.data) == 1
+    assert len(plotly_resampler_fig.data[0].x) == 500
+    assert len(plotly_resampler_fig.data[0].y) == 500
+
+
+def test_2d_input_y():
+    # Create some dummy dataframe with a nan
+    df = pd.DataFrame(
+        index=np.arange(5_000), 
+        data={"a": np.arange(5_000), "b": np.arange(5_000)}
+    )
+    df.iloc[42] = np.nan
+
+
+    plotly_fig = go.Figure()
+    plotly_fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df[["a"]],  # (100, 1) shape
+        )
+    )
+
+    with pytest.raises(AssertionError) as e_info:
+        _ = FigureResampler(  # does not alter plotly_fig
+            plotly_fig, 
+            default_n_shown_samples=500,
+        )
+        assert "1 dimensional" in e
+ 

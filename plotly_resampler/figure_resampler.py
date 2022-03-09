@@ -516,6 +516,13 @@ class FigureResampler(go.Figure):
 
         high_frequency_traces = ["scatter", "scattergl"]
         if trace["type"].lower() in high_frequency_traces:
+            # When the x or y of a trace has more than 1 dimension, it is not at all
+            # straightforward how it should be resampled.
+            assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
+                "plotly-resampler requires scatter data "
+                "(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!"
+            )
+
             # Make sure to set the text-attribute to None as the default plotly behavior
             # for these high-dimensional traces (scatters) is that text will be shown in
             # hovertext and not in on-graph texts (as is the case with bar-charts)
@@ -528,7 +535,7 @@ class FigureResampler(go.Figure):
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN data points & might distort
             # the resampling algorithms
-            if pd.isna(hf_y).any() and hf_y.ndim == 1:
+            if pd.isna(hf_y).any():
                 not_nan_mask = ~pd.isna(hf_y)
                 hf_x = hf_x[not_nan_mask]
                 hf_y = hf_y[not_nan_mask]
