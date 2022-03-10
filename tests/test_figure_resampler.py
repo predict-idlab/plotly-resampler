@@ -3,6 +3,7 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
+import pytest
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -297,3 +298,170 @@ def test_multiple_timezones():
             row=i,
             col=1,
         )
+
+
+def test_proper_copy_of_wrapped_fig(float_series):
+    plotly_fig = go.Figure()
+    plotly_fig.add_trace(
+        go.Scatter(
+            x=float_series.index,
+            y=float_series,
+        )
+    )
+
+    plotly_resampler_fig = FigureResampler(plotly_fig, default_n_shown_samples=500)
+
+    assert len(plotly_fig.data) == 1
+    assert all(plotly_fig.data[0].x == float_series.index)
+    assert all(plotly_fig.data[0].y == float_series.values)
+    assert (len(plotly_fig.data[0].x) > 500) & (len(plotly_fig.data[0].y) > 500)
+
+    assert len(plotly_resampler_fig.data) == 1
+    assert len(plotly_resampler_fig.data[0].x) == 500
+    assert len(plotly_resampler_fig.data[0].y) == 500
+
+
+def test_2d_input_y():
+    # Create some dummy dataframe with a nan
+    df = pd.DataFrame(
+        index=np.arange(5_000), data={"a": np.arange(5_000), "b": np.arange(5_000)}
+    )
+    df.iloc[42] = np.nan
+
+    plotly_fig = go.Figure()
+    plotly_fig.add_trace(
+        go.Scatter(
+            x=df.index,
+            y=df[["a"]],  # (100, 1) shape
+        )
+    )
+
+    with pytest.raises(AssertionError) as e_info:
+        _ = FigureResampler(  # does not alter plotly_fig
+            plotly_fig,
+            default_n_shown_samples=500,
+        )
+        assert "1 dimensional" in e_info
+
+
+def test_time_tz_slicing():
+    n = 5050
+    dr = pd.Series(
+        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
+        data=np.random.randn(n),
+    )
+
+    cs = [
+        dr,
+        dr.tz_localize(None),
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fig = FigureResampler(go.Figure())
+
+    for s in cs:
+        t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
+        out = fig._slice_time(s, t_start, t_stop)
+        assert (out.index[0] - t_start) <= pd.Timedelta(seconds=1)
+        assert (out.index[-1] - t_stop) <= pd.Timedelta(seconds=1)
+
+
+def test_time_tz_slicing_different_timestamp():
+    # construct a time indexed series with UTC timezone
+    n = 60 * 60 * 24 * 3
+    dr = pd.Series(
+        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
+        data=np.random.randn(n),
+    )
+
+    # create multiple other time zones
+    cs = [
+        dr,
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fig = FigureResampler(go.Figure())
+    for i, s in enumerate(cs):
+        t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
+        t_start = t_start.tz_convert(cs[(i + 1) % len(cs)].index.tz)
+        t_stop = t_stop.tz_convert(cs[(i + 1) % len(cs)].index.tz)
+
+        # As each timezone in CS tz aware, using other timezones in `t_start` & `t_stop`
+        # will raise an AssertionError
+        with pytest.raises(AssertionError):
+            fig._slice_time(s, t_start, t_stop)
+
+
+def test_different_tz_no_tz_series_slicing():
+    n = 60 * 60 * 24 * 3
+    dr = pd.Series(
+        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
+        data=np.random.randn(n),
+    )
+
+    cs = [
+        dr,
+        dr.tz_localize(None),
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fig = FigureResampler(go.Figure())
+
+    for i, s in enumerate(cs):
+        t_start, t_stop = sorted(
+            s.tz_localize(None).iloc[np.random.randint(n/2, n, 2)].index
+        )
+        # both timestamps now have the same tz
+        t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
+        t_stop = t_stop.tz_localize(cs[(i + 1) % len(cs)].index.tz)
+
+        # the s has no time-info -> assumption is made that s has the same time-zone
+        # the timestamps
+        out = fig._slice_time(s.tz_localize(None), t_start, t_stop)
+        assert (out.index[0].tz_localize(t_start.tz) - t_start) <= pd.Timedelta(
+            seconds=1
+        )
+        assert (out.index[-1].tz_localize(t_stop.tz) - t_stop) <= pd.Timedelta(
+            seconds=1
+        )
+
+
+def test_multiple_tz_no_tz_series_slicing():
+    n = 60 * 60 * 24 * 3
+    dr = pd.Series(
+        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
+        data=np.random.randn(n),
+    )
+
+    cs = [
+        dr,
+        dr.tz_localize(None),
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Australia/Perth"),
+        dr.tz_convert("Australia/Canberra"),
+    ]
+
+    fig = FigureResampler(go.Figure())
+
+    for i, s in enumerate(cs):
+        t_start, t_stop = sorted(
+            s.tz_localize(None).iloc[np.random.randint(n/2, n, 2)].index
+        )
+        # both timestamps now have the a different tz
+        t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
+        t_stop = t_stop.tz_localize(cs[(i + 2) % len(cs)].index.tz)
+
+        # Now the assumpton cannot be made that s ahd the same time-zone as the 
+        # timestamps -> Assertionerror will be raised.
+        with pytest.raises(AssertionError):
+            fig._slice_time(s.tz_localize(None), t_start, t_stop)

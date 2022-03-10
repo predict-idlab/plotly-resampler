@@ -388,6 +388,9 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
+        if t_start is not None and t_stop is not None:
+            assert t_start.tz == t_stop.tz
+
         return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
@@ -516,6 +519,13 @@ class FigureResampler(go.Figure):
 
         high_frequency_traces = ["scatter", "scattergl"]
         if trace["type"].lower() in high_frequency_traces:
+            # When the x or y of a trace has more than 1 dimension, it is not at all
+            # straightforward how it should be resampled.
+            assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
+                "plotly-resampler requires scatter data "
+                "(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!"
+            )
+
             # Make sure to set the text-attribute to None as the default plotly behavior
             # for these high-dimensional traces (scatters) is that text will be shown in
             # hovertext and not in on-graph texts (as is the case with bar-charts)
@@ -546,8 +556,8 @@ class FigureResampler(go.Figure):
             if str(hf_y.dtype) in ["uint8", "uint16"]:
                 hf_y = hf_y.astype("uint32")
 
-            assert len(hf_x) > 0
-            assert len(hf_x) == len(hf_y)
+            assert len(hf_x) > 0, "No data to plot!"
+            assert len(hf_x) == len(hf_y), "x and y have different length!"
 
             # Convert the hovertext to a pd.Series if it's now a np.ndarray
             # Note: The size of hovertext must be the same size as hf_x otherwise a
