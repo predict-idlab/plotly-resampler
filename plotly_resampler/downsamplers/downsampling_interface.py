@@ -4,7 +4,7 @@ __author__ = "Jonas Van Der Donckt"
 
 import re
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 import pandas as pd
 
@@ -20,12 +20,12 @@ class AbstractSeriesDownsampler(ABC):
         Parameters
         ----------
         interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly 
-            sampled data. A quantile based approach is used to determine the gaps /
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.
-        
+
         """
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
@@ -49,30 +49,24 @@ class AbstractSeriesDownsampler(ABC):
             f"{s.dtype} doesn't match with any regex in {self.dtype_regex_list}"
         )
 
-    def _interleave_gaps_none(self, s: pd.Series):
+    def _get_gap_df(self, s: pd.Series) -> Optional[pd.Series]:
         # ------- add None where there are gaps / irregularly sampled data
         if isinstance(s.index, pd.DatetimeIndex):
             series_index_diff = s.index.to_series().diff().dt.total_seconds()
         else:
             series_index_diff = s.index.to_series().diff()
 
-        # use a quantile based approach
-        med_gap_s, max_q_gap_s = series_index_diff.quantile(q=[0.55, self.max_gap_q])
+        # use a quantile-based approach
+        med_gap_s, max_q_gap_s = series_index_diff.quantile(q=[0.5, self.max_gap_q])
 
         # add None data-points in between the gaps
         if med_gap_s is not None and max_q_gap_s is not None:
-            max_q_gap_s = max(4 * med_gap_s, max_q_gap_s)
+            max_q_gap_s = max(2 * med_gap_s, max_q_gap_s)
             df_res_gap = s.loc[series_index_diff > max_q_gap_s ].copy()
             if len(df_res_gap):
                 df_res_gap.loc[:] = None
-                # Note:
-                #  * the order of pd.concat is important for correct visualization
-                #  * we also need a stable algorithm for sorting, i.e., the equal-index
-                #    data-entries their order will be maintained.
-                return pd.concat([df_res_gap, s], ignore_index=False).sort_index(
-                    kind="mergesort"
-                )
-        return s
+                return df_res_gap
+        return None
 
     def downsample(self, s: pd.Series, n_out: int) -> pd.Series:
         # base case: the passed series is empty
@@ -85,10 +79,21 @@ class AbstractSeriesDownsampler(ABC):
         if str(s.dtype) == "bool":
             s = s.astype("uint8")
 
+        # TODO -> add the interleave gap functionality here
+        gaps = None
+        if self.interleave_gaps:
+            gaps = self._get_gap_df(s)
+
         if len(s) > n_out:
             s = self._downsample(s, n_out=n_out)
 
-        if self.interleave_gaps:
-            s = self._interleave_gaps_none(s)
+        if gaps is not None:
+            # Note:
+            #  * the order of pd.concat is important for correct visualization
+            #  * we also need a stable algorithm for sorting, i.e., the equal-index
+            #    data-entries their order will be maintained.
+            return pd.concat([gaps, s], ignore_index=False).sort_index(
+                kind="mergesort"
+            )
 
         return s
