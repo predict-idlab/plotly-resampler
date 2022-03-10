@@ -388,6 +388,9 @@ class FigureResampler(go.Figure):
                 return ts.tz_localize(None)
             return ts
 
+        if t_start is not None and t_stop is not None:
+            assert t_start.tz == t_stop.tz
+
         return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     def add_trace(
