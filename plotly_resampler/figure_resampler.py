@@ -697,8 +697,113 @@ class FigureResampler(go.Figure):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
+    def _update_graph(self, changed_layout: dict) -> List[dict]:
+        """Construct the to-be-updated front-end data, based on the layout change.
+
+        .. note::
+            This method is tightly coupled with Dash app callbacks.
+            It takes the front-end figure its ``relayoutData`` as input and
+            returns the data which needs to be sent tot the ``TraceUpdater`` its
+            ``updateData`` property for that corresponding graph.
+
+        Parameters
+        ----------
+        changed_layout: dict
+            A dict containing the changed layout of the corresponding front-end graph
+
+        Returns
+        -------
+        List[dict]:
+            A list of dicts, where each dict-item is a representation of a trace its
+            _data_ properties which are affected by the front-end layout change.
+            In other words, only traces which need to be updated will be sent to the
+            front-end. Additionally, each trace-dict withholds the _index_ of its
+            corresponding position in the `figure[data]` array with the ``index``-key
+            in each dict.
+
+        """
+        current_graph = self.to_dict()
+        updated_trace_indices, cl_k = [], []
+        if changed_layout:
+            self._print("-" * 100 + "\n", "changed layout", changed_layout)
+
+            cl_k = changed_layout.keys()
+
+            # ------------------ HF DATA aggregation ---------------------
+            # 1. Base case - there is a x-range specified in the front-end
+            start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
+            stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
+            if len(start_matches) and len(stop_matches):
+                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
+                    # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
+                    xaxis = t_start_key.split(".")[0]
+                    assert xaxis == t_stop_key.split(".")[0]
+                    # -> we want to copy the layout on the back-end
+                    updated_trace_indices = self.check_update_figure_dict(
+                        current_graph,
+                        start=changed_layout[t_start_key],
+                        stop=changed_layout[t_stop_key],
+                        xaxis_filter=xaxis,
+                        updated_trace_indices=updated_trace_indices,
+                    )
+
+            # 2. The user clicked on either autorange | reset axes
+            autorange_matches = self._re_matches(
+                re.compile(r"xaxis\d*.autorange"), cl_k
+            )
+            spike_matches = self._re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
+            # 2.1 Reset-axes -> autorange & reset to the global data view
+            if len(autorange_matches) and len(spike_matches):
+                for autorange_key in autorange_matches:
+                    if changed_layout[autorange_key]:
+                        xaxis = autorange_key.split(".")[0]
+                        updated_trace_indices = self.check_update_figure_dict(
+                            current_graph,
+                            xaxis_filter=xaxis,
+                            updated_trace_indices=updated_trace_indices,
+                        )
+            # 2.1. Autorange -> do nothing, the autorange will be applied on the
+            #      current front-end view
+            elif len(autorange_matches) and not len(spike_matches):
+                # PreventUpdate returns a 204 status code response on the
+                # relayout post request
+                raise dash.exceptions.PreventUpdate()
+
+        # If we do not have any traces to be updated, we will return an empty
+        # request response
+        if len(updated_trace_indices) == 0:
+            # PreventUpdate returns a 204 status-code response on the relayout post
+            # request
+            raise dash.exceptions.PreventUpdate()
+
+        # -------------------- construct callback data --------------------------
+        layout_traces_list: List[dict] = []  # the data
+
+        # 1. Create a new dict with additional layout updates for the front-end
+        extra_layout_updates = {}
+
+        # 1.1. Set autorange to False for each layout item with a specified x-range
+        xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
+        for range_change_axis in xy_matches:
+            axis = range_change_axis.split(".")[0]
+            extra_layout_updates[f"{axis}.autorange"] = False
+        layout_traces_list.append(extra_layout_updates)
+
+        # 2. Create the additional trace data for the frond-end
+        relevant_keys = ["x", "y", "text", "hovertext", "name"]
+        # Note that only updated trace-data will be sent to the client
+        for idx in updated_trace_indices:
+            trace = current_graph["data"][idx]
+            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
+
+            # store the index into the corresponding to-be-sent trace-data so
+            # the client front-end can know which trace needs to be updated
+            trace_reduced.update({"index": idx})
+            layout_traces_list.append(trace_reduced)
+        return layout_traces_list
+
     def register_update_graph_callback(
-        self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
+        self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
     ):
         """Register the `update_graph` callback to the passed dash-app.
 
@@ -715,99 +820,21 @@ class FigureResampler(go.Figure):
             front-end.
 
         """
-
-        def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
-            """Returns all the items in `strings` which regex.match `regex`."""
-            matches = []
-            for item in strings:
-                m = regex.match(item)
-                if m is not None:
-                    matches.append(m.string)
-            return sorted(matches)
-
-        @app.callback(
+        app.callback(
             dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
-        )
-        def _update_graph(changed_layout: dict) -> List[dict]:
-            current_graph = self.to_dict()
-            updated_trace_indices, cl_k = [], []
-            if changed_layout:
-                self._print("-" * 100 + "\n", "changed layout", changed_layout)
+        )(self._update_graph)
 
-                cl_k = changed_layout.keys()
-
-                # ------------------ HF DATA aggregation ---------------------
-                # 1. Base case - there is a x-range specified in the front-end
-                start_matches = _re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
-                stop_matches = _re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
-                if len(start_matches) and len(stop_matches):
-                    for t_start_key, t_stop_key in zip(start_matches, stop_matches):
-                        # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
-                        xaxis = t_start_key.split(".")[0]
-                        assert xaxis == t_stop_key.split(".")[0]
-                        # -> we want to copy the layout on the back-end
-                        updated_trace_indices = self.check_update_figure_dict(
-                            current_graph,
-                            start=changed_layout[t_start_key],
-                            stop=changed_layout[t_stop_key],
-                            xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices,
-                        )
-
-                # 2. The user clicked on either autorange | reset axes
-                autorange_matches = _re_matches(re.compile(r"xaxis\d*.autorange"), cl_k)
-                spike_matches = _re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
-                # 2.1 Reset-axes -> autorange & reset to the global data view
-                if len(autorange_matches) and len(spike_matches):
-                    for autorange_key in autorange_matches:
-                        if changed_layout[autorange_key]:
-                            xaxis = autorange_key.split(".")[0]
-                            updated_trace_indices = self.check_update_figure_dict(
-                                current_graph,
-                                xaxis_filter=xaxis,
-                                updated_trace_indices=updated_trace_indices,
-                            )
-                # 2.1. Autorange -> do nothing, the autorange will be applied on the
-                #      current front-end view
-                elif len(autorange_matches) and not len(spike_matches):
-                    # PreventUpdate returns a 204 status code response on the
-                    # relayout post request
-                    raise dash.exceptions.PreventUpdate()
-
-            # If we do not have any traces to be updated, we will return an empty
-            # request response
-            if len(updated_trace_indices) == 0:
-                # PreventUpdate returns a 204 status-code response on the relayout post
-                # request
-                raise dash.exceptions.PreventUpdate()
-
-            # -------------------- construct callback data --------------------------
-            layout_traces_list: List[dict] = []  # the data
-
-            # 1. Create a new dict with additional layout updates for the front-end
-            extra_layout_updates = {}
-
-            # 1.1. Set autorange to False for each layout item with a specified x-range
-            xy_matches = _re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
-            for range_change_axis in xy_matches:
-                axis = range_change_axis.split(".")[0]
-                extra_layout_updates[f"{axis}.autorange"] = False
-            layout_traces_list.append(extra_layout_updates)
-
-            # 2. Create the additional trace data for the frond-end
-            relevant_keys = ["x", "y", "text", "hovertext", "name"]
-            # Note that only updated trace-data will be sent to the client
-            for idx in updated_trace_indices:
-                trace = current_graph["data"][idx]
-                trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
-
-                # store the index into the corresponding to-be-sent trace-data so
-                # the client front-end can know which trace needs to be updated
-                trace_reduced.update({"index": idx})
-                layout_traces_list.append(trace_reduced)
-            return layout_traces_list
+    @staticmethod
+    def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
+        """Returns all the items in `strings` which regex.match(es) `regex`."""
+        matches = []
+        for item in strings:
+            m = regex.match(item)
+            if m is not None:
+                matches.append(m.string)
+        return sorted(matches)
 
     def show_dash(
         self,
