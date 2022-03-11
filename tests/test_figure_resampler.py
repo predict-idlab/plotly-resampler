@@ -465,3 +465,14 @@ def test_multiple_tz_no_tz_series_slicing():
         # timestamps -> Assertionerror will be raised.
         with pytest.raises(AssertionError):
             fig._slice_time(s.tz_localize(None), t_start, t_stop)
+
+
+def test_check_update_figure_dict():
+    # mostly written to test the check_update_figure_dict with 
+    # "updated_trace_indices" = None
+    fr = FigureResampler(go.Figure())
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+    fr.add_trace(go.Scattergl(name='test'), hf_x=x, hf_y=y)
+    fr.check_update_figure_dict(fr.to_dict())
