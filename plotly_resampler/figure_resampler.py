@@ -118,11 +118,7 @@ class FigureResampler(go.Figure):
             The `hf_data`-trace dict if a match is found, else `None`.
 
         """
-        if isinstance(trace, dict):
-            uid = trace.get("uid")
-        else:
-            uid = trace["uid"]
-
+        uid = trace["uid"]
         hf_trace_data = self._hf_data.get(uid)
         if hf_trace_data is None:
             trace_props = {
@@ -260,7 +256,7 @@ class FigureResampler(go.Figure):
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
-        updated_trace_indices: List[int] = None,
+        updated_trace_indices: Optional[List[int]] = None,
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -297,7 +293,7 @@ class FigureResampler(go.Figure):
             xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
 
         if updated_trace_indices is None:
-            updated_trace_indices = []
+            updated_trace_indices = [] 
 
         for idx, trace in enumerate(figure["data"]):
             # We skip when the trace-idx already has been updated.
