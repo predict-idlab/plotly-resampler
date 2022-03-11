@@ -80,6 +80,12 @@ def test_every_nth_point_bool_sequence_data(bool_series):
         assert sum(out.notna()) <= n
 
 
+def test_every_nth_point_empty_series():
+    empty_series = pd.Series(name='empty')
+    out = EveryNthPoint(interleave_gaps=True).downsample(empty_series, n_out=1_000)
+    assert out.equals(empty_series)
+
+
 # -------------------------------------- LTTB --------------------------------------
 def test_lttb_float_time_data(float_series):
     float_series.index = pd.date_range(
