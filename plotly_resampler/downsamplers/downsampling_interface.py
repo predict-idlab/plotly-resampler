@@ -13,7 +13,10 @@ class AbstractSeriesDownsampler(ABC):
     """"""
 
     def __init__(
-        self, interleave_gaps: bool = True, dtype_regex_list: List[str] = None
+        self,
+        interleave_gaps: bool = True,
+        dtype_regex_list: List[str] = None,
+        max_gap_detection_data_size: int = 25_000,
     ):
         """Constructor of AbstractSeriesDownsampler.
 
@@ -25,11 +28,19 @@ class AbstractSeriesDownsampler(ABC):
             irregularly sampled data. By default, True.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.
+        max_gap_detection_data_size: int, optional
+            The maximum raw-data size on which gap detection is performed. If the
+            raw data size exceeds this value, gap detection will be performed on
+            the aggregated (a.k.a. downsampled) series.
+
+            .. note::
+                This parameter only has an effect if ``interleave_gaps`` is set to True.
 
         """
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
-        self.max_gap_q = 0.95
+        self.max_gap_q = 0.975
+        self.max_gap_data_size = max_gap_detection_data_size
         super().__init__()
 
     @abstractmethod
@@ -62,7 +73,7 @@ class AbstractSeriesDownsampler(ABC):
         # add None data-points in between the gaps
         if med_gap_s is not None and max_q_gap_s is not None:
             max_q_gap_s = max(2 * med_gap_s, max_q_gap_s)
-            df_res_gap = s.loc[series_index_diff > max_q_gap_s ].copy()
+            df_res_gap = s.loc[series_index_diff > max_q_gap_s].copy()
             if len(df_res_gap):
                 df_res_gap.loc[:] = None
                 return df_res_gap
@@ -79,21 +90,24 @@ class AbstractSeriesDownsampler(ABC):
         if str(s.dtype) == "bool":
             s = s.astype("uint8")
 
-        # TODO -> add the interleave gap functionality here
         gaps = None
-        if self.interleave_gaps:
+        raw_slice_size = s.shape[0]
+        if self.interleave_gaps and raw_slice_size < self.max_gap_data_size:
+            # if the raw-data slice is not too large, we detect the gaps on the raw data
             gaps = self._get_gap_df(s)
 
         if len(s) > n_out:
             s = self._downsample(s, n_out=n_out)
+
+        if self.interleave_gaps and raw_slice_size >= self.max_gap_data_size:
+            # The original data slice is too large -> gaps are detected on the
+            # downsampled representation
+            gaps = self._get_gap_df(s)
 
         if gaps is not None:
             # Note:
             #  * the order of pd.concat is important for correct visualization
             #  * we also need a stable algorithm for sorting, i.e., the equal-index
             #    data-entries their order will be maintained.
-            return pd.concat([gaps, s], ignore_index=False).sort_index(
-                kind="mergesort"
-            )
-
+            return pd.concat([gaps, s], ignore_index=False).sort_index(kind="mergesort")
         return s
