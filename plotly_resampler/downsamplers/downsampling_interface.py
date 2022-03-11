@@ -93,15 +93,16 @@ class AbstractSeriesDownsampler(ABC):
         gaps = None
         raw_slice_size = s.shape[0]
         if self.interleave_gaps and raw_slice_size < self.max_gap_data_size:
-            # if the raw-data slice is not too large, we detect the gaps on the raw data
+            # if the raw-data slice is not too large -> gaps are detected on the raw
+            # data
             gaps = self._get_gap_df(s)
 
         if len(s) > n_out:
             s = self._downsample(s, n_out=n_out)
 
         if self.interleave_gaps and raw_slice_size >= self.max_gap_data_size:
-            # The original data slice is too large -> gaps are detected on the
-            # downsampled representation
+            # if the raw-data slice is too large -> gaps are detected on the
+            # downsampled data
             gaps = self._get_gap_df(s)
 
         if gaps is not None:

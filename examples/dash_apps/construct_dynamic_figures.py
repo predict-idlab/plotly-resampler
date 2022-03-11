@@ -98,7 +98,7 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc):
         raise PreventUpdate()
 
     # Transform the graph data to a figure
-    gc = [] if gc is None else gc
+    gc = [] if gc is None else gc  # list of existing Graphs and their TraceUpdaters
     if len(gc):
         _gc = []
         for i in range(len(gc) // 2):
@@ -137,9 +137,9 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc):
     uid = str(uuid4())
     graph_dict[uid] = fr
 
-    # add the graph to the existing output
+    # Add the graph to the existing output
     return [
-        *gc,
+        *gc,  # the existing Graphs and their TraceUpdaters
         dcc.Graph(figure=fr, id={"type": "dynamic-graph", "index": uid}),
         TraceUpdater(id={"type": "dynamic-updater", "index": uid}, gdID=uid),
     ]

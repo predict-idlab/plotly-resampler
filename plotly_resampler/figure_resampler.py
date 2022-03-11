@@ -230,6 +230,7 @@ class FigureResampler(go.Figure):
                         agg_mean = round_number_str(agg_mean)
                     name += f"{agg_prefix}{agg_mean}{agg_suffix}"
             else:
+                # When not resampled: trim prefix and/or suffix if necessary
                 if len(self._prefix) and name.startswith(self._prefix):
                     name = name[len(self._prefix) :]
                 if len(self._suffix) and trace["name"].endswith(self._suffix):
@@ -796,7 +797,7 @@ class FigureResampler(go.Figure):
             trace = current_graph["data"][idx]
             trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
 
-            # store the index into the corresponding to-be-sent trace-data so
+            # Store the index into the corresponding to-be-sent trace-data so
             # the client front-end can know which trace needs to be updated
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
