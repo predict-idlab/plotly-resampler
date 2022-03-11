@@ -252,10 +252,20 @@ s_cat = s.astype(cat_type)</p>
 <dl>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile based approach is used to determine the gaps /
+sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
+<dt><strong><code>max_gap_detection_data_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>
+<p>The maximum raw-data size on which gap detection is performed. If the
+raw data size exceeds this value, gap detection will be performed on
+the aggregated (a.k.a. downsampled) series.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect if <code>interleave_gaps</code> is set to True.</p>
+</div>
+</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -288,10 +298,20 @@ irregularly sampled data. By default, True.</dd>
 <dl>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile based approach is used to determine the gaps /
+sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
+<dt><strong><code>max_gap_detection_data_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>
+<p>The maximum raw-data size on which gap detection is performed. If the
+raw data size exceeds this value, gap detection will be performed on
+the aggregated (a.k.a. downsampled) series.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect if <code>interleave_gaps</code> is set to True.</p>
+</div>
+</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -367,10 +387,20 @@ datatypes.</li>
 <dl>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile based approach is used to determine the gaps /
+sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
+<dt><strong><code>max_gap_detection_data_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>
+<p>The maximum raw-data size on which gap detection is performed. If the
+raw data size exceeds this value, gap detection will be performed on
+the aggregated (a.k.a. downsampled) series.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect if <code>interleave_gaps</code> is set to True.</p>
+</div>
+</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">

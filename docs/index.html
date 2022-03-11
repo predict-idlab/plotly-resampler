@@ -130,6 +130,10 @@ __all__ = [
 <div class="desc"><p>Wrapper around the plotly go.Figure class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data …</p></div>
 </dd>
+<dt><code class="name"><a title="plotly_resampler.utils" href="utils.html">.utils</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 </dl>
 </section>
 <section>
@@ -143,7 +147,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
 <span>class <span class="ident">FigureResampler</span></span>
 <span>(</span><span>figure=Figure({
 'data': [], 'layout': {'template': '...'}
-}), convert_existing_traces=True, default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.LTTB object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), verbose=False)</span>
+}), convert_existing_traces=True, default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.LTTB object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), show_mean_aggregation_size=True, verbose=False)</span>
 </code></dt>
 <dd>
 <details class="source">
@@ -163,6 +167,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             &#39;&lt;b style=&#34;color:sandybrown&#34;&gt;[R]&lt;/b&gt; &#39;,
             &#34;&#34;,
         ),
+        show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
         &#34;&#34;&#34;Instantiate a resampling data mirror.
@@ -190,6 +195,9 @@ back-end based resampling of high-frequency sequential data …</p></div>
             will be added to the trace its name when a resampled version of the trace
             is shown, by default a bold, orange `[R]` is shown as prefix
             (no suffix is shown).
+        show_mean_aggregation_size: bool, optional
+            Whether the mean aggregation bin size will be added as a suffix to the trace
+            its name, by default True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
 
@@ -197,6 +205,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
         self._hf_data: Dict[str, dict] = {}
         self._global_n_shown_samples = default_n_shown_samples
         self._print_verbose = verbose
+        self._show_mean_aggregation_size = show_mean_aggregation_size
 
         assert len(resampled_trace_prefix_suffix) == 2
         self._prefix, self._suffix = resampled_trace_prefix_suffix
@@ -234,11 +243,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             The `hf_data`-trace dict if a match is found, else `None`.
 
         &#34;&#34;&#34;
-        if isinstance(trace, dict):
-            uid = trace.get(&#34;uid&#34;)
-        else:
-            uid = trace[&#34;uid&#34;]
-
+        uid = trace[&#34;uid&#34;]
         hf_trace_data = self._hf_data.get(uid)
         if hf_trace_data is None:
             trace_props = {
@@ -314,18 +319,6 @@ back-end based resampling of high-frequency sequential data …</p></div>
                 start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
                 hf_series = hf_series.iloc[start_idx:end_idx]
 
-            # Add a prefix when the original data is downsampled
-            name: str = trace[&#34;name&#34;]
-            if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
-                name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
-                name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
-                trace[&#34;name&#34;] = name
-            else:
-                if len(self._prefix) and name.startswith(self._prefix):
-                    trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
-                if len(self._suffix) and name.endswith(self._suffix):
-                    trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
-
             # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
             # contain any data in the current view
             if len(hf_series) == 0:
@@ -342,6 +335,28 @@ back-end based resampling of high-frequency sequential data …</p></div>
             trace[&#34;x&#34;] = s_res.index
             trace[&#34;y&#34;] = s_res.values
             # todo -&gt; first draft &amp; not MP safe
+
+            agg_prefix, agg_suffix = &#39; &lt;i style=&#34;color:#fc9944&#34;&gt;~&#39;, &#34;&lt;/i&gt;&#34;
+            name: str = trace[&#34;name&#34;].split(agg_prefix)[0]
+
+            if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
+                name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
+                name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
+                # Add the mean aggregation bin size to the trace name
+                if self._show_mean_aggregation_size:
+                    agg_mean = s_res.index.to_series().diff().mean()
+                    if isinstance(agg_mean, pd.Timedelta):
+                        agg_mean = round_td_str(agg_mean)
+                    else:
+                        agg_mean = round_number_str(agg_mean)
+                    name += f&#34;{agg_prefix}{agg_mean}{agg_suffix}&#34;
+            else:
+                # When not resampled: trim prefix and/or suffix if necessary
+                if len(self._prefix) and name.startswith(self._prefix):
+                    name = name[len(self._prefix) :]
+                if len(self._suffix) and trace[&#34;name&#34;].endswith(self._suffix):
+                    name = name[: -len(self._suffix)]
+            trace[&#34;name&#34;] = name
 
             # Check if hovertext also needs to be resampled
             hovertext = hf_trace_data.get(&#34;hovertext&#34;)
@@ -366,7 +381,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
         xaxis_filter: str = None,
-        updated_trace_indices: List[int] = None,
+        updated_trace_indices: Optional[List[int]] = None,
     ) -&gt; List[int]:
         &#34;&#34;&#34;Check and update the traces within the figure dict.
 
@@ -403,7 +418,7 @@ back-end based resampling of high-frequency sequential data …</p></div>
             xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
 
         if updated_trace_indices is None:
-            updated_trace_indices = []
+            updated_trace_indices = [] 
 
         for idx, trace in enumerate(figure[&#34;data&#34;]):
             # We skip when the trace-idx already has been updated.
@@ -804,8 +819,113 @@ back-end based resampling of high-frequency sequential data …</p></div>
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
+    def _update_graph(self, changed_layout: dict) -&gt; List[dict]:
+        &#34;&#34;&#34;Construct the to-be-updated front-end data, based on the layout change.
+
+        .. note::
+            This method is tightly coupled with Dash app callbacks.
+            It takes the front-end figure its ``relayoutData`` as input and
+            returns the data which needs to be sent tot the ``TraceUpdater`` its
+            ``updateData`` property for that corresponding graph.
+
+        Parameters
+        ----------
+        changed_layout: dict
+            A dict containing the changed layout of the corresponding front-end graph
+
+        Returns
+        -------
+        List[dict]:
+            A list of dicts, where each dict-item is a representation of a trace its
+            _data_ properties which are affected by the front-end layout change.
+            In other words, only traces which need to be updated will be sent to the
+            front-end. Additionally, each trace-dict withholds the _index_ of its
+            corresponding position in the `figure[data]` array with the ``index``-key
+            in each dict.
+
+        &#34;&#34;&#34;
+        current_graph = self.to_dict()
+        updated_trace_indices, cl_k = [], []
+        if changed_layout:
+            self._print(&#34;-&#34; * 100 + &#34;\n&#34;, &#34;changed layout&#34;, changed_layout)
+
+            cl_k = changed_layout.keys()
+
+            # ------------------ HF DATA aggregation ---------------------
+            # 1. Base case - there is a x-range specified in the front-end
+            start_matches = self._re_matches(re.compile(r&#34;xaxis\d*.range\[0]&#34;), cl_k)
+            stop_matches = self._re_matches(re.compile(r&#34;xaxis\d*.range\[1]&#34;), cl_k)
+            if len(start_matches) and len(stop_matches):
+                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
+                    # Check if the xaxis&lt;NUMB&gt; part of xaxis&lt;NUMB&gt;.[0-1] matches
+                    xaxis = t_start_key.split(&#34;.&#34;)[0]
+                    assert xaxis == t_stop_key.split(&#34;.&#34;)[0]
+                    # -&gt; we want to copy the layout on the back-end
+                    updated_trace_indices = self.check_update_figure_dict(
+                        current_graph,
+                        start=changed_layout[t_start_key],
+                        stop=changed_layout[t_stop_key],
+                        xaxis_filter=xaxis,
+                        updated_trace_indices=updated_trace_indices,
+                    )
+
+            # 2. The user clicked on either autorange | reset axes
+            autorange_matches = self._re_matches(
+                re.compile(r&#34;xaxis\d*.autorange&#34;), cl_k
+            )
+            spike_matches = self._re_matches(re.compile(r&#34;xaxis\d*.showspikes&#34;), cl_k)
+            # 2.1 Reset-axes -&gt; autorange &amp; reset to the global data view
+            if len(autorange_matches) and len(spike_matches):
+                for autorange_key in autorange_matches:
+                    if changed_layout[autorange_key]:
+                        xaxis = autorange_key.split(&#34;.&#34;)[0]
+                        updated_trace_indices = self.check_update_figure_dict(
+                            current_graph,
+                            xaxis_filter=xaxis,
+                            updated_trace_indices=updated_trace_indices,
+                        )
+            # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
+            #      current front-end view
+            elif len(autorange_matches) and not len(spike_matches):
+                # PreventUpdate returns a 204 status code response on the
+                # relayout post request
+                raise dash.exceptions.PreventUpdate()
+
+        # If we do not have any traces to be updated, we will return an empty
+        # request response
+        if len(updated_trace_indices) == 0:
+            # PreventUpdate returns a 204 status-code response on the relayout post
+            # request
+            raise dash.exceptions.PreventUpdate()
+
+        # -------------------- construct callback data --------------------------
+        layout_traces_list: List[dict] = []  # the data
+
+        # 1. Create a new dict with additional layout updates for the front-end
+        extra_layout_updates = {}
+
+        # 1.1. Set autorange to False for each layout item with a specified x-range
+        xy_matches = self._re_matches(re.compile(r&#34;[xy]axis\d*.range\[\d+]&#34;), cl_k)
+        for range_change_axis in xy_matches:
+            axis = range_change_axis.split(&#34;.&#34;)[0]
+            extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
+        layout_traces_list.append(extra_layout_updates)
+
+        # 2. Create the additional trace data for the frond-end
+        relevant_keys = [&#34;x&#34;, &#34;y&#34;, &#34;text&#34;, &#34;hovertext&#34;, &#34;name&#34;]
+        # Note that only updated trace-data will be sent to the client
+        for idx in updated_trace_indices:
+            trace = current_graph[&#34;data&#34;][idx]
+            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
+
+            # Store the index into the corresponding to-be-sent trace-data so
+            # the client front-end can know which trace needs to be updated
+            trace_reduced.update({&#34;index&#34;: idx})
+            layout_traces_list.append(trace_reduced)
+        return layout_traces_list
+
     def register_update_graph_callback(
-        self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
+        self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
     ):
         &#34;&#34;&#34;Register the `update_graph` callback to the passed dash-app.
 
@@ -822,99 +942,21 @@ back-end based resampling of high-frequency sequential data …</p></div>
             front-end.
 
         &#34;&#34;&#34;
-
-        def _re_matches(regex: re.Pattern, strings: Iterable[str]) -&gt; List[str]:
-            &#34;&#34;&#34;Returns all the items in `strings` which regex.match `regex`.&#34;&#34;&#34;
-            matches = []
-            for item in strings:
-                m = regex.match(item)
-                if m is not None:
-                    matches.append(m.string)
-            return sorted(matches)
-
-        @app.callback(
+        app.callback(
             dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
             dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
             prevent_initial_call=True,
-        )
-        def _update_graph(changed_layout: dict) -&gt; List[dict]:
-            current_graph = self.to_dict()
-            updated_trace_indices, cl_k = [], []
-            if changed_layout:
-                self._print(&#34;-&#34; * 100 + &#34;\n&#34;, &#34;changed layout&#34;, changed_layout)
+        )(self._update_graph)
 
-                cl_k = changed_layout.keys()
-
-                # ------------------ HF DATA aggregation ---------------------
-                # 1. Base case - there is a x-range specified in the front-end
-                start_matches = _re_matches(re.compile(r&#34;xaxis\d*.range\[0]&#34;), cl_k)
-                stop_matches = _re_matches(re.compile(r&#34;xaxis\d*.range\[1]&#34;), cl_k)
-                if len(start_matches) and len(stop_matches):
-                    for t_start_key, t_stop_key in zip(start_matches, stop_matches):
-                        # Check if the xaxis&lt;NUMB&gt; part of xaxis&lt;NUMB&gt;.[0-1] matches
-                        xaxis = t_start_key.split(&#34;.&#34;)[0]
-                        assert xaxis == t_stop_key.split(&#34;.&#34;)[0]
-                        # -&gt; we want to copy the layout on the back-end
-                        updated_trace_indices = self.check_update_figure_dict(
-                            current_graph,
-                            start=changed_layout[t_start_key],
-                            stop=changed_layout[t_stop_key],
-                            xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices,
-                        )
-
-                # 2. The user clicked on either autorange | reset axes
-                autorange_matches = _re_matches(re.compile(r&#34;xaxis\d*.autorange&#34;), cl_k)
-                spike_matches = _re_matches(re.compile(r&#34;xaxis\d*.showspikes&#34;), cl_k)
-                # 2.1 Reset-axes -&gt; autorange &amp; reset to the global data view
-                if len(autorange_matches) and len(spike_matches):
-                    for autorange_key in autorange_matches:
-                        if changed_layout[autorange_key]:
-                            xaxis = autorange_key.split(&#34;.&#34;)[0]
-                            updated_trace_indices = self.check_update_figure_dict(
-                                current_graph,
-                                xaxis_filter=xaxis,
-                                updated_trace_indices=updated_trace_indices,
-                            )
-                # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
-                #      current front-end view
-                elif len(autorange_matches) and not len(spike_matches):
-                    # PreventUpdate returns a 204 status code response on the
-                    # relayout post request
-                    raise dash.exceptions.PreventUpdate()
-
-            # If we do not have any traces to be updated, we will return an empty
-            # request response
-            if len(updated_trace_indices) == 0:
-                # PreventUpdate returns a 204 status-code response on the relayout post
-                # request
-                raise dash.exceptions.PreventUpdate()
-
-            # -------------------- construct callback data --------------------------
-            layout_traces_list: List[dict] = []  # the data
-
-            # 1. Create a new dict with additional layout updates for the front-end
-            extra_layout_updates = {}
-
-            # 1.1. Set autorange to False for each layout item with a specified x-range
-            xy_matches = _re_matches(re.compile(r&#34;[xy]axis\d*.range\[\d+]&#34;), cl_k)
-            for range_change_axis in xy_matches:
-                axis = range_change_axis.split(&#34;.&#34;)[0]
-                extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
-            layout_traces_list.append(extra_layout_updates)
-
-            # 2. Create the additional trace data for the frond-end
-            relevant_keys = [&#34;x&#34;, &#34;y&#34;, &#34;text&#34;, &#34;hovertext&#34;, &#34;name&#34;]
-            # Note that only updated trace-data will be sent to the client
-            for idx in updated_trace_indices:
-                trace = current_graph[&#34;data&#34;][idx]
-                trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
-
-                # store the index into the corresponding to-be-sent trace-data so
-                # the client front-end can know which trace needs to be updated
-                trace_reduced.update({&#34;index&#34;: idx})
-                layout_traces_list.append(trace_reduced)
-            return layout_traces_list
+    @staticmethod
+    def _re_matches(regex: re.Pattern, strings: Iterable[str]) -&gt; List[str]:
+        &#34;&#34;&#34;Returns all the items in `strings` which regex.match(es) `regex`.&#34;&#34;&#34;
+        matches = []
+        for item in strings:
+            m = regex.match(item)
+            if m is not None:
+                matches.append(m.string)
+        return sorted(matches)
 
     def show_dash(
         self,
@@ -1014,6 +1056,9 @@ This will be used as default downsampler.</p>
 will be added to the trace its name when a resampled version of the trace
 is shown, by default a bold, orange <code>[R]</code> is shown as prefix
 (no suffix is shown).</dd>
+<dt><strong><code>show_mean_aggregation_size</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Whether the mean aggregation bin size will be added as a suffix to the trace
+its name, by default True.</dd>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether some verbose messages will be printed or not, by default False.</dd>
 </dl></div>
@@ -1099,18 +1144,6 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
             start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
             hf_series = hf_series.iloc[start_idx:end_idx]
 
-        # Add a prefix when the original data is downsampled
-        name: str = trace[&#34;name&#34;]
-        if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
-            name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
-            name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
-            trace[&#34;name&#34;] = name
-        else:
-            if len(self._prefix) and name.startswith(self._prefix):
-                trace[&#34;name&#34;] = trace[&#34;name&#34;][len(self._prefix) :]
-            if len(self._suffix) and name.endswith(self._suffix):
-                trace[&#34;name&#34;] = trace[&#34;name&#34;][: -len(self._suffix)]
-
         # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
         # contain any data in the current view
         if len(hf_series) == 0:
@@ -1127,6 +1160,28 @@ is shown, by default a bold, orange <code>[R]</code> is shown as prefix
         trace[&#34;x&#34;] = s_res.index
         trace[&#34;y&#34;] = s_res.values
         # todo -&gt; first draft &amp; not MP safe
+
+        agg_prefix, agg_suffix = &#39; &lt;i style=&#34;color:#fc9944&#34;&gt;~&#39;, &#34;&lt;/i&gt;&#34;
+        name: str = trace[&#34;name&#34;].split(agg_prefix)[0]
+
+        if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
+            name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
+            name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
+            # Add the mean aggregation bin size to the trace name
+            if self._show_mean_aggregation_size:
+                agg_mean = s_res.index.to_series().diff().mean()
+                if isinstance(agg_mean, pd.Timedelta):
+                    agg_mean = round_td_str(agg_mean)
+                else:
+                    agg_mean = round_number_str(agg_mean)
+                name += f&#34;{agg_prefix}{agg_mean}{agg_suffix}&#34;
+        else:
+            # When not resampled: trim prefix and/or suffix if necessary
+            if len(self._prefix) and name.startswith(self._prefix):
+                name = name[len(self._prefix) :]
+            if len(self._suffix) and trace[&#34;name&#34;].endswith(self._suffix):
+                name = name[: -len(self._suffix)]
+        trace[&#34;name&#34;] = name
 
         # Check if hovertext also needs to be resampled
         hovertext = hf_trace_data.get(&#34;hovertext&#34;)
@@ -1202,7 +1257,7 @@ because their underlying axis is the same.</li>
     start: Optional[Union[float, str]] = None,
     stop: Optional[Union[float, str]] = None,
     xaxis_filter: str = None,
-    updated_trace_indices: List[int] = None,
+    updated_trace_indices: Optional[List[int]] = None,
 ) -&gt; List[int]:
     &#34;&#34;&#34;Check and update the traces within the figure dict.
 
@@ -1239,7 +1294,7 @@ because their underlying axis is the same.</li>
         xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
 
     if updated_trace_indices is None:
-        updated_trace_indices = []
+        updated_trace_indices = [] 
 
     for idx, trace in enumerate(figure[&#34;data&#34;]):
         # We skip when the trace-idx already has been updated.
@@ -1729,7 +1784,7 @@ resampled, by default True.</dd>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def register_update_graph_callback(
-    self, app: Union[dash.Dash, JupyterDash], graph_id: str, trace_updater_id: str
+    self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
 ):
     &#34;&#34;&#34;Register the `update_graph` callback to the passed dash-app.
 
@@ -1746,99 +1801,11 @@ resampled, by default True.</dd>
         front-end.
 
     &#34;&#34;&#34;
-
-    def _re_matches(regex: re.Pattern, strings: Iterable[str]) -&gt; List[str]:
-        &#34;&#34;&#34;Returns all the items in `strings` which regex.match `regex`.&#34;&#34;&#34;
-        matches = []
-        for item in strings:
-            m = regex.match(item)
-            if m is not None:
-                matches.append(m.string)
-        return sorted(matches)
-
-    @app.callback(
+    app.callback(
         dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
         dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
         prevent_initial_call=True,
-    )
-    def _update_graph(changed_layout: dict) -&gt; List[dict]:
-        current_graph = self.to_dict()
-        updated_trace_indices, cl_k = [], []
-        if changed_layout:
-            self._print(&#34;-&#34; * 100 + &#34;\n&#34;, &#34;changed layout&#34;, changed_layout)
-
-            cl_k = changed_layout.keys()
-
-            # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is a x-range specified in the front-end
-            start_matches = _re_matches(re.compile(r&#34;xaxis\d*.range\[0]&#34;), cl_k)
-            stop_matches = _re_matches(re.compile(r&#34;xaxis\d*.range\[1]&#34;), cl_k)
-            if len(start_matches) and len(stop_matches):
-                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
-                    # Check if the xaxis&lt;NUMB&gt; part of xaxis&lt;NUMB&gt;.[0-1] matches
-                    xaxis = t_start_key.split(&#34;.&#34;)[0]
-                    assert xaxis == t_stop_key.split(&#34;.&#34;)[0]
-                    # -&gt; we want to copy the layout on the back-end
-                    updated_trace_indices = self.check_update_figure_dict(
-                        current_graph,
-                        start=changed_layout[t_start_key],
-                        stop=changed_layout[t_stop_key],
-                        xaxis_filter=xaxis,
-                        updated_trace_indices=updated_trace_indices,
-                    )
-
-            # 2. The user clicked on either autorange | reset axes
-            autorange_matches = _re_matches(re.compile(r&#34;xaxis\d*.autorange&#34;), cl_k)
-            spike_matches = _re_matches(re.compile(r&#34;xaxis\d*.showspikes&#34;), cl_k)
-            # 2.1 Reset-axes -&gt; autorange &amp; reset to the global data view
-            if len(autorange_matches) and len(spike_matches):
-                for autorange_key in autorange_matches:
-                    if changed_layout[autorange_key]:
-                        xaxis = autorange_key.split(&#34;.&#34;)[0]
-                        updated_trace_indices = self.check_update_figure_dict(
-                            current_graph,
-                            xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices,
-                        )
-            # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
-            #      current front-end view
-            elif len(autorange_matches) and not len(spike_matches):
-                # PreventUpdate returns a 204 status code response on the
-                # relayout post request
-                raise dash.exceptions.PreventUpdate()
-
-        # If we do not have any traces to be updated, we will return an empty
-        # request response
-        if len(updated_trace_indices) == 0:
-            # PreventUpdate returns a 204 status-code response on the relayout post
-            # request
-            raise dash.exceptions.PreventUpdate()
-
-        # -------------------- construct callback data --------------------------
-        layout_traces_list: List[dict] = []  # the data
-
-        # 1. Create a new dict with additional layout updates for the front-end
-        extra_layout_updates = {}
-
-        # 1.1. Set autorange to False for each layout item with a specified x-range
-        xy_matches = _re_matches(re.compile(r&#34;[xy]axis\d*.range\[\d+]&#34;), cl_k)
-        for range_change_axis in xy_matches:
-            axis = range_change_axis.split(&#34;.&#34;)[0]
-            extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
-        layout_traces_list.append(extra_layout_updates)
-
-        # 2. Create the additional trace data for the frond-end
-        relevant_keys = [&#34;x&#34;, &#34;y&#34;, &#34;text&#34;, &#34;hovertext&#34;, &#34;name&#34;]
-        # Note that only updated trace-data will be sent to the client
-        for idx in updated_trace_indices:
-            trace = current_graph[&#34;data&#34;][idx]
-            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
-
-            # store the index into the corresponding to-be-sent trace-data so
-            # the client front-end can know which trace needs to be updated
-            trace_reduced.update({&#34;index&#34;: idx})
-            layout_traces_list.append(trace_reduced)
-        return layout_traces_list</code></pre>
+    )(self._update_graph)</code></pre>
 </details>
 <div class="desc"><p>Register the <code>update_graph</code> callback to the passed dash-app.</p>
 <h2 id="parameters">Parameters</h2>
@@ -2052,10 +2019,20 @@ s_cat = s.astype(cat_type)</p>
 <dl>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile based approach is used to determine the gaps /
+sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
+<dt><strong><code>max_gap_detection_data_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>
+<p>The maximum raw-data size on which gap detection is performed. If the
+raw data size exceeds this value, gap detection will be performed on
+the aggregated (a.k.a. downsampled) series.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect if <code>interleave_gaps</code> is set to True.</p>
+</div>
+</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2088,10 +2065,20 @@ irregularly sampled data. By default, True.</dd>
 <dl>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile based approach is used to determine the gaps /
+sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
+<dt><strong><code>max_gap_detection_data_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>
+<p>The maximum raw-data size on which gap detection is performed. If the
+raw data size exceeds this value, gap detection will be performed on
+the aggregated (a.k.a. downsampled) series.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect if <code>interleave_gaps</code> is set to True.</p>
+</div>
+</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2167,10 +2154,20 @@ datatypes.</li>
 <dl>
 <dt><strong><code>interleave_gaps</code></strong> :&ensp;<code>bool</code>, optional</dt>
 <dd>Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile based approach is used to determine the gaps /
+sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</dd>
 <dt><strong><code>dtype_regex_list</code></strong> :&ensp;<code>List[str]</code>, optional</dt>
 <dd>List containing the regex matching the supported datatypes, by default None.</dd>
+<dt><strong><code>max_gap_detection_data_size</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>
+<p>The maximum raw-data size on which gap detection is performed. If the
+raw data size exceeds this value, gap detection will be performed on
+the aggregated (a.k.a. downsampled) series.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect if <code>interleave_gaps</code> is set to True.</p>
+</div>
+</dd>
 </dl></div>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -2210,6 +2207,7 @@ alt="logo should be displayed here" width="95%"></a>
 <ul>
 <li><code><a title="plotly_resampler.downsamplers" href="downsamplers/index.html">.downsamplers</a></code></li>
 <li><code><a title="plotly_resampler.figure_resampler" href="figure_resampler.html">.figure_resampler</a></code></li>
+<li><code><a title="plotly_resampler.utils" href="utils.html">.utils</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
