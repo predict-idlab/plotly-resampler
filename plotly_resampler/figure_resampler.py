@@ -26,7 +26,7 @@ from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
 from .downsamplers import AbstractSeriesDownsampler, LTTB
-from .utils import round_td_str
+from .utils import round_td_str, round_number_str
 
 
 class FigureResampler(go.Figure):
@@ -227,7 +227,7 @@ class FigureResampler(go.Figure):
                     if isinstance(agg_mean, pd.Timedelta):
                         agg_mean = round_td_str(agg_mean)
                     else:
-                        agg_mean = round(agg_mean)
+                        agg_mean = round_number_str(agg_mean)
                     name += f"{agg_prefix}{agg_mean}{agg_suffix}"
             else:
                 if len(self._prefix) and name.startswith(self._prefix):

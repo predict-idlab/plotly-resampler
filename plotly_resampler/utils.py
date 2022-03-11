@@ -1,3 +1,5 @@
+import math
+
 import pandas as pd
 
 
@@ -51,5 +53,15 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
 
 def round_td_str(td: pd.Timedelta) -> str:
     for t_s in ["D", "H", "min", "s", "ms", "us", "ns"]:
-        if td > 0.5 * pd.Timedelta(f"1{t_s}"):
+        if td > 0.95 * pd.Timedelta(f"1{t_s}"):
             return timedelta_to_str(td.round(t_s))
+
+
+def round_number_str(number: float) -> str:
+    if number > 0.95:
+        for unit, scaling in [("M", int(1e6)), ("k", int(1e3))]:
+            if number / scaling > 0.95:
+                return f"{round(number / scaling)}{unit}"
+        return str(round(number))
+    # we have a number < 1 --> round till nearest non-zero digit
+    return str(round(number, 1 + abs(int(math.log10(number)))))
