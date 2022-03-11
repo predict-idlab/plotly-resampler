@@ -1,15 +1,20 @@
 # plotly-resampler examples
 
-This directory withholds several examples, indicating the applicability of plotly-resampler in various use cases.
+This directory withholds several examples, indicating the applicability of
+plotly-resampler in various use cases.
 
 ## 0. basic example
 
-The testing CI/CD of plotly resampler uses _selenium_ and _selenium-wire_ to test the interactiveness of various figures. All these figures are shown in the [basic-example notebook](basic_example.ipynb)
+The testing CI/CD of plotly resampler uses _selenium_ and _selenium-wire_ to test the
+interactiveness of various figures. All these figures are shown in
+the [basic-example notebook](basic_example.ipynb)
 
 ## 1. Dash apps
-The [dash_apps](dash_apps/dash_app.py) folder contains example dash apps in which `plotly-resampler` is integrated
 
+The [dash_apps](dash_apps/dash_app.py) folder contains example dash apps in
+which `plotly-resampler` is integrated
 
 | app-name | description |
 | --- | --- |
 | [file visualization](dash_apps/dash_app.py) | load and visualize multiple `.parquet` files with plotly-resampler |
+| [dynamic sine generator](dash_apps/construct_dynamic_figures.py) | expeonential sine generator which uses [pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) to remove and construct plotly-resampler graphs dynamically |
