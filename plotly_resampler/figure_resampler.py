@@ -186,7 +186,7 @@ class FigureResampler(go.Figure):
                 hf_series: pd.Series = hf_trace_data["hf_series"]
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
-                if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
+                if hf_series.index.is_integer():
                     start = round(start)
                     end = round(end)
 
@@ -293,7 +293,7 @@ class FigureResampler(go.Figure):
             xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
 
         if updated_trace_indices is None:
-            updated_trace_indices = [] 
+            updated_trace_indices = []
 
         for idx, trace in enumerate(figure["data"]):
             # We skip when the trace-idx already has been updated.
