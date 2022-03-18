@@ -293,7 +293,7 @@ class FigureResampler(go.Figure):
             xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
 
         if updated_trace_indices is None:
-            updated_trace_indices = [] 
+            updated_trace_indices = []
 
         for idx, trace in enumerate(figure["data"]):
             # We skip when the trace-idx already has been updated.
@@ -516,7 +516,7 @@ class FigureResampler(go.Figure):
             if isinstance(hf_y, pd.Series)
             else hf_y
         )
-        # hf_y = np.asarray(hf_y)
+        hf_y = np.asarray(hf_y)
 
         # Note: "hovertext" takes precedence over "text"
         hf_hovertext = (
