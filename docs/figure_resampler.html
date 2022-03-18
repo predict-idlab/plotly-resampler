@@ -225,7 +225,7 @@ class FigureResampler(go.Figure):
                 hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
-                if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
+                if hf_series.index.is_integer():
                     start = round(start)
                     end = round(end)
 
@@ -332,7 +332,7 @@ class FigureResampler(go.Figure):
             xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
 
         if updated_trace_indices is None:
-            updated_trace_indices = [] 
+            updated_trace_indices = []
 
         for idx, trace in enumerate(figure[&#34;data&#34;]):
             # We skip when the trace-idx already has been updated.
@@ -1116,7 +1116,7 @@ class FigureResampler(go.Figure):
                 hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
-                if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
+                if hf_series.index.is_integer():
                     start = round(start)
                     end = round(end)
 
@@ -1223,7 +1223,7 @@ class FigureResampler(go.Figure):
             xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
 
         if updated_trace_indices is None:
-            updated_trace_indices = [] 
+            updated_trace_indices = []
 
         for idx, trace in enumerate(figure[&#34;data&#34;]):
             # We skip when the trace-idx already has been updated.
@@ -1941,7 +1941,7 @@ its name, by default True.</dd>
             hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
             start = hf_series.index[0] if start is None else start
             end = hf_series.index[-1] if end is None else end
-            if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
+            if hf_series.index.is_integer():
                 start = round(start)
                 end = round(end)
 
@@ -2099,7 +2099,7 @@ because their underlying axis is the same.</li>
         xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
 
     if updated_trace_indices is None:
-        updated_trace_indices = [] 
+        updated_trace_indices = []
 
     for idx, trace in enumerate(figure[&#34;data&#34;]):
         # We skip when the trace-idx already has been updated.
