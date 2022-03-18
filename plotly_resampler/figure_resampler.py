@@ -186,7 +186,7 @@ class FigureResampler(go.Figure):
                 hf_series: pd.Series = hf_trace_data["hf_series"]
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
-                if isinstance(hf_series.index, (pd.Int64Index, pd.UInt64Index)):
+                if hf_series.index.is_integer():
                     start = round(start)
                     end = round(end)
 
@@ -516,7 +516,7 @@ class FigureResampler(go.Figure):
             if isinstance(hf_y, pd.Series)
             else hf_y
         )
-        hf_y = np.asarray(hf_y)
+        # hf_y = np.asarray(hf_y)
 
         # Note: "hovertext" takes precedence over "text"
         hf_hovertext = (
