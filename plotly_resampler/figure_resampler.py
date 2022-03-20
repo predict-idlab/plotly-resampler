@@ -485,8 +485,9 @@ class FigureResampler(go.Figure):
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
 
-        .. TODO::
-            explain why adding x and y to a trace is so slow
+        .. todo:: 
+            * explain why adding x and y to a trace is so slow
+            * check and simplify the example above
 
         Tip
         ---

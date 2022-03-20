@@ -36,6 +36,7 @@ extensions = [
     "sphinx.ext.napoleon",  # load napoleon b4 sphinx autodoc typehints
     "sphinx.ext.autosummary",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.todo",
     'sphinx.ext.autosectionlabel',
     "sphinx.ext.viewcode",
     # 'sphinx.ext.githubpages',
@@ -54,13 +55,19 @@ templates_path = ["_templates"]
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
+todo_include_todos = True
 
 # TODO: I added this
 autoclass_content = "both"
 autodoc_typehints = "description"
-autodoc_typehints_format = "short"
-autodoc_preserve_defaults = False
 autosummary_generate = True
+
+## This snipped can be used to adjust the signature-typehints
+# def fix_sig(app, what, name, obj, options, signature, return_annotation):
+#     return ("", "")
+ 
+# def setup(app):
+#     app.connect("autodoc-process-signature", fix_sig)
 
 # typehints_defaults = 'comma'
 
