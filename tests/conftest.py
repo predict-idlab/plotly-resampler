@@ -282,10 +282,11 @@ def gsr_figure() -> FigureResampler:
         ),
         default_n_shown_samples=1_000,
         resampled_trace_prefix_suffix=(
-            '<b style="color:sandybrown">[R]</b>',
-            '<b style="color:sandybrown">[R]</b>',
+            '<b style="color:blue">[R]</b> ',
+            ' <b style="color:red">[R]</b>',
         ),
         verbose=False,
+        show_mean_aggregation_size=True
     )
     fig.update_layout(height=700)
 
@@ -367,6 +368,7 @@ def multiple_tz_figure() -> FigureResampler:
         default_n_shown_samples=500,
         convert_existing_traces=False,
         verbose=True,
+        show_mean_aggregation_size=False,
     )
     fr_fig.update_layout(height=min(700, 250 * len(cs)))
 
