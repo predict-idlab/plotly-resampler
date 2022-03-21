@@ -3,8 +3,8 @@
 Wrapper around the plotly ``go.Figure`` class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.
 
-Note
-----
+Tip
+---
 The term `high-frequency` actually refers very large amounts of sequential data.
 
 """
@@ -53,27 +53,29 @@ class FigureResampler(go.Figure):
             The figure that will be decorated. Can be either an empty figure 
             (e.g., ``go.Figure()`` or ``make_subplots()``) or an existing figure.
         convert_existing_traces: bool
-            A bool indicating whether the traces of the passed ``figure`` should be
-            resampled, by default True. Hence, when set to False, the traces of the 
-            passed ``figure`` will not be resampled.
+            A bool indicating whether the high-frequency traces of the passed ``figure``
+            should be resampled, by default True. Hence, when set to False, the
+            high-frequency traces of the passed ``figure`` will not be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
-            * **Note**: this can be overridden within the :func:`add_trace` method.
+            .. note::
+                * this can be overridden within the :func:`add_trace` method.
+                * If a trace withholds fewer datapoints than this parameter,
+                  the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface,
             by default ``LTTB``.
             This will be used as default downsampler.\n
-            .. note::
-                This can be overridden within the :func:`add_trace` method.
+            .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
-            will be added to the trace its name when a resampled version of the trace
-            is shown, by default a bold, orange ``[R]`` is shown as prefix
+            will be added to the trace its legend-name when a resampled version of the
+            trace is shown, by default a bold, orange ``[R]`` is shown as prefix
             (no suffix is shown).
         show_mean_aggregation_size: bool, optional
             Whether the mean aggregation bin size will be added as a suffix to the trace
-            its name, by default True.
+            its legend-name, by default True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
 
@@ -491,20 +493,17 @@ class FigureResampler(go.Figure):
 
         Tip
         ---
-        * **Pro tip**: if you do `not want to downsample` your data, set
-          ``max_n_samples`` to the size of your trace!
+        * If you do `not want to downsample` your data, set ``max_n_samples`` to the
+          the number of datapoints of your trace!
 
         Attention
         ---------
         * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do 
           not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
-        * ``hf_x``, ``hf_y``, and 'hf_hovertext` are useful when you deal with large 
+        * ``hf_x``, ``hf_y``, and ``hf_hovertext`` are useful when you deal with large
           amounts of data (as it can increase the speed of this add_trace() method with
-          ~30%).
-
-          .. note::
-            These arguments have priority over the trace's data and (hover)text
-            attributes.
+          ~30%). These arguments have priority over the trace's data and (hover)text
+          attributes.
         * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
           the the automatic-zooming (y-scaling) as these will not be stored in the
           back-end and thus not be scaled to the view.
@@ -865,17 +864,15 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         mode: str, optional
-            Display mode. One of:
-
-            * ``external``: The URL of the app will be displayed in the notebook
+            Display mode. One of:\n
+              * ``"external"``: The URL of the app will be displayed in the notebook
                 output cell. Clicking this URL will open the app in the default
                 web browser.
-            * ``"inline"``: The app will be displayed inline in the notebook output cell
+              * ``"inline"``: The app will be displayed inline in the notebook output cell
                 in an iframe.
-            * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
+              * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
                 extension.
-            
             By default None, which will result in the same behavior as ``"external"``.
         config: dict, optional
             The configuration options for displaying this figure, by default None.

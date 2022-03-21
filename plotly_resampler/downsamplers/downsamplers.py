@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
-"""Compatible implementation for various downsample methods."""
+"""Compatible implementation for various downsample methods.
+
+.. |br| raw:: html
+
+   <br>
+
+"""
 
 __author__ = "Jonas Van Der Donckt"
 
@@ -18,11 +24,11 @@ class LTTB(AbstractSeriesDownsampler):
     Note
     ----
     * This class is mainly designed to operate on numerical data as LTTB calculates
-      distances on the values.<br>
+      distances on the values. |br|
       When dealing with categories, the data is encoded into its numeric codes,
       these codes are the indices of the category array.
     * To downsample category data with LTTB, your ``pd.Series`` must be of dtype
-      'category'.<br>
+      'category'. |br|
       **Tip**: ff there is an order in your categories, order them that way, LTTB
       uses the ordered category codes values (se bullet above) to calculate distances
       and make downsample decisions.
