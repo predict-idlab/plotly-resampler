@@ -60,18 +60,17 @@ class FigureResampler(go.Figure):
             The default number of samples that will be shown for each trace,
             by default 1000.\n
             .. note::
-                * this can be overridden within the :func:`add_trace` method.
+                * This can be overridden within the :func:`add_trace` method.
                 * If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface,
-            by default ``LTTB``.
-            This will be used as default downsampler.\n
+            An instance which implements the AbstractSeriesDownsampler interface and
+            will be used as default downsampler, by default ``LTTB``. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its legend-name when a resampled version of the
-            trace is shown, by default a bold, orange ``[R]`` is shown as prefix
+            trace is shown. By default a bold, orange ``[R]`` is shown as prefix
             (no suffix is shown).
         show_mean_aggregation_size: bool, optional
             Whether the mean aggregation bin size will be added as a suffix to the trace
@@ -131,13 +130,14 @@ class FigureResampler(go.Figure):
             self._print(f"[W] trace with {trace_props} not found")
         return hf_trace_data
 
-    def check_update_trace_data(
+    def _check_update_trace_data(
         self,
         trace: dict,
         start=None,
         end=None,
     ) -> Optional[Union[dict, BaseTraceType]]:
-        """Check and updates the passed ``trace``.
+        """Check and update the passed ``trace`` its data properties based on the
+        slice range.
 
         Note
         ----
@@ -255,7 +255,7 @@ class FigureResampler(go.Figure):
             self._print("hf_data not found")
             return None
 
-    def check_update_figure_dict(
+    def _check_update_figure_dict(
         self,
         figure: dict,
         start: Optional[Union[float, str]] = None,
@@ -265,6 +265,8 @@ class FigureResampler(go.Figure):
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
+        hint
+        ----
         This method will most likely be used within a ``Dash`` callback to resample the
         view, based on the configured number of parameters.
 
@@ -354,7 +356,7 @@ class FigureResampler(go.Figure):
 
             # If we managed to find and update the trace, it will return the trace
             # and thus not None.
-            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
+            updated_trace = self._check_update_trace_data(trace, start=start, end=stop)
             if updated_trace is not None:
                 updated_trace_indices.append(idx)
         return updated_trace_indices
@@ -439,12 +441,13 @@ class FigureResampler(go.Figure):
                 - All remaining properties are passed to the constructor
                   of the specified trace type.
         max_n_samples : int, optional
-            The maximum number of samples that will be shown by the trace.
-
+            The maximum number of samples that will be shown by the trace.\n
             .. note::
                 If this variable is not set; ``_global_n_shown_samples`` will be used.
         downsampler: AbstractSeriesDownsampler, optional
-            The abstract series downsampler method
+            The abstract series downsampler method.\n
+            .. note::
+                If this variable is not set, ``_global_downsampler`` will be used.
         limit_to_view: boolean, optional
             If set to True the trace's datapoints will be cut to the corresponding
             front-end view, even if the total number of samples is lower than
@@ -493,7 +496,7 @@ class FigureResampler(go.Figure):
 
         Tip
         ---
-        * If you do `not want to downsample` your data, set ``max_n_samples`` to the
+        * If you **do not want to downsample** your data, set ``max_n_samples`` to the
           the number of datapoints of your trace!
 
         Attention
@@ -658,7 +661,7 @@ class FigureResampler(go.Figure):
                 # If all the raw data needs to be sent to the javascript, and the trace
                 # is high-frequency, this would take significant time!
                 # Hence, you first downsample the trace.
-                trace = self.check_update_trace_data(trace)
+                trace = self._check_update_trace_data(trace)
                 assert trace is not None
                 return super().add_trace(trace=trace, **trace_kwargs)
             else:
@@ -700,7 +703,7 @@ class FigureResampler(go.Figure):
         figure: go.Figure
             The figure object which will replace the existing figure.
         convert_existing_traces: bool, Optional
-            A bool indicating whether the traces of the passed `figure` should be
+            A bool indicating whether the traces of the passed ``figure`` should be
             resampled, by default True.
 
         """
@@ -713,37 +716,39 @@ class FigureResampler(go.Figure):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
-    def _update_graph(self, changed_layout: dict) -> List[dict]:
+    def construct_update_data(self, relayout_data: dict) -> List[dict]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
-        .. note::
-            This method is tightly coupled with Dash app callbacks.
-            It takes the front-end figure its ``relayoutData`` as input and
-            returns the data which needs to be sent tot the ``TraceUpdater`` its
-            ``updateData`` property for that corresponding graph.
+        Attention
+        ---------
+        This method is tightly coupled with Dash app callbacks. It takes the front-end
+        figure its ``relayoutData`` as input and returns the data which needs to be
+        sent tot the ``TraceUpdater`` its ``updateData`` property for that corresponding
+        graph.
 
         Parameters
         ----------
-        changed_layout: dict
-            A dict containing the changed layout of the corresponding front-end graph
+        relayout_data: dict
+            A dict containing the ``relayout``-data (a.k.a. changed layout data) of
+            the corresponding front-end graph.
 
         Returns
         -------
         List[dict]:
             A list of dicts, where each dict-item is a representation of a trace its
-            _data_ properties which are affected by the front-end layout change.
+            *data* properties which are affected by the front-end layout change. |br|
             In other words, only traces which need to be updated will be sent to the
-            front-end. Additionally, each trace-dict withholds the _index_ of its
-            corresponding position in the `figure[data]` array with the ``index``-key
+            front-end. Additionally, each trace-dict withholds the *index* of its
+            corresponding position in the ``figure[data]`` array with the ``index``-key
             in each dict.
 
         """
         current_graph = self.to_dict()
         updated_trace_indices, cl_k = [], []
-        if changed_layout:
-            self._print("-" * 100 + "\n", "changed layout", changed_layout)
+        if relayout_data:
+            self._print("-" * 100 + "\n", "changed layout", relayout_data)
 
-            cl_k = changed_layout.keys()
+            cl_k = relayout_data.keys()
 
             # ------------------ HF DATA aggregation ---------------------
             # 1. Base case - there is a x-range specified in the front-end
@@ -755,10 +760,10 @@ class FigureResampler(go.Figure):
                     xaxis = t_start_key.split(".")[0]
                     assert xaxis == t_stop_key.split(".")[0]
                     # -> we want to copy the layout on the back-end
-                    updated_trace_indices = self.check_update_figure_dict(
+                    updated_trace_indices = self._check_update_figure_dict(
                         current_graph,
-                        start=changed_layout[t_start_key],
-                        stop=changed_layout[t_stop_key],
+                        start=relayout_data[t_start_key],
+                        stop=relayout_data[t_stop_key],
                         xaxis_filter=xaxis,
                         updated_trace_indices=updated_trace_indices,
                     )
@@ -771,9 +776,9 @@ class FigureResampler(go.Figure):
             # 2.1 Reset-axes -> autorange & reset to the global data view
             if len(autorange_matches) and len(spike_matches):
                 for autorange_key in autorange_matches:
-                    if changed_layout[autorange_key]:
+                    if relayout_data[autorange_key]:
                         xaxis = autorange_key.split(".")[0]
-                        updated_trace_indices = self.check_update_figure_dict(
+                        updated_trace_indices = self._check_update_figure_dict(
                             current_graph,
                             xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
@@ -821,18 +826,19 @@ class FigureResampler(go.Figure):
     def register_update_graph_callback(
         self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
     ):
-        """Register the `update_graph` callback to the passed dash-app.
+        """Register the :func:`construct_update_data` method as callback function to
+        the passed dash-app.
 
         Parameters
         ----------
         app: Union[dash.Dash, JupyterDash]
             The app in which the callback will be registered.
         graph_id:
-            The id of the `dcc.Graph`-component which withholds the to-be resampled
+            The id of the ``dcc.Graph``-component which withholds the to-be resampled
             Figure.
         trace_updater_id
-            The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the
+            The id of the ``TraceUpdater`` component. This component is leveraged by
+            ``FigureResampler`` to efficiently POST the to-be-updated data to the
             front-end.
 
         """
@@ -840,11 +846,11 @@ class FigureResampler(go.Figure):
             dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
-        )(self._update_graph)
+        )(self.construct_update_data)
 
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
-        """Returns all the items in `strings` which regex.match(es) `regex`."""
+        """Returns all the items in ``strings`` which regex.match(es) ``regex``."""
         matches = []
         for item in strings:
             m = regex.match(item)
@@ -859,7 +865,7 @@ class FigureResampler(go.Figure):
         graph_properties: dict | None = None,
         **kwargs,
     ):
-        """Registers the `update_graph` callback & show the figure in a dash app.
+        """Registers the :func:`update_graph` callback & show the figure in a dash app.
 
         Parameters
         ----------
@@ -868,23 +874,23 @@ class FigureResampler(go.Figure):
               * ``"external"``: The URL of the app will be displayed in the notebook
                 output cell. Clicking this URL will open the app in the default
                 web browser.
-              * ``"inline"``: The app will be displayed inline in the notebook output cell
-                in an iframe.
+              * ``"inline"``: The app will be displayed inline in the notebook output
+                cell in an iframe.
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
-                JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
+                JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
                 extension.
             By default None, which will result in the same behavior as ``"external"``.
         config: dict, optional
             The configuration options for displaying this figure, by default None.
-            This `config` parameter is the same as the dict that you would pass as
-            `config` argument to the `.show()` method.
+            This ``config`` parameter is the same as the dict that you would pass as
+            ``config`` argument to the `show` method.
             See more https://plotly.com/python/configuration-options/
         graph_properties: dict, optional
             Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
             e.g.: {"style": {"width": "50%"}}
             Note: "config" is not allowed as key in this dict, as there is a distinct
-            `config` parameter for this property in this method.
+            ``config`` parameter for this property in this method.
             See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
             Additional app.run_server() kwargs.

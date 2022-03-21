@@ -154,7 +154,7 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc):
     prevent_initial_call=True,
 )
 def update_figure(relayoutdata: dict, graph_id_dict: dict):
-    return graph_dict.get(graph_id_dict.get("index"))._update_graph(relayoutdata)
+    return graph_dict.get(graph_id_dict["index"]).construct_update_data(relayoutdata)
 
 
 if __name__ == "__main__":
