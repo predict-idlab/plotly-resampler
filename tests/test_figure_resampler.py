@@ -475,4 +475,4 @@ def test_check_update_figure_dict():
     x = np.arange(n)
     y = np.sin(x)
     fr.add_trace(go.Scattergl(name='test'), hf_x=x, hf_y=y)
-    fr.check_update_figure_dict(fr.to_dict())
+    fr._check_update_figure_dict(fr.to_dict())
