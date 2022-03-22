@@ -1,6 +1,12 @@
 .. role:: raw-html(raw)
    :format: html
 
+.. |br| raw:: html
+
+   <br>
+
+
+
 Integration with a dash app 🤝
 ==============================
 
@@ -10,12 +16,15 @@ Examples of dash apps with ``plotly-resampler`` can be found in the `examples fo
 
 Registering callbacks in a new dash app
 ---------------------------------------
-When you add a :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` figure in a basic dash app, you should;
+When you add a :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` figure in a basic dash app, you should:
 
-- add a `trace-updater component <https://github.com/predict-idlab/trace-updater>`_ to the dash app layout
-    - it should have as ``gID`` the id of the `dcc.Graph <https://dash.plotly.com/dash-core-components/graph>`_ component that contains the ``FigureResampler`` figure.
-- register the :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` figure its callbacks to the dash app
-    - the id of the `dcc.Graph <https://dash.plotly.com/dash-core-components/graph>`_ component that contains the :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` figure and the id of the trace-updater component should be passed.
+- Add a `trace-updater component <https://github.com/predict-idlab/trace-updater>`_ to the dash app layout.
+
+  - It should have as ``gID`` the id of the `dcc.Graph <https://dash.plotly.com/dash-core-components/graph>`_ component that contains the ``FigureResampler`` figure.
+
+- Register the :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` figure its callbacks to the dash app.
+
+  - The id of the `dcc.Graph <https://dash.plotly.com/dash-core-components/graph>`_ component that contains the :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` figure and the id of the trace-updater component should be passed to the :func:`register_update_graph_callback <plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback>` method.
 
 
 **Code illustration**:
@@ -41,18 +50,31 @@ When you add a :class:`FigureResampler <plotly_resampler.figure_resampler.Figure
 
 .. tip::
 
-    You can make the resampling faster by setting the `TraceUpdater <https://github.com/predict-idlab/trace-updater>`_ its ``sequentialUpdate`` argument to ``False``.
+    You can make the resampling faster by ensuring the
+    `TraceUpdater <https://github.com/predict-idlab/trace-updater>`_ its
+    ``sequentialUpdate`` argument is set to ``False``.
 
 
-`This example <https://github.com/predict-idlab/trace-updater/blob/master/usage.py>`_ serves as a minimal working example.
+* `This TraceUpdater-example <https://github.com/predict-idlab/trace-updater/blob/master/usage.py>`_ serves as a minimal working example.
 
 
 Limitations
 -----------
-It is not straightforward to add callbacks dynamically in a dash app.
+plotly_resampler relies on ``TraceUpdater`` to ensure that the *updateData* is sent
+efficiently to the front-end.
 
-**Basic solution**: register the callbacks statically (and not dynamically in another callback function). 
-However, it is (often) not possible to register (in a proper manner) callbacks statically.
+To enable dynamic-graph-construction, plotly-resampler to support
+`pattern matching callbacks <https://dash.plotly.com/pattern-matching-callbacks>`_.
+This could only be achieved by performing partial id matching. This causes the following:
 
-Another solution, when statical callback registration is not an option, involves pattern matching matching callbacks. 
-However, ``plotly-resampler`` currently does not support this (yet).
+.. attention::
+
+    TraceUpdater will determine the html-graph-div by performing **partial
+    matching on the "id" property** (using `gdID`) of all divs with
+    classname=\"dash-graph\". |br|
+    So if multiple same graph-div IDs are used, or one graph-div-ID is a
+    subset of other(s), multiple eligible *graph-divs* will be found and a
+    ``SyntaxError`` will be raised.
+
+This can be circumvented by using an ``uuid``-str for each graph-div, as done in this
+`dynamic graph construction example <https://github.com/predict-idlab/plotly-resampler/blob/main/examples/dash_apps/construct_dynamic_figures.py>`_.
