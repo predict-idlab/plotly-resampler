@@ -14,6 +14,7 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
+import warnings
 from typing import List, Optional, Union, Iterable, Tuple, Dict
 from uuid import uuid4
 
@@ -50,7 +51,7 @@ class FigureResampler(go.Figure):
         Parameters
         ----------
         figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure 
+            The figure that will be decorated. Can be either an empty figure
             (e.g., ``go.Figure()`` or ``make_subplots()``) or an existing figure.
         convert_existing_traces: bool
             A bool indicating whether the high-frequency traces of the passed ``figure``
@@ -89,6 +90,10 @@ class FigureResampler(go.Figure):
 
         self._global_downsampler = default_downsampler
 
+        self._app: JupyterDash | None = None
+        self._port: int | None = None
+        self._host: str | None = None
+
         if convert_existing_traces:
             # call __init__ with the correct layout and set the `_grid_ref` of the
             # to-be-converted figure
@@ -107,7 +112,7 @@ class FigureResampler(go.Figure):
             print(*values)
 
     def _query_hf_data(self, trace: dict) -> Optional[dict]:
-        """Query the internal ``_hf_data`` attribute and returns a match based on 
+        """Query the internal ``_hf_data`` attribute and returns a match based on
         ``uid``.
 
         Parameters
@@ -479,9 +484,9 @@ class FigureResampler(go.Figure):
         Constructing traces with **very large data amounts** really takes some time.
         To speed this up; use this :func:`add_trace` method and
 
-        1. Create a trace with no data (empty lists) 
-        2. pass the high frequency data to this method using the ``hf_x`` and ``hf_y`` 
-           parameters. 
+        1. Create a trace with no data (empty lists)
+        2. pass the high frequency data to this method using the ``hf_x`` and ``hf_y``
+           parameters.
 
         See the example below:
 
@@ -490,7 +495,7 @@ class FigureResampler(go.Figure):
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
 
-        .. todo:: 
+        .. todo::
             * explain why adding x and y to a trace is so slow
             * check and simplify the example above
 
@@ -501,7 +506,7 @@ class FigureResampler(go.Figure):
 
         Attention
         ---------
-        * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do 
+        * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do
           not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
         * ``hf_x``, ``hf_y``, and ``hf_hovertext`` are useful when you deal with large
           amounts of data (as it can increase the speed of this add_trace() method with
@@ -510,7 +515,7 @@ class FigureResampler(go.Figure):
         * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
           the the automatic-zooming (y-scaling) as these will not be stored in the
           back-end and thus not be scaled to the view.
-          To circumvent this, the ``limit_to_view`` argument can be set, resulting in 
+          To circumvent this, the ``limit_to_view`` argument can be set, resulting in
           also storing the low-frequency series in the back-end.
 
         """
@@ -923,3 +928,23 @@ class FigureResampler(go.Figure):
             kwargs["height"] = self.layout.height + 18
 
         app.run_server(mode=mode, **kwargs)
+
+        # store the app information, so it can be killed
+        self._app = app
+        self._host = kwargs["host"] if "host" in kwargs else "127.0.0.1"
+        self._port = kwargs["port"] if "port" in kwargs else "8050"
+
+    def stop_server(self):
+        """Stop the running dash-app.
+
+        .. attention::
+            This only works if the dash-app was started with :func:`show_dash`.
+        """
+        if self._app is not None:
+            self._app._terminate_server_for_port(self._host, self._port)
+        else:
+            warnings.warn(
+                "Could not stop the server, either the \n"
+                + "\t- 'show-dash' method was not called, or \n"
+                + "\t- the dash-server wasn't started with 'show_dash'"
+            )
