@@ -63,9 +63,10 @@ Limitations
 plotly_resampler relies on ``TraceUpdater`` to ensure that the *updateData* is sent
 efficiently to the front-end.
 
-To enable dynamic-graph-construction, plotly-resampler to support
+To enable dynamic-graph-construction, plotly-resampler supports
 `pattern matching callbacks <https://dash.plotly.com/pattern-matching-callbacks>`_.
-This could only be achieved by performing partial id matching. This causes the following:
+This could only be achieved by performing partial id matching on the graph-div ID within
+the TraceUpdater component. This causes the following:
 
 .. attention::
 
