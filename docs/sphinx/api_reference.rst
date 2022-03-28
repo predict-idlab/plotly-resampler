@@ -8,5 +8,5 @@ API reference 📖
    .. _figure_resampler
    plotly_resampler.figure_resampler
 
-   .. _downsamplers
-   plotly_resampler.downsamplers
+   .. _aggregation
+   plotly_resampler.aggregation

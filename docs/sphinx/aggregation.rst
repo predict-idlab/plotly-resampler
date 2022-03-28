@@ -1,13 +1,13 @@
-------------
-Downsamplers
-------------
+-----------
+Aggregation
+-----------
 
 
 ^^^^^^^^^^^^^^^^^^^
 downsampler classes
 ^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: plotly_resampler.downsamplers.downsamplers
+.. automodule:: plotly_resampler.aggregation.aggregators
     :members:
     :undoc-members:
     :show-inheritance:
@@ -17,7 +17,7 @@ downsampler classes
 downsampling interface
 ^^^^^^^^^^^^^^^^^^^^^^
 
-.. automodule:: plotly_resampler.downsamplers.downsampling_interface
+.. automodule:: plotly_resampler.aggregation.aggregation_interface
     :members:
     :undoc-members:
     :show-inheritance:

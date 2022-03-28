@@ -8,7 +8,7 @@ Welcome to plotly-resampler's documentation!
 
 This is the documentation of `plotly-resampler <https://github.com/predict-idlab/plotly-resampler>`_; a plotly wrapper for Figures to visualize large time-series data.
 
-.. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/basic_example.gif
+.. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/basic_example.gif
 
 .. raw:: html
 

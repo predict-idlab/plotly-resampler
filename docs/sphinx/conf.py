@@ -57,15 +57,15 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 todo_include_todos = True
 
-# TODO: I added this
 autoclass_content = "both"
 autodoc_typehints = "description"
+autodoc_member_order = "bysource"
 autosummary_generate = True
 
 ## This snipped can be used to adjust the signature-typehints
 # def fix_sig(app, what, name, obj, options, signature, return_annotation):
 #     return ("", "")
- 
+
 # def setup(app):
 #     app.connect("autodoc-process-signature", fix_sig)
 
@@ -97,6 +97,11 @@ html_theme_options = {
             "type": "fontawesome",  # Default is fontawesome
         }
     ],
+}
+
+html_sidebars = {
+    'figure_resampler*': [],
+    'aggregation*': []
 }
 
 

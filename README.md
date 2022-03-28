@@ -1,6 +1,6 @@
 <p align="center">
     <a href="#readme">
-        <img alt="Plotly-Resampler logo" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/logo.svg" width=65%>
+        <img alt="Plotly-Resampler logo" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/logo.svg" width=65%>
     </a>
 </p>
 
