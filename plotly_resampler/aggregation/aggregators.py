@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Compatible implementation for various downsample methods.
+"""Compatible implementation for various aggregation/downsample methods.
 
 .. |br| raw:: html
 
@@ -15,11 +15,11 @@ import lttbc
 import numpy as np
 import pandas as pd
 
-from ..downsamplers.downsampling_interface import AbstractSeriesDownsampler
+from ..aggregation.aggregation_interface import AbstractSeriesAggregator
 
 
-class LTTB(AbstractSeriesDownsampler):
-    """Largest Triangle Three Bucket (LTTB) downsampler method.
+class LTTB(AbstractSeriesAggregator):
+    """Largest Triangle Three Bucket (LTTB) aggregation method.
 
     Note
     ----
@@ -27,11 +27,11 @@ class LTTB(AbstractSeriesDownsampler):
       distances on the values. |br|
       When dealing with categories, the data is encoded into its numeric codes,
       these codes are the indices of the category array.
-    * To downsample category data with LTTB, your ``pd.Series`` must be of dtype
+    * To aggregate category data with LTTB, your ``pd.Series`` must be of dtype
       'category'. |br|
       **Tip**: ff there is an order in your categories, order them that way, LTTB
       uses the ordered category codes values (se bullet above) to calculate distances
-      and make downsample decisions.
+      and make aggregation decisions.
       .. code::
         >>> s = pd.Series(["a", "b", "c", "a"])
         >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
@@ -49,7 +49,7 @@ class LTTB(AbstractSeriesDownsampler):
                              ['category', 'bool'],
         )
 
-    def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         # if we have categorical data, LTTB will convert the categorical values into
         # their numeric codes, i.e., the index position of the category array
         s_v = s.cat.codes.values if str(s.dtype) == 'category' else s.values
@@ -71,19 +71,19 @@ class LTTB(AbstractSeriesDownsampler):
         )
 
 
-class EveryNthPoint(AbstractSeriesDownsampler):
-    """Naive (but fast) downsampler method which returns every n'th point."""
+class EveryNthPoint(AbstractSeriesAggregator):
+    """Naive (but fast) aggregator method which returns every n'th point."""
     def __init__(self, interleave_gaps: bool = True):
         # this downsampler supports all pd.Series dtypes
         super().__init__(interleave_gaps, dtype_regex_list=None)
 
-    def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         out = s[:: max(1, math.ceil(len(s) / n_out))]
         return out.astype('uint8') if str(s.dtype) == 'bool' else out
 
 
-class AggregationDownsampler(AbstractSeriesDownsampler):
-    """Downsampler method which uses the passed aggregation func.
+class FuncAggregator(AbstractSeriesAggregator):
+    """Aggregator instance which uses the passed aggregation func.
 
     Note
     ----
@@ -97,7 +97,7 @@ class AggregationDownsampler(AbstractSeriesDownsampler):
         self.aggregation_func = aggregation_func
         super().__init__(interleave_gaps, supported_dtypes)
 
-    def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         if isinstance(s.index, pd.DatetimeIndex):
             t_start, t_end = s.index[:: len(s) - 1]
             rate = (t_end - t_start) / n_out

@@ -1,4 +1,4 @@
-"""AbstractSeriesDownsampler interface-class, subclassed by concrete downsamplers."""
+"""AbstractSeriesAggregator interface-class, subclassed by concrete aggregators."""
 
 __author__ = "Jonas Van Der Donckt"
 
@@ -9,7 +9,7 @@ from typing import List, Optional
 import pandas as pd
 
 
-class AbstractSeriesDownsampler(ABC):
+class AbstractSeriesAggregator(ABC):
     """"""
 
     def __init__(
@@ -18,7 +18,7 @@ class AbstractSeriesDownsampler(ABC):
         dtype_regex_list: List[str] = None,
         max_gap_detection_data_size: int = 25_000,
     ):
-        """Constructor of AbstractSeriesDownsampler.
+        """Constructor of AbstractSeriesAggregator.
 
         Parameters
         ----------
@@ -44,7 +44,7 @@ class AbstractSeriesDownsampler(ABC):
         super().__init__()
 
     @abstractmethod
-    def _downsample(self, s: pd.Series, n_out: int) -> pd.Series:
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         pass
 
     def _supports_dtype(self, s: pd.Series):
@@ -79,20 +79,20 @@ class AbstractSeriesDownsampler(ABC):
                 return df_res_gap
         return None
 
-    def downsample(self, s: pd.Series, n_out: int) -> pd.Series:
-        """Downsample the given input series to the given n_out samples.
+    def aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
+        """Aggregate (downsample) the given input series to the given n_out samples.
 
         Parameters
         ----------
         s: pd.Series
-            The series that has to be downsampled.
+            The series that has to be aggregated.
         n_out: int
             The number of samples that the downsampled series should contain.
 
         Returns
         -------
         pd.Series
-            The downsampled series.
+            The aggregated series.
 
         """
         # base case: the passed series is empty
@@ -113,11 +113,11 @@ class AbstractSeriesDownsampler(ABC):
             gaps = self._get_gap_df(s)
 
         if len(s) > n_out:
-            s = self._downsample(s, n_out=n_out)
+            s = self._aggregate(s, n_out=n_out)
 
         if self.interleave_gaps and raw_slice_size >= self.max_gap_data_size:
             # if the raw-data slice is too large -> gaps are detected on the
-            # downsampled data
+            # aggregated data
             gaps = self._get_gap_df(s)
 
         if gaps is not None:

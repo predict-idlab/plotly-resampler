@@ -7,5 +7,5 @@ other downsample methods.
 __author__ = 'Jonas Van Der Donckt'
 
 
-from .downsampling_interface import AbstractSeriesDownsampler
-from .downsamplers import LTTB, EveryNthPoint, AggregationDownsampler
+from .aggregation_interface import AbstractSeriesAggregator
+from .aggregators import LTTB, EveryNthPoint, FuncAggregator

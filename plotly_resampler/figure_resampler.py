@@ -26,7 +26,7 @@ from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
-from .downsamplers import AbstractSeriesDownsampler, LTTB
+from .aggregation import AbstractSeriesAggregator, LTTB
 from .utils import round_td_str, round_number_str
 
 
@@ -38,7 +38,7 @@ class FigureResampler(go.Figure):
         figure: go.Figure = go.Figure(),
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
+        default_downsampler: AbstractSeriesAggregator = LTTB(interleave_gaps=True),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -213,8 +213,8 @@ class FigureResampler(go.Figure):
                 return trace
 
             # Downsample the data and store it in the trace-fields
-            downsampler: AbstractSeriesDownsampler = hf_trace_data["downsampler"]
-            s_res: pd.Series = downsampler.downsample(
+            downsampler: AbstractSeriesAggregator = hf_trace_data["downsampler"]
+            s_res: pd.Series = downsampler.aggregate(
                 hf_series, hf_trace_data["max_n_samples"]
             )
             trace["x"] = s_res.index
@@ -421,7 +421,7 @@ class FigureResampler(go.Figure):
         self,
         trace: Union[BaseTraceType, dict],
         max_n_samples: int = None,
-        downsampler: AbstractSeriesDownsampler = None,
+        downsampler: AbstractSeriesAggregator = None,
         limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
@@ -927,12 +927,13 @@ class FigureResampler(go.Figure):
             # If figure height is specified -> re-use is for inline dash app height
             kwargs["height"] = self.layout.height + 18
 
-        app.run_server(mode=mode, **kwargs)
-
         # store the app information, so it can be killed
         self._app = app
         self._host = kwargs["host"] if "host" in kwargs else "127.0.0.1"
         self._port = kwargs["port"] if "port" in kwargs else "8050"
+
+        app.run_server(mode=mode, **kwargs)
+
 
     def stop_server(self):
         """Stop the running dash-app.
