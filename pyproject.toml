@@ -24,7 +24,6 @@ numpy = "^1.21.2"
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
 black = {version = "^21.11b1", allow-prereleases = true}
-pdoc3 = "^0.10.0"
 selenium = "^4.1.0"
 pytest-selenium = "^2.0.1"
 webdriver-manager = "^3.5.2"
