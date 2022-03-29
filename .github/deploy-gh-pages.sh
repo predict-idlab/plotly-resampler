@@ -13,6 +13,7 @@ fi
 head=$(git rev-parse HEAD)
 
 git clone -b gh-pages "https://kernc:$GH_PASSWORD@github.com/$GITHUB_REPOSITORY.git" gh-pages
+rm -rf gh-pages/docs
 mkdir -p gh-pages/docs/
 cp -R docs/plotly_resampler/* gh-pages/docs/
 cd gh-pages
