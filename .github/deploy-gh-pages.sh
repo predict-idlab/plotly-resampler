@@ -17,6 +17,7 @@ rm -rf gh-pages/docs
 mkdir -p gh-pages/docs/
 cp -R docs/plotly_resampler/* gh-pages/docs/
 cd gh-pages
+gir rm docs/*
 git add *
 if git diff --staged --quiet; then
   echo "$0: No changes to commit."
