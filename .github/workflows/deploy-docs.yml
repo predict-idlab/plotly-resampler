@@ -20,12 +20,12 @@ jobs:
     - run: sudo apt-get install python3-sphinx 
     - name: Install poetry
       uses: Gr1N/setup-poetry@v4
-#     - name: Cache poetry
-#       id: cached-poetry-dependencies
-#       uses: actions/cache@v2
-#       with:
-#         path: ~/.cache/pypoetry/virtualenvs
-#         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.8
+    - name: Cache poetry
+      id: cached-poetry-dependencies
+      uses: actions/cache@v2
+      with:
+        path: ~/.cache/pypoetry/virtualenvs
+        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.8
     - run: poetry --version
     - name: Install dependencies
       run: poetry install
@@ -33,7 +33,7 @@ jobs:
 #      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
     
     - name: Build docs
-      run:  rm -rf docs/plotly_resampler && cd docs/sphinx && sphinx-autogen -o _autosummary *.rst && make clean html && mv -f _build/html ../plotly_resampler && rm -rf _build _autosummary && cd ../../
+      run:  rm -rf docs/plotly_resampler && cd docs/sphinx && poetry run sphinx-autogen -o _autosummary *.rst && poetry run make clean html && mv -f _build/html ../plotly_resampler && rm -rf _build _autosummary && cd ../../
     - name: Deploy docs
       env:
         GH_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
