@@ -42,10 +42,15 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 ## Usage
 
 To **add dynamic resampling to your plotly Figure**, you should;
-1. wrap the constructor of your plotly Figure with `FigureResampler`
+1. wrap the plotly Figure with `FigureResampler`
 2. call `.show_dash()` on the Figure
 
-(OPTIONAL) add the trace data as `hf_x` and `hf_y` (for faster initial loading)
+> **Tip** 💡:  
+> For significant faster initial loading of the Figure, we advise to wrap the constructor of the plotly Figure with `FigureResampler` and add the trace data as `hf_x` and `hf_y`
+
+> **Note**:  
+> Any plotly Figure can be wrapped with FigureResampler! 🎉  
+> But, (obviously) only the scatter traces will be resampled.
 
 ### Minimal example
 
@@ -65,10 +70,10 @@ fig.show_dash(mode='inline')
 ### Features
 
 * **Convenient** to use:
-  * just add the `FigureResampler` decorator around a plotly Figure constructor and call `.show_dash()`
-  * allows all other ploty figure construction flexibility to be used!
+  * just add the `FigureResampler` decorator around a plotly Figure and call `.show_dash()`
+  * allows all other plotly figure construction flexibility to be used!
 * **Environment-independent** 
-  * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, as application (on a server)
+  * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, Google Colab, and even as application (on a server)
 * Interface for **various downsampling algorithms**:
   * ability to define your preferred sequence aggregation method
 

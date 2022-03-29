@@ -29,9 +29,9 @@ class LTTB(AbstractSeriesAggregator):
       these codes are the indices of the category array.
     * To aggregate category data with LTTB, your ``pd.Series`` must be of dtype
       'category'. |br|
-      **Tip**: ff there is an order in your categories, order them that way, LTTB
-      uses the ordered category codes values (se bullet above) to calculate distances
-      and make aggregation decisions.
+      **Tip**: if there is an order in your categories, order them that way, LTTB uses
+      the ordered category codes values (se bullet above) to calculate distances and
+      make aggregation decisions.
       .. code::
         >>> s = pd.Series(["a", "b", "c", "a"])
         >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)

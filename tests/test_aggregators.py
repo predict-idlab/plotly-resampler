@@ -179,7 +179,7 @@ def test_lttb_invalid_input_data():
 # TODO - also tests for time series, time-series with gaps
 
 # ------------------------------- AggregationDownsampler -------------------------------
-def test_func_aggrator_float_time_data(float_series):
+def test_func_aggregator_float_time_data(float_series):
     # TIME indexed data -> resampled output should be same size as n_out
     float_series.index = pd.date_range("1/1/2020", periods=len(float_series), freq="1s")
     for n in np.random.randint(100, len(float_series), 3):

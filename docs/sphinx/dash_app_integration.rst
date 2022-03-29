@@ -60,17 +60,17 @@ When you add a :class:`FigureResampler <plotly_resampler.figure_resampler.Figure
 
 Limitations
 -----------
-plotly_resampler relies on ``TraceUpdater`` to ensure that the *updateData* is sent
+``plotly_resampler`` relies on `TraceUpdater <https://github.com/predict-idlab/trace-updater>`_ to ensure that the *updateData* is sent
 efficiently to the front-end.
 
 To enable dynamic-graph-construction, plotly-resampler supports
 `pattern matching callbacks <https://dash.plotly.com/pattern-matching-callbacks>`_.
 This could only be achieved by performing partial id matching on the graph-div ID within
-the TraceUpdater component. This causes the following:
+the ``TraceUpdater`` component. This causes the following:
 
 .. attention::
 
-    TraceUpdater will determine the html-graph-div by performing **partial
+    ``TraceUpdater`` will determine the html-graph-div by performing **partial
     matching on the "id" property** (using `gdID`) of all divs with
     classname=\"dash-graph\". |br|
     So if multiple same graph-div IDs are used, or one graph-div-ID is a
