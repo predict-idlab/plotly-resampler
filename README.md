@@ -21,7 +21,7 @@
 
 <p align="center">
     <a href="#readme">
-        <img alt="example demo" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/basic_example.gif" width=95%>
+        <img alt="example demo" src="https://github.com/predict-idlab/plotly-resampler/blob/main/docs/sphinx/_static/basic_example.gif" width=95%>
     </a>
 </p>
 
@@ -45,12 +45,12 @@ To **add dynamic resampling to your plotly Figure**, you should;
 1. wrap the plotly Figure with `FigureResampler`
 2. call `.show_dash()` on the Figure
 
-> **Tip** 💡:  
-> For significant faster initial loading of the Figure, we advise to wrap the constructor of the plotly Figure with `FigureResampler` and add the trace data as `hf_x` and `hf_y`
-
 > **Note**:  
 > Any plotly Figure can be wrapped with FigureResampler! 🎉  
 > But, (obviously) only the scatter traces will be resampled.
+
+> **Tip** 💡:  
+> For significant faster initial loading of the Figure, we advise to wrap the constructor of the plotly Figure with `FigureResampler` and add the trace data as `hf_x` and `hf_y`
 
 ### Minimal example
 
