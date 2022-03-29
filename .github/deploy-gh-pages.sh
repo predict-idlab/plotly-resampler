@@ -18,7 +18,7 @@ mkdir -p gh-pages/docs/
 cp -R docs/plotly_resampler/* gh-pages/docs/
 cd gh-pages
 touch docs/.nojekyll
-git rm docs/*
+git rm -r docs/*
 git add *
 if git diff --staged --quiet; then
   echo "$0: No changes to commit."
