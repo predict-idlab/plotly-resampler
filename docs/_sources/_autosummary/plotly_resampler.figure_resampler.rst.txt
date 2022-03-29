@@ -1,0 +1,29 @@
+plotly\_resampler.figure\_resampler
+===================================
+
+.. automodule:: plotly_resampler.figure_resampler
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      FigureResampler
+   
+   
+
+   
+   
+   
+
+
+

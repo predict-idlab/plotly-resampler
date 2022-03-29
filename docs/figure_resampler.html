@@ -1,0 +1,461 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>FigureResampler &#8212; plotly-resampler &#34;0.3.0&#34; documentation</title>
+    
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
+    
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/icon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+
+<a class="navbar-brand" href="index.html">
+  <img src="_static/logo.png" class="logo" alt="logo">
+</a>
+
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="getting_started.html">
+  Getting started 🚀
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="dash_app_integration.html">
+  Integration with a dash app 🤝
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="api_reference.html">
+  API reference 📖
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <div class="col-12 col-md-1 col-xl-2 bd-sidebar no-sidebar"></div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-11 col-xl-8 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="module-plotly_resampler.figure_resampler">
+<span id="figureresampler"></span><h1>FigureResampler<a class="headerlink" href="#module-plotly_resampler.figure_resampler" title="Permalink to this headline">¶</a></h1>
+<p>Wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> class which allows bookkeeping and
+back-end based resampling of high-frequency sequential data.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The term <cite>high-frequency</cite> actually refers very large amounts of sequential data.</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=Figure({</span>&#160;&#160;&#160;&#160; <span class="pre">'data':</span> <span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'layout':</span> <span class="pre">{'template':</span> <span class="pre">'...'}</span> <span class="pre">})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.LTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figure.Figure</span></code></p>
+<p>Instantiate a resampling data mirror.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figure</strong> (<em>go.Figure</em>) – The figure that will be decorated. Can be either an empty figure
+(e.g., <code class="docutils literal notranslate"><span class="pre">go.Figure()</span></code> or <code class="docutils literal notranslate"><span class="pre">make_subplots()</span></code>) or an existing figure.</p></li>
+<li><p><strong>convert_existing_traces</strong> (<em>bool</em>) – A bool indicating whether the high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code>
+should be resampled, by default True. Hence, when set to False, the
+high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> will not be resampled.</p></li>
+<li><p><strong>default_n_shown_samples</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>The default number of samples that will be shown for each trace,
+by default 1000.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li><p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p></li>
+<li><p>If a trace withholds fewer datapoints than this parameter,
+the data will <em>not</em> be aggregated.</p></li>
+</ul>
+</div>
+</p></li>
+<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">LTTB</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
+</div>
+</p></li>
+<li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
+will be added to the trace its legend-name when a resampled version of the
+trace is shown. By default a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
+(no suffix is shown).</p></li>
+<li><p><strong>show_mean_aggregation_size</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the mean aggregation bin size will be added as a suffix to the trace
+its legend-name, by default True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether some verbose messages will be printed or not, by default False.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.add_trace">
+<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a trace to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trace</strong> (<em>BaseTraceType</em><em> or </em><em>dict</em>) – <p>Either:</p>
+<blockquote>
+<div><ul>
+<li><p>An instances of a trace class from the <code class="docutils literal notranslate"><span class="pre">plotly.graph_objects</span></code> (go)
+package (e.g., <code class="docutils literal notranslate"><span class="pre">go.Scatter</span></code>, <code class="docutils literal notranslate"><span class="pre">go.Bar</span></code>)</p></li>
+<li><p>or a dict where:</p>
+<ul>
+<li><p>The type property specifies the trace type (e.g. scatter, bar,
+area, etc.). If the dict has no ‘type’ property then scatter is
+assumed.</p></li>
+<li><p>All remaining properties are passed to the constructor
+of the specified trace type.</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>max_n_samples</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>The maximum number of samples that will be shown by the trace.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this variable is not set; <code class="docutils literal notranslate"><span class="pre">_global_n_shown_samples</span></code> will be used.</p>
+</div>
+</p></li>
+<li><p><strong>downsampler</strong> (<em>AbstractSeriesDownsampler</em><em>, </em><em>optional</em>) – <p>The abstract series downsampler method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_downsampler</span></code> will be used.</p>
+</div>
+</p></li>
+<li><p><strong>limit_to_view</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set to True the trace’s datapoints will be cut to the corresponding
+front-end view, even if the total number of samples is lower than
+<code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code>, By default False.</p></li>
+<li><p><strong>hf_x</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency series positions, can be either a time-series or
+an increasing, numerical index. If set, this has priority over the trace its
+data.</p></li>
+<li><p><strong>hf_y</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency values. If set, this has priority over the
+trace its data.</p></li>
+<li><p><strong>hf_hovertext</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency hovertext. If set, this has priority over the
+trace its <code class="docutils literal notranslate"><span class="pre">text</span></code> or <code class="docutils literal notranslate"><span class="pre">hovertext</span></code> argument.</p></li>
+<li><p><strong>**trace_kwargs</strong> (<em>dict</em>) – <p>Additional trace related keyword arguments.
+e.g.: row=.., col=…, secondary_y=…</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace">Figure.add_trace</a> docs.</p>
+</div>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The Figure on which <code class="docutils literal notranslate"><span class="pre">add_trace</span></code> was called on; i.e. self.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>BaseFigure</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Constructing traces with <strong>very large data amounts</strong> really takes some time.
+To speed this up; use this <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method and</p>
+<ol class="arabic simple">
+<li><p>Create a trace with no data (empty lists)</p></li>
+<li><p>pass the high frequency data to this method using the <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> and <code class="docutils literal notranslate"><span class="pre">hf_y</span></code>
+parameters.</p></li>
+</ol>
+<p>See the example below:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">plotly.subplots</span> <span class="kn">import</span> <span class="n">make_subplots</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span>  <span class="c1"># a high-frequency series, with more than 1e7 samples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scattergl</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[],</span> <span class="n">y</span><span class="o">=</span><span class="p">[],</span> <span class="o">...</span><span class="p">),</span> <span class="n">hf_x</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">hf_y</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<ul class="simple">
+<li><p>explain why adding x and y to a trace is so slow</p></li>
+<li><p>check and simplify the example above</p></li>
+</ul>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<ul class="simple">
+<li><p>If you <strong>do not want to downsample</strong> your data, set <code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code> to the
+the number of datapoints of your trace!</p></li>
+</ul>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values in either <code class="docutils literal notranslate"><span class="pre">hf_y</span></code> or <code class="docutils literal notranslate"><span class="pre">trace.y</span></code> will be omitted! We do
+not allow <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values in <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> or <code class="docutils literal notranslate"><span class="pre">trace.x</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hf_x</span></code>, <code class="docutils literal notranslate"><span class="pre">hf_y</span></code>, and <code class="docutils literal notranslate"><span class="pre">hf_hovertext</span></code> are useful when you deal with large
+amounts of data (as it can increase the speed of this add_trace() method with
+~30%). These arguments have priority over the trace’s data and (hover)text
+attributes.</p></li>
+<li><p>Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+the the automatic-zooming (y-scaling) as these will not be stored in the
+back-end and thus not be scaled to the view.
+To circumvent this, the <code class="docutils literal notranslate"><span class="pre">limit_to_view</span></code> argument can be set, resulting in
+also storing the low-frequency series in the back-end.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace the current figure layout with the passed figure object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figure</strong> (<em>go.Figure</em>) – The figure object which will replace the existing figure.</p></li>
+<li><p><strong>convert_existing_traces</strong> (<em>bool</em><em>, </em><em>Optional</em>) – A bool indicating whether the traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> should be
+resampled, by default True.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.construct_update_data">
+<span class="sig-name descname"><span class="pre">construct_update_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relayout_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.construct_update_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.construct_update_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the to-be-updated front-end data, based on the layout change.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This method is tightly coupled with Dash app callbacks. It takes the front-end
+figure its <code class="docutils literal notranslate"><span class="pre">relayoutData</span></code> as input and returns the data which needs to be
+sent tot the <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> its <code class="docutils literal notranslate"><span class="pre">updateData</span></code> property for that corresponding
+graph.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>relayout_data</strong> (<em>dict</em>) – A dict containing the <code class="docutils literal notranslate"><span class="pre">relayout</span></code>-data (a.k.a. changed layout data) of
+the corresponding front-end graph.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of dicts, where each dict-item is a representation of a trace its
+<em>data</em> properties which are affected by the front-end layout change. <a href="#id2"><span class="problematic" id="id3">|br|</span></a>
+In other words, only traces which need to be updated will be sent to the
+front-end. Additionally, each trace-dict withholds the <em>index</em> of its
+corresponding position in the <code class="docutils literal notranslate"><span class="pre">figure[data]</span></code> array with the <code class="docutils literal notranslate"><span class="pre">index</span></code>-key
+in each dict.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">
+<span class="sig-name descname"><span class="pre">register_update_graph_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_updater_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.register_update_graph_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.construct_update_data" title="plotly_resampler.figure_resampler.FigureResampler.construct_update_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">construct_update_data()</span></code></a> method as callback function to
+the passed dash-app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<em>Union</em><em>[</em><em>dash.Dash</em><em>, </em><em>JupyterDash</em><em>]</em>) – The app in which the callback will be registered.</p></li>
+<li><p><strong>graph_id</strong> (<em>str</em>) – The id of the <code class="docutils literal notranslate"><span class="pre">dcc.Graph</span></code>-component which withholds the to-be resampled
+Figure.</p></li>
+<li><p><strong>trace_updater_id</strong> (<em>str</em>) – The id of the <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> component. This component is leveraged by
+<code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code> to efficiently POST the to-be-updated data to the
+front-end.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.show_dash">
+<span class="sig-name descname"><span class="pre">show_dash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.show_dash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the <code class="xref py py-func docutils literal notranslate"><span class="pre">update_graph()</span></code> callback &amp; show the figure in a dash app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Display mode. One of:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;external&quot;</span></code>: The URL of the app will be displayed in the notebook
+output cell. Clicking this URL will open the app in the default
+web browser.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;inline&quot;</span></code>: The app will be displayed inline in the notebook output
+cell in an iframe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;jupyterlab&quot;</span></code>: The app will be displayed in a dedicated tab in the
+JupyterLab interface. Requires JupyterLab and the <code class="docutils literal notranslate"><span class="pre">jupyterlab-dash</span></code>
+extension.</p></li>
+</ul>
+</div></blockquote>
+<p>By default None, which will result in the same behavior as <code class="docutils literal notranslate"><span class="pre">&quot;external&quot;</span></code>.</p>
+</p></li>
+<li><p><strong>config</strong> (<em>dict</em><em>, </em><em>optional</em>) – The configuration options for displaying this figure, by default None.
+This <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter is the same as the dict that you would pass as
+<code class="docutils literal notranslate"><span class="pre">config</span></code> argument to the <cite>show</cite> method.
+See more <a class="reference external" href="https://plotly.com/python/configuration-options/">https://plotly.com/python/configuration-options/</a></p></li>
+<li><p><strong>graph_properties</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary of (keyword, value) for the properties that should be passed to
+the dcc.Graph, by default None.
+e.g.: {“style”: {“width”: “50%”}}
+Note: “config” is not allowed as key in this dict, as there is a distinct
+<code class="docutils literal notranslate"><span class="pre">config</span></code> parameter for this property in this method.
+See more <a class="reference external" href="https://dash.plotly.com/dash-core-components/graph">https://dash.plotly.com/dash-core-components/graph</a></p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional app.run_server() kwargs.
+e.g.: port</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.stop_server">
+<span class="sig-name descname"><span class="pre">stop_server</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.stop_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.stop_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the running dash-app.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This only works if the dash-app was started with <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">show_dash()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+</p>
+    </div>
+    
+  </div>
+</footer>
+  </body>
+</html>

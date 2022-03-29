@@ -1,0 +1,32 @@
+plotly\_resampler.aggregation
+=============================
+
+.. automodule:: plotly_resampler.aggregation
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   plotly_resampler.aggregation.aggregation_interface
+   plotly_resampler.aggregation.aggregators
+

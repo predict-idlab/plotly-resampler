@@ -1,0 +1,29 @@
+plotly\_resampler.aggregation.aggregation\_interface
+====================================================
+
+.. automodule:: plotly_resampler.aggregation.aggregation_interface
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AbstractSeriesAggregator
+   
+   
+
+   
+   
+   
+
+
+
