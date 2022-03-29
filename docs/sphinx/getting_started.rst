@@ -62,4 +62,5 @@ Important considerations & tips 🚨
 
 * When running the code on a server, you should forward the port of the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` method to your local machine.
 * In general, when using downsampling one should be aware of (possible) `aliasing <https://en.wikipedia.org/wiki/Aliasing>`_ effects. :raw-html:`<br>`
-  The :raw-html:`<b><a style="color:orange">[R]</a></b>` in the legend indicates when the corresponding trace is resampled (and thus possibly distorted).
+  The :raw-html:`<b><a style="color:orange">[R]</a></b>` in the legend indicates when the corresponding trace is resampled (and thus possibly distorted). :raw-html:`<br>`
+  The :raw-html:`<a style="color:orange"><b>~</b> <i>delta</i></a>` suffix in the legend represents the mean index delta for consecutive aggregated data points.

@@ -19,7 +19,7 @@ from ..aggregation.aggregation_interface import AbstractSeriesAggregator
 
 
 class LTTB(AbstractSeriesAggregator):
-    """Largest Triangle Three Bucket (LTTB) aggregation method.
+    """Largest Triangle Three Buckets (LTTB) aggregation method.
 
     Note
     ----
