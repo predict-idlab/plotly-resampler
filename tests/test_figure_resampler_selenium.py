@@ -71,7 +71,7 @@ def test_multiple_tz(driver, multiple_tz_figure):
         raise e
     finally:
         proc.terminate()
-    multiple_tz_figure.stop_server()
+        multiple_tz_figure.stop_server()
 
 
 def test_basic_example_gui(driver, example_figure):
