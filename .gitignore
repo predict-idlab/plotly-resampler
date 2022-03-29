@@ -2,6 +2,10 @@ venv*
 .cache_datasets/
 *.DS_Store
 
+# Sphinx documentation
+*_build/
+*_autosummary/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
