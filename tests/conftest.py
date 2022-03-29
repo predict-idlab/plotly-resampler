@@ -9,8 +9,7 @@ import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 
-from plotly_resampler import FigureResampler
-from plotly_resampler.downsamplers import LTTB, EveryNthPoint
+from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
 
 # hyperparameters
 _nb_samples = 10_000

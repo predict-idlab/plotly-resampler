@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-Wrapper around the plotly go.Figure class which allows bookkeeping and
+Wrapper around the plotly ``go.Figure`` class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.
 
-Notes
------
-* The term `high-frequency` actually refers very large amounts of data.
+Tip
+---
+The term `high-frequency` actually refers very large amounts of sequential data.
 
 """
 
@@ -14,6 +14,7 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
+import warnings
 from typing import List, Optional, Union, Iterable, Tuple, Dict
 from uuid import uuid4
 
@@ -25,7 +26,7 @@ from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
-from .downsamplers import AbstractSeriesDownsampler, LTTB
+from .aggregation import AbstractSeriesAggregator, LTTB
 from .utils import round_td_str, round_number_str
 
 
@@ -37,7 +38,7 @@ class FigureResampler(go.Figure):
         figure: go.Figure = go.Figure(),
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
+        default_downsampler: AbstractSeriesAggregator = LTTB(interleave_gaps=True),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -51,28 +52,30 @@ class FigureResampler(go.Figure):
         ----------
         figure: go.Figure
             The figure that will be decorated. Can be either an empty figure
-            (e.g., go.Figure() or make_subplots()) or an existing figure.
+            (e.g., ``go.Figure()`` or ``make_subplots()``) or an existing figure.
         convert_existing_traces: bool
-            A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the
-            passed `figure` will note be resampled.
+            A bool indicating whether the high-frequency traces of the passed ``figure``
+            should be resampled, by default True. Hence, when set to False, the
+            high-frequency traces of the passed ``figure`` will not be resampled.
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
+            .. note::
+                * This can be overridden within the :func:`add_trace` method.
+                * If a trace withholds fewer datapoints than this parameter,
+                  the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface,
-            by default `LTTB`.
-            This will be used as default downsampler.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
+            An instance which implements the AbstractSeriesDownsampler interface and
+            will be used as default downsampler, by default ``LTTB``. \n
+            .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
-            A tuple which contains the `prefix` and `suffix`, respectively, which
-            will be added to the trace its name when a resampled version of the trace
-            is shown, by default a bold, orange `[R]` is shown as prefix
+            A tuple which contains the ``prefix`` and ``suffix``, respectively, which
+            will be added to the trace its legend-name when a resampled version of the
+            trace is shown. By default a bold, orange ``[R]`` is shown as prefix
             (no suffix is shown).
         show_mean_aggregation_size: bool, optional
             Whether the mean aggregation bin size will be added as a suffix to the trace
-            its name, by default True.
+            its legend-name, by default True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
 
@@ -87,6 +90,10 @@ class FigureResampler(go.Figure):
 
         self._global_downsampler = default_downsampler
 
+        self._app: JupyterDash | None = None
+        self._port: int | None = None
+        self._host: str | None = None
+
         if convert_existing_traces:
             # call __init__ with the correct layout and set the `_grid_ref` of the
             # to-be-converted figure
@@ -100,12 +107,13 @@ class FigureResampler(go.Figure):
             super().__init__(figure)
 
     def _print(self, *values):
-        """Helper method for printing if `verbose` is set to True."""
+        """Helper method for printing if ``verbose`` is set to True."""
         if self._print_verbose:
             print(*values)
 
     def _query_hf_data(self, trace: dict) -> Optional[dict]:
-        """Query the internal `_hf_data` attribute and returns a match based on `uid`.
+        """Query the internal ``_hf_data`` attribute and returns a match based on
+        ``uid``.
 
         Parameters
         ----------
@@ -115,7 +123,7 @@ class FigureResampler(go.Figure):
         Returns
         -------
         Optional[dict]
-            The `hf_data`-trace dict if a match is found, else `None`.
+            The ``hf_data``-trace dict if a match is found, else ``None``.
 
         """
         uid = trace["uid"]
@@ -127,31 +135,33 @@ class FigureResampler(go.Figure):
             self._print(f"[W] trace with {trace_props} not found")
         return hf_trace_data
 
-    def check_update_trace_data(
+    def _check_update_trace_data(
         self,
         trace: dict,
         start=None,
         end=None,
     ) -> Optional[Union[dict, BaseTraceType]]:
-        """Check and updates the passed `trace`.
+        """Check and update the passed ``trace`` its data properties based on the
+        slice range.
 
         Note
         ----
         This is a pass by reference. The passed trace object will be updated and
-        returned if found in `hf_data`.
+        returned if found in ``hf_data``.
 
         Parameters
         ----------
         trace : BaseTraceType or dict
-             - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dicts where:
+             - An instances of a trace class from the ``plotly.graph_objects`` (go)
+                package (e.g, ``go.Scatter``, ``go.Bar``)
+             - or a dict where:
 
                   - The 'type' property specifies the trace type (e.g.
                     'scatter', 'bar', 'area', etc.). If the dict has no 'type'
                     property then 'scatter' is assumed.
                   - All remaining properties are passed to the constructor
                     of the specified trace type.
+
         start : Union[float, str], optional
             The start index for which we want resampled data to be updated to,
             by default None,
@@ -162,13 +172,13 @@ class FigureResampler(go.Figure):
         Returns
         -------
         Optional[Union[dict, BaseTraceType]]
-            If the matching hf_series is found in hf_dict, an (updated) trace will be
-            returned, otherwise None.
+            If the matching ``hf_series`` is found in ``hf_dict``, an (updated) trace
+            will be returned, otherwise None.
 
-        Notes
-        -----
-        * If `start` and `stop` are strings, they most likely represent time-strings
-        * `start` and `stop` will always be of the same type (float / time-string)
+        Note
+        ----
+        * If ``start`` and ``stop`` are strings, they most likely represent time-strings
+        * ``start`` and ``stop`` will always be of the same type (float / time-string)
            because their underlying axis is the same.
 
         """
@@ -203,8 +213,8 @@ class FigureResampler(go.Figure):
                 return trace
 
             # Downsample the data and store it in the trace-fields
-            downsampler: AbstractSeriesDownsampler = hf_trace_data["downsampler"]
-            s_res: pd.Series = downsampler.downsample(
+            downsampler: AbstractSeriesAggregator = hf_trace_data["downsampler"]
+            s_res: pd.Series = downsampler.aggregate(
                 hf_series, hf_trace_data["max_n_samples"]
             )
             trace["x"] = s_res.index
@@ -250,7 +260,7 @@ class FigureResampler(go.Figure):
             self._print("hf_data not found")
             return None
 
-    def check_update_figure_dict(
+    def _check_update_figure_dict(
         self,
         figure: dict,
         start: Optional[Union[float, str]] = None,
@@ -260,7 +270,9 @@ class FigureResampler(go.Figure):
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
-        This method will most likely be used within a `Dash` callback to resample the
+        hint
+        ----
+        This method will most likely be used within a ``Dash`` callback to resample the
         view, based on the configured number of parameters.
 
         Note
@@ -349,7 +361,7 @@ class FigureResampler(go.Figure):
 
             # If we managed to find and update the trace, it will return the trace
             # and thus not None.
-            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
+            updated_trace = self._check_update_trace_data(trace, start=start, end=stop)
             if updated_trace is not None:
                 updated_trace_indices.append(idx)
         return updated_trace_indices
@@ -360,11 +372,11 @@ class FigureResampler(go.Figure):
         t_start: Optional[pd.Timestamp] = None,
         t_stop: Optional[pd.Timestamp] = None,
     ) -> pd.Series:
-        """Slice the time-indexed `hf_series` for the passed pd.Timestamps.
+        """Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.
 
         Note
         ----
-        This returns a **view** of hf_series!
+        This returns a **view** of ``hf_series``!
 
         Parameters
         ----------
@@ -409,7 +421,7 @@ class FigureResampler(go.Figure):
         self,
         trace: Union[BaseTraceType, dict],
         max_n_samples: int = None,
-        downsampler: AbstractSeriesDownsampler = None,
+        downsampler: AbstractSeriesAggregator = None,
         limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
@@ -419,43 +431,15 @@ class FigureResampler(go.Figure):
     ):
         """Add a trace to the figure.
 
-        Note
-        ----
-        Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -> just create a trace with no
-        data (empty lists) and pass the high frequency data to this method,
-        using the `hf_x` and `hf_y` parameters. See the example below:
-        >>> from plotly.subplots import make_subplots
-        >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-        >>> fig = FigureResampler(go.Figure())
-        >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
-
-        TODO: explain why adding x and y to a trace is so slow
-
-        Notes
-        -----
-        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
-          to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
-          allow `NaN` values in `hf_x` or `trace.x`.
-        * `hf_x`, `hf_y`, and 'hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%).
-          <br>
-          **Note**: These arguments have priority over the trace's data and (hover)text
-          attributes.
-        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-          the the automatic-zooming (y-scaling) as these will not be stored in the
-          back-end and thus not be scaled to the view.<br>
-          To circumvent this, the `limit_to_view` argument can be set, resulting in also
-          storing the low-frequency series in the back-end.
-
         Parameters
         ----------
         trace : BaseTraceType or dict
-            Either:\n
-              - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dict where:\n
+            Either:
+
+              - An instances of a trace class from the ``plotly.graph_objects`` (go)
+                package (e.g., ``go.Scatter``, ``go.Bar``)
+              - or a dict where:
+
                 - The type property specifies the trace type (e.g. scatter, bar,
                   area, etc.). If the dict has no 'type' property then scatter is
                   assumed.
@@ -464,13 +448,15 @@ class FigureResampler(go.Figure):
         max_n_samples : int, optional
             The maximum number of samples that will be shown by the trace.\n
             .. note::
-                If this variable is not set; `_global_n_shown_samples` will be used.
+                If this variable is not set; ``_global_n_shown_samples`` will be used.
         downsampler: AbstractSeriesDownsampler, optional
-            The abstract series downsampler method
+            The abstract series downsampler method.\n
+            .. note::
+                If this variable is not set, ``_global_downsampler`` will be used.
         limit_to_view: boolean, optional
             If set to True the trace's datapoints will be cut to the corresponding
             front-end view, even if the total number of samples is lower than
-            `max_n_samples`, By default False.
+            ``max_n_samples``, By default False.
         hf_x: Iterable, optional
             The original high frequency series positions, can be either a time-series or
             an increasing, numerical index. If set, this has priority over the trace its
@@ -480,16 +466,57 @@ class FigureResampler(go.Figure):
             trace its data.
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
-            `text` or `hovertext` argument.
+            trace its ``text`` or ``hovertext`` argument.
         **trace_kwargs: dict
-            Additional trace related keyword arguments.<br>
-            e.g.: row=.., col=..., secondary_y=...\n
-            * Also check out [Figure.add_trace() docs](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces)
+            Additional trace related keyword arguments.
+            e.g.: row=.., col=..., secondary_y=...
+
+            .. seealso::
+                `Figure.add_trace <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace>`_ docs.
 
         Returns
         -------
         BaseFigure
-            The Figure on which `add_trace` was called on; i.e. self.
+            The Figure on which ``add_trace`` was called on; i.e. self.
+
+        Note
+        ----
+        Constructing traces with **very large data amounts** really takes some time.
+        To speed this up; use this :func:`add_trace` method and
+
+        1. Create a trace with no data (empty lists)
+        2. pass the high frequency data to this method using the ``hf_x`` and ``hf_y``
+           parameters.
+
+        See the example below:
+
+            >>> from plotly.subplots import make_subplots
+            >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
+            >>> fig = FigureResampler(go.Figure())
+            >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
+
+        .. todo::
+            * explain why adding x and y to a trace is so slow
+            * check and simplify the example above
+
+        Tip
+        ---
+        * If you **do not want to downsample** your data, set ``max_n_samples`` to the
+          the number of datapoints of your trace!
+
+        Attention
+        ---------
+        * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do
+          not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
+        * ``hf_x``, ``hf_y``, and ``hf_hovertext`` are useful when you deal with large
+          amounts of data (as it can increase the speed of this add_trace() method with
+          ~30%). These arguments have priority over the trace's data and (hover)text
+          attributes.
+        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+          the the automatic-zooming (y-scaling) as these will not be stored in the
+          back-end and thus not be scaled to the view.
+          To circumvent this, the ``limit_to_view`` argument can be set, resulting in
+          also storing the low-frequency series in the back-end.
 
         """
         if max_n_samples is None:
@@ -639,7 +666,7 @@ class FigureResampler(go.Figure):
                 # If all the raw data needs to be sent to the javascript, and the trace
                 # is high-frequency, this would take significant time!
                 # Hence, you first downsample the trace.
-                trace = self.check_update_trace_data(trace)
+                trace = self._check_update_trace_data(trace)
                 assert trace is not None
                 return super().add_trace(trace=trace, **trace_kwargs)
             else:
@@ -681,7 +708,7 @@ class FigureResampler(go.Figure):
         figure: go.Figure
             The figure object which will replace the existing figure.
         convert_existing_traces: bool, Optional
-            A bool indicating whether the traces of the passed `figure` should be
+            A bool indicating whether the traces of the passed ``figure`` should be
             resampled, by default True.
 
         """
@@ -694,37 +721,39 @@ class FigureResampler(go.Figure):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
-    def _update_graph(self, changed_layout: dict) -> List[dict]:
+    def construct_update_data(self, relayout_data: dict) -> List[dict]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
-        .. note::
-            This method is tightly coupled with Dash app callbacks.
-            It takes the front-end figure its ``relayoutData`` as input and
-            returns the data which needs to be sent tot the ``TraceUpdater`` its
-            ``updateData`` property for that corresponding graph.
+        Attention
+        ---------
+        This method is tightly coupled with Dash app callbacks. It takes the front-end
+        figure its ``relayoutData`` as input and returns the data which needs to be
+        sent tot the ``TraceUpdater`` its ``updateData`` property for that corresponding
+        graph.
 
         Parameters
         ----------
-        changed_layout: dict
-            A dict containing the changed layout of the corresponding front-end graph
+        relayout_data: dict
+            A dict containing the ``relayout``-data (a.k.a. changed layout data) of
+            the corresponding front-end graph.
 
         Returns
         -------
         List[dict]:
             A list of dicts, where each dict-item is a representation of a trace its
-            _data_ properties which are affected by the front-end layout change.
+            *data* properties which are affected by the front-end layout change. |br|
             In other words, only traces which need to be updated will be sent to the
-            front-end. Additionally, each trace-dict withholds the _index_ of its
-            corresponding position in the `figure[data]` array with the ``index``-key
+            front-end. Additionally, each trace-dict withholds the *index* of its
+            corresponding position in the ``figure[data]`` array with the ``index``-key
             in each dict.
 
         """
         current_graph = self.to_dict()
         updated_trace_indices, cl_k = [], []
-        if changed_layout:
-            self._print("-" * 100 + "\n", "changed layout", changed_layout)
+        if relayout_data:
+            self._print("-" * 100 + "\n", "changed layout", relayout_data)
 
-            cl_k = changed_layout.keys()
+            cl_k = relayout_data.keys()
 
             # ------------------ HF DATA aggregation ---------------------
             # 1. Base case - there is a x-range specified in the front-end
@@ -736,10 +765,10 @@ class FigureResampler(go.Figure):
                     xaxis = t_start_key.split(".")[0]
                     assert xaxis == t_stop_key.split(".")[0]
                     # -> we want to copy the layout on the back-end
-                    updated_trace_indices = self.check_update_figure_dict(
+                    updated_trace_indices = self._check_update_figure_dict(
                         current_graph,
-                        start=changed_layout[t_start_key],
-                        stop=changed_layout[t_stop_key],
+                        start=relayout_data[t_start_key],
+                        stop=relayout_data[t_stop_key],
                         xaxis_filter=xaxis,
                         updated_trace_indices=updated_trace_indices,
                     )
@@ -752,9 +781,9 @@ class FigureResampler(go.Figure):
             # 2.1 Reset-axes -> autorange & reset to the global data view
             if len(autorange_matches) and len(spike_matches):
                 for autorange_key in autorange_matches:
-                    if changed_layout[autorange_key]:
+                    if relayout_data[autorange_key]:
                         xaxis = autorange_key.split(".")[0]
-                        updated_trace_indices = self.check_update_figure_dict(
+                        updated_trace_indices = self._check_update_figure_dict(
                             current_graph,
                             xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
@@ -802,18 +831,19 @@ class FigureResampler(go.Figure):
     def register_update_graph_callback(
         self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
     ):
-        """Register the `update_graph` callback to the passed dash-app.
+        """Register the :func:`construct_update_data` method as callback function to
+        the passed dash-app.
 
         Parameters
         ----------
         app: Union[dash.Dash, JupyterDash]
             The app in which the callback will be registered.
         graph_id:
-            The id of the `dcc.Graph`-component which withholds the to-be resampled
+            The id of the ``dcc.Graph``-component which withholds the to-be resampled
             Figure.
         trace_updater_id
-            The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the
+            The id of the ``TraceUpdater`` component. This component is leveraged by
+            ``FigureResampler`` to efficiently POST the to-be-updated data to the
             front-end.
 
         """
@@ -821,11 +851,11 @@ class FigureResampler(go.Figure):
             dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
-        )(self._update_graph)
+        )(self.construct_update_data)
 
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
-        """Returns all the items in `strings` which regex.match(es) `regex`."""
+        """Returns all the items in ``strings`` which regex.match(es) ``regex``."""
         matches = []
         for item in strings:
             m = regex.match(item)
@@ -840,35 +870,35 @@ class FigureResampler(go.Figure):
         graph_properties: dict | None = None,
         **kwargs,
     ):
-        """Registers the `update_graph` callback & show the figure in a dash app.
+        """Registers the :func:`update_graph` callback & show the figure in a dash app.
 
         Parameters
         ----------
         mode: str, optional
-            Display mode. One of: \n
-            * ``"external"``: The URL of the app will be displayed in the notebook
+            Display mode. One of:\n
+              * ``"external"``: The URL of the app will be displayed in the notebook
                 output cell. Clicking this URL will open the app in the default
-                web browser.<br>
-            * ``"inline"``: The app will be displayed inline in the notebook output cell
-                in an iframe.<br>
-            * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
-                JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
-                extension.<br>
+                web browser.
+              * ``"inline"``: The app will be displayed inline in the notebook output
+                cell in an iframe.
+              * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
+                JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
+                extension.
             By default None, which will result in the same behavior as ``"external"``.
         config: dict, optional
             The configuration options for displaying this figure, by default None.
-            This `config` parameter is the same as the dict that you would pass as
-            `config` argument to the `.show()` method.
+            This ``config`` parameter is the same as the dict that you would pass as
+            ``config`` argument to the `show` method.
             See more https://plotly.com/python/configuration-options/
         graph_properties: dict, optional
             Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
             e.g.: {"style": {"width": "50%"}}
             Note: "config" is not allowed as key in this dict, as there is a distinct
-            `config` parameter for this property in this method.
+            ``config`` parameter for this property in this method.
             See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
-            Additional app.run_server() kwargs.<br>/
+            Additional app.run_server() kwargs.
             e.g.: port
 
         """
@@ -897,4 +927,25 @@ class FigureResampler(go.Figure):
             # If figure height is specified -> re-use is for inline dash app height
             kwargs["height"] = self.layout.height + 18
 
+        # store the app information, so it can be killed
+        self._app = app
+        self._host = kwargs["host"] if "host" in kwargs else "127.0.0.1"
+        self._port = kwargs["port"] if "port" in kwargs else "8050"
+
         app.run_server(mode=mode, **kwargs)
+
+
+    def stop_server(self):
+        """Stop the running dash-app.
+
+        .. attention::
+            This only works if the dash-app was started with :func:`show_dash`.
+        """
+        if self._app is not None:
+            self._app._terminate_server_for_port(self._host, self._port)
+        else:
+            warnings.warn(
+                "Could not stop the server, either the \n"
+                + "\t- 'show-dash' method was not called, or \n"
+                + "\t- the dash-server wasn't started with 'show_dash'"
+            )
