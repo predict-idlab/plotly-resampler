@@ -20,12 +20,12 @@ jobs:
     - run: sudo apt-get install python3-sphinx 
     - name: Install poetry
       uses: Gr1N/setup-poetry@v4
-    - name: Cache poetry
-      id: cached-poetry-dependencies
-      uses: actions/cache@v2
-      with:
-        path: ~/.cache/pypoetry/virtualenvs
-        key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.8
+#     - name: Cache poetry
+#       id: cached-poetry-dependencies
+#       uses: actions/cache@v2
+#       with:
+#         path: ~/.cache/pypoetry/virtualenvs
+#         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.8
     - run: poetry --version
     - name: Install dependencies
       run: poetry install
