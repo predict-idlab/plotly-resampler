@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Welcome to plotly-resampler’s documentation! &#8212; plotly-resampler &#34;0.3.0&#34; documentation</title>
+    <title>API reference 📖 &#8212; plotly-resampler &#34;0.3.0&#34; documentation</title>
     
     <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -35,7 +35,8 @@
     <link rel="shortcut icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Getting started 🚀" href="getting_started.html" />
+    <link rel="next" title="plotly_resampler.figure_resampler" href="_autosummary/plotly_resampler.figure_resampler.html" />
+    <link rel="prev" title="Integration with a dash app 🤝" href="dash_app_integration.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -54,7 +55,7 @@
     
     
 
-<a class="navbar-brand" href="#">
+<a class="navbar-brand" href="index.html">
   <img src="_static/logo.png" class="logo" alt="logo">
 </a>
 
@@ -84,8 +85,8 @@
  </a>
 </li>
 
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="api_reference.html">
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
   API reference 📖
  </a>
 </li>
@@ -124,7 +125,36 @@
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
   <div class="bd-toc-item active">
-    
+    <ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="_autosummary/plotly_resampler.figure_resampler.html">
+   plotly_resampler.figure_resampler
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="_autosummary/plotly_resampler.aggregation.html">
+   plotly_resampler.aggregation
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_autosummary/plotly_resampler.aggregation.aggregation_interface.html">
+     plotly_resampler.aggregation.aggregation_interface
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="_autosummary/plotly_resampler.aggregation.aggregators.html">
+     plotly_resampler.aggregation.aggregators
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
   </div>
 </nav>
               </div>
@@ -140,24 +170,9 @@
               
               <div class="toc-item">
                 
-<div class="tocsection onthispage pt-5 pb-3">
-    <i class="fas fa-list"></i> On this page
-</div>
 
 <nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#">
-   Welcome to plotly-resampler’s documentation!
-  </a>
- </li>
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#indices-and-tables">
-   Indices and tables
-  </a>
- </li>
-</ul>
-
+    
 </nav>
               </div>
               
@@ -177,54 +192,22 @@
               
               <div>
                 
-  <section id="welcome-to-plotly-resampler-s-documentation">
-<h1>Welcome to plotly-resampler’s documentation!<a class="headerlink" href="#welcome-to-plotly-resampler-s-documentation" title="Permalink to this headline">¶</a></h1>
-<p>This is the documentation of <a class="reference external" href="https://github.com/predict-idlab/plotly-resampler">plotly-resampler</a>; a wrapper for plotly Figures to <strong>visualize large time-series</strong> data.</p>
-<img alt="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/basic_example.gif" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/basic_example.gif" />
-<embed>
-  <div class="container" style="text-align: center">
-  <br>
-        <a title="plotly_resampler on PyPI" href="https://pypi.org/project/plotly-resampler/" style="margin-right:.8em; background-color: #48c774; border-color: transparent; color: #fff; padding: 0.75rem; border-radius: 4px;"
-                    itemprop="downloadUrl" data-ga-event-category="PyPI">
-                    <span class="icon"><i class="fa fa-download"></i></span>
-                    <span><b>PyPI</b></span>
-                 </a> &nbsp;
-                 <a title="plotly_resampler on GitHub" href="https://github.com/predict-idlab/plotly-resampler" style="color: #4a4a4a; background-color: #f5f5f5 !important; font-size: 1em; font-weight: 400; line-height: 1.5; border-radius: 4px; padding: 0.75rem; "
-                    data-ga-event-category="GitHub">
-                    <span class="icon"><i class="fab fa-github"></i></span>
-                    <span><b>GitHub</b></span>
-                 </a>
-  </div>
-  <br>
-</embed><div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting started 🚀</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting_started.html#installation">Installation ⚙️</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started.html#how-to-use">How to use 📈</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started.html#working-example">Working example ✅</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting_started.html#important-considerations-tips">Important considerations &amp; tips 🚨</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="dash_app_integration.html">Integration with a dash app 🤝</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="dash_app_integration.html#registering-callbacks-in-a-new-dash-app">Registering callbacks in a new dash app</a></li>
-<li class="toctree-l2"><a class="reference internal" href="dash_app_integration.html#limitations">Limitations</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API reference 📖</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="_autosummary/plotly_resampler.figure_resampler.html">plotly_resampler.figure_resampler</a></li>
-<li class="toctree-l2"><a class="reference internal" href="_autosummary/plotly_resampler.aggregation.html">plotly_resampler.aggregation</a></li>
-</ul>
-</li>
-</ul>
-</div>
-</section>
-<section id="indices-and-tables">
-<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
-<ul class="simple">
-<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
-<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
-<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
-</ul>
+  <section id="api-reference">
+<h1>API reference 📖<a class="headerlink" href="#api-reference" title="Permalink to this headline">¶</a></h1>
+<table class="longtable table autosummary">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="figure_resampler.html#module-plotly_resampler.figure_resampler" title="plotly_resampler.figure_resampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler</span></code></a></p></td>
+<td><p>Wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> class which allows bookkeeping and back-end based resampling of high-frequency sequential data.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/plotly_resampler.aggregation.html#module-plotly_resampler.aggregation" title="plotly_resampler.aggregation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.aggregation</span></code></a></p></td>
+<td><p>Compatible implementation for various downsample methods and open interface to other downsample methods.</p></td>
+</tr>
+</tbody>
+</table>
 </section>
 
 
@@ -233,10 +216,17 @@
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='right-next' id="next-link" href="getting_started.html" title="next page">
+    <a class='left-prev' id="prev-link" href="dash_app_integration.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Integration with a dash app 🤝</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="_autosummary/plotly_resampler.figure_resampler.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Getting started 🚀</p>
+        <p class="prev-next-title">plotly_resampler.figure_resampler</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

@@ -1,2799 +1,461 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
-<meta name="generator" content="pdoc 0.10.0" />
-<title>plotly_resampler.figure_resampler API documentation</title>
-<meta name="description" content="Wrapper around the plotly go.Figure class which allows bookkeeping and
-back-end based resampling of high-frequency sequential data …" />
-<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
-<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
-<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/foundation.min.css" crossorigin>
-<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em;padding-left:1em;padding-right:1em}button{display:none}#sidebar{padding:3px;max-width:20em;overflow:hidden;min-width:19.8em}#sidebar > *:last-child{margin-bottom:1cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;border-top:1px solid #ddd;text-align:right}#footer p{}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f1f3f9;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:0.5em;padding:0px}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;max_width:100%;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#ebf3ff}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#edfcf4}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#ffddcc}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
-<style media="screen and (min-width: 700px)">@media screen and (min-width:850px){.sidebar_container{display:flex;transition:0.75s ease}.sidebar_small{width:0;margin:0;padding:0}.hide_content{display:none}button{display:initial;float:left;position:sticky;border:none;height:5ch;width:5ch;border-radius:50%;box-shadow:0px 1px 4px 1px rgba(0,0,0,.2);top:5%;left:100%;transform:translateX(-50%);cursor:pointer}#sidebar{width:25%;height:100vh;overflow:auto;position:sticky;top:0;transition:0.75s ease}#index_button_img{opacity:0.65}#content{max-width:105ch;padding:2em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1em;padding-right:0.5em}.toc > ul > li{margin-top:.5em}}</style>
-<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
-<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
-<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
-<link rel="icon" href="https://cdn.discordapp.com/attachments/372491075153166338/915215973114593300/icon.png">
-</head>
-<body>
-<main>
-<article id="content">
-<button id="index_button_button"><img id="index_button_img"
-src="https://image.flaticon.com/icons/png/512/56/56763.png"
-alt="" width="33" height="25"></button>
-<header>
-<h1 class="title">Module <code>plotly_resampler.figure_resampler</code></h1>
-</header>
-<section id="section-intro">
-<p>Wrapper around the plotly go.Figure class which allows bookkeeping and
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>FigureResampler &#8212; plotly-resampler &#34;0.3.0&#34; documentation</title>
+    
+    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  
+    
+    <link rel="stylesheet"
+      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin
+      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+    
+      
+  
+    
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
+    
+    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/icon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="None">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+
+  <div id="navbar-start">
+    
+    
+
+<a class="navbar-brand" href="index.html">
+  <img src="_static/logo.png" class="logo" alt="logo">
+</a>
+
+
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="getting_started.html">
+  Getting started 🚀
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="dash_app_integration.html">
+  Integration with a dash app 🤝
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="api_reference.html">
+  API reference 📖
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+      </ul>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+            
+            <div class="col-12 col-md-1 col-xl-2 bd-sidebar no-sidebar"></div>
+            
+          
+
+          
+          <div class="d-none d-xl-block col-xl-2 bd-toc">
+            
+              
+              <div class="toc-item">
+                
+
+<nav id="bd-toc-nav">
+    
+</nav>
+              </div>
+              
+              <div class="toc-item">
+                
+              </div>
+              
+            
+          </div>
+          
+
+          
+          
+            
+          
+          <main class="col-12 col-md-11 col-xl-8 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+              
+              <div>
+                
+  <section id="module-plotly_resampler.figure_resampler">
+<span id="figureresampler"></span><h1>FigureResampler<a class="headerlink" href="#module-plotly_resampler.figure_resampler" title="Permalink to this headline">¶</a></h1>
+<p>Wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> class which allows bookkeeping and
 back-end based resampling of high-frequency sequential data.</p>
-<h2 id="notes">Notes</h2>
-<ul>
-<li>The term <code>high-frequency</code> actually refers very large amounts of data.</li>
-</ul>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python"># -*- coding: utf-8 -*-
-&#34;&#34;&#34;
-Wrapper around the plotly go.Figure class which allows bookkeeping and
-back-end based resampling of high-frequency sequential data.
-
-Notes
------
-* The term `high-frequency` actually refers very large amounts of data.
-
-&#34;&#34;&#34;
-
-from __future__ import annotations
-
-__author__ = &#34;Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost&#34;
-
-import re
-from typing import List, Optional, Union, Iterable, Tuple, Dict
-from uuid import uuid4
-
-import dash
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
-from plotly.basedatatypes import BaseTraceType
-from jupyter_dash import JupyterDash
-from trace_updater import TraceUpdater
-
-from .downsamplers import AbstractSeriesDownsampler, LTTB
-from .utils import round_td_str, round_number_str
-
-
-class FigureResampler(go.Figure):
-    &#34;&#34;&#34;&#34;&#34;&#34;
-
-    def __init__(
-        self,
-        figure: go.Figure = go.Figure(),
-        convert_existing_traces: bool = True,
-        default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
-        resampled_trace_prefix_suffix: Tuple[str, str] = (
-            &#39;&lt;b style=&#34;color:sandybrown&#34;&gt;[R]&lt;/b&gt; &#39;,
-            &#34;&#34;,
-        ),
-        show_mean_aggregation_size: bool = True,
-        verbose: bool = False,
-    ):
-        &#34;&#34;&#34;Instantiate a resampling data mirror.
-
-        Parameters
-        ----------
-        figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure
-            (e.g., go.Figure() or make_subplots()) or an existing figure.
-        convert_existing_traces: bool
-            A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the
-            passed `figure` will note be resampled.
-        default_n_shown_samples: int, optional
-            The default number of samples that will be shown for each trace,
-            by default 1000.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
-        default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface,
-            by default `LTTB`.
-            This will be used as default downsampler.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
-        resampled_trace_prefix_suffix: str, optional
-            A tuple which contains the `prefix` and `suffix`, respectively, which
-            will be added to the trace its name when a resampled version of the trace
-            is shown, by default a bold, orange `[R]` is shown as prefix
-            (no suffix is shown).
-        show_mean_aggregation_size: bool, optional
-            Whether the mean aggregation bin size will be added as a suffix to the trace
-            its name, by default True.
-        verbose: bool, optional
-            Whether some verbose messages will be printed or not, by default False.
-
-        &#34;&#34;&#34;
-        self._hf_data: Dict[str, dict] = {}
-        self._global_n_shown_samples = default_n_shown_samples
-        self._print_verbose = verbose
-        self._show_mean_aggregation_size = show_mean_aggregation_size
-
-        assert len(resampled_trace_prefix_suffix) == 2
-        self._prefix, self._suffix = resampled_trace_prefix_suffix
-
-        self._global_downsampler = default_downsampler
-
-        if convert_existing_traces:
-            # call __init__ with the correct layout and set the `_grid_ref` of the
-            # to-be-converted figure
-            f_ = go.Figure(layout=figure.layout)
-            f_._grid_ref = figure._grid_ref
-            super().__init__(f_)
-
-            for trace in figure.data:
-                self.add_trace(trace)
-        else:
-            super().__init__(figure)
-
-    def _print(self, *values):
-        &#34;&#34;&#34;Helper method for printing if `verbose` is set to True.&#34;&#34;&#34;
-        if self._print_verbose:
-            print(*values)
-
-    def _query_hf_data(self, trace: dict) -&gt; Optional[dict]:
-        &#34;&#34;&#34;Query the internal `_hf_data` attribute and returns a match based on `uid`.
-
-        Parameters
-        ----------
-        trace : dict
-            The trace where we want to find a match for.
-
-        Returns
-        -------
-        Optional[dict]
-            The `hf_data`-trace dict if a match is found, else `None`.
-
-        &#34;&#34;&#34;
-        uid = trace[&#34;uid&#34;]
-        hf_trace_data = self._hf_data.get(uid)
-        if hf_trace_data is None:
-            trace_props = {
-                k: trace[k] for k in set(trace.keys()).difference({&#34;x&#34;, &#34;y&#34;})
-            }
-            self._print(f&#34;[W] trace with {trace_props} not found&#34;)
-        return hf_trace_data
-
-    def check_update_trace_data(
-        self,
-        trace: dict,
-        start=None,
-        end=None,
-    ) -&gt; Optional[Union[dict, BaseTraceType]]:
-        &#34;&#34;&#34;Check and updates the passed `trace`.
-
-        Note
-        ----
-        This is a pass by reference. The passed trace object will be updated and
-        returned if found in `hf_data`.
-
-        Parameters
-        ----------
-        trace : BaseTraceType or dict
-             - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dicts where:
-
-                  - The &#39;type&#39; property specifies the trace type (e.g.
-                    &#39;scatter&#39;, &#39;bar&#39;, &#39;area&#39;, etc.). If the dict has no &#39;type&#39;
-                    property then &#39;scatter&#39; is assumed.
-                  - All remaining properties are passed to the constructor
-                    of the specified trace type.
-        start : Union[float, str], optional
-            The start index for which we want resampled data to be updated to,
-            by default None,
-        end : Union[float, str], optional
-            The end index for which we want the resampled data to be updated to,
-            by default None
-
-        Returns
-        -------
-        Optional[Union[dict, BaseTraceType]]
-            If the matching hf_series is found in hf_dict, an (updated) trace will be
-            returned, otherwise None.
-
-        Notes
-        -----
-        * If `start` and `stop` are strings, they most likely represent time-strings
-        * `start` and `stop` will always be of the same type (float / time-string)
-           because their underlying axis is the same.
-
-        &#34;&#34;&#34;
-        hf_trace_data = self._query_hf_data(trace)
-        if hf_trace_data is not None:
-            axis_type = hf_trace_data[&#34;axis_type&#34;]
-            if axis_type == &#34;date&#34;:
-                start, end = pd.to_datetime(start), pd.to_datetime(end)
-                hf_series = self._slice_time(
-                    hf_trace_data[&#34;hf_series&#34;],
-                    start,
-                    end,
-                )
-            else:
-                hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
-                start = hf_series.index[0] if start is None else start
-                end = hf_series.index[-1] if end is None else end
-                if hf_series.index.is_integer():
-                    start = round(start)
-                    end = round(end)
-
-                # Search the index-positions
-                start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
-                hf_series = hf_series.iloc[start_idx:end_idx]
-
-            # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
-            # contain any data in the current view
-            if len(hf_series) == 0:
-                trace[&#34;x&#34;] = [start]
-                trace[&#34;y&#34;] = [None]
-                trace[&#34;hovertext&#34;] = &#34;&#34;
-                return trace
-
-            # Downsample the data and store it in the trace-fields
-            downsampler: AbstractSeriesDownsampler = hf_trace_data[&#34;downsampler&#34;]
-            s_res: pd.Series = downsampler.downsample(
-                hf_series, hf_trace_data[&#34;max_n_samples&#34;]
-            )
-            trace[&#34;x&#34;] = s_res.index
-            trace[&#34;y&#34;] = s_res.values
-            # todo -&gt; first draft &amp; not MP safe
-
-            agg_prefix, agg_suffix = &#39; &lt;i style=&#34;color:#fc9944&#34;&gt;~&#39;, &#34;&lt;/i&gt;&#34;
-            name: str = trace[&#34;name&#34;].split(agg_prefix)[0]
-
-            if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
-                name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
-                name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
-                # Add the mean aggregation bin size to the trace name
-                if self._show_mean_aggregation_size:
-                    agg_mean = s_res.index.to_series().diff().mean()
-                    if isinstance(agg_mean, pd.Timedelta):
-                        agg_mean = round_td_str(agg_mean)
-                    else:
-                        agg_mean = round_number_str(agg_mean)
-                    name += f&#34;{agg_prefix}{agg_mean}{agg_suffix}&#34;
-            else:
-                # When not resampled: trim prefix and/or suffix if necessary
-                if len(self._prefix) and name.startswith(self._prefix):
-                    name = name[len(self._prefix) :]
-                if len(self._suffix) and trace[&#34;name&#34;].endswith(self._suffix):
-                    name = name[: -len(self._suffix)]
-            trace[&#34;name&#34;] = name
-
-            # Check if hovertext also needs to be resampled
-            hovertext = hf_trace_data.get(&#34;hovertext&#34;)
-            if isinstance(hovertext, pd.Series):
-                trace[&#34;hovertext&#34;] = pd.merge_asof(
-                    s_res,
-                    hovertext,
-                    left_index=True,
-                    right_index=True,
-                    direction=&#34;nearest&#34;,
-                )[hovertext.name].values
-            else:
-                trace[&#34;hovertext&#34;] = hovertext
-            return trace
-        else:
-            self._print(&#34;hf_data not found&#34;)
-            return None
-
-    def check_update_figure_dict(
-        self,
-        figure: dict,
-        start: Optional[Union[float, str]] = None,
-        stop: Optional[Union[float, str]] = None,
-        xaxis_filter: str = None,
-        updated_trace_indices: Optional[List[int]] = None,
-    ) -&gt; List[int]:
-        &#34;&#34;&#34;Check and update the traces within the figure dict.
-
-        This method will most likely be used within a `Dash` callback to resample the
-        view, based on the configured number of parameters.
-
-        Note
-        ----
-        This is a pass by reference. The passed figure object will be updated.
-        No new view of this figure will be created, hence no return!
-
-        Parameters
-        ----------
-        figure : dict
-            The figure dict which will be updated.
-        start : Union[float, str], optional
-            The start time for the new resampled data view, by default None.
-        stop : Union[float, str], optional
-            The end time for the new resampled data view, by default None.
-        xaxis_filter: str, optional
-            Additional trace-update subplot filter, by default None.
-        updated_trace_indices: List[int], optional
-            List of trace indices that already have been updated, by default None.
-
-        Returns
-        -------
-        List[int]
-            A list of indices withholding the trace-data-array-index from the of data
-            modalities which are updated.
-
-        &#34;&#34;&#34;
-        xaxis_filter_short = None
-        if xaxis_filter is not None:
-            xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
-
-        if updated_trace_indices is None:
-            updated_trace_indices = []
-
-        for idx, trace in enumerate(figure[&#34;data&#34;]):
-            # We skip when the trace-idx already has been updated.
-            if idx in updated_trace_indices:
-                continue
-
-            if xaxis_filter is not None:
-                # the x-anchor of the trace is stored in the layout data
-                if trace.get(&#34;yaxis&#34;) is None:
-                    # no yaxis -&gt; we make the assumption that yaxis = xaxis_filter_short
-                    y_axis = &#34;y&#34; + xaxis_filter[1:]
-                else:
-                    y_axis = &#34;yaxis&#34; + trace.get(&#34;yaxis&#34;)[1:]
-
-                # Next to the x-anchor, we also fetch the xaxis which matches the
-                # current trace (i.e. if this value is not None, the axis shares the
-                # x-axis with one or more traces).
-                # This is relevant when e.g. fig.update_traces(xaxis=&#39;x...&#39;) was called.
-                x_anchor_trace = figure[&#34;layout&#34;].get(y_axis, {}).get(&#34;anchor&#34;)
-                if x_anchor_trace is not None:
-                    xaxis_matches = (
-                        figure[&#34;layout&#34;]
-                        .get(&#34;xaxis&#34; + x_anchor_trace.lstrip(&#34;x&#34;), {})
-                        .get(&#34;matches&#34;)
-                    )
-                else:
-                    xaxis_matches = figure[&#34;layout&#34;].get(&#34;xaxis&#34;, {}).get(&#34;matches&#34;)
-
-                # print(
-                #     f&#34;x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} &#34;,
-                #     f&#34;- xaxis_matches: {xaxis_matches}&#34;
-                # )
-
-                # We skip when:
-                # * the change was made on the first row and the trace its anchor is not
-                #   in [None, &#39;x&#39;] and the matching (a.k.a. shared) xaxis is not equal
-                #   to the xaxis filter argument.
-                #   -&gt; why None: traces without row/col argument and stand on first row
-                #      and do not have the anchor property (hence the DICT.get() method)
-                # * x_axis_filter_short not in [x_anchor or xaxis matches] for
-                #   NON first rows
-                if (
-                    xaxis_filter_short == &#34;x&#34;
-                    and (
-                        x_anchor_trace not in [None, &#34;x&#34;]
-                        and xaxis_matches != xaxis_filter_short
-                    )
-                ) or (
-                    xaxis_filter_short != &#34;x&#34;
-                    and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
-                ):
-                    continue
-
-            # If we managed to find and update the trace, it will return the trace
-            # and thus not None.
-            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
-            if updated_trace is not None:
-                updated_trace_indices.append(idx)
-        return updated_trace_indices
-
-    @staticmethod
-    def _slice_time(
-        hf_series: pd.Series,
-        t_start: Optional[pd.Timestamp] = None,
-        t_stop: Optional[pd.Timestamp] = None,
-    ) -&gt; pd.Series:
-        &#34;&#34;&#34;Slice the time-indexed `hf_series` for the passed pd.Timestamps.
-
-        Note
-        ----
-        This returns a **view** of hf_series!
-
-        Parameters
-        ----------
-        hf_series: pd.Series
-            The **datetime-indexed** series, which will be sliced.
-        t_start: pd.Timestamp, optional
-            The lower-time-bound of the slice, if set to None, no lower-bound threshold
-            will be applied, by default None.
-        t_stop:  pd.Timestamp, optional
-            The upper time-bound of the slice, if set to None, no upper-bound threshold
-            will be applied, by default None.
-
-        Returns
-        -------
-        pd.Series
-            The sliced **view** of the series.
-
-        &#34;&#34;&#34;
-
-        def to_same_tz(
-            ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
-        ) -&gt; Union[pd.Timestamp, None]:
-            &#34;&#34;&#34;Adjust `ts` its timezone to the `reference_tz`.&#34;&#34;&#34;
-            if ts is None:
-                return None
-            elif reference_tz is not None:
-                if ts.tz is not None:
-                    assert ts.tz.zone == reference_tz.zone
-                    return ts
-                else:  # localize -&gt; time remains the same
-                    return ts.tz_localize(reference_tz)
-            elif reference_tz is None and ts.tz is not None:
-                return ts.tz_localize(None)
-            return ts
-
-        if t_start is not None and t_stop is not None:
-            assert t_start.tz == t_stop.tz
-
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
-
-    def add_trace(
-        self,
-        trace: Union[BaseTraceType, dict],
-        max_n_samples: int = None,
-        downsampler: AbstractSeriesDownsampler = None,
-        limit_to_view: bool = False,
-        # Use these if you want some speedups (and are working with really large data)
-        hf_x: Iterable = None,
-        hf_y: Iterable = None,
-        hf_hovertext: Union[str, Iterable] = None,
-        **trace_kwargs,
-    ):
-        &#34;&#34;&#34;Add a trace to the figure.
-
-        Note
-        ----
-        Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -&gt; just create a trace with no
-        data (empty lists) and pass the high frequency data to this method,
-        using the `hf_x` and `hf_y` parameters. See the example below:
-        &gt;&gt;&gt; from plotly.subplots import make_subplots
-        &gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-        &gt;&gt;&gt; fig = FigureResampler(go.Figure())
-        &gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
-
-        TODO: explain why adding x and y to a trace is so slow
-
-        Notes
-        -----
-        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
-          to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
-          allow `NaN` values in `hf_x` or `trace.x`.
-        * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%).
-          &lt;br&gt;
-          **Note**: These arguments have priority over the trace&#39;s data and (hover)text
-          attributes.
-        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-          the the automatic-zooming (y-scaling) as these will not be stored in the
-          back-end and thus not be scaled to the view.&lt;br&gt;
-          To circumvent this, the `limit_to_view` argument can be set, resulting in also
-          storing the low-frequency series in the back-end.
-
-        Parameters
-        ----------
-        trace : BaseTraceType or dict
-            Either:\n
-              - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dict where:\n
-                - The type property specifies the trace type (e.g. scatter, bar,
-                  area, etc.). If the dict has no &#39;type&#39; property then scatter is
-                  assumed.
-                - All remaining properties are passed to the constructor
-                  of the specified trace type.
-        max_n_samples : int, optional
-            The maximum number of samples that will be shown by the trace.\n
-            .. note::
-                If this variable is not set; `_global_n_shown_samples` will be used.
-        downsampler: AbstractSeriesDownsampler, optional
-            The abstract series downsampler method
-        limit_to_view: boolean, optional
-            If set to True the trace&#39;s datapoints will be cut to the corresponding
-            front-end view, even if the total number of samples is lower than
-            `max_n_samples`, By default False.
-        hf_x: Iterable, optional
-            The original high frequency series positions, can be either a time-series or
-            an increasing, numerical index. If set, this has priority over the trace its
-            data.
-        hf_y: Iterable, optional
-            The original high frequency values. If set, this has priority over the
-            trace its data.
-        hf_hovertext: Iterable, optional
-            The original high frequency hovertext. If set, this has priority over the
-            `text` or `hovertext` argument.
-        **trace_kwargs: dict
-            Additional trace related keyword arguments.&lt;br&gt;
-            e.g.: row=.., col=..., secondary_y=...\n
-            * Also check out [Figure.add_trace() docs](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces)
-
-        Returns
-        -------
-        BaseFigure
-            The Figure on which `add_trace` was called on; i.e. self.
-
-        &#34;&#34;&#34;
-        if max_n_samples is None:
-            max_n_samples = self._global_n_shown_samples
-
-        # First add the trace, as each (even the non-hf_data traces), must contain this
-        # key for comparison
-        trace.uid = str(uuid4())
-
-        hf_x = (
-            trace[&#34;x&#34;]
-            if hasattr(trace, &#34;x&#34;) and hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
-        )
-        if isinstance(hf_x, tuple):
-            hf_x = list(hf_x)
-
-        hf_y = (
-            trace[&#34;y&#34;]
-            if hasattr(trace, &#34;y&#34;) and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, pd.Series)
-            else hf_y
-        )
-        hf_y = np.asarray(hf_y)
-
-        # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
-        hf_hovertext = (
-            hf_hovertext
-            if hf_hovertext is not None
-            else trace[&#34;hovertext&#34;]
-            if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
-            else trace[&#34;text&#34;]
-            if hasattr(trace, &#34;text&#34;)
-            else None
-        )
-
-        high_frequency_traces = [&#34;scatter&#34;, &#34;scattergl&#34;]
-        if trace[&#34;type&#34;].lower() in high_frequency_traces:
-            # When the x or y of a trace has more than 1 dimension, it is not at all
-            # straightforward how it should be resampled.
-            assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
-                &#34;plotly-resampler requires scatter data &#34;
-                &#34;(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!&#34;
-            )
-
-            # Make sure to set the text-attribute to None as the default plotly behavior
-            # for these high-dimensional traces (scatters) is that text will be shown in
-            # hovertext and not in on-graph texts (as is the case with bar-charts)
-            trace[&#34;text&#34;] = None
-
-            # Note: this also converts hf_hovertext to a np.ndarray
-            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                hf_hovertext = np.asarray(hf_hovertext)
-
-            # Remove NaNs for efficiency (storing less meaningless data)
-            # NaNs introduce gaps between enclosing non-NaN data points &amp; might distort
-            # the resampling algorithms
-            if pd.isna(hf_y).any():
-                not_nan_mask = ~pd.isna(hf_y)
-                hf_x = hf_x[not_nan_mask]
-                hf_y = hf_y[not_nan_mask]
-                if isinstance(hf_hovertext, np.ndarray):
-                    hf_hovertext = hf_hovertext[not_nan_mask]
-
-            # If the categorical or string-like hf_y data is of type object (happens
-            # when y argument is used for the trace constructor instead of hf_y), we
-            # transform it to type string as such it will be sent as categorical data
-            # to the downsampling algorithm
-            if hf_y.dtype == &#34;object&#34;:
-                hf_y = hf_y.astype(&#34;str&#34;)
-
-            # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
-            if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
-                hf_y = hf_y.astype(&#34;uint32&#34;)
-
-            assert len(hf_x) &gt; 0, &#34;No data to plot!&#34;
-            assert len(hf_x) == len(hf_y), &#34;x and y have different length!&#34;
-
-            # Convert the hovertext to a pd.Series if it&#39;s now a np.ndarray
-            # Note: The size of hovertext must be the same size as hf_x otherwise a
-            #   ValueError will be thrown
-            if isinstance(hf_hovertext, np.ndarray):
-                hf_hovertext = pd.Series(
-                    data=hf_hovertext, index=hf_x, copy=False, name=&#34;hovertext&#34;
-                )
-
-            n_samples = len(hf_x)
-            # These traces will determine the autoscale RANGE!
-            #   -&gt; so also store when `limit_to_view` is set.
-            if n_samples &gt; max_n_samples or limit_to_view:
-                self._print(
-                    f&#34;\t[i] DOWNSAMPLE {trace[&#39;name&#39;]}\t{n_samples}-&gt;{max_n_samples}&#34;
-                )
-
-                # We will re-create this each time as hf_x and hf_y withholds
-                # high-frequency data
-                index = pd.Index(hf_x, copy=False, name=&#34;timestamp&#34;)
-                hf_series = pd.Series(
-                    data=hf_y,
-                    index=index,
-                    copy=False,
-                    name=&#34;data&#34;,
-                    dtype=&#34;category&#34; if hf_y.dtype.type == np.str_ else hf_y.dtype,
-                )
-
-                # Checking this now avoids less interpretable `KeyError` when resampling
-                assert hf_series.index.is_monotonic_increasing
-
-                # As we support prefix-suffixing of downsampled data, we assure that
-                # each trace has a name
-                # https://github.com/plotly/plotly.py/blob/ce0ed07d872c487698bde9d52e1f1aadf17aa65f/packages/python/plotly/plotly/basedatatypes.py#L539
-                # The link above indicates that the trace index is derived from `data`
-                if trace.name is None:
-                    trace.name = f&#34;trace {len(self.data)}&#34;
-
-                # Determine (1) the axis type and (2) the downsampler instance
-                # &amp; (3) store a hf_data entry for the corresponding trace,
-                # identified by its UUID
-                axis_type = &#34;date&#34; if isinstance(hf_x, pd.DatetimeIndex) else &#34;linear&#34;
-                d = self._global_downsampler if downsampler is None else downsampler
-                self._hf_data[trace.uid] = {
-                    &#34;max_n_samples&#34;: max_n_samples,
-                    &#34;hf_series&#34;: hf_series,
-                    &#34;axis_type&#34;: axis_type,
-                    &#34;downsampler&#34;: d,
-                    &#34;hovertext&#34;: hf_hovertext,
-                }
-
-                # Before we update the trace, we create a new pointer to that trace in
-                # which the downsampled data will be stored. This way, the original
-                # data of the trace to this `add_trace` method will not be altered.
-                # We copy (by reference) all the non-data properties of the trace in
-                # the new trace.
-                if not isinstance(trace, dict):
-                    trace = trace.to_plotly_json()
-                trace = {
-                    k: trace[k]
-                    for k in set(trace.keys()).difference(
-                        {&#34;text&#34;, &#34;hovertext&#34;, &#34;x&#34;, &#34;y&#34;}
-                    )
-                }
-
-                # NOTE:
-                # If all the raw data needs to be sent to the javascript, and the trace
-                # is high-frequency, this would take significant time!
-                # Hence, you first downsample the trace.
-                trace = self.check_update_trace_data(trace)
-                assert trace is not None
-                return super().add_trace(trace=trace, **trace_kwargs)
-            else:
-                self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
-                trace.x = hf_x
-                trace.y = hf_y
-                trace.text = hf_hovertext
-                return super().add_trace(trace=trace, **trace_kwargs)
-        else:
-            self._print(f&#34;trace {trace[&#39;type&#39;]} is not a high-frequency trace&#34;)
-
-            # hf_x and hf_y have priority over the traces&#39; data
-            if hasattr(trace, &#34;x&#34;):
-                trace[&#34;x&#34;] = hf_x
-
-            if hasattr(trace, &#34;y&#34;):
-                trace[&#34;y&#34;] = hf_y
-
-            if hasattr(trace, &#34;text&#34;) and hasattr(trace, &#34;hovertext&#34;):
-                trace[&#34;text&#34;] = None
-                trace[&#34;hovertext&#34;] = hf_hovertext
-
-            return super().add_trace(trace=trace, **trace_kwargs)
-
-    # def add_traces(*args, **kwargs):
-    #     raise NotImplementedError(&#34;This functionality is not (yet) supported&#34;)
-
-    def _clear_figure(self):
-        &#34;&#34;&#34;Clear the current figure object it&#39;s data and layout.&#34;&#34;&#34;
-        self._hf_data = {}
-        self.data = []
-        self.layout = {}
-
-    def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
-        &#34;&#34;&#34;Replace the current figure layout with the passed figure object.
-
-        Parameters
-        ----------
-        figure: go.Figure
-            The figure object which will replace the existing figure.
-        convert_existing_traces: bool, Optional
-            A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True.
-
-        &#34;&#34;&#34;
-        self._clear_figure()
-        self.__init__(
-            figure=figure,
-            convert_existing_traces=convert_existing_traces,
-            default_n_shown_samples=self._global_n_shown_samples,
-            default_downsampler=self._global_downsampler,
-            resampled_trace_prefix_suffix=(self._prefix, self._suffix),
-        )
-
-    def _update_graph(self, changed_layout: dict) -&gt; List[dict]:
-        &#34;&#34;&#34;Construct the to-be-updated front-end data, based on the layout change.
-
-        .. note::
-            This method is tightly coupled with Dash app callbacks.
-            It takes the front-end figure its ``relayoutData`` as input and
-            returns the data which needs to be sent tot the ``TraceUpdater`` its
-            ``updateData`` property for that corresponding graph.
-
-        Parameters
-        ----------
-        changed_layout: dict
-            A dict containing the changed layout of the corresponding front-end graph
-
-        Returns
-        -------
-        List[dict]:
-            A list of dicts, where each dict-item is a representation of a trace its
-            _data_ properties which are affected by the front-end layout change.
-            In other words, only traces which need to be updated will be sent to the
-            front-end. Additionally, each trace-dict withholds the _index_ of its
-            corresponding position in the `figure[data]` array with the ``index``-key
-            in each dict.
-
-        &#34;&#34;&#34;
-        current_graph = self.to_dict()
-        updated_trace_indices, cl_k = [], []
-        if changed_layout:
-            self._print(&#34;-&#34; * 100 + &#34;\n&#34;, &#34;changed layout&#34;, changed_layout)
-
-            cl_k = changed_layout.keys()
-
-            # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is a x-range specified in the front-end
-            start_matches = self._re_matches(re.compile(r&#34;xaxis\d*.range\[0]&#34;), cl_k)
-            stop_matches = self._re_matches(re.compile(r&#34;xaxis\d*.range\[1]&#34;), cl_k)
-            if len(start_matches) and len(stop_matches):
-                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
-                    # Check if the xaxis&lt;NUMB&gt; part of xaxis&lt;NUMB&gt;.[0-1] matches
-                    xaxis = t_start_key.split(&#34;.&#34;)[0]
-                    assert xaxis == t_stop_key.split(&#34;.&#34;)[0]
-                    # -&gt; we want to copy the layout on the back-end
-                    updated_trace_indices = self.check_update_figure_dict(
-                        current_graph,
-                        start=changed_layout[t_start_key],
-                        stop=changed_layout[t_stop_key],
-                        xaxis_filter=xaxis,
-                        updated_trace_indices=updated_trace_indices,
-                    )
-
-            # 2. The user clicked on either autorange | reset axes
-            autorange_matches = self._re_matches(
-                re.compile(r&#34;xaxis\d*.autorange&#34;), cl_k
-            )
-            spike_matches = self._re_matches(re.compile(r&#34;xaxis\d*.showspikes&#34;), cl_k)
-            # 2.1 Reset-axes -&gt; autorange &amp; reset to the global data view
-            if len(autorange_matches) and len(spike_matches):
-                for autorange_key in autorange_matches:
-                    if changed_layout[autorange_key]:
-                        xaxis = autorange_key.split(&#34;.&#34;)[0]
-                        updated_trace_indices = self.check_update_figure_dict(
-                            current_graph,
-                            xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices,
-                        )
-            # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
-            #      current front-end view
-            elif len(autorange_matches) and not len(spike_matches):
-                # PreventUpdate returns a 204 status code response on the
-                # relayout post request
-                raise dash.exceptions.PreventUpdate()
-
-        # If we do not have any traces to be updated, we will return an empty
-        # request response
-        if len(updated_trace_indices) == 0:
-            # PreventUpdate returns a 204 status-code response on the relayout post
-            # request
-            raise dash.exceptions.PreventUpdate()
-
-        # -------------------- construct callback data --------------------------
-        layout_traces_list: List[dict] = []  # the data
-
-        # 1. Create a new dict with additional layout updates for the front-end
-        extra_layout_updates = {}
-
-        # 1.1. Set autorange to False for each layout item with a specified x-range
-        xy_matches = self._re_matches(re.compile(r&#34;[xy]axis\d*.range\[\d+]&#34;), cl_k)
-        for range_change_axis in xy_matches:
-            axis = range_change_axis.split(&#34;.&#34;)[0]
-            extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
-        layout_traces_list.append(extra_layout_updates)
-
-        # 2. Create the additional trace data for the frond-end
-        relevant_keys = [&#34;x&#34;, &#34;y&#34;, &#34;text&#34;, &#34;hovertext&#34;, &#34;name&#34;]
-        # Note that only updated trace-data will be sent to the client
-        for idx in updated_trace_indices:
-            trace = current_graph[&#34;data&#34;][idx]
-            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
-
-            # Store the index into the corresponding to-be-sent trace-data so
-            # the client front-end can know which trace needs to be updated
-            trace_reduced.update({&#34;index&#34;: idx})
-            layout_traces_list.append(trace_reduced)
-        return layout_traces_list
-
-    def register_update_graph_callback(
-        self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
-    ):
-        &#34;&#34;&#34;Register the `update_graph` callback to the passed dash-app.
-
-        Parameters
-        ----------
-        app: Union[dash.Dash, JupyterDash]
-            The app in which the callback will be registered.
-        graph_id:
-            The id of the `dcc.Graph`-component which withholds the to-be resampled
-            Figure.
-        trace_updater_id
-            The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the
-            front-end.
-
-        &#34;&#34;&#34;
-        app.callback(
-            dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
-            dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
-            prevent_initial_call=True,
-        )(self._update_graph)
-
-    @staticmethod
-    def _re_matches(regex: re.Pattern, strings: Iterable[str]) -&gt; List[str]:
-        &#34;&#34;&#34;Returns all the items in `strings` which regex.match(es) `regex`.&#34;&#34;&#34;
-        matches = []
-        for item in strings:
-            m = regex.match(item)
-            if m is not None:
-                matches.append(m.string)
-        return sorted(matches)
-
-    def show_dash(
-        self,
-        mode=None,
-        config: dict | None = None,
-        graph_properties: dict | None = None,
-        **kwargs,
-    ):
-        &#34;&#34;&#34;Registers the `update_graph` callback &amp; show the figure in a dash app.
-
-        Parameters
-        ----------
-        mode: str, optional
-            Display mode. One of: \n
-            * ``&#34;external&#34;``: The URL of the app will be displayed in the notebook
-                output cell. Clicking this URL will open the app in the default
-                web browser.&lt;br&gt;
-            * ``&#34;inline&#34;``: The app will be displayed inline in the notebook output cell
-                in an iframe.&lt;br&gt;
-            * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicated tab in the
-                JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
-                extension.&lt;br&gt;
-            By default None, which will result in the same behavior as ``&#34;external&#34;``.
-        config: dict, optional
-            The configuration options for displaying this figure, by default None.
-            This `config` parameter is the same as the dict that you would pass as
-            `config` argument to the `.show()` method.
-            See more https://plotly.com/python/configuration-options/
-        graph_properties: dict, optional
-            Dictionary of (keyword, value) for the properties that should be passed to
-            the dcc.Graph, by default None.
-            e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
-            Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
-            `config` parameter for this property in this method.
-            See more https://dash.plotly.com/dash-core-components/graph
-        **kwargs: dict
-            Additional app.run_server() kwargs.&lt;br&gt;/
-            e.g.: port
-
-        &#34;&#34;&#34;
-        graph_properties = {} if graph_properties is None else graph_properties
-        assert &#34;config&#34; not in graph_properties.keys()  # There is a param for config
-        # 1. Construct the Dash app layout
-        app = JupyterDash(&#34;local_app&#34;)
-        app.layout = dash.html.Div(
-            [
-                dash.dcc.Graph(
-                    id=&#34;resample-figure&#34;, figure=self, config=config, **graph_properties
-                ),
-                TraceUpdater(
-                    id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
-                ),
-            ]
-        )
-        self.register_update_graph_callback(app, &#34;resample-figure&#34;, &#34;trace-updater&#34;)
-
-        # 2. Run the app
-        if (
-            self.layout.height is not None
-            and mode == &#34;inline&#34;
-            and &#34;height&#34; not in kwargs
-        ):
-            # If figure height is specified -&gt; re-use is for inline dash app height
-            kwargs[&#34;height&#34;] = self.layout.height + 18
-
-        app.run_server(mode=mode, **kwargs)</code></pre>
-</details>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="plotly_resampler.figure_resampler.FigureResampler"><code class="flex name class">
-<span>class <span class="ident">FigureResampler</span></span>
-<span>(</span><span>figure=Figure({
-'data': [], 'layout': {'template': '...'}
-}), convert_existing_traces=True, default_n_shown_samples=1000, default_downsampler=&lt;plotly_resampler.downsamplers.downsamplers.LTTB object&gt;, resampled_trace_prefix_suffix=(&#x27;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#x27;, &#x27;&#x27;), show_mean_aggregation_size=True, verbose=False)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class FigureResampler(go.Figure):
-    &#34;&#34;&#34;&#34;&#34;&#34;
-
-    def __init__(
-        self,
-        figure: go.Figure = go.Figure(),
-        convert_existing_traces: bool = True,
-        default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesDownsampler = LTTB(interleave_gaps=True),
-        resampled_trace_prefix_suffix: Tuple[str, str] = (
-            &#39;&lt;b style=&#34;color:sandybrown&#34;&gt;[R]&lt;/b&gt; &#39;,
-            &#34;&#34;,
-        ),
-        show_mean_aggregation_size: bool = True,
-        verbose: bool = False,
-    ):
-        &#34;&#34;&#34;Instantiate a resampling data mirror.
-
-        Parameters
-        ----------
-        figure: go.Figure
-            The figure that will be decorated. Can be either an empty figure
-            (e.g., go.Figure() or make_subplots()) or an existing figure.
-        convert_existing_traces: bool
-            A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True. Hence, when set to False, the traces of the
-            passed `figure` will note be resampled.
-        default_n_shown_samples: int, optional
-            The default number of samples that will be shown for each trace,
-            by default 1000.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
-        default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface,
-            by default `LTTB`.
-            This will be used as default downsampler.\n
-            * **Note**: this can be overridden within the `add_trace()` method.
-        resampled_trace_prefix_suffix: str, optional
-            A tuple which contains the `prefix` and `suffix`, respectively, which
-            will be added to the trace its name when a resampled version of the trace
-            is shown, by default a bold, orange `[R]` is shown as prefix
-            (no suffix is shown).
-        show_mean_aggregation_size: bool, optional
-            Whether the mean aggregation bin size will be added as a suffix to the trace
-            its name, by default True.
-        verbose: bool, optional
-            Whether some verbose messages will be printed or not, by default False.
-
-        &#34;&#34;&#34;
-        self._hf_data: Dict[str, dict] = {}
-        self._global_n_shown_samples = default_n_shown_samples
-        self._print_verbose = verbose
-        self._show_mean_aggregation_size = show_mean_aggregation_size
-
-        assert len(resampled_trace_prefix_suffix) == 2
-        self._prefix, self._suffix = resampled_trace_prefix_suffix
-
-        self._global_downsampler = default_downsampler
-
-        if convert_existing_traces:
-            # call __init__ with the correct layout and set the `_grid_ref` of the
-            # to-be-converted figure
-            f_ = go.Figure(layout=figure.layout)
-            f_._grid_ref = figure._grid_ref
-            super().__init__(f_)
-
-            for trace in figure.data:
-                self.add_trace(trace)
-        else:
-            super().__init__(figure)
-
-    def _print(self, *values):
-        &#34;&#34;&#34;Helper method for printing if `verbose` is set to True.&#34;&#34;&#34;
-        if self._print_verbose:
-            print(*values)
-
-    def _query_hf_data(self, trace: dict) -&gt; Optional[dict]:
-        &#34;&#34;&#34;Query the internal `_hf_data` attribute and returns a match based on `uid`.
-
-        Parameters
-        ----------
-        trace : dict
-            The trace where we want to find a match for.
-
-        Returns
-        -------
-        Optional[dict]
-            The `hf_data`-trace dict if a match is found, else `None`.
-
-        &#34;&#34;&#34;
-        uid = trace[&#34;uid&#34;]
-        hf_trace_data = self._hf_data.get(uid)
-        if hf_trace_data is None:
-            trace_props = {
-                k: trace[k] for k in set(trace.keys()).difference({&#34;x&#34;, &#34;y&#34;})
-            }
-            self._print(f&#34;[W] trace with {trace_props} not found&#34;)
-        return hf_trace_data
-
-    def check_update_trace_data(
-        self,
-        trace: dict,
-        start=None,
-        end=None,
-    ) -&gt; Optional[Union[dict, BaseTraceType]]:
-        &#34;&#34;&#34;Check and updates the passed `trace`.
-
-        Note
-        ----
-        This is a pass by reference. The passed trace object will be updated and
-        returned if found in `hf_data`.
-
-        Parameters
-        ----------
-        trace : BaseTraceType or dict
-             - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dicts where:
-
-                  - The &#39;type&#39; property specifies the trace type (e.g.
-                    &#39;scatter&#39;, &#39;bar&#39;, &#39;area&#39;, etc.). If the dict has no &#39;type&#39;
-                    property then &#39;scatter&#39; is assumed.
-                  - All remaining properties are passed to the constructor
-                    of the specified trace type.
-        start : Union[float, str], optional
-            The start index for which we want resampled data to be updated to,
-            by default None,
-        end : Union[float, str], optional
-            The end index for which we want the resampled data to be updated to,
-            by default None
-
-        Returns
-        -------
-        Optional[Union[dict, BaseTraceType]]
-            If the matching hf_series is found in hf_dict, an (updated) trace will be
-            returned, otherwise None.
-
-        Notes
-        -----
-        * If `start` and `stop` are strings, they most likely represent time-strings
-        * `start` and `stop` will always be of the same type (float / time-string)
-           because their underlying axis is the same.
-
-        &#34;&#34;&#34;
-        hf_trace_data = self._query_hf_data(trace)
-        if hf_trace_data is not None:
-            axis_type = hf_trace_data[&#34;axis_type&#34;]
-            if axis_type == &#34;date&#34;:
-                start, end = pd.to_datetime(start), pd.to_datetime(end)
-                hf_series = self._slice_time(
-                    hf_trace_data[&#34;hf_series&#34;],
-                    start,
-                    end,
-                )
-            else:
-                hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
-                start = hf_series.index[0] if start is None else start
-                end = hf_series.index[-1] if end is None else end
-                if hf_series.index.is_integer():
-                    start = round(start)
-                    end = round(end)
-
-                # Search the index-positions
-                start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
-                hf_series = hf_series.iloc[start_idx:end_idx]
-
-            # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
-            # contain any data in the current view
-            if len(hf_series) == 0:
-                trace[&#34;x&#34;] = [start]
-                trace[&#34;y&#34;] = [None]
-                trace[&#34;hovertext&#34;] = &#34;&#34;
-                return trace
-
-            # Downsample the data and store it in the trace-fields
-            downsampler: AbstractSeriesDownsampler = hf_trace_data[&#34;downsampler&#34;]
-            s_res: pd.Series = downsampler.downsample(
-                hf_series, hf_trace_data[&#34;max_n_samples&#34;]
-            )
-            trace[&#34;x&#34;] = s_res.index
-            trace[&#34;y&#34;] = s_res.values
-            # todo -&gt; first draft &amp; not MP safe
-
-            agg_prefix, agg_suffix = &#39; &lt;i style=&#34;color:#fc9944&#34;&gt;~&#39;, &#34;&lt;/i&gt;&#34;
-            name: str = trace[&#34;name&#34;].split(agg_prefix)[0]
-
-            if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
-                name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
-                name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
-                # Add the mean aggregation bin size to the trace name
-                if self._show_mean_aggregation_size:
-                    agg_mean = s_res.index.to_series().diff().mean()
-                    if isinstance(agg_mean, pd.Timedelta):
-                        agg_mean = round_td_str(agg_mean)
-                    else:
-                        agg_mean = round_number_str(agg_mean)
-                    name += f&#34;{agg_prefix}{agg_mean}{agg_suffix}&#34;
-            else:
-                # When not resampled: trim prefix and/or suffix if necessary
-                if len(self._prefix) and name.startswith(self._prefix):
-                    name = name[len(self._prefix) :]
-                if len(self._suffix) and trace[&#34;name&#34;].endswith(self._suffix):
-                    name = name[: -len(self._suffix)]
-            trace[&#34;name&#34;] = name
-
-            # Check if hovertext also needs to be resampled
-            hovertext = hf_trace_data.get(&#34;hovertext&#34;)
-            if isinstance(hovertext, pd.Series):
-                trace[&#34;hovertext&#34;] = pd.merge_asof(
-                    s_res,
-                    hovertext,
-                    left_index=True,
-                    right_index=True,
-                    direction=&#34;nearest&#34;,
-                )[hovertext.name].values
-            else:
-                trace[&#34;hovertext&#34;] = hovertext
-            return trace
-        else:
-            self._print(&#34;hf_data not found&#34;)
-            return None
-
-    def check_update_figure_dict(
-        self,
-        figure: dict,
-        start: Optional[Union[float, str]] = None,
-        stop: Optional[Union[float, str]] = None,
-        xaxis_filter: str = None,
-        updated_trace_indices: Optional[List[int]] = None,
-    ) -&gt; List[int]:
-        &#34;&#34;&#34;Check and update the traces within the figure dict.
-
-        This method will most likely be used within a `Dash` callback to resample the
-        view, based on the configured number of parameters.
-
-        Note
-        ----
-        This is a pass by reference. The passed figure object will be updated.
-        No new view of this figure will be created, hence no return!
-
-        Parameters
-        ----------
-        figure : dict
-            The figure dict which will be updated.
-        start : Union[float, str], optional
-            The start time for the new resampled data view, by default None.
-        stop : Union[float, str], optional
-            The end time for the new resampled data view, by default None.
-        xaxis_filter: str, optional
-            Additional trace-update subplot filter, by default None.
-        updated_trace_indices: List[int], optional
-            List of trace indices that already have been updated, by default None.
-
-        Returns
-        -------
-        List[int]
-            A list of indices withholding the trace-data-array-index from the of data
-            modalities which are updated.
-
-        &#34;&#34;&#34;
-        xaxis_filter_short = None
-        if xaxis_filter is not None:
-            xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
-
-        if updated_trace_indices is None:
-            updated_trace_indices = []
-
-        for idx, trace in enumerate(figure[&#34;data&#34;]):
-            # We skip when the trace-idx already has been updated.
-            if idx in updated_trace_indices:
-                continue
-
-            if xaxis_filter is not None:
-                # the x-anchor of the trace is stored in the layout data
-                if trace.get(&#34;yaxis&#34;) is None:
-                    # no yaxis -&gt; we make the assumption that yaxis = xaxis_filter_short
-                    y_axis = &#34;y&#34; + xaxis_filter[1:]
-                else:
-                    y_axis = &#34;yaxis&#34; + trace.get(&#34;yaxis&#34;)[1:]
-
-                # Next to the x-anchor, we also fetch the xaxis which matches the
-                # current trace (i.e. if this value is not None, the axis shares the
-                # x-axis with one or more traces).
-                # This is relevant when e.g. fig.update_traces(xaxis=&#39;x...&#39;) was called.
-                x_anchor_trace = figure[&#34;layout&#34;].get(y_axis, {}).get(&#34;anchor&#34;)
-                if x_anchor_trace is not None:
-                    xaxis_matches = (
-                        figure[&#34;layout&#34;]
-                        .get(&#34;xaxis&#34; + x_anchor_trace.lstrip(&#34;x&#34;), {})
-                        .get(&#34;matches&#34;)
-                    )
-                else:
-                    xaxis_matches = figure[&#34;layout&#34;].get(&#34;xaxis&#34;, {}).get(&#34;matches&#34;)
-
-                # print(
-                #     f&#34;x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} &#34;,
-                #     f&#34;- xaxis_matches: {xaxis_matches}&#34;
-                # )
-
-                # We skip when:
-                # * the change was made on the first row and the trace its anchor is not
-                #   in [None, &#39;x&#39;] and the matching (a.k.a. shared) xaxis is not equal
-                #   to the xaxis filter argument.
-                #   -&gt; why None: traces without row/col argument and stand on first row
-                #      and do not have the anchor property (hence the DICT.get() method)
-                # * x_axis_filter_short not in [x_anchor or xaxis matches] for
-                #   NON first rows
-                if (
-                    xaxis_filter_short == &#34;x&#34;
-                    and (
-                        x_anchor_trace not in [None, &#34;x&#34;]
-                        and xaxis_matches != xaxis_filter_short
-                    )
-                ) or (
-                    xaxis_filter_short != &#34;x&#34;
-                    and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
-                ):
-                    continue
-
-            # If we managed to find and update the trace, it will return the trace
-            # and thus not None.
-            updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
-            if updated_trace is not None:
-                updated_trace_indices.append(idx)
-        return updated_trace_indices
-
-    @staticmethod
-    def _slice_time(
-        hf_series: pd.Series,
-        t_start: Optional[pd.Timestamp] = None,
-        t_stop: Optional[pd.Timestamp] = None,
-    ) -&gt; pd.Series:
-        &#34;&#34;&#34;Slice the time-indexed `hf_series` for the passed pd.Timestamps.
-
-        Note
-        ----
-        This returns a **view** of hf_series!
-
-        Parameters
-        ----------
-        hf_series: pd.Series
-            The **datetime-indexed** series, which will be sliced.
-        t_start: pd.Timestamp, optional
-            The lower-time-bound of the slice, if set to None, no lower-bound threshold
-            will be applied, by default None.
-        t_stop:  pd.Timestamp, optional
-            The upper time-bound of the slice, if set to None, no upper-bound threshold
-            will be applied, by default None.
-
-        Returns
-        -------
-        pd.Series
-            The sliced **view** of the series.
-
-        &#34;&#34;&#34;
-
-        def to_same_tz(
-            ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
-        ) -&gt; Union[pd.Timestamp, None]:
-            &#34;&#34;&#34;Adjust `ts` its timezone to the `reference_tz`.&#34;&#34;&#34;
-            if ts is None:
-                return None
-            elif reference_tz is not None:
-                if ts.tz is not None:
-                    assert ts.tz.zone == reference_tz.zone
-                    return ts
-                else:  # localize -&gt; time remains the same
-                    return ts.tz_localize(reference_tz)
-            elif reference_tz is None and ts.tz is not None:
-                return ts.tz_localize(None)
-            return ts
-
-        if t_start is not None and t_stop is not None:
-            assert t_start.tz == t_stop.tz
-
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
-
-    def add_trace(
-        self,
-        trace: Union[BaseTraceType, dict],
-        max_n_samples: int = None,
-        downsampler: AbstractSeriesDownsampler = None,
-        limit_to_view: bool = False,
-        # Use these if you want some speedups (and are working with really large data)
-        hf_x: Iterable = None,
-        hf_y: Iterable = None,
-        hf_hovertext: Union[str, Iterable] = None,
-        **trace_kwargs,
-    ):
-        &#34;&#34;&#34;Add a trace to the figure.
-
-        Note
-        ----
-        Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this `add_trace()` method -&gt; just create a trace with no
-        data (empty lists) and pass the high frequency data to this method,
-        using the `hf_x` and `hf_y` parameters. See the example below:
-        &gt;&gt;&gt; from plotly.subplots import make_subplots
-        &gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-        &gt;&gt;&gt; fig = FigureResampler(go.Figure())
-        &gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
-
-        TODO: explain why adding x and y to a trace is so slow
-
-        Notes
-        -----
-        * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
-          to the size of your trace!
-        * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
-          allow `NaN` values in `hf_x` or `trace.x`.
-        * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-          of data (as it can increase the speed of this add_trace() method with ~30%).
-          &lt;br&gt;
-          **Note**: These arguments have priority over the trace&#39;s data and (hover)text
-          attributes.
-        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-          the the automatic-zooming (y-scaling) as these will not be stored in the
-          back-end and thus not be scaled to the view.&lt;br&gt;
-          To circumvent this, the `limit_to_view` argument can be set, resulting in also
-          storing the low-frequency series in the back-end.
-
-        Parameters
-        ----------
-        trace : BaseTraceType or dict
-            Either:\n
-              - An instances of a trace class from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-              - or a dict where:\n
-                - The type property specifies the trace type (e.g. scatter, bar,
-                  area, etc.). If the dict has no &#39;type&#39; property then scatter is
-                  assumed.
-                - All remaining properties are passed to the constructor
-                  of the specified trace type.
-        max_n_samples : int, optional
-            The maximum number of samples that will be shown by the trace.\n
-            .. note::
-                If this variable is not set; `_global_n_shown_samples` will be used.
-        downsampler: AbstractSeriesDownsampler, optional
-            The abstract series downsampler method
-        limit_to_view: boolean, optional
-            If set to True the trace&#39;s datapoints will be cut to the corresponding
-            front-end view, even if the total number of samples is lower than
-            `max_n_samples`, By default False.
-        hf_x: Iterable, optional
-            The original high frequency series positions, can be either a time-series or
-            an increasing, numerical index. If set, this has priority over the trace its
-            data.
-        hf_y: Iterable, optional
-            The original high frequency values. If set, this has priority over the
-            trace its data.
-        hf_hovertext: Iterable, optional
-            The original high frequency hovertext. If set, this has priority over the
-            `text` or `hovertext` argument.
-        **trace_kwargs: dict
-            Additional trace related keyword arguments.&lt;br&gt;
-            e.g.: row=.., col=..., secondary_y=...\n
-            * Also check out [Figure.add_trace() docs](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces)
-
-        Returns
-        -------
-        BaseFigure
-            The Figure on which `add_trace` was called on; i.e. self.
-
-        &#34;&#34;&#34;
-        if max_n_samples is None:
-            max_n_samples = self._global_n_shown_samples
-
-        # First add the trace, as each (even the non-hf_data traces), must contain this
-        # key for comparison
-        trace.uid = str(uuid4())
-
-        hf_x = (
-            trace[&#34;x&#34;]
-            if hasattr(trace, &#34;x&#34;) and hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
-        )
-        if isinstance(hf_x, tuple):
-            hf_x = list(hf_x)
-
-        hf_y = (
-            trace[&#34;y&#34;]
-            if hasattr(trace, &#34;y&#34;) and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, pd.Series)
-            else hf_y
-        )
-        hf_y = np.asarray(hf_y)
-
-        # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
-        hf_hovertext = (
-            hf_hovertext
-            if hf_hovertext is not None
-            else trace[&#34;hovertext&#34;]
-            if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
-            else trace[&#34;text&#34;]
-            if hasattr(trace, &#34;text&#34;)
-            else None
-        )
-
-        high_frequency_traces = [&#34;scatter&#34;, &#34;scattergl&#34;]
-        if trace[&#34;type&#34;].lower() in high_frequency_traces:
-            # When the x or y of a trace has more than 1 dimension, it is not at all
-            # straightforward how it should be resampled.
-            assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
-                &#34;plotly-resampler requires scatter data &#34;
-                &#34;(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!&#34;
-            )
-
-            # Make sure to set the text-attribute to None as the default plotly behavior
-            # for these high-dimensional traces (scatters) is that text will be shown in
-            # hovertext and not in on-graph texts (as is the case with bar-charts)
-            trace[&#34;text&#34;] = None
-
-            # Note: this also converts hf_hovertext to a np.ndarray
-            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                hf_hovertext = np.asarray(hf_hovertext)
-
-            # Remove NaNs for efficiency (storing less meaningless data)
-            # NaNs introduce gaps between enclosing non-NaN data points &amp; might distort
-            # the resampling algorithms
-            if pd.isna(hf_y).any():
-                not_nan_mask = ~pd.isna(hf_y)
-                hf_x = hf_x[not_nan_mask]
-                hf_y = hf_y[not_nan_mask]
-                if isinstance(hf_hovertext, np.ndarray):
-                    hf_hovertext = hf_hovertext[not_nan_mask]
-
-            # If the categorical or string-like hf_y data is of type object (happens
-            # when y argument is used for the trace constructor instead of hf_y), we
-            # transform it to type string as such it will be sent as categorical data
-            # to the downsampling algorithm
-            if hf_y.dtype == &#34;object&#34;:
-                hf_y = hf_y.astype(&#34;str&#34;)
-
-            # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
-            if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
-                hf_y = hf_y.astype(&#34;uint32&#34;)
-
-            assert len(hf_x) &gt; 0, &#34;No data to plot!&#34;
-            assert len(hf_x) == len(hf_y), &#34;x and y have different length!&#34;
-
-            # Convert the hovertext to a pd.Series if it&#39;s now a np.ndarray
-            # Note: The size of hovertext must be the same size as hf_x otherwise a
-            #   ValueError will be thrown
-            if isinstance(hf_hovertext, np.ndarray):
-                hf_hovertext = pd.Series(
-                    data=hf_hovertext, index=hf_x, copy=False, name=&#34;hovertext&#34;
-                )
-
-            n_samples = len(hf_x)
-            # These traces will determine the autoscale RANGE!
-            #   -&gt; so also store when `limit_to_view` is set.
-            if n_samples &gt; max_n_samples or limit_to_view:
-                self._print(
-                    f&#34;\t[i] DOWNSAMPLE {trace[&#39;name&#39;]}\t{n_samples}-&gt;{max_n_samples}&#34;
-                )
-
-                # We will re-create this each time as hf_x and hf_y withholds
-                # high-frequency data
-                index = pd.Index(hf_x, copy=False, name=&#34;timestamp&#34;)
-                hf_series = pd.Series(
-                    data=hf_y,
-                    index=index,
-                    copy=False,
-                    name=&#34;data&#34;,
-                    dtype=&#34;category&#34; if hf_y.dtype.type == np.str_ else hf_y.dtype,
-                )
-
-                # Checking this now avoids less interpretable `KeyError` when resampling
-                assert hf_series.index.is_monotonic_increasing
-
-                # As we support prefix-suffixing of downsampled data, we assure that
-                # each trace has a name
-                # https://github.com/plotly/plotly.py/blob/ce0ed07d872c487698bde9d52e1f1aadf17aa65f/packages/python/plotly/plotly/basedatatypes.py#L539
-                # The link above indicates that the trace index is derived from `data`
-                if trace.name is None:
-                    trace.name = f&#34;trace {len(self.data)}&#34;
-
-                # Determine (1) the axis type and (2) the downsampler instance
-                # &amp; (3) store a hf_data entry for the corresponding trace,
-                # identified by its UUID
-                axis_type = &#34;date&#34; if isinstance(hf_x, pd.DatetimeIndex) else &#34;linear&#34;
-                d = self._global_downsampler if downsampler is None else downsampler
-                self._hf_data[trace.uid] = {
-                    &#34;max_n_samples&#34;: max_n_samples,
-                    &#34;hf_series&#34;: hf_series,
-                    &#34;axis_type&#34;: axis_type,
-                    &#34;downsampler&#34;: d,
-                    &#34;hovertext&#34;: hf_hovertext,
-                }
-
-                # Before we update the trace, we create a new pointer to that trace in
-                # which the downsampled data will be stored. This way, the original
-                # data of the trace to this `add_trace` method will not be altered.
-                # We copy (by reference) all the non-data properties of the trace in
-                # the new trace.
-                if not isinstance(trace, dict):
-                    trace = trace.to_plotly_json()
-                trace = {
-                    k: trace[k]
-                    for k in set(trace.keys()).difference(
-                        {&#34;text&#34;, &#34;hovertext&#34;, &#34;x&#34;, &#34;y&#34;}
-                    )
-                }
-
-                # NOTE:
-                # If all the raw data needs to be sent to the javascript, and the trace
-                # is high-frequency, this would take significant time!
-                # Hence, you first downsample the trace.
-                trace = self.check_update_trace_data(trace)
-                assert trace is not None
-                return super().add_trace(trace=trace, **trace_kwargs)
-            else:
-                self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
-                trace.x = hf_x
-                trace.y = hf_y
-                trace.text = hf_hovertext
-                return super().add_trace(trace=trace, **trace_kwargs)
-        else:
-            self._print(f&#34;trace {trace[&#39;type&#39;]} is not a high-frequency trace&#34;)
-
-            # hf_x and hf_y have priority over the traces&#39; data
-            if hasattr(trace, &#34;x&#34;):
-                trace[&#34;x&#34;] = hf_x
-
-            if hasattr(trace, &#34;y&#34;):
-                trace[&#34;y&#34;] = hf_y
-
-            if hasattr(trace, &#34;text&#34;) and hasattr(trace, &#34;hovertext&#34;):
-                trace[&#34;text&#34;] = None
-                trace[&#34;hovertext&#34;] = hf_hovertext
-
-            return super().add_trace(trace=trace, **trace_kwargs)
-
-    # def add_traces(*args, **kwargs):
-    #     raise NotImplementedError(&#34;This functionality is not (yet) supported&#34;)
-
-    def _clear_figure(self):
-        &#34;&#34;&#34;Clear the current figure object it&#39;s data and layout.&#34;&#34;&#34;
-        self._hf_data = {}
-        self.data = []
-        self.layout = {}
-
-    def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
-        &#34;&#34;&#34;Replace the current figure layout with the passed figure object.
-
-        Parameters
-        ----------
-        figure: go.Figure
-            The figure object which will replace the existing figure.
-        convert_existing_traces: bool, Optional
-            A bool indicating whether the traces of the passed `figure` should be
-            resampled, by default True.
-
-        &#34;&#34;&#34;
-        self._clear_figure()
-        self.__init__(
-            figure=figure,
-            convert_existing_traces=convert_existing_traces,
-            default_n_shown_samples=self._global_n_shown_samples,
-            default_downsampler=self._global_downsampler,
-            resampled_trace_prefix_suffix=(self._prefix, self._suffix),
-        )
-
-    def _update_graph(self, changed_layout: dict) -&gt; List[dict]:
-        &#34;&#34;&#34;Construct the to-be-updated front-end data, based on the layout change.
-
-        .. note::
-            This method is tightly coupled with Dash app callbacks.
-            It takes the front-end figure its ``relayoutData`` as input and
-            returns the data which needs to be sent tot the ``TraceUpdater`` its
-            ``updateData`` property for that corresponding graph.
-
-        Parameters
-        ----------
-        changed_layout: dict
-            A dict containing the changed layout of the corresponding front-end graph
-
-        Returns
-        -------
-        List[dict]:
-            A list of dicts, where each dict-item is a representation of a trace its
-            _data_ properties which are affected by the front-end layout change.
-            In other words, only traces which need to be updated will be sent to the
-            front-end. Additionally, each trace-dict withholds the _index_ of its
-            corresponding position in the `figure[data]` array with the ``index``-key
-            in each dict.
-
-        &#34;&#34;&#34;
-        current_graph = self.to_dict()
-        updated_trace_indices, cl_k = [], []
-        if changed_layout:
-            self._print(&#34;-&#34; * 100 + &#34;\n&#34;, &#34;changed layout&#34;, changed_layout)
-
-            cl_k = changed_layout.keys()
-
-            # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is a x-range specified in the front-end
-            start_matches = self._re_matches(re.compile(r&#34;xaxis\d*.range\[0]&#34;), cl_k)
-            stop_matches = self._re_matches(re.compile(r&#34;xaxis\d*.range\[1]&#34;), cl_k)
-            if len(start_matches) and len(stop_matches):
-                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
-                    # Check if the xaxis&lt;NUMB&gt; part of xaxis&lt;NUMB&gt;.[0-1] matches
-                    xaxis = t_start_key.split(&#34;.&#34;)[0]
-                    assert xaxis == t_stop_key.split(&#34;.&#34;)[0]
-                    # -&gt; we want to copy the layout on the back-end
-                    updated_trace_indices = self.check_update_figure_dict(
-                        current_graph,
-                        start=changed_layout[t_start_key],
-                        stop=changed_layout[t_stop_key],
-                        xaxis_filter=xaxis,
-                        updated_trace_indices=updated_trace_indices,
-                    )
-
-            # 2. The user clicked on either autorange | reset axes
-            autorange_matches = self._re_matches(
-                re.compile(r&#34;xaxis\d*.autorange&#34;), cl_k
-            )
-            spike_matches = self._re_matches(re.compile(r&#34;xaxis\d*.showspikes&#34;), cl_k)
-            # 2.1 Reset-axes -&gt; autorange &amp; reset to the global data view
-            if len(autorange_matches) and len(spike_matches):
-                for autorange_key in autorange_matches:
-                    if changed_layout[autorange_key]:
-                        xaxis = autorange_key.split(&#34;.&#34;)[0]
-                        updated_trace_indices = self.check_update_figure_dict(
-                            current_graph,
-                            xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices,
-                        )
-            # 2.1. Autorange -&gt; do nothing, the autorange will be applied on the
-            #      current front-end view
-            elif len(autorange_matches) and not len(spike_matches):
-                # PreventUpdate returns a 204 status code response on the
-                # relayout post request
-                raise dash.exceptions.PreventUpdate()
-
-        # If we do not have any traces to be updated, we will return an empty
-        # request response
-        if len(updated_trace_indices) == 0:
-            # PreventUpdate returns a 204 status-code response on the relayout post
-            # request
-            raise dash.exceptions.PreventUpdate()
-
-        # -------------------- construct callback data --------------------------
-        layout_traces_list: List[dict] = []  # the data
-
-        # 1. Create a new dict with additional layout updates for the front-end
-        extra_layout_updates = {}
-
-        # 1.1. Set autorange to False for each layout item with a specified x-range
-        xy_matches = self._re_matches(re.compile(r&#34;[xy]axis\d*.range\[\d+]&#34;), cl_k)
-        for range_change_axis in xy_matches:
-            axis = range_change_axis.split(&#34;.&#34;)[0]
-            extra_layout_updates[f&#34;{axis}.autorange&#34;] = False
-        layout_traces_list.append(extra_layout_updates)
-
-        # 2. Create the additional trace data for the frond-end
-        relevant_keys = [&#34;x&#34;, &#34;y&#34;, &#34;text&#34;, &#34;hovertext&#34;, &#34;name&#34;]
-        # Note that only updated trace-data will be sent to the client
-        for idx in updated_trace_indices:
-            trace = current_graph[&#34;data&#34;][idx]
-            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
-
-            # Store the index into the corresponding to-be-sent trace-data so
-            # the client front-end can know which trace needs to be updated
-            trace_reduced.update({&#34;index&#34;: idx})
-            layout_traces_list.append(trace_reduced)
-        return layout_traces_list
-
-    def register_update_graph_callback(
-        self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
-    ):
-        &#34;&#34;&#34;Register the `update_graph` callback to the passed dash-app.
-
-        Parameters
-        ----------
-        app: Union[dash.Dash, JupyterDash]
-            The app in which the callback will be registered.
-        graph_id:
-            The id of the `dcc.Graph`-component which withholds the to-be resampled
-            Figure.
-        trace_updater_id
-            The id of the `TraceUpdater` component. This component is leveraged by
-            `FigureResampler` to efficiently POST the to-be-updated data to the
-            front-end.
-
-        &#34;&#34;&#34;
-        app.callback(
-            dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
-            dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
-            prevent_initial_call=True,
-        )(self._update_graph)
-
-    @staticmethod
-    def _re_matches(regex: re.Pattern, strings: Iterable[str]) -&gt; List[str]:
-        &#34;&#34;&#34;Returns all the items in `strings` which regex.match(es) `regex`.&#34;&#34;&#34;
-        matches = []
-        for item in strings:
-            m = regex.match(item)
-            if m is not None:
-                matches.append(m.string)
-        return sorted(matches)
-
-    def show_dash(
-        self,
-        mode=None,
-        config: dict | None = None,
-        graph_properties: dict | None = None,
-        **kwargs,
-    ):
-        &#34;&#34;&#34;Registers the `update_graph` callback &amp; show the figure in a dash app.
-
-        Parameters
-        ----------
-        mode: str, optional
-            Display mode. One of: \n
-            * ``&#34;external&#34;``: The URL of the app will be displayed in the notebook
-                output cell. Clicking this URL will open the app in the default
-                web browser.&lt;br&gt;
-            * ``&#34;inline&#34;``: The app will be displayed inline in the notebook output cell
-                in an iframe.&lt;br&gt;
-            * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicated tab in the
-                JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
-                extension.&lt;br&gt;
-            By default None, which will result in the same behavior as ``&#34;external&#34;``.
-        config: dict, optional
-            The configuration options for displaying this figure, by default None.
-            This `config` parameter is the same as the dict that you would pass as
-            `config` argument to the `.show()` method.
-            See more https://plotly.com/python/configuration-options/
-        graph_properties: dict, optional
-            Dictionary of (keyword, value) for the properties that should be passed to
-            the dcc.Graph, by default None.
-            e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
-            Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
-            `config` parameter for this property in this method.
-            See more https://dash.plotly.com/dash-core-components/graph
-        **kwargs: dict
-            Additional app.run_server() kwargs.&lt;br&gt;/
-            e.g.: port
-
-        &#34;&#34;&#34;
-        graph_properties = {} if graph_properties is None else graph_properties
-        assert &#34;config&#34; not in graph_properties.keys()  # There is a param for config
-        # 1. Construct the Dash app layout
-        app = JupyterDash(&#34;local_app&#34;)
-        app.layout = dash.html.Div(
-            [
-                dash.dcc.Graph(
-                    id=&#34;resample-figure&#34;, figure=self, config=config, **graph_properties
-                ),
-                TraceUpdater(
-                    id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
-                ),
-            ]
-        )
-        self.register_update_graph_callback(app, &#34;resample-figure&#34;, &#34;trace-updater&#34;)
-
-        # 2. Run the app
-        if (
-            self.layout.height is not None
-            and mode == &#34;inline&#34;
-            and &#34;height&#34; not in kwargs
-        ):
-            # If figure height is specified -&gt; re-use is for inline dash app height
-            kwargs[&#34;height&#34;] = self.layout.height + 18
-
-        app.run_server(mode=mode, **kwargs)</code></pre>
-</details>
-<div class="desc"><p>Instantiate a resampling data mirror.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>figure</code></strong> :&ensp;<code>go.Figure</code></dt>
-<dd>The figure that will be decorated. Can be either an empty figure
-(e.g., go.Figure() or make_subplots()) or an existing figure.</dd>
-<dt><strong><code>convert_existing_traces</code></strong> :&ensp;<code>bool</code></dt>
-<dd>A bool indicating whether the traces of the passed <code>figure</code> should be
-resampled, by default True. Hence, when set to False, the traces of the
-passed <code>figure</code> will note be resampled.</dd>
-<dt><strong><code>default_n_shown_samples</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>
-<p>The default number of samples that will be shown for each trace,
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The term <cite>high-frequency</cite> actually refers very large amounts of sequential data.</p>
+</div>
+<dl class="py class">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=Figure({</span>&#160;&#160;&#160;&#160; <span class="pre">'data':</span> <span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'layout':</span> <span class="pre">{'template':</span> <span class="pre">'...'}</span> <span class="pre">})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.LTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figure.Figure</span></code></p>
+<p>Instantiate a resampling data mirror.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figure</strong> (<em>go.Figure</em>) – The figure that will be decorated. Can be either an empty figure
+(e.g., <code class="docutils literal notranslate"><span class="pre">go.Figure()</span></code> or <code class="docutils literal notranslate"><span class="pre">make_subplots()</span></code>) or an existing figure.</p></li>
+<li><p><strong>convert_existing_traces</strong> (<em>bool</em>) – A bool indicating whether the high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code>
+should be resampled, by default True. Hence, when set to False, the
+high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> will not be resampled.</p></li>
+<li><p><strong>default_n_shown_samples</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>The default number of samples that will be shown for each trace,
 by default 1000.</p>
-<ul>
-<li><strong>Note</strong>: this can be overridden within the <code>add_trace()</code> method.</li>
-</ul>
-</dd>
-<dt><strong><code>default_downsampler</code></strong> :&ensp;<code>AbstractSeriesDownsampler</code></dt>
-<dd>
-<p>An instance which implements the AbstractSeriesDownsampler interface,
-by default <code>LTTB</code>.
-This will be used as default downsampler.</p>
-<ul>
-<li><strong>Note</strong>: this can be overridden within the <code>add_trace()</code> method.</li>
-</ul>
-</dd>
-<dt><strong><code>resampled_trace_prefix_suffix</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>A tuple which contains the <code>prefix</code> and <code>suffix</code>, respectively, which
-will be added to the trace its name when a resampled version of the trace
-is shown, by default a bold, orange <code>[R]</code> is shown as prefix
-(no suffix is shown).</dd>
-<dt><strong><code>show_mean_aggregation_size</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>Whether the mean aggregation bin size will be added as a suffix to the trace
-its name, by default True.</dd>
-<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code>, optional</dt>
-<dd>Whether some verbose messages will be printed or not, by default False.</dd>
-</dl></div>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>plotly.graph_objs._figure.Figure</li>
-<li>plotly.basedatatypes.BaseFigure</li>
-</ul>
-<h3>Methods</h3>
-<dl>
-<dt id="plotly_resampler.figure_resampler.FigureResampler.check_update_trace_data"><code class="name flex">
-<span>def <span class="ident">check_update_trace_data</span></span>(<span>self, trace, start=None, end=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def check_update_trace_data(
-    self,
-    trace: dict,
-    start=None,
-    end=None,
-) -&gt; Optional[Union[dict, BaseTraceType]]:
-    &#34;&#34;&#34;Check and updates the passed `trace`.
-
-    Note
-    ----
-    This is a pass by reference. The passed trace object will be updated and
-    returned if found in `hf_data`.
-
-    Parameters
-    ----------
-    trace : BaseTraceType or dict
-         - An instances of a trace class from the plotly.graph_objs
-            package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-          - or a dicts where:
-
-              - The &#39;type&#39; property specifies the trace type (e.g.
-                &#39;scatter&#39;, &#39;bar&#39;, &#39;area&#39;, etc.). If the dict has no &#39;type&#39;
-                property then &#39;scatter&#39; is assumed.
-              - All remaining properties are passed to the constructor
-                of the specified trace type.
-    start : Union[float, str], optional
-        The start index for which we want resampled data to be updated to,
-        by default None,
-    end : Union[float, str], optional
-        The end index for which we want the resampled data to be updated to,
-        by default None
-
-    Returns
-    -------
-    Optional[Union[dict, BaseTraceType]]
-        If the matching hf_series is found in hf_dict, an (updated) trace will be
-        returned, otherwise None.
-
-    Notes
-    -----
-    * If `start` and `stop` are strings, they most likely represent time-strings
-    * `start` and `stop` will always be of the same type (float / time-string)
-       because their underlying axis is the same.
-
-    &#34;&#34;&#34;
-    hf_trace_data = self._query_hf_data(trace)
-    if hf_trace_data is not None:
-        axis_type = hf_trace_data[&#34;axis_type&#34;]
-        if axis_type == &#34;date&#34;:
-            start, end = pd.to_datetime(start), pd.to_datetime(end)
-            hf_series = self._slice_time(
-                hf_trace_data[&#34;hf_series&#34;],
-                start,
-                end,
-            )
-        else:
-            hf_series: pd.Series = hf_trace_data[&#34;hf_series&#34;]
-            start = hf_series.index[0] if start is None else start
-            end = hf_series.index[-1] if end is None else end
-            if hf_series.index.is_integer():
-                start = round(start)
-                end = round(end)
-
-            # Search the index-positions
-            start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
-            hf_series = hf_series.iloc[start_idx:end_idx]
-
-        # Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t
-        # contain any data in the current view
-        if len(hf_series) == 0:
-            trace[&#34;x&#34;] = [start]
-            trace[&#34;y&#34;] = [None]
-            trace[&#34;hovertext&#34;] = &#34;&#34;
-            return trace
-
-        # Downsample the data and store it in the trace-fields
-        downsampler: AbstractSeriesDownsampler = hf_trace_data[&#34;downsampler&#34;]
-        s_res: pd.Series = downsampler.downsample(
-            hf_series, hf_trace_data[&#34;max_n_samples&#34;]
-        )
-        trace[&#34;x&#34;] = s_res.index
-        trace[&#34;y&#34;] = s_res.values
-        # todo -&gt; first draft &amp; not MP safe
-
-        agg_prefix, agg_suffix = &#39; &lt;i style=&#34;color:#fc9944&#34;&gt;~&#39;, &#34;&lt;/i&gt;&#34;
-        name: str = trace[&#34;name&#34;].split(agg_prefix)[0]
-
-        if len(hf_series) &gt; hf_trace_data[&#34;max_n_samples&#34;]:
-            name = (&#34;&#34; if name.startswith(self._prefix) else self._prefix) + name
-            name += self._suffix if not name.endswith(self._suffix) else &#34;&#34;
-            # Add the mean aggregation bin size to the trace name
-            if self._show_mean_aggregation_size:
-                agg_mean = s_res.index.to_series().diff().mean()
-                if isinstance(agg_mean, pd.Timedelta):
-                    agg_mean = round_td_str(agg_mean)
-                else:
-                    agg_mean = round_number_str(agg_mean)
-                name += f&#34;{agg_prefix}{agg_mean}{agg_suffix}&#34;
-        else:
-            # When not resampled: trim prefix and/or suffix if necessary
-            if len(self._prefix) and name.startswith(self._prefix):
-                name = name[len(self._prefix) :]
-            if len(self._suffix) and trace[&#34;name&#34;].endswith(self._suffix):
-                name = name[: -len(self._suffix)]
-        trace[&#34;name&#34;] = name
-
-        # Check if hovertext also needs to be resampled
-        hovertext = hf_trace_data.get(&#34;hovertext&#34;)
-        if isinstance(hovertext, pd.Series):
-            trace[&#34;hovertext&#34;] = pd.merge_asof(
-                s_res,
-                hovertext,
-                left_index=True,
-                right_index=True,
-                direction=&#34;nearest&#34;,
-            )[hovertext.name].values
-        else:
-            trace[&#34;hovertext&#34;] = hovertext
-        return trace
-    else:
-        self._print(&#34;hf_data not found&#34;)
-        return None</code></pre>
-</details>
-<div class="desc"><p>Check and updates the passed <code>trace</code>.</p>
-<h2 id="note">Note</h2>
-<p>This is a pass by reference. The passed trace object will be updated and
-returned if found in <code>hf_data</code>.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>trace</code></strong> :&ensp;<code>BaseTraceType</code> or <code>dict</code></dt>
-<dd>
-<ul>
-<li>An instances of a trace class from the plotly.graph_objs
-package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)</li>
-<li>
-<p>or a dicts where:</p>
-<ul>
-<li>The 'type' property specifies the trace type (e.g.
-'scatter', 'bar', 'area', etc.). If the dict has no 'type'
-property then 'scatter' is assumed.</li>
-<li>All remaining properties are passed to the constructor
-of the specified trace type.</li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt><strong><code>start</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
-<dd>The start index for which we want resampled data to be updated to,
-by default None,</dd>
-<dt><strong><code>end</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
-<dd>The end index for which we want the resampled data to be updated to,
-by default None</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>Optional[Union[dict, BaseTraceType]]</code></dt>
-<dd>If the matching hf_series is found in hf_dict, an (updated) trace will be
-returned, otherwise None.</dd>
-</dl>
-<h2 id="notes">Notes</h2>
-<ul>
-<li>If <code>start</code> and <code>stop</code> are strings, they most likely represent time-strings</li>
-<li><code>start</code> and <code>stop</code> will always be of the same type (float / time-string)
-because their underlying axis is the same.</li>
-</ul></div>
-</dd>
-<dt id="plotly_resampler.figure_resampler.FigureResampler.check_update_figure_dict"><code class="name flex">
-<span>def <span class="ident">check_update_figure_dict</span></span>(<span>self, figure, start=None, stop=None, xaxis_filter=None, updated_trace_indices=None)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def check_update_figure_dict(
-    self,
-    figure: dict,
-    start: Optional[Union[float, str]] = None,
-    stop: Optional[Union[float, str]] = None,
-    xaxis_filter: str = None,
-    updated_trace_indices: Optional[List[int]] = None,
-) -&gt; List[int]:
-    &#34;&#34;&#34;Check and update the traces within the figure dict.
-
-    This method will most likely be used within a `Dash` callback to resample the
-    view, based on the configured number of parameters.
-
-    Note
-    ----
-    This is a pass by reference. The passed figure object will be updated.
-    No new view of this figure will be created, hence no return!
-
-    Parameters
-    ----------
-    figure : dict
-        The figure dict which will be updated.
-    start : Union[float, str], optional
-        The start time for the new resampled data view, by default None.
-    stop : Union[float, str], optional
-        The end time for the new resampled data view, by default None.
-    xaxis_filter: str, optional
-        Additional trace-update subplot filter, by default None.
-    updated_trace_indices: List[int], optional
-        List of trace indices that already have been updated, by default None.
-
-    Returns
-    -------
-    List[int]
-        A list of indices withholding the trace-data-array-index from the of data
-        modalities which are updated.
-
-    &#34;&#34;&#34;
-    xaxis_filter_short = None
-    if xaxis_filter is not None:
-        xaxis_filter_short = &#34;x&#34; + xaxis_filter.lstrip(&#34;xaxis&#34;)
-
-    if updated_trace_indices is None:
-        updated_trace_indices = []
-
-    for idx, trace in enumerate(figure[&#34;data&#34;]):
-        # We skip when the trace-idx already has been updated.
-        if idx in updated_trace_indices:
-            continue
-
-        if xaxis_filter is not None:
-            # the x-anchor of the trace is stored in the layout data
-            if trace.get(&#34;yaxis&#34;) is None:
-                # no yaxis -&gt; we make the assumption that yaxis = xaxis_filter_short
-                y_axis = &#34;y&#34; + xaxis_filter[1:]
-            else:
-                y_axis = &#34;yaxis&#34; + trace.get(&#34;yaxis&#34;)[1:]
-
-            # Next to the x-anchor, we also fetch the xaxis which matches the
-            # current trace (i.e. if this value is not None, the axis shares the
-            # x-axis with one or more traces).
-            # This is relevant when e.g. fig.update_traces(xaxis=&#39;x...&#39;) was called.
-            x_anchor_trace = figure[&#34;layout&#34;].get(y_axis, {}).get(&#34;anchor&#34;)
-            if x_anchor_trace is not None:
-                xaxis_matches = (
-                    figure[&#34;layout&#34;]
-                    .get(&#34;xaxis&#34; + x_anchor_trace.lstrip(&#34;x&#34;), {})
-                    .get(&#34;matches&#34;)
-                )
-            else:
-                xaxis_matches = figure[&#34;layout&#34;].get(&#34;xaxis&#34;, {}).get(&#34;matches&#34;)
-
-            # print(
-            #     f&#34;x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} &#34;,
-            #     f&#34;- xaxis_matches: {xaxis_matches}&#34;
-            # )
-
-            # We skip when:
-            # * the change was made on the first row and the trace its anchor is not
-            #   in [None, &#39;x&#39;] and the matching (a.k.a. shared) xaxis is not equal
-            #   to the xaxis filter argument.
-            #   -&gt; why None: traces without row/col argument and stand on first row
-            #      and do not have the anchor property (hence the DICT.get() method)
-            # * x_axis_filter_short not in [x_anchor or xaxis matches] for
-            #   NON first rows
-            if (
-                xaxis_filter_short == &#34;x&#34;
-                and (
-                    x_anchor_trace not in [None, &#34;x&#34;]
-                    and xaxis_matches != xaxis_filter_short
-                )
-            ) or (
-                xaxis_filter_short != &#34;x&#34;
-                and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
-            ):
-                continue
-
-        # If we managed to find and update the trace, it will return the trace
-        # and thus not None.
-        updated_trace = self.check_update_trace_data(trace, start=start, end=stop)
-        if updated_trace is not None:
-            updated_trace_indices.append(idx)
-    return updated_trace_indices</code></pre>
-</details>
-<div class="desc"><p>Check and update the traces within the figure dict.</p>
-<p>This method will most likely be used within a <code>Dash</code> callback to resample the
-view, based on the configured number of parameters.</p>
-<h2 id="note">Note</h2>
-<p>This is a pass by reference. The passed figure object will be updated.
-No new view of this figure will be created, hence no return!</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>figure</code></strong> :&ensp;<code>dict</code></dt>
-<dd>The figure dict which will be updated.</dd>
-<dt><strong><code>start</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
-<dd>The start time for the new resampled data view, by default None.</dd>
-<dt><strong><code>stop</code></strong> :&ensp;<code>Union[float, str]</code>, optional</dt>
-<dd>The end time for the new resampled data view, by default None.</dd>
-<dt><strong><code>xaxis_filter</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>Additional trace-update subplot filter, by default None.</dd>
-<dt><strong><code>updated_trace_indices</code></strong> :&ensp;<code>List[int]</code>, optional</dt>
-<dd>List of trace indices that already have been updated, by default None.</dd>
-</dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>List[int]</code></dt>
-<dd>A list of indices withholding the trace-data-array-index from the of data
-modalities which are updated.</dd>
-</dl></div>
-</dd>
-<dt id="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="name flex">
-<span>def <span class="ident">add_trace</span></span>(<span>self, trace, max_n_samples=None, downsampler=None, limit_to_view=False, hf_x=None, hf_y=None, hf_hovertext=None, **trace_kwargs)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def add_trace(
-    self,
-    trace: Union[BaseTraceType, dict],
-    max_n_samples: int = None,
-    downsampler: AbstractSeriesDownsampler = None,
-    limit_to_view: bool = False,
-    # Use these if you want some speedups (and are working with really large data)
-    hf_x: Iterable = None,
-    hf_y: Iterable = None,
-    hf_hovertext: Union[str, Iterable] = None,
-    **trace_kwargs,
-):
-    &#34;&#34;&#34;Add a trace to the figure.
-
-    Note
-    ----
-    Constructing traces with **very large data amounts** really takes some time.
-    To speed this up; use this `add_trace()` method -&gt; just create a trace with no
-    data (empty lists) and pass the high frequency data to this method,
-    using the `hf_x` and `hf_y` parameters. See the example below:
-    &gt;&gt;&gt; from plotly.subplots import make_subplots
-    &gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-    &gt;&gt;&gt; fig = FigureResampler(go.Figure())
-    &gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
-
-    TODO: explain why adding x and y to a trace is so slow
-
-    Notes
-    -----
-    * **Pro tip**: if you do `not want to downsample` your data, set `max_n_samples`
-      to the size of your trace!
-    * The `NaN` values in either `hf_y` or `trace.y` will be omitted! We do not
-      allow `NaN` values in `hf_x` or `trace.x`.
-    * `hf_x`, `hf_y`, and &#39;hf_hovertext` are useful when you deal with large amounts
-      of data (as it can increase the speed of this add_trace() method with ~30%).
-      &lt;br&gt;
-      **Note**: These arguments have priority over the trace&#39;s data and (hover)text
-      attributes.
-    * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-      the the automatic-zooming (y-scaling) as these will not be stored in the
-      back-end and thus not be scaled to the view.&lt;br&gt;
-      To circumvent this, the `limit_to_view` argument can be set, resulting in also
-      storing the low-frequency series in the back-end.
-
-    Parameters
-    ----------
-    trace : BaseTraceType or dict
-        Either:\n
-          - An instances of a trace class from the plotly.graph_objs
-            package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
-          - or a dict where:\n
-            - The type property specifies the trace type (e.g. scatter, bar,
-              area, etc.). If the dict has no &#39;type&#39; property then scatter is
-              assumed.
-            - All remaining properties are passed to the constructor
-              of the specified trace type.
-    max_n_samples : int, optional
-        The maximum number of samples that will be shown by the trace.\n
-        .. note::
-            If this variable is not set; `_global_n_shown_samples` will be used.
-    downsampler: AbstractSeriesDownsampler, optional
-        The abstract series downsampler method
-    limit_to_view: boolean, optional
-        If set to True the trace&#39;s datapoints will be cut to the corresponding
-        front-end view, even if the total number of samples is lower than
-        `max_n_samples`, By default False.
-    hf_x: Iterable, optional
-        The original high frequency series positions, can be either a time-series or
-        an increasing, numerical index. If set, this has priority over the trace its
-        data.
-    hf_y: Iterable, optional
-        The original high frequency values. If set, this has priority over the
-        trace its data.
-    hf_hovertext: Iterable, optional
-        The original high frequency hovertext. If set, this has priority over the
-        `text` or `hovertext` argument.
-    **trace_kwargs: dict
-        Additional trace related keyword arguments.&lt;br&gt;
-        e.g.: row=.., col=..., secondary_y=...\n
-        * Also check out [Figure.add_trace() docs](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces)
-
-    Returns
-    -------
-    BaseFigure
-        The Figure on which `add_trace` was called on; i.e. self.
-
-    &#34;&#34;&#34;
-    if max_n_samples is None:
-        max_n_samples = self._global_n_shown_samples
-
-    # First add the trace, as each (even the non-hf_data traces), must contain this
-    # key for comparison
-    trace.uid = str(uuid4())
-
-    hf_x = (
-        trace[&#34;x&#34;]
-        if hasattr(trace, &#34;x&#34;) and hf_x is None
-        else hf_x.values
-        if isinstance(hf_x, pd.Series)
-        else hf_x
-    )
-    if isinstance(hf_x, tuple):
-        hf_x = list(hf_x)
-
-    hf_y = (
-        trace[&#34;y&#34;]
-        if hasattr(trace, &#34;y&#34;) and hf_y is None
-        else hf_y.values
-        if isinstance(hf_y, pd.Series)
-        else hf_y
-    )
-    hf_y = np.asarray(hf_y)
-
-    # Note: &#34;hovertext&#34; takes precedence over &#34;text&#34;
-    hf_hovertext = (
-        hf_hovertext
-        if hf_hovertext is not None
-        else trace[&#34;hovertext&#34;]
-        if hasattr(trace, &#34;hovertext&#34;) and trace[&#34;hovertext&#34;] is not None
-        else trace[&#34;text&#34;]
-        if hasattr(trace, &#34;text&#34;)
-        else None
-    )
-
-    high_frequency_traces = [&#34;scatter&#34;, &#34;scattergl&#34;]
-    if trace[&#34;type&#34;].lower() in high_frequency_traces:
-        # When the x or y of a trace has more than 1 dimension, it is not at all
-        # straightforward how it should be resampled.
-        assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
-            &#34;plotly-resampler requires scatter data &#34;
-            &#34;(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!&#34;
-        )
-
-        # Make sure to set the text-attribute to None as the default plotly behavior
-        # for these high-dimensional traces (scatters) is that text will be shown in
-        # hovertext and not in on-graph texts (as is the case with bar-charts)
-        trace[&#34;text&#34;] = None
-
-        # Note: this also converts hf_hovertext to a np.ndarray
-        if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-            hf_hovertext = np.asarray(hf_hovertext)
-
-        # Remove NaNs for efficiency (storing less meaningless data)
-        # NaNs introduce gaps between enclosing non-NaN data points &amp; might distort
-        # the resampling algorithms
-        if pd.isna(hf_y).any():
-            not_nan_mask = ~pd.isna(hf_y)
-            hf_x = hf_x[not_nan_mask]
-            hf_y = hf_y[not_nan_mask]
-            if isinstance(hf_hovertext, np.ndarray):
-                hf_hovertext = hf_hovertext[not_nan_mask]
-
-        # If the categorical or string-like hf_y data is of type object (happens
-        # when y argument is used for the trace constructor instead of hf_y), we
-        # transform it to type string as such it will be sent as categorical data
-        # to the downsampling algorithm
-        if hf_y.dtype == &#34;object&#34;:
-            hf_y = hf_y.astype(&#34;str&#34;)
-
-        # orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype
-        if str(hf_y.dtype) in [&#34;uint8&#34;, &#34;uint16&#34;]:
-            hf_y = hf_y.astype(&#34;uint32&#34;)
-
-        assert len(hf_x) &gt; 0, &#34;No data to plot!&#34;
-        assert len(hf_x) == len(hf_y), &#34;x and y have different length!&#34;
-
-        # Convert the hovertext to a pd.Series if it&#39;s now a np.ndarray
-        # Note: The size of hovertext must be the same size as hf_x otherwise a
-        #   ValueError will be thrown
-        if isinstance(hf_hovertext, np.ndarray):
-            hf_hovertext = pd.Series(
-                data=hf_hovertext, index=hf_x, copy=False, name=&#34;hovertext&#34;
-            )
-
-        n_samples = len(hf_x)
-        # These traces will determine the autoscale RANGE!
-        #   -&gt; so also store when `limit_to_view` is set.
-        if n_samples &gt; max_n_samples or limit_to_view:
-            self._print(
-                f&#34;\t[i] DOWNSAMPLE {trace[&#39;name&#39;]}\t{n_samples}-&gt;{max_n_samples}&#34;
-            )
-
-            # We will re-create this each time as hf_x and hf_y withholds
-            # high-frequency data
-            index = pd.Index(hf_x, copy=False, name=&#34;timestamp&#34;)
-            hf_series = pd.Series(
-                data=hf_y,
-                index=index,
-                copy=False,
-                name=&#34;data&#34;,
-                dtype=&#34;category&#34; if hf_y.dtype.type == np.str_ else hf_y.dtype,
-            )
-
-            # Checking this now avoids less interpretable `KeyError` when resampling
-            assert hf_series.index.is_monotonic_increasing
-
-            # As we support prefix-suffixing of downsampled data, we assure that
-            # each trace has a name
-            # https://github.com/plotly/plotly.py/blob/ce0ed07d872c487698bde9d52e1f1aadf17aa65f/packages/python/plotly/plotly/basedatatypes.py#L539
-            # The link above indicates that the trace index is derived from `data`
-            if trace.name is None:
-                trace.name = f&#34;trace {len(self.data)}&#34;
-
-            # Determine (1) the axis type and (2) the downsampler instance
-            # &amp; (3) store a hf_data entry for the corresponding trace,
-            # identified by its UUID
-            axis_type = &#34;date&#34; if isinstance(hf_x, pd.DatetimeIndex) else &#34;linear&#34;
-            d = self._global_downsampler if downsampler is None else downsampler
-            self._hf_data[trace.uid] = {
-                &#34;max_n_samples&#34;: max_n_samples,
-                &#34;hf_series&#34;: hf_series,
-                &#34;axis_type&#34;: axis_type,
-                &#34;downsampler&#34;: d,
-                &#34;hovertext&#34;: hf_hovertext,
-            }
-
-            # Before we update the trace, we create a new pointer to that trace in
-            # which the downsampled data will be stored. This way, the original
-            # data of the trace to this `add_trace` method will not be altered.
-            # We copy (by reference) all the non-data properties of the trace in
-            # the new trace.
-            if not isinstance(trace, dict):
-                trace = trace.to_plotly_json()
-            trace = {
-                k: trace[k]
-                for k in set(trace.keys()).difference(
-                    {&#34;text&#34;, &#34;hovertext&#34;, &#34;x&#34;, &#34;y&#34;}
-                )
-            }
-
-            # NOTE:
-            # If all the raw data needs to be sent to the javascript, and the trace
-            # is high-frequency, this would take significant time!
-            # Hence, you first downsample the trace.
-            trace = self.check_update_trace_data(trace)
-            assert trace is not None
-            return super().add_trace(trace=trace, **trace_kwargs)
-        else:
-            self._print(f&#34;[i] NOT resampling {trace[&#39;name&#39;]} - len={n_samples}&#34;)
-            trace.x = hf_x
-            trace.y = hf_y
-            trace.text = hf_hovertext
-            return super().add_trace(trace=trace, **trace_kwargs)
-    else:
-        self._print(f&#34;trace {trace[&#39;type&#39;]} is not a high-frequency trace&#34;)
-
-        # hf_x and hf_y have priority over the traces&#39; data
-        if hasattr(trace, &#34;x&#34;):
-            trace[&#34;x&#34;] = hf_x
-
-        if hasattr(trace, &#34;y&#34;):
-            trace[&#34;y&#34;] = hf_y
-
-        if hasattr(trace, &#34;text&#34;) and hasattr(trace, &#34;hovertext&#34;):
-            trace[&#34;text&#34;] = None
-            trace[&#34;hovertext&#34;] = hf_hovertext
-
-        return super().add_trace(trace=trace, **trace_kwargs)</code></pre>
-</details>
-<div class="desc"><p>Add a trace to the figure.</p>
-<h2 id="note">Note</h2>
-<p>Constructing traces with <strong>very large data amounts</strong> really takes some time.
-To speed this up; use this <code>add_trace()</code> method -&gt; just create a trace with no
-data (empty lists) and pass the high frequency data to this method,
-using the <code>hf_x</code> and <code>hf_y</code> parameters. See the example below:</p>
-<pre><code class="language-python-repl">&gt;&gt;&gt; from plotly.subplots import make_subplots
-&gt;&gt;&gt; s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-&gt;&gt;&gt; fig = FigureResampler(go.Figure())
-&gt;&gt;&gt; fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
-</code></pre>
-<p>TODO: explain why adding x and y to a trace is so slow</p>
-<h2 id="notes">Notes</h2>
-<ul>
-<li><strong>Pro tip</strong>: if you do <code>not want to downsample</code> your data, set <code>max_n_samples</code>
-to the size of your trace!</li>
-<li>The <code>NaN</code> values in either <code>hf_y</code> or <code>trace.y</code> will be omitted! We do not
-allow <code>NaN</code> values in <code>hf_x</code> or <code>trace.x</code>.</li>
-<li><code>hf_x</code>, <code>hf_y</code>, and 'hf_hovertext` are useful when you deal with large amounts
-of data (as it can increase the speed of this add_trace() method with ~30%).
-<br>
-<strong>Note</strong>: These arguments have priority over the trace's data and (hover)text
-attributes.</li>
-<li>Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-the the automatic-zooming (y-scaling) as these will not be stored in the
-back-end and thus not be scaled to the view.<br>
-To circumvent this, the <code>limit_to_view</code> argument can be set, resulting in also
-storing the low-frequency series in the back-end.</li>
-</ul>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>trace</code></strong> :&ensp;<code>BaseTraceType</code> or <code>dict</code></dt>
-<dd>
-<p>Either:</p>
-<ul>
-<li>An instances of a trace class from the plotly.graph_objs
-package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)</li>
-<li>
-<p>or a dict where:</p>
-<ul>
-<li>The type property specifies the trace type (e.g. scatter, bar,
-area, etc.). If the dict has no 'type' property then scatter is
-assumed.</li>
-<li>All remaining properties are passed to the constructor
-of the specified trace type.</li>
-</ul>
-</li>
-</ul>
-</dd>
-<dt><strong><code>max_n_samples</code></strong> :&ensp;<code>int</code>, optional</dt>
-<dd>
-<p>The maximum number of samples that will be shown by the trace.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>If this variable is not set; <code>_global_n_shown_samples</code> will be used.</p>
+<ul>
+<li><p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p></li>
+<li><p>If a trace withholds fewer datapoints than this parameter,
+the data will <em>not</em> be aggregated.</p></li>
+</ul>
 </div>
+</p></li>
+<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">LTTB</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
+</div>
+</p></li>
+<li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
+will be added to the trace its legend-name when a resampled version of the
+trace is shown. By default a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
+(no suffix is shown).</p></li>
+<li><p><strong>show_mean_aggregation_size</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the mean aggregation bin size will be added as a suffix to the trace
+its legend-name, by default True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether some verbose messages will be printed or not, by default False.</p></li>
+</ul>
 </dd>
-<dt><strong><code>downsampler</code></strong> :&ensp;<code>AbstractSeriesDownsampler</code>, optional</dt>
-<dd>The abstract series downsampler method</dd>
-<dt><strong><code>limit_to_view</code></strong> :&ensp;<code>boolean</code>, optional</dt>
-<dd>If set to True the trace's datapoints will be cut to the corresponding
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.add_trace">
+<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a trace to the figure.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>trace</strong> (<em>BaseTraceType</em><em> or </em><em>dict</em>) – <p>Either:</p>
+<blockquote>
+<div><ul>
+<li><p>An instances of a trace class from the <code class="docutils literal notranslate"><span class="pre">plotly.graph_objects</span></code> (go)
+package (e.g., <code class="docutils literal notranslate"><span class="pre">go.Scatter</span></code>, <code class="docutils literal notranslate"><span class="pre">go.Bar</span></code>)</p></li>
+<li><p>or a dict where:</p>
+<ul>
+<li><p>The type property specifies the trace type (e.g. scatter, bar,
+area, etc.). If the dict has no ‘type’ property then scatter is
+assumed.</p></li>
+<li><p>All remaining properties are passed to the constructor
+of the specified trace type.</p></li>
+</ul>
+</li>
+</ul>
+</div></blockquote>
+</p></li>
+<li><p><strong>max_n_samples</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>The maximum number of samples that will be shown by the trace.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this variable is not set; <code class="docutils literal notranslate"><span class="pre">_global_n_shown_samples</span></code> will be used.</p>
+</div>
+</p></li>
+<li><p><strong>downsampler</strong> (<em>AbstractSeriesDownsampler</em><em>, </em><em>optional</em>) – <p>The abstract series downsampler method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_downsampler</span></code> will be used.</p>
+</div>
+</p></li>
+<li><p><strong>limit_to_view</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set to True the trace’s datapoints will be cut to the corresponding
 front-end view, even if the total number of samples is lower than
-<code>max_n_samples</code>, By default False.</dd>
-<dt><strong><code>hf_x</code></strong> :&ensp;<code>Iterable</code>, optional</dt>
-<dd>The original high frequency series positions, can be either a time-series or
+<code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code>, By default False.</p></li>
+<li><p><strong>hf_x</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency series positions, can be either a time-series or
 an increasing, numerical index. If set, this has priority over the trace its
-data.</dd>
-<dt><strong><code>hf_y</code></strong> :&ensp;<code>Iterable</code>, optional</dt>
-<dd>The original high frequency values. If set, this has priority over the
-trace its data.</dd>
-<dt><strong><code>hf_hovertext</code></strong> :&ensp;<code>Iterable</code>, optional</dt>
-<dd>The original high frequency hovertext. If set, this has priority over the
-<code>text</code> or <code>hovertext</code> argument.</dd>
-<dt><strong><code>**trace_kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>
-<p>Additional trace related keyword arguments.<br>
-e.g.: row=.., col=&hellip;, secondary_y=&hellip;</p>
-<ul>
-<li>Also check out <a href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces">Figure.add_trace() docs</a></li>
+data.</p></li>
+<li><p><strong>hf_y</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency values. If set, this has priority over the
+trace its data.</p></li>
+<li><p><strong>hf_hovertext</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency hovertext. If set, this has priority over the
+trace its <code class="docutils literal notranslate"><span class="pre">text</span></code> or <code class="docutils literal notranslate"><span class="pre">hovertext</span></code> argument.</p></li>
+<li><p><strong>**trace_kwargs</strong> (<em>dict</em>) – <p>Additional trace related keyword arguments.
+e.g.: row=.., col=…, secondary_y=…</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace">Figure.add_trace</a> docs.</p>
+</div>
+</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The Figure on which <code class="docutils literal notranslate"><span class="pre">add_trace</span></code> was called on; i.e. self.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>BaseFigure</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Constructing traces with <strong>very large data amounts</strong> really takes some time.
+To speed this up; use this <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method and</p>
+<ol class="arabic simple">
+<li><p>Create a trace with no data (empty lists)</p></li>
+<li><p>pass the high frequency data to this method using the <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> and <code class="docutils literal notranslate"><span class="pre">hf_y</span></code>
+parameters.</p></li>
+</ol>
+<p>See the example below:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">plotly.subplots</span> <span class="kn">import</span> <span class="n">make_subplots</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">()</span>  <span class="c1"># a high-frequency series, with more than 1e7 samples</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">())</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scattergl</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="p">[],</span> <span class="n">y</span><span class="o">=</span><span class="p">[],</span> <span class="o">...</span><span class="p">),</span> <span class="n">hf_x</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">hf_y</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition-todo admonition" id="id1">
+<p class="admonition-title">Todo</p>
+<ul class="simple">
+<li><p>explain why adding x and y to a trace is so slow</p></li>
+<li><p>check and simplify the example above</p></li>
+</ul>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<ul class="simple">
+<li><p>If you <strong>do not want to downsample</strong> your data, set <code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code> to the
+the number of datapoints of your trace!</p></li>
+</ul>
+</div>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values in either <code class="docutils literal notranslate"><span class="pre">hf_y</span></code> or <code class="docutils literal notranslate"><span class="pre">trace.y</span></code> will be omitted! We do
+not allow <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values in <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> or <code class="docutils literal notranslate"><span class="pre">trace.x</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">hf_x</span></code>, <code class="docutils literal notranslate"><span class="pre">hf_y</span></code>, and <code class="docutils literal notranslate"><span class="pre">hf_hovertext</span></code> are useful when you deal with large
+amounts of data (as it can increase the speed of this add_trace() method with
+~30%). These arguments have priority over the trace’s data and (hover)text
+attributes.</p></li>
+<li><p>Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+the the automatic-zooming (y-scaling) as these will not be stored in the
+back-end and thus not be scaled to the view.
+To circumvent this, the <code class="docutils literal notranslate"><span class="pre">limit_to_view</span></code> argument can be set, resulting in
+also storing the low-frequency series in the back-end.</p></li>
+</ul>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace the current figure layout with the passed figure object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figure</strong> (<em>go.Figure</em>) – The figure object which will replace the existing figure.</p></li>
+<li><p><strong>convert_existing_traces</strong> (<em>bool</em><em>, </em><em>Optional</em>) – A bool indicating whether the traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> should be
+resampled, by default True.</p></li>
 </ul>
 </dd>
 </dl>
-<h2 id="returns">Returns</h2>
-<dl>
-<dt><code>BaseFigure</code></dt>
-<dd>The Figure on which <code>add_trace</code> was called on; i.e. self.</dd>
-</dl></div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.construct_update_data">
+<span class="sig-name descname"><span class="pre">construct_update_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relayout_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.construct_update_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.construct_update_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the to-be-updated front-end data, based on the layout change.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This method is tightly coupled with Dash app callbacks. It takes the front-end
+figure its <code class="docutils literal notranslate"><span class="pre">relayoutData</span></code> as input and returns the data which needs to be
+sent tot the <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> its <code class="docutils literal notranslate"><span class="pre">updateData</span></code> property for that corresponding
+graph.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>relayout_data</strong> (<em>dict</em>) – A dict containing the <code class="docutils literal notranslate"><span class="pre">relayout</span></code>-data (a.k.a. changed layout data) of
+the corresponding front-end graph.</p>
 </dd>
-<dt id="plotly_resampler.figure_resampler.FigureResampler.replace"><code class="name flex">
-<span>def <span class="ident">replace</span></span>(<span>self, figure, convert_existing_traces=True)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
-    &#34;&#34;&#34;Replace the current figure layout with the passed figure object.
-
-    Parameters
-    ----------
-    figure: go.Figure
-        The figure object which will replace the existing figure.
-    convert_existing_traces: bool, Optional
-        A bool indicating whether the traces of the passed `figure` should be
-        resampled, by default True.
-
-    &#34;&#34;&#34;
-    self._clear_figure()
-    self.__init__(
-        figure=figure,
-        convert_existing_traces=convert_existing_traces,
-        default_n_shown_samples=self._global_n_shown_samples,
-        default_downsampler=self._global_downsampler,
-        resampled_trace_prefix_suffix=(self._prefix, self._suffix),
-    )</code></pre>
-</details>
-<div class="desc"><p>Replace the current figure layout with the passed figure object.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>figure</code></strong> :&ensp;<code>go.Figure</code></dt>
-<dd>The figure object which will replace the existing figure.</dd>
-<dt><strong><code>convert_existing_traces</code></strong> :&ensp;<code>bool, Optional</code></dt>
-<dd>A bool indicating whether the traces of the passed <code>figure</code> should be
-resampled, by default True.</dd>
-</dl></div>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of dicts, where each dict-item is a representation of a trace its
+<em>data</em> properties which are affected by the front-end layout change. <a href="#id2"><span class="problematic" id="id3">|br|</span></a>
+In other words, only traces which need to be updated will be sent to the
+front-end. Additionally, each trace-dict withholds the <em>index</em> of its
+corresponding position in the <code class="docutils literal notranslate"><span class="pre">figure[data]</span></code> array with the <code class="docutils literal notranslate"><span class="pre">index</span></code>-key
+in each dict.</p>
 </dd>
-<dt id="plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback"><code class="name flex">
-<span>def <span class="ident">register_update_graph_callback</span></span>(<span>self, app, graph_id, trace_updater_id)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def register_update_graph_callback(
-    self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
-):
-    &#34;&#34;&#34;Register the `update_graph` callback to the passed dash-app.
-
-    Parameters
-    ----------
-    app: Union[dash.Dash, JupyterDash]
-        The app in which the callback will be registered.
-    graph_id:
-        The id of the `dcc.Graph`-component which withholds the to-be resampled
-        Figure.
-    trace_updater_id
-        The id of the `TraceUpdater` component. This component is leveraged by
-        `FigureResampler` to efficiently POST the to-be-updated data to the
-        front-end.
-
-    &#34;&#34;&#34;
-    app.callback(
-        dash.dependencies.Output(trace_updater_id, &#34;updateData&#34;),
-        dash.dependencies.Input(graph_id, &#34;relayoutData&#34;),
-        prevent_initial_call=True,
-    )(self._update_graph)</code></pre>
-</details>
-<div class="desc"><p>Register the <code>update_graph</code> callback to the passed dash-app.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>app</code></strong> :&ensp;<code>Union[dash.Dash, JupyterDash]</code></dt>
-<dd>The app in which the callback will be registered.</dd>
-<dt>graph_id:</dt>
-<dt>The id of the <code>dcc.Graph</code>-component which withholds the to-be resampled</dt>
-<dt>Figure.</dt>
-<dt><strong><code>trace_updater_id</code></strong></dt>
-<dd>The id of the <code>TraceUpdater</code> component. This component is leveraged by
-<code><a title="plotly_resampler.figure_resampler.FigureResampler" href="#plotly_resampler.figure_resampler.FigureResampler">FigureResampler</a></code> to efficiently POST the to-be-updated data to the
-front-end.</dd>
-</dl></div>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>List[dict]</p>
 </dd>
-<dt id="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="name flex">
-<span>def <span class="ident">show_dash</span></span>(<span>self, mode=None, config=None, graph_properties=None, **kwargs)</span>
-</code></dt>
-<dd>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def show_dash(
-    self,
-    mode=None,
-    config: dict | None = None,
-    graph_properties: dict | None = None,
-    **kwargs,
-):
-    &#34;&#34;&#34;Registers the `update_graph` callback &amp; show the figure in a dash app.
+</dl>
+</dd></dl>
 
-    Parameters
-    ----------
-    mode: str, optional
-        Display mode. One of: \n
-        * ``&#34;external&#34;``: The URL of the app will be displayed in the notebook
-            output cell. Clicking this URL will open the app in the default
-            web browser.&lt;br&gt;
-        * ``&#34;inline&#34;``: The app will be displayed inline in the notebook output cell
-            in an iframe.&lt;br&gt;
-        * ``&#34;jupyterlab&#34;``: The app will be displayed in a dedicated tab in the
-            JupyterLab interface. Requires JupyterLab and the `jupyterlab-dash`
-            extension.&lt;br&gt;
-        By default None, which will result in the same behavior as ``&#34;external&#34;``.
-    config: dict, optional
-        The configuration options for displaying this figure, by default None.
-        This `config` parameter is the same as the dict that you would pass as
-        `config` argument to the `.show()` method.
-        See more https://plotly.com/python/configuration-options/
-    graph_properties: dict, optional
-        Dictionary of (keyword, value) for the properties that should be passed to
-        the dcc.Graph, by default None.
-        e.g.: {&#34;style&#34;: {&#34;width&#34;: &#34;50%&#34;}}
-        Note: &#34;config&#34; is not allowed as key in this dict, as there is a distinct
-        `config` parameter for this property in this method.
-        See more https://dash.plotly.com/dash-core-components/graph
-    **kwargs: dict
-        Additional app.run_server() kwargs.&lt;br&gt;/
-        e.g.: port
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">
+<span class="sig-name descname"><span class="pre">register_update_graph_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_updater_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.register_update_graph_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.construct_update_data" title="plotly_resampler.figure_resampler.FigureResampler.construct_update_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">construct_update_data()</span></code></a> method as callback function to
+the passed dash-app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<em>Union</em><em>[</em><em>dash.Dash</em><em>, </em><em>JupyterDash</em><em>]</em>) – The app in which the callback will be registered.</p></li>
+<li><p><strong>graph_id</strong> (<em>str</em>) – The id of the <code class="docutils literal notranslate"><span class="pre">dcc.Graph</span></code>-component which withholds the to-be resampled
+Figure.</p></li>
+<li><p><strong>trace_updater_id</strong> (<em>str</em>) – The id of the <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> component. This component is leveraged by
+<code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code> to efficiently POST the to-be-updated data to the
+front-end.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
-    &#34;&#34;&#34;
-    graph_properties = {} if graph_properties is None else graph_properties
-    assert &#34;config&#34; not in graph_properties.keys()  # There is a param for config
-    # 1. Construct the Dash app layout
-    app = JupyterDash(&#34;local_app&#34;)
-    app.layout = dash.html.Div(
-        [
-            dash.dcc.Graph(
-                id=&#34;resample-figure&#34;, figure=self, config=config, **graph_properties
-            ),
-            TraceUpdater(
-                id=&#34;trace-updater&#34;, gdID=&#34;resample-figure&#34;, sequentialUpdate=False
-            ),
-        ]
-    )
-    self.register_update_graph_callback(app, &#34;resample-figure&#34;, &#34;trace-updater&#34;)
-
-    # 2. Run the app
-    if (
-        self.layout.height is not None
-        and mode == &#34;inline&#34;
-        and &#34;height&#34; not in kwargs
-    ):
-        # If figure height is specified -&gt; re-use is for inline dash app height
-        kwargs[&#34;height&#34;] = self.layout.height + 18
-
-    app.run_server(mode=mode, **kwargs)</code></pre>
-</details>
-<div class="desc"><p>Registers the <code>update_graph</code> callback &amp; show the figure in a dash app.</p>
-<h2 id="parameters">Parameters</h2>
-<dl>
-<dt><strong><code>mode</code></strong> :&ensp;<code>str</code>, optional</dt>
-<dd>
-<p>Display mode. One of: </p>
-<ul>
-<li><code>"external"</code>: The URL of the app will be displayed in the notebook
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.show_dash">
+<span class="sig-name descname"><span class="pre">show_dash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.show_dash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Registers the <code class="xref py py-func docutils literal notranslate"><span class="pre">update_graph()</span></code> callback &amp; show the figure in a dash app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Display mode. One of:</p>
+<blockquote>
+<div><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;external&quot;</span></code>: The URL of the app will be displayed in the notebook
 output cell. Clicking this URL will open the app in the default
-web browser.<br></li>
-<li><code>"inline"</code>: The app will be displayed inline in the notebook output cell
-in an iframe.<br></li>
-<li><code>"jupyterlab"</code>: The app will be displayed in a dedicated tab in the
-JupyterLab interface. Requires JupyterLab and the <code>jupyterlab-dash</code>
-extension.<br>
-By default None, which will result in the same behavior as <code>"external"</code>.</li>
+web browser.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;inline&quot;</span></code>: The app will be displayed inline in the notebook output
+cell in an iframe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;jupyterlab&quot;</span></code>: The app will be displayed in a dedicated tab in the
+JupyterLab interface. Requires JupyterLab and the <code class="docutils literal notranslate"><span class="pre">jupyterlab-dash</span></code>
+extension.</p></li>
 </ul>
-</dd>
-<dt><strong><code>config</code></strong> :&ensp;<code>dict</code>, optional</dt>
-<dd>The configuration options for displaying this figure, by default None.
-This <code>config</code> parameter is the same as the dict that you would pass as
-<code>config</code> argument to the <code>.show()</code> method.
-See more <a href="https://plotly.com/python/configuration-options/">https://plotly.com/python/configuration-options/</a></dd>
-<dt><strong><code>graph_properties</code></strong> :&ensp;<code>dict</code>, optional</dt>
-<dd>Dictionary of (keyword, value) for the properties that should be passed to
+</div></blockquote>
+<p>By default None, which will result in the same behavior as <code class="docutils literal notranslate"><span class="pre">&quot;external&quot;</span></code>.</p>
+</p></li>
+<li><p><strong>config</strong> (<em>dict</em><em>, </em><em>optional</em>) – The configuration options for displaying this figure, by default None.
+This <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter is the same as the dict that you would pass as
+<code class="docutils literal notranslate"><span class="pre">config</span></code> argument to the <cite>show</cite> method.
+See more <a class="reference external" href="https://plotly.com/python/configuration-options/">https://plotly.com/python/configuration-options/</a></p></li>
+<li><p><strong>graph_properties</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary of (keyword, value) for the properties that should be passed to
 the dcc.Graph, by default None.
-e.g.: {"style": {"width": "50%"}}
-Note: "config" is not allowed as key in this dict, as there is a distinct
-<code>config</code> parameter for this property in this method.
-See more <a href="https://dash.plotly.com/dash-core-components/graph">https://dash.plotly.com/dash-core-components/graph</a></dd>
-<dt><strong><code>**kwargs</code></strong> :&ensp;<code>dict</code></dt>
-<dd>Additional app.run_server() kwargs.<br>/
-e.g.: port</dd>
-</dl></div>
+e.g.: {“style”: {“width”: “50%”}}
+Note: “config” is not allowed as key in this dict, as there is a distinct
+<code class="docutils literal notranslate"><span class="pre">config</span></code> parameter for this property in this method.
+See more <a class="reference external" href="https://dash.plotly.com/dash-core-components/graph">https://dash.plotly.com/dash-core-components/graph</a></p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional app.run_server() kwargs.
+e.g.: port</p></li>
+</ul>
 </dd>
 </dl>
-</dd>
-</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.stop_server">
+<span class="sig-name descname"><span class="pre">stop_server</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.stop_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.stop_server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop the running dash-app.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<p>This only works if the dash-app was started with <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">show_dash()</span></code></a>.</p>
+</div>
+</dd></dl>
+
+</dd></dl>
+
 </section>
-<footer id="footer">
-<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+
+
+              </div>
+              
+              
+              <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              
+          </main>
+          
+
+      </div>
+    </div>
+  
+    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <footer class="footer mt-5 mt-md-0">
+  <div class="container">
+    
+    <div class="footer-item">
+      <p class="copyright">
+    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+</p>
+    </div>
+    
+    <div class="footer-item">
+      <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+</p>
+    </div>
+    
+  </div>
 </footer>
-</article>
-<div class="sidebar_container">
-<nav id="sidebar">
-<div id="sidebar_content">
-<header>
-<div style="text-align: left; padding-top: 15px;">
-<a class="homelink" rel="home" title="plotly_resampler home" href="/plotly-resampler/">
-<img src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/_static/logo.png"
-alt="logo should be displayed here" width="95%"></a>
-</div>
-</header>
-<h1>Index</h1>
-<div class="toc">
-<ul>
-<li><a href="#notes">Notes</a></li>
-</ul>
-</div>
-<ul id="index">
-<li><h3>Super-module</h3>
-<ul>
-<li><code><a title="plotly_resampler" href="index.html">plotly_resampler</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="plotly_resampler.figure_resampler.FigureResampler" href="#plotly_resampler.figure_resampler.FigureResampler">FigureResampler</a></code></h4>
-<ul class="">
-<li><code><a title="plotly_resampler.figure_resampler.FigureResampler.check_update_trace_data" href="#plotly_resampler.figure_resampler.FigureResampler.check_update_trace_data">check_update_trace_data</a></code></li>
-<li><code><a title="plotly_resampler.figure_resampler.FigureResampler.check_update_figure_dict" href="#plotly_resampler.figure_resampler.FigureResampler.check_update_figure_dict">check_update_figure_dict</a></code></li>
-<li><code><a title="plotly_resampler.figure_resampler.FigureResampler.add_trace" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace">add_trace</a></code></li>
-<li><code><a title="plotly_resampler.figure_resampler.FigureResampler.replace" href="#plotly_resampler.figure_resampler.FigureResampler.replace">replace</a></code></li>
-<li><code><a title="plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback" href="#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">register_update_graph_callback</a></code></li>
-<li><code><a title="plotly_resampler.figure_resampler.FigureResampler.show_dash" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash">show_dash</a></code></li>
-</ul>
-</li>
-</ul>
-</li>
-</ul>
-</div>
-</nav>
-</div>
-</main>
-<script>
-const sidebar = document.querySelector("body > main > div");
-const sidebar_nav = document.querySelector("body > main > div > nav");
-const sidebar_content = document.getElementById("sidebar_content");
-document.getElementById("index_button_button").onclick = function () {
-sidebar.classList.toggle('sidebar_small');
-sidebar_nav.classList.toggle('hide_content');
-sidebar_content.classList.toggle('hide_content');
-}
-</script>
-</body>
+  </body>
 </html>
