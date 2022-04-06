@@ -8,26 +8,23 @@
 
     <title>Getting started 🚀 &#8212; plotly-resampler &#34;0.4.0&#34; documentation</title>
     
-    <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 <link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-  
+
     
-    <link rel="stylesheet"
-      href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin
-      href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
-  
-    
-      
-  
-    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/styles/pydata-sphinx-theme.css" />
     
-    <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
-  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
@@ -44,7 +41,7 @@
     <!-- Google Analytics -->
     
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="80">
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
     
     <div class="container-fluid" id="banner"></div>
 
@@ -141,7 +138,7 @@
               
               <div class="toc-item">
                 
-<div class="tocsection onthispage pt-5 pb-3">
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
     <i class="fas fa-list"></i> On this page
 </div>
 
@@ -189,7 +186,7 @@
               <div>
                 
   <section id="getting-started">
-<h1>Getting started 🚀<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<h1>Getting started 🚀<a class="headerlink" href="#getting-started" title="Permalink to this headline">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">plotly-resampler</span></code> maintains its interactiveness on large data by applying front-end
 <strong>resampling</strong>.</p>
 <p>Users can interact with 2 components:</p>
@@ -198,14 +195,14 @@
 <li><p><a class="reference internal" href="aggregation.html#aggregation"><span class="std std-ref">aggregation</span></a>: this module withholds various data aggregation methods.</p></li>
 </ul>
 <section id="installation">
-<h2>Installation ⚙️<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
+<h2>Installation ⚙️<a class="headerlink" href="#installation" title="Permalink to this headline">#</a></h2>
 <p>Install via <span class="raw-html"><a href="https://pypi.org/project/plotly-resampler/"><b>pip</b><a></span>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install plotly-resampler
 </pre></div>
 </div>
 </section>
 <section id="how-to-use">
-<h2>How to use 📈<a class="headerlink" href="#how-to-use" title="Permalink to this headline">¶</a></h2>
+<h2>How to use 📈<a class="headerlink" href="#how-to-use" title="Permalink to this headline">#</a></h2>
 <p>To <strong>add dynamic resampling to a plotly Figure</strong>, you should;</p>
 <blockquote>
 <div><ol class="arabic simple">
@@ -224,7 +221,7 @@ But, (obviously) only the scatter traces will be resampled.</p>
 </div>
 </section>
 <section id="working-example">
-<h2>Working example ✅<a class="headerlink" href="#working-example" title="Permalink to this headline">¶</a></h2>
+<h2>Working example ✅<a class="headerlink" href="#working-example" title="Permalink to this headline">#</a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span><span class="p">;</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
 
@@ -239,7 +236,7 @@ But, (obviously) only the scatter traces will be resampled.</p>
 </div>
 </section>
 <section id="important-considerations-tips">
-<h2>Important considerations &amp; tips 🚨<a class="headerlink" href="#important-considerations-tips" title="Permalink to this headline">¶</a></h2>
+<h2>Important considerations &amp; tips 🚨<a class="headerlink" href="#important-considerations-tips" title="Permalink to this headline">#</a></h2>
 <ul class="simple">
 <li><p>When running the code on a server, you should forward the port of the <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">FigureResampler.show_dash</span></code></a> method to your local machine.</p></li>
 <li><p>In general, when using downsampling one should be aware of (possible) <a class="reference external" href="https://en.wikipedia.org/wiki/Aliasing">aliasing</a> effects. <span class="raw-html"><br></span>
@@ -277,8 +274,9 @@ The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></sp
       </div>
     </div>
   
-    <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-  <footer class="footer mt-5 mt-md-0">
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+<footer class="footer mt-5 mt-md-0">
   <div class="container">
     
     <div class="footer-item">
@@ -289,7 +287,7 @@ The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></sp
     
     <div class="footer-item">
       <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.4.0.<br>
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
 </p>
     </div>
     
