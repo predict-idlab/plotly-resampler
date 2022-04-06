@@ -929,11 +929,10 @@ class FigureResampler(go.Figure):
 
         # store the app information, so it can be killed
         self._app = app
-        self._host = kwargs["host"] if "host" in kwargs else "127.0.0.1"
-        self._port = kwargs["port"] if "port" in kwargs else "8050"
+        self._host = kwargs.get("host", "127.0.0.1")
+        self._port = kwargs.get("port", "8050")
 
         app.run_server(mode=mode, **kwargs)
-
 
     def stop_server(self):
         """Stop the running dash-app.
@@ -942,7 +941,12 @@ class FigureResampler(go.Figure):
             This only works if the dash-app was started with :func:`show_dash`.
         """
         if self._app is not None:
-            self._app._terminate_server_for_port(self._host, self._port)
+
+            old_server = self._app._server_threads.get((self._host, self._port))
+            if old_server:
+                old_server.kill()
+                old_server.join()
+                del self._app._server_threads[(self._host, self._port)]
         else:
             warnings.warn(
                 "Could not stop the server, either the \n"
