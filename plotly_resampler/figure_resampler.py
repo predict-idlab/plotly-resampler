@@ -748,7 +748,8 @@ class FigureResampler(go.Figure):
             in each dict.
 
         """
-        current_graph = self.to_dict()
+        # see: https://github.com/plotly/plotly.py/blob/2e7f322c5ea4096ce6efe3b4b9a34d9647a8be9c/packages/python/plotly/plotly/basedatatypes.py#L3278
+        current_graph = {"data": self._data, "layout": self._layout}
         updated_trace_indices, cl_k = [], []
         if relayout_data:
             self._print("-" * 100 + "\n", "changed layout", relayout_data)
