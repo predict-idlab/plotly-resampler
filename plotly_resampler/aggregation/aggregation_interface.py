@@ -2,7 +2,6 @@
 
 __author__ = "Jonas Van Der Donckt"
 
-from logging import exception
 import re
 from abc import ABC, abstractmethod
 from typing import List, Tuple
