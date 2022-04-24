@@ -188,12 +188,12 @@ class FigureResampler(go.Figure):
             if axis_type == "date":
                 start, end = pd.to_datetime(start), pd.to_datetime(end)
                 hf_series = self._slice_time(
-                    hf_trace_data["hf_series"],
+                    self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"]),
                     start,
                     end,
                 )
             else:
-                hf_series: pd.Series = hf_trace_data["hf_series"]
+                hf_series = self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"])
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
                 if hf_series.index.is_integer():
@@ -417,6 +417,34 @@ class FigureResampler(go.Figure):
 
         return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
+    @property
+    def hf_data(self):
+        return list(self._hf_data.values())
+
+    @staticmethod
+    def _to_hf_series(x: np.ndarray, y: np.ndarray) -> pd.Series:
+        """Construct the hf-series.
+
+        Parameters
+        ----------
+        x : np.ndarray
+            The hf_series index
+        y : np.ndarray
+            The hf_series values
+
+        Returns
+        -------
+        pd.Series
+            The constructed hf_series
+        """
+        return pd.Series(
+            data=y,
+            index=x,
+            copy=False,
+            name="data",
+            dtype="category" if y.dtype.type == np.str_ else y.dtype,
+        )
+
     def add_trace(
         self,
         trace: Union[BaseTraceType, dict],
@@ -616,14 +644,8 @@ class FigureResampler(go.Figure):
 
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
-                index = pd.Index(hf_x, copy=False, name="timestamp")
-                hf_series = pd.Series(
-                    data=hf_y,
-                    index=index,
-                    copy=False,
-                    name="data",
-                    dtype="category" if hf_y.dtype.type == np.str_ else hf_y.dtype,
-                )
+                # index = pd.Index(hf_x, copy=False, name="timestamp")
+                hf_series = self._to_hf_series(x=hf_x, y=hf_y)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -642,7 +664,8 @@ class FigureResampler(go.Figure):
                 d = self._global_downsampler if downsampler is None else downsampler
                 self._hf_data[trace.uid] = {
                     "max_n_samples": max_n_samples,
-                    "hf_series": hf_series,
+                    "x": hf_x,
+                    "y": hf_y,
                     "axis_type": axis_type,
                     "downsampler": d,
                     "hovertext": hf_hovertext,
@@ -654,6 +677,7 @@ class FigureResampler(go.Figure):
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
                 if not isinstance(trace, dict):
+                    # TODO -> this can be optimized
                     trace = trace.to_plotly_json()
                 trace = {
                     k: trace[k]
@@ -935,8 +959,13 @@ class FigureResampler(go.Figure):
 
         app.run_server(mode=mode, **kwargs)
 
-    def stop_server(self):
+    def stop_server(self, warn: bool = True):
         """Stop the running dash-app.
+
+        Parameters
+        ----------
+        warn: bool
+            Whether a warning message will be shown or  not, by default True.
 
         .. attention::
             This only works if the dash-app was started with :func:`show_dash`.
@@ -948,7 +977,7 @@ class FigureResampler(go.Figure):
                 old_server.kill()
                 old_server.join()
                 del self._app._server_threads[(self._host, self._port)]
-        else:
+        elif warn:
             warnings.warn(
                 "Could not stop the server, either the \n"
                 + "\t- 'show-dash' method was not called, or \n"
