@@ -230,7 +230,7 @@ class FigureResampler(go.Figure):
                 # Add the mean aggregation bin size to the trace name
                 if self._show_mean_aggregation_size:
                     agg_mean = np.mean(np.diff(s_res.index.values))
-                    if isinstance(agg_mean, (np.timedelta64)):
+                    if isinstance(agg_mean, np.timedelta64):
                         agg_mean = round_td_str(pd.Timedelta(agg_mean))
                     else:
                         agg_mean = round_number_str(agg_mean)
