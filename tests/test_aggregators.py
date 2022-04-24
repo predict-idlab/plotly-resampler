@@ -98,7 +98,7 @@ def test_lttb_float_time_data(float_series):
 
     for n in np.random.randint(100, len(float_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) == n
+        assert sum(out.notna()) <= n
 
 
 def test_lttb_float_sequence_data(float_series):
@@ -110,7 +110,7 @@ def test_lttb_float_sequence_data(float_series):
 
     for n in np.random.randint(100, len(float_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) == n
+        assert sum(out.notna()) <= n
 
 
 def test_lttb_categorical_time_data(cat_series):
@@ -122,7 +122,10 @@ def test_lttb_categorical_time_data(cat_series):
 
     for n in np.random.randint(100, len(cat_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        assert sum(out.notna()) == n
+        # LTTB uses the first and last value by default -> so it might add a none
+        # between these two peositions when not a lot of samples are chosen
+        assert sum(out.notna()) <= n
+
 
 
 def test_lttb_categorical_sequence_data(cat_series):
@@ -134,7 +137,11 @@ def test_lttb_categorical_sequence_data(cat_series):
 
     for n in np.random.randint(100, len(cat_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        assert sum(out.notna()) == n
+        # LTTB uses the first and last value by default -> so it might add a none
+        # between these two positions when not a lot of samples are chosen
+        # Since we changed the insert NAN to the replace NAN position -> the notna
+        # sum must be <= `n`
+        assert sum(out.notna()) <= n
 
 
 def test_lttb_bool_time_data(bool_series):
@@ -146,7 +153,7 @@ def test_lttb_bool_time_data(bool_series):
 
     for n in np.random.randint(100, len(bool_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) == n
+        assert sum(out.notna()) <= n
 
 
 def test_lttb_bool_sequence_data(bool_series):
@@ -158,7 +165,7 @@ def test_lttb_bool_sequence_data(bool_series):
 
     for n in np.random.randint(100, len(bool_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) == n
+        assert sum(out.notna()) <= n
 
 
 def test_lttb_invalid_input_data():
@@ -240,7 +247,7 @@ def test_func_aggregator_categorical_sequence_data(cat_series):
     cat_series = cat_series[: len(cat_series) // 4]
     # note this method takes a long time - so we only test a small number of samples
     def most_common(x):
-        return x.value_counts().index[0]
+        return x.value_counts().index.values[0]
 
     for n in np.random.randint(100, len(cat_series), 3):
         out = FuncAggregator(
