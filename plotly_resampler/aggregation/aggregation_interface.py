@@ -2,6 +2,7 @@
 
 __author__ = "Jonas Van Der Donckt"
 
+from logging import exception
 import re
 from abc import ABC, abstractmethod
 from typing import List, Tuple
@@ -61,9 +62,7 @@ class AbstractSeriesAggregator(ABC):
         )
 
     @staticmethod
-    def _calc_med_diff(
-        s: pd.Series,
-    ) -> Tuple[float, np.ndarray]:
+    def _calc_med_diff(s: pd.Series) -> Tuple[float, np.ndarray]:
         # ----- divide and conquer heuristic to calculate the median diff ------
         s_idx_diff = np.diff(s.index.values)  # fyi: s_idx_diff.shape === len(s) -1
 
@@ -95,11 +94,16 @@ class AbstractSeriesAggregator(ABC):
                     index=df_gap_idx, data=None, name=s.name, copy=False
                 )
 
+                if isinstance(df_res_gap.index, pd.DatetimeIndex):
+                    print("converting to datetime index")
+                    # Due to the `.values` cast, we lost time-information
+                    df_res_gap.index = df_res_gap.index.tz_localize('UTC').tz_convert(s.index.tz)
+
                 # Note:
                 #  * the order of pd.concat is important for correct visualization
                 #  * we also need a stable algorithm for sorting, i.e., the equal-index
                 #    data-entries their order will be maintained.
-                return pd.concat([df_res_gap, s], ignore_index=False).sort_index(
+                s = pd.concat([df_res_gap, s], ignore_index=False).sort_index(
                     kind="mergesort"
                 )
         return s
@@ -147,13 +151,13 @@ class AbstractSeriesAggregator(ABC):
             # The end of gap periods (i.e. the first non-gap sample) with None to
             # induce such gaps
             if self.interleave_gaps:
-                return self._replace_gap_end_none(s)
+                s = self._replace_gap_end_none(s)
         else:
             # Less samples than n_out -> no data aggregation need to be performed
 
             # on the raw data -> gaps are inserted instead of replaced; i.e., we show
             # all data points and do not omit data-points with None
             if self.interleave_gaps:
-                return self._insert_gap_none(s)
+                s = self._insert_gap_none(s)
 
         return s
