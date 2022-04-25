@@ -45,14 +45,14 @@ class LTTB(AbstractSeriesAggregator):
     ):
         super().__init__(
             interleave_gaps,
-            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]] +
-                             ['category', 'bool'],
+            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
+            + ["category", "bool"],
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         # if we have categorical data, LTTB will convert the categorical values into
         # their numeric codes, i.e., the index position of the category array
-        s_v = s.cat.codes.values if str(s.dtype) == 'category' else s.values
+        s_v = s.cat.codes.values if str(s.dtype) == "category" else s.values
 
         idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s_v, n_out)
 
@@ -67,19 +67,72 @@ class LTTB(AbstractSeriesAggregator):
             index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
             data=data,
             name=str(s.name),
-            copy=False
+            copy=False,
         )
+
+
+class MinMaxOverlapAggregator(AbstractSeriesAggregator):
+    """Aggregation method which performs binned min-max aggregation over 50% overlapping
+    windows.
+
+    """
+
+    def __init__(self, interleave_gaps: bool = True):
+        # this downsampler supports all pd.Series dtypes
+        super().__init__(interleave_gaps, dtype_regex_list=None)
+
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
+        # TODO -> document
+        assert s.shape[0] > n_out
+
+        block_size = math.ceil(s.shape[0] / (n_out / 2 + 1))
+        argmax_offset = block_size // 2
+
+        offset = np.arange(
+            0, stop=s.shape[0] - block_size - argmax_offset, step=block_size
+        )
+
+        argmin = (
+            s[: block_size * len(offset)].values.reshape(-1, block_size).argmin(axis=1)
+            + offset
+        )
+        argmax = (
+            s[argmax_offset : block_size * (len(offset)) + argmax_offset]
+            .values.reshape(-1, block_size)
+            .argmax(axis=1)
+            + offset
+            + argmax_offset
+        )
+
+        return s.iloc[np.sort(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
+
+
+class EfficientLTTB(AbstractSeriesAggregator):
+    """Efficient version off LTTB by first aggregatin really large datasets with
+    the minmax aggregator and then downsampling the result with LTTB.
+    """
+
+    def __init__(self, interleave_gaps: bool = True):
+        self.lttb = LTTB(interleave_gaps=interleave_gaps)
+        self.minmax = MinMaxOverlapAggregator(interleave_gaps=interleave_gaps)
+        super().__init__(interleave_gaps, dtype_regex_list=None)
+
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
+        if s.shape[0] > n_out * 1_000:
+            s = self.minmax._aggregate(s, n_out * 50)
+        return self.lttb.aggregate(s, n_out)
 
 
 class EveryNthPoint(AbstractSeriesAggregator):
     """Naive (but fast) aggregator method which returns every n'th point."""
+
     def __init__(self, interleave_gaps: bool = True):
         # this downsampler supports all pd.Series dtypes
         super().__init__(interleave_gaps, dtype_regex_list=None)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         out = s[:: max(1, math.ceil(len(s) / n_out))]
-        return out.astype('uint8') if str(s.dtype) == 'bool' else out
+        return out.astype("uint8") if str(s.dtype) == "bool" else out
 
 
 class FuncAggregator(AbstractSeriesAggregator):
@@ -91,6 +144,7 @@ class FuncAggregator(AbstractSeriesAggregator):
     is the users' responsibility to handle categorical and bool-based datatypes.
 
     """
+
     def __init__(
         self, aggregation_func, interleave_gaps: bool = True, supported_dtypes=None
     ):
@@ -125,5 +179,5 @@ class FuncAggregator(AbstractSeriesAggregator):
             index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
             data=s_out.values,
             name=str(s.name),
-            copy=False
+            copy=False,
         )
