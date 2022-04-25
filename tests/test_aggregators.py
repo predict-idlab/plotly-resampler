@@ -123,7 +123,7 @@ def test_lttb_categorical_time_data(cat_series):
     for n in np.random.randint(100, len(cat_series) / 3, 3):
         out = LTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
         # LTTB uses the first and last value by default -> so it might add a none
-        # between these two peositions when not a lot of samples are chosen
+        # between these two positions when not a lot of samples are chosen
         assert sum(out.notna()) <= n
 
 

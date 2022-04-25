@@ -71,7 +71,7 @@ class AbstractSeriesAggregator(ABC):
         if s.shape[0] > n_blcks:
             blck_size = (s_idx_diff.shape[0]) // n_blcks
 
-            # convert the index series index diff into a reshapable view (i.e., sid_v)
+            # convert the index series index diff into a reshaped view (i.e., sid_v)
             # Remark: we start from index "1" as index "0" contains a `NaN` value
             sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
 
