@@ -86,7 +86,7 @@ class AbstractSeriesAggregator(ABC):
         med_diff, s_idx_diff = self._calc_med_diff(s)
         # add None data-points in-between the gaps
         if med_diff is not None:
-            df_gap_idx = s.index.values[1:][s_idx_diff > 2.1 * med_diff]
+            df_gap_idx = s.index.values[1:][s_idx_diff > 3 * med_diff]
             if len(df_gap_idx):
                 df_res_gap = pd.Series(
                     index=df_gap_idx, data=None, name=s.name, copy=False
@@ -113,7 +113,7 @@ class AbstractSeriesAggregator(ABC):
         med_diff, s_idx_diff = self._calc_med_diff(s)
         if med_diff is not None:
             # Replace data-points with None where the gaps occur
-            s.iloc[1:].loc[s_idx_diff > 2.1 * med_diff] = None
+            s.iloc[1:].loc[s_idx_diff > 3 * med_diff] = None
 
         return s
 
