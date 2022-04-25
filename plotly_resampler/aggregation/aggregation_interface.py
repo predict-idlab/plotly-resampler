@@ -63,16 +63,15 @@ class AbstractSeriesAggregator(ABC):
     @staticmethod
     def _calc_med_diff(s: pd.Series) -> Tuple[float, np.ndarray]:
         # ----- divide and conquer heuristic to calculate the median diff ------
-        s_idx_diff = np.diff(s.index.values)  # fyi: s_idx_diff.shape === len(s) -1
+        s_idx_diff = np.diff(s.index.values)  # remark: s_idx_diff.shape === len(s) -1
 
-        # to do so - use a quantile-based (median) approach where we reshape the data
+        # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
         n_blcks = 128
         if s.shape[0] > n_blcks:
-            blck_size = (s_idx_diff.shape[0]) // n_blcks
+            blck_size = s_idx_diff.shape[0] // n_blcks
 
             # convert the index series index diff into a reshaped view (i.e., sid_v)
-            # Remark: we start from index "1" as index "0" contains a `NaN` value
             sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
 
             # calculate the min and max and calculate the median on that
@@ -94,9 +93,11 @@ class AbstractSeriesAggregator(ABC):
                 )
 
                 if isinstance(df_res_gap.index, pd.DatetimeIndex):
-                    print("converting to datetime index")
-                    # Due to the `.values` cast, we lost time-information
-                    df_res_gap.index = df_res_gap.index.tz_localize('UTC').tz_convert(s.index.tz)
+                    # Due to the s.index`.values` cast, df_res_gap has lost 
+                    # time-information, so now we restore it
+                    df_res_gap.index = (
+                        df_res_gap.index.tz_localize('UTC').tz_convert(s.index.tz)
+                    )
 
                 # Note:
                 #  * the order of pd.concat is important for correct visualization
@@ -112,7 +113,7 @@ class AbstractSeriesAggregator(ABC):
         med_diff, s_idx_diff = self._calc_med_diff(s)
         if med_diff is not None:
             # Replace data-points with None where the gaps occur
-            s[1:].loc[s_idx_diff > 2.1 * med_diff] = None
+            s.iloc[1:].loc[s_idx_diff > 2.1 * med_diff] = None
 
         return s
 

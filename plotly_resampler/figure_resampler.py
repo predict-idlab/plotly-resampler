@@ -677,8 +677,7 @@ class FigureResampler(go.Figure):
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
                 if not isinstance(trace, dict):
-                    # TODO -> this can be optimized
-                    trace = trace.to_plotly_json()
+                    trace = trace._props
                 trace = {
                     k: trace[k]
                     for k in set(trace.keys()).difference(
