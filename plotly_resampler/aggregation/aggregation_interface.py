@@ -17,7 +17,6 @@ class AbstractSeriesAggregator(ABC):
         self,
         interleave_gaps: bool = True,
         dtype_regex_list: List[str] = None,
-        max_gap_detection_data_size: int = 25_000,
     ):
         """Constructor of AbstractSeriesAggregator.
 
@@ -29,18 +28,10 @@ class AbstractSeriesAggregator(ABC):
             irregularly sampled data. By default, True.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.
-        max_gap_detection_data_size: int, optional
-            The maximum raw-data size on which gap detection is performed. If the
-            raw data size exceeds this value, gap detection will be performed on
-            the aggregated (a.k.a. downsampled) series.
-
-            .. note::
-                This parameter only has an effect if ``interleave_gaps`` is set to True.
 
         """
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
-        self.max_gap_data_size = max_gap_detection_data_size
         super().__init__()
 
     @abstractmethod
