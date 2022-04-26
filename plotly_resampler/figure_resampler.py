@@ -26,7 +26,7 @@ from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
-from .aggregation import AbstractSeriesAggregator, LTTB
+from .aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .utils import round_td_str, round_number_str
 
 
@@ -38,7 +38,9 @@ class FigureResampler(go.Figure):
         figure: go.Figure = go.Figure(),
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = LTTB(interleave_gaps=True),
+        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(
+            interleave_gaps=True
+        ),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -66,7 +68,7 @@ class FigureResampler(go.Figure):
                   the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``LTTB``. \n
+            will be used as default downsampler, by default ``EfficientLTTB``. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
