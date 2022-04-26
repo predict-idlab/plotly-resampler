@@ -21,6 +21,11 @@ from ..aggregation.aggregation_interface import AbstractSeriesAggregator
 class LTTB(AbstractSeriesAggregator):
     """Largest Triangle Three Buckets (LTTB) aggregation method.
 
+    .. Tip::
+        `LTTB` doesn't scale super-well when moving to really large datasets, so when
+        dealing with more than 1 million samples, you might consider using
+        :class:`EffientLTTB <EfficientLTTB>`.
+
     Note
     ----
     * This class is mainly designed to operate on numerical data as LTTB calculates
@@ -39,14 +44,19 @@ class LTTB(AbstractSeriesAggregator):
 
     """
 
-    def __init__(
-        self,
-        interleave_gaps: bool = True,
-    ):
+    def __init__(self, interleave_gaps: bool = True, ):
+        """
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        """
         super().__init__(
             interleave_gaps,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
-            + ["category", "bool"],
+                             + ["category", "bool"],
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
@@ -75,44 +85,124 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
     """Aggregation method which performs binned min-max aggregation over 50% overlapping
     windows.
 
+    .. image:: _static/minmax_operator.png
+
+    In the above image, **bin_size**: represents the size of _(len(series) / n_out)_.
+    As the windows have 50% overlap and are consecutive, the min & max values are
+    calculated on a windows with size (2x bin-size).
+
+    .. note::
+        This method is rather efficient when scaling to large data sizes and can be used
+        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
+        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does.
+
     """
 
     def __init__(self, interleave_gaps: bool = True):
+        """
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        """
         # this downsampler supports all pd.Series dtypes
         super().__init__(interleave_gaps, dtype_regex_list=None)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        # TODO -> document
-        assert s.shape[0] > n_out
-
-        block_size = math.ceil(s.shape[0] / (n_out / 2 + 1))
+        # The block size 2x the bin size we also perform the ceil-operation
+        # to ensure that the block_size =
+        block_size = math.ceil(s.shape[0] / (n_out + 1) * 2)
         argmax_offset = block_size // 2
 
+        # Calculate the offset range which will be added to the argmin and argmax pos
         offset = np.arange(
             0, stop=s.shape[0] - block_size - argmax_offset, step=block_size
         )
 
+        # Calculate the argmin & argmax on the reshaped view of `s` &
+        # add the corresponding offset
         argmin = (
-            s[: block_size * len(offset)].values.reshape(-1, block_size).argmin(axis=1)
+            s[: block_size * offset.shape[0]].values.reshape(-1, block_size).argmin(
+                axis=1)
             + offset
         )
         argmax = (
-            s[argmax_offset : block_size * (len(offset)) + argmax_offset]
-            .values.reshape(-1, block_size)
-            .argmax(axis=1)
+            s[argmax_offset: block_size * offset.shape[0] + argmax_offset]
+            .values.reshape(-1, block_size).argmax(axis=1)
             + offset
             + argmax_offset
         )
-
+        # Sort the argmin & argmax (where we append the first and last index item)
+        # and then slice the original series on these indexes.
         return s.iloc[np.sort(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
 
 
-class EfficientLTTB(AbstractSeriesAggregator):
-    """Efficient version off LTTB by first aggregatin really large datasets with
-    the minmax aggregator and then downsampling the result with LTTB.
+class MinMaxAggregator(AbstractSeriesAggregator):
+    """Aggregation method which performs binned min-max aggregation over non-overlapping
+    windows.
+
+    .. note::
+        This method is rather efficient when scaling to large data sizes and can be used
+        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
+        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does.
+
     """
 
     def __init__(self, interleave_gaps: bool = True):
+        """
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        """
+        # this downsampler supports all pd.Series dtypes
+        super().__init__(interleave_gaps, dtype_regex_list=None)
+
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
+        # The block size 2x the bin size we also perform the ceil-operation
+        # to ensure that the block_size =
+        block_size = math.ceil(s.shape[0] / n_out * 2)
+
+        # Calculate the offset range which will be added to the argmin and argmax pos
+        offset = np.arange(
+            0, stop=s.shape[0] - block_size, step=block_size
+        )
+
+        # Calculate the argmin & argmax on the reshaped view of `s` &
+        # add the corresponding offset
+        argmin = (
+            s[: block_size * offset.shape[0]].values.reshape(-1, block_size).argmin(
+                axis=1)
+            + offset
+        )
+        argmax = (
+            s[: block_size * offset.shape[0]]
+            .values.reshape(-1, block_size).argmax(axis=1)
+            + offset
+        )
+        # Sort the argmin & argmax (where we append the first and last index item)
+        # and then slice the original series on these indexes.
+        return s.iloc[np.sort(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
+
+class EfficientLTTB(AbstractSeriesAggregator):
+    """Efficient version off LTTB by first reducing really large datasets with
+    the :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>` and then further
+    aggregating the reduced result with :class:`LTTB <LTTB>`.
+    """
+
+    def __init__(self, interleave_gaps: bool = True):
+        """
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        """
         self.lttb = LTTB(interleave_gaps=interleave_gaps)
         self.minmax = MinMaxOverlapAggregator(interleave_gaps=interleave_gaps)
         super().__init__(interleave_gaps, dtype_regex_list=None)
@@ -124,32 +214,53 @@ class EfficientLTTB(AbstractSeriesAggregator):
 
 
 class EveryNthPoint(AbstractSeriesAggregator):
-    """Naive (but fast) aggregator method which returns every n'th point."""
+    """Naive (but fast) aggregator method which returns every N'th point."""
 
     def __init__(self, interleave_gaps: bool = True):
+        """
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        """
         # this downsampler supports all pd.Series dtypes
         super().__init__(interleave_gaps, dtype_regex_list=None)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        out = s[:: max(1, math.ceil(len(s) / n_out))]
-        return out.astype("uint8") if str(s.dtype) == "bool" else out
+        return s[:: max(1, math.ceil(len(s) / n_out))]
 
 
 class FuncAggregator(AbstractSeriesAggregator):
     """Aggregator instance which uses the passed aggregation func.
 
-    Note
-    ----
-    The user has total control which aggregation_func is passed to this method, hence it
-    is the users' responsibility to handle categorical and bool-based datatypes.
+    .. note::
+        The user has total control which `aggregation_func` is passed to this method,
+        hence it is the users' responsibility to handle categorical and bool-based
+        data types.
 
     """
 
     def __init__(
-        self, aggregation_func, interleave_gaps: bool = True, supported_dtypes=None
+            self, aggregation_func, interleave_gaps: bool = True, dtype_regex_list=None
     ):
+        """
+        Parameters
+        ----------
+        aggregation_func: Callable
+            The aggregation function which will be applied on each pin.
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported data types,
+            by default None.
+
+        """
         self.aggregation_func = aggregation_func
-        super().__init__(interleave_gaps, supported_dtypes)
+        super().__init__(interleave_gaps, dtype_regex_list)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         if isinstance(s.index, pd.DatetimeIndex):
