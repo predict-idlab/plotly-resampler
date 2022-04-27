@@ -446,6 +446,28 @@ class FigureResampler(go.Figure):
 
     @property
     def hf_data(self):
+        """Property to adjust the `data` component of the current graph
+
+        .. note::
+            The user has full responisbility to adjust ``hf_data`` properly.
+
+        
+        Example:
+            >>> fig = FigureResampler(go.Figure())
+            >>> fig.add_trace(...)
+            >>> fig.hf_data[-1]["y"] = - s ** 2  # adjust the y-property of the trace added above
+            >>> fig._hf_data
+            [
+                {
+                    'max_n_samples': 1000,
+                    'x': RangeIndex(start=0, stop=11000000, step=1),
+                    'y': array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),
+                    'axis_type': 'linear',
+                    'downsampler': <plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0>,
+                    'hovertext': None
+                },
+            ]
+        """
         return list(self._hf_data.values())
 
     @staticmethod
