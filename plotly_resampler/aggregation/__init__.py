@@ -10,8 +10,9 @@ __author__ = "Jonas Van Der Donckt"
 from .aggregation_interface import AbstractSeriesAggregator
 from .aggregators import (
     LTTB,
+    EfficientLTTB,
     EveryNthPoint,
     FuncAggregator,
-    EfficientLTTB,
+    MinMaxAggregator,
     MinMaxOverlapAggregator,
 )
