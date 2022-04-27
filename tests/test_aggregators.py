@@ -103,13 +103,13 @@ def test_mmo_float_time_data(float_series):
             float_series, n_out=n
         )
         assert not out.isna().any()
-        assert len(out) <= n
+        assert len(out) <= n + 1
 
     for n in np.random.randint(100, len(float_series) / 3, 3):
         out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
             float_series, n_out=n
         )
-        assert sum(out.notna()) <= n
+        assert sum(out.notna()) <= n + 1
 
 
 def test_mmo_float_sequence_data(float_series):
@@ -153,7 +153,7 @@ def test_mmo_categorical_sequence_data(cat_series):
         assert not out.isna().any()
         assert len(out) <= n + 1
 
-    for n in np.random.randint(10, len(cat_series) / 30, 3):
+    for n in np.random.randint(100, len(cat_series) / 30, 3):
         out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
             cat_series, n_out=n
         )
@@ -248,7 +248,7 @@ def test_mm_categorical_sequence_data(cat_series):
         assert not out.isna().any()
         assert len(out) <= n + 1
 
-    for n in np.random.randint(200, len(cat_series) / 3, 3):
+    for n in np.random.randint(100, len(cat_series) / 5, 3):
         out = MinMaxAggregator(interleave_gaps=True).aggregate(cat_series, n_out=n)
         assert not out[2:-2].isna().any()
         assert len(out) <= n + 1
