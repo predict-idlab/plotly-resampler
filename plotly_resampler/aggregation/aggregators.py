@@ -63,8 +63,17 @@ class LTTB(AbstractSeriesAggregator):
         # if we have categorical data, LTTB will convert the categorical values into
         # their numeric codes, i.e., the index position of the category array
         s_v = s.cat.codes.values if str(s.dtype) == "category" else s.values
+        s_i = s.index.values
 
-        idx, data = lttbc.downsample(np.arange(len(s), dtype="uint32"), s_v, n_out)
+        if s_i.dtype.type == np.datetime64:
+            # lttbc does not support this datatype -> convert to int 
+            # (where the time is represented in ns)
+            s_i = s_i.astype(int)
+            idx, data = lttbc.downsample(s_i, s_v, n_out)
+            idx = pd.to_datetime(idx, unit='ns', utc=True).tz_convert(s.index.tz)
+        else:
+            idx, data = lttbc.downsample(s_i, s_v, n_out)
+            idx = idx.astype(s_i.dtype)
 
         if str(s.dtype) == "category":
             # reconvert the downsampled numeric codes to the category array
@@ -73,12 +82,7 @@ class LTTB(AbstractSeriesAggregator):
             # default case, use the series it's dtype as return type
             data = data.astype(s.dtype)
 
-        return pd.Series(
-            index=s.iloc[idx.astype("uint32")].index.astype(s.index.dtype),
-            data=data,
-            name=str(s.name),
-            copy=False,
-        )
+        return pd.Series(index=idx, data=data, name=str(s.name), copy=False)
 
 
 class MinMaxOverlapAggregator(AbstractSeriesAggregator):
