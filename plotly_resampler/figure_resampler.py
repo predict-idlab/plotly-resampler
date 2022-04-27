@@ -27,8 +27,8 @@ from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseTraceType
 from trace_updater import TraceUpdater
 
-from .aggregation import EfficientLTTB, AbstractSeriesAggregator
-from .utils import round_number_str, round_td_str
+from .aggregation import AbstractSeriesAggregator, EfficientLTTB
+from .utils import round_td_str, round_number_str
 
 
 class FigureResampler(go.Figure):
