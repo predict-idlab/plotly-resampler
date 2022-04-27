@@ -15,19 +15,20 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
 import warnings
-from typing import List, Optional, Union, Iterable, Tuple, Dict
+from copy import copy
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
+from plotly.basedatatypes import BaseTraceType
 from trace_updater import TraceUpdater
 
-from .aggregation import AbstractSeriesAggregator, LTTB
-from .utils import round_td_str, round_number_str
+from .aggregation import EfficientLTTB, AbstractSeriesAggregator
+from .utils import round_number_str, round_td_str
 
 
 class FigureResampler(go.Figure):
@@ -38,7 +39,7 @@ class FigureResampler(go.Figure):
         figure: go.Figure = go.Figure(),
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = LTTB(interleave_gaps=True),
+        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -66,7 +67,8 @@ class FigureResampler(go.Figure):
                   the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``LTTB``. \n
+            will be used as default downsampler, by default ``EfficientLTTB`` with 
+            _interleave_gaps_ set to True. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
@@ -134,6 +136,30 @@ class FigureResampler(go.Figure):
             }
             self._print(f"[W] trace with {trace_props} not found")
         return hf_trace_data
+
+    def _get_current_graph(self) -> dict:
+        """Create an efficient copy of the current graph by omitting the "hovertext",
+        "x", and "y" properties of each trace.
+
+        Returns
+        -------
+        dict
+            The current graph dict
+
+        See Also
+        --------
+        https://github.com/plotly/plotly.py/blob/2e7f322c5ea4096ce6efe3b4b9a34d9647a8be9c/packages/python/plotly/plotly/basedatatypes.py#L3278
+        """
+        return {
+            "data": [
+                {
+                    k: copy(trace[k])
+                    for k in set(trace.keys()).difference({"x", "y", "hovertext"})
+                }
+                for trace in self._data
+            ],
+            "layout": copy(self._layout),
+        }
 
     def _check_update_trace_data(
         self,
@@ -246,6 +272,7 @@ class FigureResampler(go.Figure):
             # Check if hovertext also needs to be resampled
             hovertext = hf_trace_data.get("hovertext")
             if isinstance(hovertext, pd.Series):
+                # TODO -> this can be optimized
                 trace["hovertext"] = pd.merge_asof(
                     s_res,
                     hovertext,
@@ -771,8 +798,7 @@ class FigureResampler(go.Figure):
             in each dict.
 
         """
-        # see: https://github.com/plotly/plotly.py/blob/2e7f322c5ea4096ce6efe3b4b9a34d9647a8be9c/packages/python/plotly/plotly/basedatatypes.py#L3278
-        current_graph = {"data": self._data, "layout": self._layout}
+        current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
             self._print("-" * 100 + "\n", "changed layout", relayout_data)
@@ -840,7 +866,7 @@ class FigureResampler(go.Figure):
         layout_traces_list.append(extra_layout_updates)
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = ["x", "y", "text", "hovertext", "name"]
+        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
