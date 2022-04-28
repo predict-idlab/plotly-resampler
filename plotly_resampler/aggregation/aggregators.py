@@ -140,7 +140,7 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
         )
         # Sort the argmin & argmax (where we append the first and last index item)
         # and then slice the original series on these indexes.
-        return s.iloc[np.sort(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
+        return s.iloc[np.unique(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
 
 
 class MinMaxAggregator(AbstractSeriesAggregator):
@@ -190,7 +190,7 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         )
         # Sort the argmin & argmax (where we append the first and last index item)
         # and then slice the original series on these indexes.
-        return s.iloc[np.sort(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
+        return s.iloc[np.unique(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
 
 class EfficientLTTB(AbstractSeriesAggregator):
     """Efficient version off LTTB by first reducing really large datasets with
