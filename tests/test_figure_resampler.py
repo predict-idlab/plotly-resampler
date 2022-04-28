@@ -89,6 +89,21 @@ def test_add_trace_not_resampling(float_series):
     )
 
 
+def test_add_scatter_trace_no_data():
+    fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+
+    # no x and y data
+    fig.add_trace(go.Scatter())
+
+
+def test_add_scatter_trace_no_x():
+    fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+
+    # no x data
+    fig.add_trace(go.Scatter(y=[2, 1, 4, 3], name="s1"))
+    fig.add_trace(go.Scatter(name="s2"), hf_y=[2, 1, 4, 3])
+
+
 def test_add_not_a_hf_trace(float_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
     base_fig = make_subplots(

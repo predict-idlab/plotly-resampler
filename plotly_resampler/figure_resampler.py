@@ -635,11 +635,21 @@ class FigureResampler(go.Figure):
 
         high_frequency_traces = ["scatter", "scattergl"]
         if trace["type"].lower() in high_frequency_traces:
+            if hf_x is None:  # if no data as x or hf_x is passed
+                if hf_y.ndim != 0:  # if hf_y is an array
+                    hf_x = np.arange(len(hf_y))
+                else:  # if no data as y or hf_y is passed
+                    hf_x = np.asarray(None)
+
+            assert hf_y.ndim == np.ndim(hf_x), (
+                "plotly-resampler requires scatter data "
+                "(i.e., x and y, or hf_x and hf_y) to have the same dimensionality!"
+            )
             # When the x or y of a trace has more than 1 dimension, it is not at all
             # straightforward how it should be resampled.
-            assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
+            assert hf_y.ndim <= 1 and np.ndim(hf_x) <= 1, (
                 "plotly-resampler requires scatter data "
-                "(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!"
+                "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
             )
 
             # Make sure to set the text-attribute to None as the default plotly behavior
@@ -672,7 +682,6 @@ class FigureResampler(go.Figure):
             if str(hf_y.dtype) in ["uint8", "uint16"]:
                 hf_y = hf_y.astype("uint32")
 
-            assert len(hf_x) > 0, "No data to plot!"
             assert len(hf_x) == len(hf_y), "x and y have different length!"
 
             # Convert the hovertext to a pd.Series if it's now a np.ndarray
