@@ -226,7 +226,7 @@ def test_mm_float_sequence_data(float_series):
 
     for n in np.random.randint(100, len(float_series) / 3, 3):
         out = MinMaxAggregator(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
+        assert sum(out.notna()) <= n + 1
 
 
 def test_mm_categorical_time_data(cat_series):
