@@ -67,7 +67,7 @@ class FigureResampler(go.Figure):
                   the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``EfficientLTTB`` with 
+            will be used as default downsampler, by default ``EfficientLTTB`` with
             _interleave_gaps_ set to True. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
@@ -451,7 +451,7 @@ class FigureResampler(go.Figure):
         .. note::
             The user has full responisbility to adjust ``hf_data`` properly.
 
-        
+
         Example:
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(...)

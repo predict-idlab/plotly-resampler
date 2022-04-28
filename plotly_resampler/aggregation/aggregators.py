@@ -91,7 +91,7 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
 
     .. image:: _static/minmax_operator.png
 
-    In the above image, **bin_size**: represents the size of _(len(series) / n_out)_.
+    In the above image, **bin_size**: represents the size of *(len(series) / n_out)*.
     As the windows have 50% overlap and are consecutive, the min & max values are
     calculated on a windows with size (2x bin-size).
 
