@@ -150,7 +150,8 @@ class MinMaxAggregator(AbstractSeriesAggregator):
     .. note::
         This method is rather efficient when scaling to large data sizes and can be used
         as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does.
+        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the 
+        :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>`.
 
     """
 
