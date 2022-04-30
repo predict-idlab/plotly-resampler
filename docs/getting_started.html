@@ -163,6 +163,25 @@
   <a class="reference internal nav-link" href="#important-considerations-tips">
    Important considerations &amp; tips 🚨
   </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#dynamically-adjusting-the-scatter-data">
+     Dynamically adjusting the scatter data 🔩
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#plotly-resampler-not-high-frequency-traces">
+     Plotly-resampler &amp; not high-frequency traces 🔍
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h4 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#use-cases">
+       Use-cases
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
  </li>
 </ul>
 
@@ -243,6 +262,63 @@ But, (obviously) only the scatter traces will be resampled.</p>
 The <span class="raw-html"><b><a style="color:orange">[R]</a></b></span> in the legend indicates when the corresponding trace is resampled (and thus possibly distorted). <span class="raw-html"><br></span>
 The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></span> suffix in the legend represents the mean index delta for consecutive aggregated data points.</p></li>
 </ul>
+<section id="dynamically-adjusting-the-scatter-data">
+<h3>Dynamically adjusting the scatter data 🔩<a class="headerlink" href="#dynamically-adjusting-the-scatter-data" title="Permalink to this headline">#</a></h3>
+<p>The raw high-frequency trace data can be adjusted using the <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.hf_data" title="plotly_resampler.figure_resampler.FigureResampler.hf_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">hf_data</span></code></a> property of the FigureResampler instance.</p>
+<p>Working example ⬇️:</p>
+<div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span><span class="p">;</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
+
+<span class="c1"># Construct the hf-data</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>
+<span class="n">sin</span> <span class="o">=</span> <span class="p">(</span><span class="mi">3</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="mi">200</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="mi">1_000</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">())</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scattergl</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;noisy sine&#39;</span><span class="p">,</span> <span class="n">showlegend</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">hf_x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">hf_y</span><span class="o">=</span><span class="n">sin</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">show_dash</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;inline&#39;</span><span class="p">)</span>
+
+<span class="c1"># After some time -&gt; update the hf_data y property of the trace</span>
+<span class="c1"># As we only have 1 trace, this needs to be mapped</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">hf_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">sin</span> <span class="o">**</span> <span class="mi">2</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p><cite>hf_data</cite> only withholds high-frequency traces (i.e., traces that are aggregated)</p>
+</div>
+</section>
+<section id="plotly-resampler-not-high-frequency-traces">
+<h3>Plotly-resampler &amp; not high-frequency traces 🔍<a class="headerlink" href="#plotly-resampler-not-high-frequency-traces" title="Permalink to this headline">#</a></h3>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>In the <em>Skin conductance example</em> of the <span class="raw-html"><a href="https://github.com/predict-idlab/plotly-resampler/tree/main/examples"><b>basic_example.ipynb</b><a></span>, we deal with such low-frequency traces.</p>
+</div>
+<p>The <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace</span></code></a> method allows configuring argument which allows us to deal with low-frequency traces.</p>
+<section id="use-cases">
+<h4>Use-cases<a class="headerlink" href="#use-cases" title="Permalink to this headline">#</a></h4>
+<ul class="simple">
+<li><p><strong>not resampling</strong> trace data: To achieve this, set:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code> = len(hf_x)</p></li>
+</ul>
+</li>
+<li><p><strong>not resampling</strong> trace data, but <strong>slicing to the view</strong>: To achieve this, set:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code> = len(hf_x)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">limit_to_view</span></code> = True</p></li>
+</ul>
+</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For, <strong>irregularly sampled traces</strong> which are <strong>filled</strong> (e.g. <em>colored background</em> signal quality trace of the skin conductance example), it is important that you set <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> for that trace it’s aggregator.</p>
+<p>Otherwise, when you leave <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, you may get weird background shapes such as ⬇️:</p>
+<img alt="_images/skin_conductance_interleave_gaps_true.png" src="_images/skin_conductance_interleave_gaps_true.png" />
+<p>When <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code> you get ⬇️:</p>
+<img alt="_images/skin_conductance_interleave_gaps_false.png" src="_images/skin_conductance_interleave_gaps_false.png" />
+</div>
+</section>
+</section>
 </section>
 </section>
 

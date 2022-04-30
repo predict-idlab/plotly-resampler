@@ -167,6 +167,11 @@
 <div class="viewcode-block" id="LTTB"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB">[docs]</a><span class="k">class</span> <span class="nc">LTTB</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Largest Triangle Three Buckets (LTTB) aggregation method.</span>
 
+<span class="sd">    .. Tip::</span>
+<span class="sd">        `LTTB` doesn&#39;t scale super-well when moving to really large datasets, so when</span>
+<span class="sd">        dealing with more than 1 million samples, you might consider using</span>
+<span class="sd">        :class:`EffientLTTB &lt;EfficientLTTB&gt;`.</span>
+
 <span class="sd">    Note</span>
 <span class="sd">    ----</span>
 <span class="sd">    * This class is mainly designed to operate on numerical data as LTTB calculates</span>
@@ -185,22 +190,36 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        interleave_gaps: bool, optional</span>
+<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
+<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
+<span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">interleave_gaps</span><span class="p">,</span>
-            <span class="n">dtype_regex_list</span><span class="o">=</span><span class="p">[</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">\d*&quot;</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;uint&quot;</span><span class="p">]]</span> <span class="o">+</span>
-                             <span class="p">[</span><span class="s1">&#39;category&#39;</span><span class="p">,</span> <span class="s1">&#39;bool&#39;</span><span class="p">],</span>
+            <span class="n">dtype_regex_list</span><span class="o">=</span><span class="p">[</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">\d*&quot;</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;uint&quot;</span><span class="p">]]</span>
+                             <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">],</span>
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="c1"># if we have categorical data, LTTB will convert the categorical values into</span>
         <span class="c1"># their numeric codes, i.e., the index position of the category array</span>
-        <span class="n">s_v</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;category&#39;</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">s_v</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;category&quot;</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">s_i</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
 
-        <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;uint32&quot;</span><span class="p">),</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">:</span>
+            <span class="c1"># lttbc does not support this datatype -&gt; convert to int </span>
+            <span class="c1"># (where the time is represented in ns)</span>
+            <span class="n">s_i</span> <span class="o">=</span> <span class="n">s_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s1">&#39;ns&#39;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;category&quot;</span><span class="p">:</span>
             <span class="c1"># reconvert the downsampled numeric codes to the category array</span>
@@ -209,39 +228,191 @@
             <span class="c1"># default case, use the series it&#39;s dtype as return type</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-            <span class="n">index</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint32&quot;</span><span class="p">)]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-            <span class="n">copy</span><span class="o">=</span><span class="kc">False</span>
-        <span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="EveryNthPoint"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint">[docs]</a><span class="k">class</span> <span class="nc">EveryNthPoint</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every n&#39;th point.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="MinMaxOverlapAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator">[docs]</a><span class="k">class</span> <span class="nc">MinMaxOverlapAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Aggregation method which performs binned min-max aggregation over 50% overlapping</span>
+<span class="sd">    windows.</span>
+
+<span class="sd">    .. image:: _static/minmax_operator.png</span>
+
+<span class="sd">    In the above image, **bin_size**: represents the size of *(len(series) / n_out)*.</span>
+<span class="sd">    As the windows have 50% overlap and are consecutive, the min &amp; max values are</span>
+<span class="sd">    calculated on a windows with size (2x bin-size).</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This method is rather efficient when scaling to large data sizes and can be used</span>
+<span class="sd">        as a data-reduction step before feeding it to the :class:`LTTB &lt;LTTB&gt;`</span>
+<span class="sd">        algorithm, as :class:`EfficientLTTB &lt;EfficientLTTB&gt;` does.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        interleave_gaps: bool, optional</span>
+<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
+<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
+<span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this downsampler supports all pd.Series dtypes</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">s</span><span class="p">[::</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_out</span><span class="p">))]</span>
-        <span class="k">return</span> <span class="n">out</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;uint8&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;bool&#39;</span> <span class="k">else</span> <span class="n">out</span></div>
+        <span class="c1"># The block size 2x the bin size we also perform the ceil-operation</span>
+        <span class="c1"># to ensure that the block_size =</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_out</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">argmax_offset</span> <span class="o">=</span> <span class="n">block_size</span> <span class="o">//</span> <span class="mi">2</span>
+
+        <span class="c1"># Calculate the offset range which will be added to the argmin and argmax pos</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">block_size</span> <span class="o">-</span> <span class="n">argmax_offset</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">block_size</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Calculate the argmin &amp; argmax on the reshaped view of `s` &amp;</span>
+        <span class="c1"># add the corresponding offset</span>
+        <span class="n">argmin</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">offset</span>
+        <span class="p">)</span>
+        <span class="n">argmax</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span><span class="p">[</span><span class="n">argmax_offset</span><span class="p">:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">argmax_offset</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">offset</span>
+            <span class="o">+</span> <span class="n">argmax_offset</span>
+        <span class="p">)</span>
+        <span class="c1"># Sort the argmin &amp; argmax (where we append the first and last index item)</span>
+        <span class="c1"># and then slice the original series on these indexes.</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">argmin</span><span class="p">,</span> <span class="n">argmax</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])))]</span></div>
+
+
+<div class="viewcode-block" id="MinMaxAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxAggregator">[docs]</a><span class="k">class</span> <span class="nc">MinMaxAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Aggregation method which performs binned min-max aggregation over fully</span>
+<span class="sd">    overlapping windows.</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This method is rather efficient when scaling to large data sizes and can be used</span>
+<span class="sd">        as a data-reduction step before feeding it to the :class:`LTTB &lt;LTTB&gt;`</span>
+<span class="sd">        algorithm, as :class:`EfficientLTTB &lt;EfficientLTTB&gt;` does with the </span>
+<span class="sd">        :class:`MinMaxOverlapAggregator &lt;MinMaxOverlapAggregator&gt;`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        interleave_gaps: bool, optional</span>
+<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
+<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
+<span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># this downsampler supports all pd.Series dtypes</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="c1"># The block size 2x the bin size we also perform the ceil-operation</span>
+        <span class="c1"># to ensure that the block_size =</span>
+        <span class="n">block_size</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the offset range which will be added to the argmin and argmax pos</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span> <span class="n">stop</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">block_size</span><span class="p">,</span> <span class="n">step</span><span class="o">=</span><span class="n">block_size</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Calculate the argmin &amp; argmax on the reshaped view of `s` &amp;</span>
+        <span class="c1"># add the corresponding offset</span>
+        <span class="n">argmin</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">offset</span>
+        <span class="p">)</span>
+        <span class="n">argmax</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">s</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">+</span> <span class="n">offset</span>
+        <span class="p">)</span>
+        <span class="c1"># Sort the argmin &amp; argmax (where we append the first and last index item)</span>
+        <span class="c1"># and then slice the original series on these indexes.</span>
+        <span class="k">return</span> <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">argmin</span><span class="p">,</span> <span class="n">argmax</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])))]</span></div>
+
+
+<div class="viewcode-block" id="EfficientLTTB"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EfficientLTTB">[docs]</a><span class="k">class</span> <span class="nc">EfficientLTTB</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Efficient version off LTTB by first reducing really large datasets with</span>
+<span class="sd">    the :class:`MinMaxOverlapAggregator &lt;MinMaxOverlapAggregator&gt;` and then further</span>
+<span class="sd">    aggregating the reduced result with :class:`LTTB &lt;LTTB&gt;`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        interleave_gaps: bool, optional</span>
+<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
+<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
+<span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span> <span class="o">=</span> <span class="n">LTTB</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="o">=</span><span class="n">interleave_gaps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">minmax</span> <span class="o">=</span> <span class="n">MinMaxOverlapAggregator</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="o">=</span><span class="n">interleave_gaps</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">1_000</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minmax</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EveryNthPoint"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint">[docs]</a><span class="k">class</span> <span class="nc">EveryNthPoint</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every N&#39;th point.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        interleave_gaps: bool, optional</span>
+<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
+<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
+<span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># this downsampler supports all pd.Series dtypes</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">s</span><span class="p">[::</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_out</span><span class="p">))]</span></div>
 
 
 <div class="viewcode-block" id="FuncAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.FuncAggregator">[docs]</a><span class="k">class</span> <span class="nc">FuncAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Aggregator instance which uses the passed aggregation func.</span>
 
-<span class="sd">    Note</span>
-<span class="sd">    ----</span>
-<span class="sd">    The user has total control which aggregation_func is passed to this method, hence it</span>
-<span class="sd">    is the users&#39; responsibility to handle categorical and bool-based datatypes.</span>
+<span class="sd">    .. note::</span>
+<span class="sd">        The user has total control which `aggregation_func` is passed to this method,</span>
+<span class="sd">        hence it is the users&#39; responsibility to handle categorical and bool-based</span>
+<span class="sd">        data types.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">aggregation_func</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">supported_dtypes</span><span class="o">=</span><span class="kc">None</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">aggregation_func</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span>
     <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        aggregation_func: Callable</span>
+<span class="sd">            The aggregation function which will be applied on each pin.</span>
+<span class="sd">        interleave_gaps: bool, optional</span>
+<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
+<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
+<span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        dtype_regex_list: List[str], optional</span>
+<span class="sd">            List containing the regex matching the supported data types,</span>
+<span class="sd">            by default None.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_func</span> <span class="o">=</span> <span class="n">aggregation_func</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">supported_dtypes</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
@@ -271,7 +442,7 @@
             <span class="n">index</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">idx_locs</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dtype</span><span class="p">)]</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dtype</span><span class="p">),</span>
             <span class="n">data</span><span class="o">=</span><span class="n">s_out</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
             <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-            <span class="n">copy</span><span class="o">=</span><span class="kc">False</span>
+            <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="p">)</span></div>
 </pre></div>
 

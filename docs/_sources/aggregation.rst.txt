@@ -3,9 +3,9 @@ Aggregation
 -----------
 
 
-^^^^^^^^^^^^^^^^^^^
-downsampler classes
-^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^
+Aggregator classes
+^^^^^^^^^^^^^^^^^^
 
 .. automodule:: plotly_resampler.aggregation.aggregators
     :members:
@@ -13,9 +13,9 @@ downsampler classes
     :show-inheritance:
 
 
-^^^^^^^^^^^^^^^^^^^^^^
-downsampling interface
-^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^
+Aggregation interface
+^^^^^^^^^^^^^^^^^^^^^
 
 .. automodule:: plotly_resampler.aggregation.aggregation_interface
     :members:

@@ -161,18 +161,19 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
 
 <span class="kn">import</span> <span class="nn">dash</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
-<span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseTraceType</span>
 <span class="kn">from</span> <span class="nn">jupyter_dash</span> <span class="kn">import</span> <span class="n">JupyterDash</span>
+<span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseTraceType</span>
 <span class="kn">from</span> <span class="nn">trace_updater</span> <span class="kn">import</span> <span class="n">TraceUpdater</span>
 
-<span class="kn">from</span> <span class="nn">.aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">LTTB</span>
+<span class="kn">from</span> <span class="nn">.aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">EfficientLTTB</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">round_td_str</span><span class="p">,</span> <span class="n">round_number_str</span>
 
 
@@ -184,7 +185,7 @@
         <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(),</span>
         <span class="n">convert_existing_traces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">default_n_shown_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-        <span class="n">default_downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="n">LTTB</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">default_downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="n">EfficientLTTB</span><span class="p">(),</span>
         <span class="n">resampled_trace_prefix_suffix</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s1">&#39;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#39;</span><span class="p">,</span>
             <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -212,7 +213,8 @@
 <span class="sd">                  the data will *not* be aggregated.</span>
 <span class="sd">        default_downsampler: AbstractSeriesDownsampler</span>
 <span class="sd">            An instance which implements the AbstractSeriesDownsampler interface and</span>
-<span class="sd">            will be used as default downsampler, by default ``LTTB``. \n</span>
+<span class="sd">            will be used as default downsampler, by default ``EfficientLTTB`` with</span>
+<span class="sd">            _interleave_gaps_ set to True. \n</span>
 <span class="sd">            .. note:: This can be overridden within the :func:`add_trace` method.</span>
 <span class="sd">        resampled_trace_prefix_suffix: str, optional</span>
 <span class="sd">            A tuple which contains the ``prefix`` and ``suffix``, respectively, which</span>
@@ -281,6 +283,30 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[W] trace with </span><span class="si">{</span><span class="n">trace_props</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">hf_trace_data</span>
 
+    <span class="k">def</span> <span class="nf">_get_current_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Create an efficient copy of the current graph by omitting the &quot;hovertext&quot;,</span>
+<span class="sd">        &quot;x&quot;, and &quot;y&quot; properties of each trace.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            The current graph dict</span>
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        https://github.com/plotly/plotly.py/blob/2e7f322c5ea4096ce6efe3b4b9a34d9647a8be9c/packages/python/plotly/plotly/basedatatypes.py#L3278</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="n">k</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">})</span>
+                <span class="p">}</span>
+                <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
+            <span class="p">],</span>
+            <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="p">),</span>
+        <span class="p">}</span>
+
     <span class="k">def</span> <span class="nf">_check_update_trace_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
@@ -334,12 +360,12 @@
             <span class="k">if</span> <span class="n">axis_type</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
                 <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
                 <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_time</span><span class="p">(</span>
-                    <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;hf_series&quot;</span><span class="p">],</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
                     <span class="n">start</span><span class="p">,</span>
                     <span class="n">end</span><span class="p">,</span>
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">hf_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;hf_series&quot;</span><span class="p">]</span>
+                <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
                 <span class="n">start</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
                 <span class="n">end</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">end</span>
                 <span class="k">if</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
@@ -375,9 +401,9 @@
                 <span class="n">name</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
                 <span class="c1"># Add the mean aggregation bin size to the trace name</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_show_mean_aggregation_size</span><span class="p">:</span>
-                    <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">):</span>
-                        <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">round_td_str</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">)</span>
+                    <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
+                        <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">round_td_str</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">))</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">round_number_str</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">)</span>
                     <span class="n">name</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agg_prefix</span><span class="si">}{</span><span class="n">agg_mean</span><span class="si">}{</span><span class="n">agg_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
@@ -392,6 +418,7 @@
             <span class="c1"># Check if hovertext also needs to be resampled</span>
             <span class="n">hovertext</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hovertext&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hovertext</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+                <span class="c1"># TODO -&gt; this can be optimized</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span>
                     <span class="n">s_res</span><span class="p">,</span>
                     <span class="n">hovertext</span><span class="p">,</span>
@@ -563,6 +590,56 @@
 
         <span class="k">return</span> <span class="n">hf_series</span><span class="p">[</span><span class="n">to_same_tz</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span> <span class="p">:</span> <span class="n">to_same_tz</span><span class="p">(</span><span class="n">t_stop</span><span class="p">)]</span>
 
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">hf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Property to adjust the `data` component of the current graph</span>
+
+<span class="sd">        .. note::</span>
+<span class="sd">            The user has full responisbility to adjust ``hf_data`` properly.</span>
+
+
+<span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; fig = FigureResampler(go.Figure())</span>
+<span class="sd">            &gt;&gt;&gt; fig.add_trace(...)</span>
+<span class="sd">            &gt;&gt;&gt; fig.hf_data[-1][&quot;y&quot;] = - s ** 2  # adjust the y-property of the trace added above</span>
+<span class="sd">            &gt;&gt;&gt; fig._hf_data</span>
+<span class="sd">            [</span>
+<span class="sd">                {</span>
+<span class="sd">                    &#39;max_n_samples&#39;: 1000,</span>
+<span class="sd">                    &#39;x&#39;: RangeIndex(start=0, stop=11000000, step=1),</span>
+<span class="sd">                    &#39;y&#39;: array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),</span>
+<span class="sd">                    &#39;axis_type&#39;: &#39;linear&#39;,</span>
+<span class="sd">                    &#39;downsampler&#39;: &lt;plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0&gt;,</span>
+<span class="sd">                    &#39;hovertext&#39;: None</span>
+<span class="sd">                },</span>
+<span class="sd">            ]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Construct the hf-series.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : np.ndarray</span>
+<span class="sd">            The hf_series index</span>
+<span class="sd">        y : np.ndarray</span>
+<span class="sd">            The hf_series values</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pd.Series</span>
+<span class="sd">            The constructed hf_series</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+            <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span> <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span> <span class="k">else</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="p">)</span>
+
 <div class="viewcode-block" id="FigureResampler.add_trace"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.add_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_trace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BaseTraceType</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
@@ -704,11 +781,21 @@
 
         <span class="n">high_frequency_traces</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;scatter&quot;</span><span class="p">,</span> <span class="s2">&quot;scattergl&quot;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">high_frequency_traces</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hf_x</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># if no data as x or hf_x is passed</span>
+                <span class="k">if</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># if hf_y is an array</span>
+                    <span class="n">hf_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># if no data as y or hf_y is passed</span>
+                    <span class="n">hf_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">assert</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">hf_x</span><span class="p">),</span> <span class="p">(</span>
+                <span class="s2">&quot;plotly-resampler requires scatter data &quot;</span>
+                <span class="s2">&quot;(i.e., x and y, or hf_x and hf_y) to have the same dimensionality!&quot;</span>
+            <span class="p">)</span>
             <span class="c1"># When the x or y of a trace has more than 1 dimension, it is not at all</span>
             <span class="c1"># straightforward how it should be resampled.</span>
-            <span class="k">assert</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
+            <span class="k">assert</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">ndim</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span>
                 <span class="s2">&quot;plotly-resampler requires scatter data &quot;</span>
-                <span class="s2">&quot;(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!&quot;</span>
+                <span class="s2">&quot;(i.e., x and y, or hf_x and hf_y) to be &lt;= 1 dimensional!&quot;</span>
             <span class="p">)</span>
 
             <span class="c1"># Make sure to set the text-attribute to None as the default plotly behavior</span>
@@ -741,7 +828,6 @@
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;uint8&quot;</span><span class="p">,</span> <span class="s2">&quot;uint16&quot;</span><span class="p">]:</span>
                 <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
 
-            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;No data to plot!&quot;</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">),</span> <span class="s2">&quot;x and y have different length!&quot;</span>
 
             <span class="c1"># Convert the hovertext to a pd.Series if it&#39;s now a np.ndarray</span>
@@ -762,14 +848,8 @@
 
                 <span class="c1"># We will re-create this each time as hf_x and hf_y withholds</span>
                 <span class="c1"># high-frequency data</span>
-                <span class="n">index</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;timestamp&quot;</span><span class="p">)</span>
-                <span class="n">hf_series</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-                    <span class="n">data</span><span class="o">=</span><span class="n">hf_y</span><span class="p">,</span>
-                    <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
-                    <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span>
-                    <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span> <span class="k">if</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span> <span class="k">else</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-                <span class="p">)</span>
+                <span class="c1"># index = pd.Index(hf_x, copy=False, name=&quot;timestamp&quot;)</span>
+                <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">hf_y</span><span class="p">)</span>
 
                 <span class="c1"># Checking this now avoids less interpretable `KeyError` when resampling</span>
                 <span class="k">assert</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_monotonic_increasing</span>
@@ -788,7 +868,8 @@
                 <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span> <span class="k">if</span> <span class="n">downsampler</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">downsampler</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">uid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s2">&quot;max_n_samples&quot;</span><span class="p">:</span> <span class="n">max_n_samples</span><span class="p">,</span>
-                    <span class="s2">&quot;hf_series&quot;</span><span class="p">:</span> <span class="n">hf_series</span><span class="p">,</span>
+                    <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">hf_x</span><span class="p">,</span>
+                    <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">hf_y</span><span class="p">,</span>
                     <span class="s2">&quot;axis_type&quot;</span><span class="p">:</span> <span class="n">axis_type</span><span class="p">,</span>
                     <span class="s2">&quot;downsampler&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span>
                     <span class="s2">&quot;hovertext&quot;</span><span class="p">:</span> <span class="n">hf_hovertext</span><span class="p">,</span>
@@ -800,7 +881,7 @@
                 <span class="c1"># We copy (by reference) all the non-data properties of the trace in</span>
                 <span class="c1"># the new trace.</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-                    <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">to_plotly_json</span><span class="p">()</span>
+                    <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">_props</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="n">k</span><span class="p">:</span> <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
                     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span>
@@ -894,7 +975,7 @@
 <span class="sd">            in each dict.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">current_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="n">current_graph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_current_graph</span><span class="p">()</span>
         <span class="n">updated_trace_indices</span><span class="p">,</span> <span class="n">cl_k</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">relayout_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;changed layout&quot;</span><span class="p">,</span> <span class="n">relayout_data</span><span class="p">)</span>
@@ -962,7 +1043,7 @@
         <span class="n">layout_traces_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extra_layout_updates</span><span class="p">)</span>
 
         <span class="c1"># 2. Create the additional trace data for the frond-end</span>
-        <span class="n">relevant_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">relevant_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">]</span>  <span class="c1"># TODO - marker color</span>
         <span class="c1"># Note that only updated trace-data will be sent to the client</span>
         <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">updated_trace_indices</span><span class="p">:</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">current_graph</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
@@ -1080,8 +1161,13 @@
 
         <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="FigureResampler.stop_server"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.stop_server">[docs]</a>    <span class="k">def</span> <span class="nf">stop_server</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="FigureResampler.stop_server"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.stop_server">[docs]</a>    <span class="k">def</span> <span class="nf">stop_server</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">warn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Stop the running dash-app.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        warn: bool</span>
+<span class="sd">            Whether a warning message will be shown or  not, by default True.</span>
 
 <span class="sd">        .. attention::</span>
 <span class="sd">            This only works if the dash-app was started with :func:`show_dash`.</span>
@@ -1093,7 +1179,7 @@
                 <span class="n">old_server</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
                 <span class="n">old_server</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
                 <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_server_threads</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">)]</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">warn</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
                 <span class="s2">&quot;Could not stop the server, either the </span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">- &#39;show-dash&#39; method was not called, or </span><span class="se">\n</span><span class="s2">&quot;</span>

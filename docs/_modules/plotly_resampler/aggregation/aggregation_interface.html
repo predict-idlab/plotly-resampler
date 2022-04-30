@@ -150,8 +150,9 @@
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span><span class="p">,</span> <span class="n">abstractmethod</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 
@@ -162,7 +163,6 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">dtype_regex_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">max_gap_detection_data_size</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">25_000</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Constructor of AbstractSeriesAggregator.</span>
 
@@ -174,19 +174,10 @@
 <span class="sd">            irregularly sampled data. By default, True.</span>
 <span class="sd">        dtype_regex_list: List[str], optional</span>
 <span class="sd">            List containing the regex matching the supported datatypes, by default None.</span>
-<span class="sd">        max_gap_detection_data_size: int, optional</span>
-<span class="sd">            The maximum raw-data size on which gap detection is performed. If the</span>
-<span class="sd">            raw data size exceeds this value, gap detection will be performed on</span>
-<span class="sd">            the aggregated (a.k.a. downsampled) series.</span>
-
-<span class="sd">            .. note::</span>
-<span class="sd">                This parameter only has an effect if ``interleave_gaps`` is set to True.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span> <span class="o">=</span> <span class="n">interleave_gaps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dtype_regex_list</span> <span class="o">=</span> <span class="n">dtype_regex_list</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_gap_q</span> <span class="o">=</span> <span class="mf">0.975</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_gap_data_size</span> <span class="o">=</span> <span class="n">max_gap_detection_data_size</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
     <span class="nd">@abstractmethod</span>
@@ -206,24 +197,62 @@
             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="si">}</span><span class="s2"> doesn&#39;t match with any regex in </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dtype_regex_list</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_get_gap_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">]:</span>
-        <span class="c1"># ------- add None where there are gaps / irregularly sampled data</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
-            <span class="n">series_index_diff</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_calc_med_diff</span><span class="p">(</span><span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+        <span class="c1"># ----- divide and conquer heuristic to calculate the median diff ------</span>
+        <span class="n">s_idx_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>  <span class="c1"># remark: s_idx_diff.shape === len(s) -1</span>
+
+        <span class="c1"># To do so - use a quantile-based (median) approach where we reshape the data</span>
+        <span class="c1"># into `n_blocks` blocks and calculate the min</span>
+        <span class="n">n_blcks</span> <span class="o">=</span> <span class="mi">128</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_blcks</span><span class="p">:</span>
+            <span class="n">blck_size</span> <span class="o">=</span> <span class="n">s_idx_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">n_blcks</span>
+
+            <span class="c1"># convert the index series index diff into a reshaped view (i.e., sid_v)</span>
+            <span class="n">sid_v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">s_idx_diff</span><span class="p">[:</span> <span class="n">blck_size</span> <span class="o">*</span> <span class="n">n_blcks</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_blcks</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># calculate the min and max and calculate the median on that</span>
+            <span class="n">med_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">sid_v</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">sid_v</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">series_index_diff</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">to_series</span><span class="p">()</span><span class="o">.</span><span class="n">diff</span><span class="p">()</span>
+            <span class="n">med_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">s_idx_diff</span><span class="p">)</span>
 
-        <span class="c1"># use a quantile-based approach</span>
-        <span class="n">med_gap_s</span><span class="p">,</span> <span class="n">max_q_gap_s</span> <span class="o">=</span> <span class="n">series_index_diff</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_gap_q</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">med_diff</span><span class="p">,</span> <span class="n">s_idx_diff</span>
 
-        <span class="c1"># add None data-points in between the gaps</span>
-        <span class="k">if</span> <span class="n">med_gap_s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">max_q_gap_s</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">max_q_gap_s</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">med_gap_s</span><span class="p">,</span> <span class="n">max_q_gap_s</span><span class="p">)</span>
-            <span class="n">df_res_gap</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">series_index_diff</span> <span class="o">&gt;</span> <span class="n">max_q_gap_s</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_res_gap</span><span class="p">):</span>
-                <span class="n">df_res_gap</span><span class="o">.</span><span class="n">loc</span><span class="p">[:]</span> <span class="o">=</span> <span class="kc">None</span>
-                <span class="k">return</span> <span class="n">df_res_gap</span>
-        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">def</span> <span class="nf">_insert_gap_none</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="c1"># ------- INSERT None between gaps / irregularly sampled data -------</span>
+        <span class="n">med_diff</span><span class="p">,</span> <span class="n">s_idx_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_med_diff</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="c1"># add None data-points in-between the gaps</span>
+        <span class="k">if</span> <span class="n">med_diff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">df_gap_idx</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:][</span><span class="n">s_idx_diff</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">med_diff</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">df_gap_idx</span><span class="p">):</span>
+                <span class="n">df_res_gap</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+                    <span class="n">index</span><span class="o">=</span><span class="n">df_gap_idx</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">df_res_gap</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
+                    <span class="c1"># Due to the s.index`.values` cast, df_res_gap has lost </span>
+                    <span class="c1"># time-information, so now we restore it</span>
+                    <span class="n">df_res_gap</span><span class="o">.</span><span class="n">index</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">df_res_gap</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="s1">&#39;UTC&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># Note:</span>
+                <span class="c1">#  * the order of pd.concat is important for correct visualization</span>
+                <span class="c1">#  * we also need a stable algorithm for sorting, i.e., the equal-index</span>
+                <span class="c1">#    data-entries their order will be maintained.</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">df_res_gap</span><span class="p">,</span> <span class="n">s</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span>
+                    <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;mergesort&quot;</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="nf">_replace_gap_end_none</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
+        <span class="c1"># ------- REPLACE None where a gap ends -------</span>
+        <span class="n">med_diff</span><span class="p">,</span> <span class="n">s_idx_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_med_diff</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">med_diff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Replace data-points with None where the gaps occur</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">s_idx_diff</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">med_diff</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">s</span>
 
 <div class="viewcode-block" id="AbstractSeriesAggregator.aggregate"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Aggregate (downsample) the given input series to the given n_out samples.</span>
@@ -251,27 +280,23 @@
         <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;bool&quot;</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">)</span>
 
-        <span class="n">gaps</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">raw_slice_size</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span> <span class="ow">and</span> <span class="n">raw_slice_size</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_gap_data_size</span><span class="p">:</span>
-            <span class="c1"># if the raw-data slice is not too large -&gt; gaps are detected on the raw</span>
-            <span class="c1"># data</span>
-            <span class="n">gaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_gap_df</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">n_out</span><span class="p">:</span>
+            <span class="c1"># More samples that n_out -&gt; perform data aggregation</span>
             <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span><span class="o">=</span><span class="n">n_out</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span> <span class="ow">and</span> <span class="n">raw_slice_size</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_gap_data_size</span><span class="p">:</span>
-            <span class="c1"># if the raw-data slice is too large -&gt; gaps are detected on the</span>
-            <span class="c1"># aggregated data</span>
-            <span class="n">gaps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_gap_df</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="c1"># When data aggregation is performed -&gt; we do not &quot;insert&quot; gaps but replace</span>
+            <span class="c1"># The end of gap periods (i.e. the first non-gap sample) with None to</span>
+            <span class="c1"># induce such gaps</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_replace_gap_end_none</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Less samples than n_out -&gt; no data aggregation need to be performed</span>
 
-        <span class="k">if</span> <span class="n">gaps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># Note:</span>
-            <span class="c1">#  * the order of pd.concat is important for correct visualization</span>
-            <span class="c1">#  * we also need a stable algorithm for sorting, i.e., the equal-index</span>
-            <span class="c1">#    data-entries their order will be maintained.</span>
-            <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">gaps</span><span class="p">,</span> <span class="n">s</span><span class="p">],</span> <span class="n">ignore_index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">sort_index</span><span class="p">(</span><span class="n">kind</span><span class="o">=</span><span class="s2">&quot;mergesort&quot;</span><span class="p">)</span>
+            <span class="c1"># on the raw data -&gt; gaps are inserted instead of replaced; i.e., we show</span>
+            <span class="c1"># all data points and do not omit data-points with None</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span><span class="p">:</span>
+                <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insert_gap_none</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">s</span></div></div>
 </pre></div>
 
