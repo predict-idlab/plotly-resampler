@@ -4,8 +4,9 @@ __author__ = "Jonas Van Der Donckt"
 
 import re
 from abc import ABC, abstractmethod
-from typing import List, Optional
+from typing import List, Tuple
 
+import numpy as np
 import pandas as pd
 
 
@@ -16,7 +17,6 @@ class AbstractSeriesAggregator(ABC):
         self,
         interleave_gaps: bool = True,
         dtype_regex_list: List[str] = None,
-        max_gap_detection_data_size: int = 25_000,
     ):
         """Constructor of AbstractSeriesAggregator.
 
@@ -28,19 +28,10 @@ class AbstractSeriesAggregator(ABC):
             irregularly sampled data. By default, True.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.
-        max_gap_detection_data_size: int, optional
-            The maximum raw-data size on which gap detection is performed. If the
-            raw data size exceeds this value, gap detection will be performed on
-            the aggregated (a.k.a. downsampled) series.
-
-            .. note::
-                This parameter only has an effect if ``interleave_gaps`` is set to True.
 
         """
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
-        self.max_gap_q = 0.975
-        self.max_gap_data_size = max_gap_detection_data_size
         super().__init__()
 
     @abstractmethod
@@ -60,24 +51,62 @@ class AbstractSeriesAggregator(ABC):
             f"{s.dtype} doesn't match with any regex in {self.dtype_regex_list}"
         )
 
-    def _get_gap_df(self, s: pd.Series) -> Optional[pd.Series]:
-        # ------- add None where there are gaps / irregularly sampled data
-        if isinstance(s.index, pd.DatetimeIndex):
-            series_index_diff = s.index.to_series().diff().dt.total_seconds()
+    @staticmethod
+    def _calc_med_diff(s: pd.Series) -> Tuple[float, np.ndarray]:
+        # ----- divide and conquer heuristic to calculate the median diff ------
+        s_idx_diff = np.diff(s.index.values)  # remark: s_idx_diff.shape === len(s) -1
+
+        # To do so - use a quantile-based (median) approach where we reshape the data
+        # into `n_blocks` blocks and calculate the min
+        n_blcks = 128
+        if s.shape[0] > n_blcks:
+            blck_size = s_idx_diff.shape[0] // n_blcks
+
+            # convert the index series index diff into a reshaped view (i.e., sid_v)
+            sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
+
+            # calculate the min and max and calculate the median on that
+            med_diff = np.median(np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))))
         else:
-            series_index_diff = s.index.to_series().diff()
+            med_diff = np.median(s_idx_diff)
 
-        # use a quantile-based approach
-        med_gap_s, max_q_gap_s = series_index_diff.quantile(q=[0.5, self.max_gap_q])
+        return med_diff, s_idx_diff
 
-        # add None data-points in between the gaps
-        if med_gap_s is not None and max_q_gap_s is not None:
-            max_q_gap_s = max(2 * med_gap_s, max_q_gap_s)
-            df_res_gap = s.loc[series_index_diff > max_q_gap_s].copy()
-            if len(df_res_gap):
-                df_res_gap.loc[:] = None
-                return df_res_gap
-        return None
+    def _insert_gap_none(self, s: pd.Series) -> pd.Series:
+        # ------- INSERT None between gaps / irregularly sampled data -------
+        med_diff, s_idx_diff = self._calc_med_diff(s)
+        # add None data-points in-between the gaps
+        if med_diff is not None:
+            df_gap_idx = s.index.values[1:][s_idx_diff > 3 * med_diff]
+            if len(df_gap_idx):
+                df_res_gap = pd.Series(
+                    index=df_gap_idx, data=None, name=s.name, copy=False
+                )
+
+                if isinstance(df_res_gap.index, pd.DatetimeIndex):
+                    # Due to the s.index`.values` cast, df_res_gap has lost 
+                    # time-information, so now we restore it
+                    df_res_gap.index = (
+                        df_res_gap.index.tz_localize('UTC').tz_convert(s.index.tz)
+                    )
+
+                # Note:
+                #  * the order of pd.concat is important for correct visualization
+                #  * we also need a stable algorithm for sorting, i.e., the equal-index
+                #    data-entries their order will be maintained.
+                s = pd.concat([df_res_gap, s], ignore_index=False).sort_index(
+                    kind="mergesort"
+                )
+        return s
+
+    def _replace_gap_end_none(self, s: pd.Series) -> pd.Series:
+        # ------- REPLACE None where a gap ends -------
+        med_diff, s_idx_diff = self._calc_med_diff(s)
+        if med_diff is not None:
+            # Replace data-points with None where the gaps occur
+            s.iloc[1:].loc[s_idx_diff > 3 * med_diff] = None
+
+        return s
 
     def aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         """Aggregate (downsample) the given input series to the given n_out samples.
@@ -105,25 +134,21 @@ class AbstractSeriesAggregator(ABC):
         if str(s.dtype) == "bool":
             s = s.astype("uint8")
 
-        gaps = None
-        raw_slice_size = s.shape[0]
-        if self.interleave_gaps and raw_slice_size < self.max_gap_data_size:
-            # if the raw-data slice is not too large -> gaps are detected on the raw
-            # data
-            gaps = self._get_gap_df(s)
-
         if len(s) > n_out:
+            # More samples that n_out -> perform data aggregation
             s = self._aggregate(s, n_out=n_out)
 
-        if self.interleave_gaps and raw_slice_size >= self.max_gap_data_size:
-            # if the raw-data slice is too large -> gaps are detected on the
-            # aggregated data
-            gaps = self._get_gap_df(s)
+            # When data aggregation is performed -> we do not "insert" gaps but replace
+            # The end of gap periods (i.e. the first non-gap sample) with None to
+            # induce such gaps
+            if self.interleave_gaps:
+                s = self._replace_gap_end_none(s)
+        else:
+            # Less samples than n_out -> no data aggregation need to be performed
 
-        if gaps is not None:
-            # Note:
-            #  * the order of pd.concat is important for correct visualization
-            #  * we also need a stable algorithm for sorting, i.e., the equal-index
-            #    data-entries their order will be maintained.
-            return pd.concat([gaps, s], ignore_index=False).sort_index(kind="mergesort")
+            # on the raw data -> gaps are inserted instead of replaced; i.e., we show
+            # all data points and do not omit data-points with None
+            if self.interleave_gaps:
+                s = self._insert_gap_none(s)
+
         return s

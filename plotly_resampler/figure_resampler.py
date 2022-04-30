@@ -15,18 +15,19 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
 import warnings
-from typing import List, Optional, Union, Iterable, Tuple, Dict
+from copy import copy
+from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 
 import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.basedatatypes import BaseTraceType
 from jupyter_dash import JupyterDash
+from plotly.basedatatypes import BaseTraceType
 from trace_updater import TraceUpdater
 
-from .aggregation import AbstractSeriesAggregator, LTTB
+from .aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .utils import round_td_str, round_number_str
 
 
@@ -38,7 +39,7 @@ class FigureResampler(go.Figure):
         figure: go.Figure = go.Figure(),
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = LTTB(interleave_gaps=True),
+        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -66,7 +67,8 @@ class FigureResampler(go.Figure):
                   the data will *not* be aggregated.
         default_downsampler: AbstractSeriesDownsampler
             An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``LTTB``. \n
+            will be used as default downsampler, by default ``EfficientLTTB`` with
+            _interleave_gaps_ set to True. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
@@ -135,6 +137,30 @@ class FigureResampler(go.Figure):
             self._print(f"[W] trace with {trace_props} not found")
         return hf_trace_data
 
+    def _get_current_graph(self) -> dict:
+        """Create an efficient copy of the current graph by omitting the "hovertext",
+        "x", and "y" properties of each trace.
+
+        Returns
+        -------
+        dict
+            The current graph dict
+
+        See Also
+        --------
+        https://github.com/plotly/plotly.py/blob/2e7f322c5ea4096ce6efe3b4b9a34d9647a8be9c/packages/python/plotly/plotly/basedatatypes.py#L3278
+        """
+        return {
+            "data": [
+                {
+                    k: copy(trace[k])
+                    for k in set(trace.keys()).difference({"x", "y", "hovertext"})
+                }
+                for trace in self._data
+            ],
+            "layout": copy(self._layout),
+        }
+
     def _check_update_trace_data(
         self,
         trace: dict,
@@ -188,12 +214,12 @@ class FigureResampler(go.Figure):
             if axis_type == "date":
                 start, end = pd.to_datetime(start), pd.to_datetime(end)
                 hf_series = self._slice_time(
-                    hf_trace_data["hf_series"],
+                    self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"]),
                     start,
                     end,
                 )
             else:
-                hf_series: pd.Series = hf_trace_data["hf_series"]
+                hf_series = self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"])
                 start = hf_series.index[0] if start is None else start
                 end = hf_series.index[-1] if end is None else end
                 if hf_series.index.is_integer():
@@ -229,9 +255,9 @@ class FigureResampler(go.Figure):
                 name += self._suffix if not name.endswith(self._suffix) else ""
                 # Add the mean aggregation bin size to the trace name
                 if self._show_mean_aggregation_size:
-                    agg_mean = s_res.index.to_series().diff().mean()
-                    if isinstance(agg_mean, pd.Timedelta):
-                        agg_mean = round_td_str(agg_mean)
+                    agg_mean = np.mean(np.diff(s_res.index.values))
+                    if isinstance(agg_mean, np.timedelta64):
+                        agg_mean = round_td_str(pd.Timedelta(agg_mean))
                     else:
                         agg_mean = round_number_str(agg_mean)
                     name += f"{agg_prefix}{agg_mean}{agg_suffix}"
@@ -246,6 +272,7 @@ class FigureResampler(go.Figure):
             # Check if hovertext also needs to be resampled
             hovertext = hf_trace_data.get("hovertext")
             if isinstance(hovertext, pd.Series):
+                # TODO -> this can be optimized
                 trace["hovertext"] = pd.merge_asof(
                     s_res,
                     hovertext,
@@ -417,6 +444,56 @@ class FigureResampler(go.Figure):
 
         return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
+    @property
+    def hf_data(self):
+        """Property to adjust the `data` component of the current graph
+
+        .. note::
+            The user has full responisbility to adjust ``hf_data`` properly.
+
+
+        Example:
+            >>> fig = FigureResampler(go.Figure())
+            >>> fig.add_trace(...)
+            >>> fig.hf_data[-1]["y"] = - s ** 2  # adjust the y-property of the trace added above
+            >>> fig._hf_data
+            [
+                {
+                    'max_n_samples': 1000,
+                    'x': RangeIndex(start=0, stop=11000000, step=1),
+                    'y': array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),
+                    'axis_type': 'linear',
+                    'downsampler': <plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0>,
+                    'hovertext': None
+                },
+            ]
+        """
+        return list(self._hf_data.values())
+
+    @staticmethod
+    def _to_hf_series(x: np.ndarray, y: np.ndarray) -> pd.Series:
+        """Construct the hf-series.
+
+        Parameters
+        ----------
+        x : np.ndarray
+            The hf_series index
+        y : np.ndarray
+            The hf_series values
+
+        Returns
+        -------
+        pd.Series
+            The constructed hf_series
+        """
+        return pd.Series(
+            data=y,
+            index=x,
+            copy=False,
+            name="data",
+            dtype="category" if y.dtype.type == np.str_ else y.dtype,
+        )
+
     def add_trace(
         self,
         trace: Union[BaseTraceType, dict],
@@ -558,11 +635,21 @@ class FigureResampler(go.Figure):
 
         high_frequency_traces = ["scatter", "scattergl"]
         if trace["type"].lower() in high_frequency_traces:
+            if hf_x is None:  # if no data as x or hf_x is passed
+                if hf_y.ndim != 0:  # if hf_y is an array
+                    hf_x = np.arange(len(hf_y))
+                else:  # if no data as y or hf_y is passed
+                    hf_x = np.asarray(None)
+
+            assert hf_y.ndim == np.ndim(hf_x), (
+                "plotly-resampler requires scatter data "
+                "(i.e., x and y, or hf_x and hf_y) to have the same dimensionality!"
+            )
             # When the x or y of a trace has more than 1 dimension, it is not at all
             # straightforward how it should be resampled.
-            assert hf_y.ndim == 1 and np.ndim(hf_x) == 1, (
+            assert hf_y.ndim <= 1 and np.ndim(hf_x) <= 1, (
                 "plotly-resampler requires scatter data "
-                "(i.e., x and y, or hf_x and hf_y) to be 1 dimensional!"
+                "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
             )
 
             # Make sure to set the text-attribute to None as the default plotly behavior
@@ -595,7 +682,6 @@ class FigureResampler(go.Figure):
             if str(hf_y.dtype) in ["uint8", "uint16"]:
                 hf_y = hf_y.astype("uint32")
 
-            assert len(hf_x) > 0, "No data to plot!"
             assert len(hf_x) == len(hf_y), "x and y have different length!"
 
             # Convert the hovertext to a pd.Series if it's now a np.ndarray
@@ -616,14 +702,8 @@ class FigureResampler(go.Figure):
 
                 # We will re-create this each time as hf_x and hf_y withholds
                 # high-frequency data
-                index = pd.Index(hf_x, copy=False, name="timestamp")
-                hf_series = pd.Series(
-                    data=hf_y,
-                    index=index,
-                    copy=False,
-                    name="data",
-                    dtype="category" if hf_y.dtype.type == np.str_ else hf_y.dtype,
-                )
+                # index = pd.Index(hf_x, copy=False, name="timestamp")
+                hf_series = self._to_hf_series(x=hf_x, y=hf_y)
 
                 # Checking this now avoids less interpretable `KeyError` when resampling
                 assert hf_series.index.is_monotonic_increasing
@@ -642,7 +722,8 @@ class FigureResampler(go.Figure):
                 d = self._global_downsampler if downsampler is None else downsampler
                 self._hf_data[trace.uid] = {
                     "max_n_samples": max_n_samples,
-                    "hf_series": hf_series,
+                    "x": hf_x,
+                    "y": hf_y,
                     "axis_type": axis_type,
                     "downsampler": d,
                     "hovertext": hf_hovertext,
@@ -654,7 +735,7 @@ class FigureResampler(go.Figure):
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
                 if not isinstance(trace, dict):
-                    trace = trace.to_plotly_json()
+                    trace = trace._props
                 trace = {
                     k: trace[k]
                     for k in set(trace.keys()).difference(
@@ -748,7 +829,7 @@ class FigureResampler(go.Figure):
             in each dict.
 
         """
-        current_graph = self.to_dict()
+        current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
             self._print("-" * 100 + "\n", "changed layout", relayout_data)
@@ -816,7 +897,7 @@ class FigureResampler(go.Figure):
         layout_traces_list.append(extra_layout_updates)
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = ["x", "y", "text", "hovertext", "name"]
+        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
@@ -934,8 +1015,13 @@ class FigureResampler(go.Figure):
 
         app.run_server(mode=mode, **kwargs)
 
-    def stop_server(self):
+    def stop_server(self, warn: bool = True):
         """Stop the running dash-app.
+
+        Parameters
+        ----------
+        warn: bool
+            Whether a warning message will be shown or  not, by default True.
 
         .. attention::
             This only works if the dash-app was started with :func:`show_dash`.
@@ -947,7 +1033,7 @@ class FigureResampler(go.Figure):
                 old_server.kill()
                 old_server.join()
                 del self._app._server_threads[(self._host, self._port)]
-        else:
+        elif warn:
             warnings.warn(
                 "Could not stop the server, either the \n"
                 + "\t- 'show-dash' method was not called, or \n"

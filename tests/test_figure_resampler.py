@@ -89,6 +89,21 @@ def test_add_trace_not_resampling(float_series):
     )
 
 
+def test_add_scatter_trace_no_data():
+    fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+
+    # no x and y data
+    fig.add_trace(go.Scatter())
+
+
+def test_add_scatter_trace_no_x():
+    fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+
+    # no x data
+    fig.add_trace(go.Scatter(y=[2, 1, 4, 3], name="s1"))
+    fig.add_trace(go.Scatter(name="s2"), hf_y=[2, 1, 4, 3])
+
+
 def test_add_not_a_hf_trace(float_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
     base_fig = make_subplots(
@@ -137,7 +152,7 @@ def test_box_histogram(float_series):
 
     fig.add_trace(go.Box(x=float_series.values, name="float_series"), row=1, col=2)
     fig.add_trace(
-        go.Box(x=float_series.values ** 2, name="float_series**2"), row=1, col=2
+        go.Box(x=float_series.values**2, name="float_series**2"), row=1, col=2
     )
 
     # add a not hf-trace
@@ -174,7 +189,7 @@ def test_cat_box_histogram(float_series):
 
     fig.add_trace(go.Box(x=float_series.values, name="float_box_pow"), row=1, col=2)
     fig.add_trace(
-        go.Box(x=float_series.values ** 2, name="float_box_pow_2"), row=1, col=2
+        go.Box(x=float_series.values**2, name="float_box_pow_2"), row=1, col=2
     )
 
     # add a not hf-trace
@@ -418,7 +433,7 @@ def test_different_tz_no_tz_series_slicing():
 
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(
-            s.tz_localize(None).iloc[np.random.randint(n/2, n, 2)].index
+            s.tz_localize(None).iloc[np.random.randint(n / 2, n, 2)].index
         )
         # both timestamps now have the same tz
         t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
@@ -455,26 +470,26 @@ def test_multiple_tz_no_tz_series_slicing():
 
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(
-            s.tz_localize(None).iloc[np.random.randint(n/2, n, 2)].index
+            s.tz_localize(None).iloc[np.random.randint(n / 2, n, 2)].index
         )
         # both timestamps now have the a different tz
         t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
         t_stop = t_stop.tz_localize(cs[(i + 2) % len(cs)].index.tz)
 
-        # Now the assumpton cannot be made that s ahd the same time-zone as the 
+        # Now the assumpton cannot be made that s ahd the same time-zone as the
         # timestamps -> Assertionerror will be raised.
         with pytest.raises(AssertionError):
             fig._slice_time(s.tz_localize(None), t_start, t_stop)
 
 
 def test_check_update_figure_dict():
-    # mostly written to test the check_update_figure_dict with 
+    # mostly written to test the check_update_figure_dict with
     # "updated_trace_indices" = None
     fr = FigureResampler(go.Figure())
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
-    fr.add_trace(go.Scattergl(name='test'), hf_x=x, hf_y=y)
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
     fr._check_update_figure_dict(fr.to_dict())
 
 
@@ -485,12 +500,13 @@ def test_stop_server_inline():
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
-    fr.add_trace(go.Scattergl(name='test'), hf_x=x, hf_y=y)
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
     fr.update_layout(height=900)
     fr.stop_server()
-    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode='inline'))
+    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline"))
     proc.start()
     import time
+
     time.sleep(3)
     fr.stop_server()
     proc.terminate()
@@ -501,12 +517,25 @@ def test_stop_server_external():
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
-    fr.add_trace(go.Scattergl(name='test'), hf_x=x, hf_y=y)
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
     fr.update_layout(height=900)
     fr.stop_server()
-    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode='external'))
+    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="external"))
     proc.start()
     import time
+
     time.sleep(3)
     fr.stop_server()
     proc.terminate()
+
+
+def test_hf_data_property():
+    fr = FigureResampler(go.Figure(), default_n_shown_samples=2_000)
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+    assert len(fr.hf_data) == 0
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    assert len(fr.hf_data) == 1
+    assert len(fr.hf_data[0]["x"]) == n
+    fr.hf_data[0] = -2 * y
