@@ -144,8 +144,8 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
 
 
 class MinMaxAggregator(AbstractSeriesAggregator):
-    """Aggregation method which performs binned min-max aggregation over non-overlapping
-    windows.
+    """Aggregation method which performs binned min-max aggregation over fully
+    overlapping windows.
 
     .. note::
         This method is rather efficient when scaling to large data sizes and can be used
@@ -191,6 +191,7 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         # Sort the argmin & argmax (where we append the first and last index item)
         # and then slice the original series on these indexes.
         return s.iloc[np.unique(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
+
 
 class EfficientLTTB(AbstractSeriesAggregator):
     """Efficient version off LTTB by first reducing really large datasets with
