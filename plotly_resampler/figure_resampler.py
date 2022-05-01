@@ -601,7 +601,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # First add the trace, as each (even the non-hf_data traces), must contain this
         # key for comparison
-        uuid = str(uuid4)
+        uuid = str(uuid4())
         trace.uid = uuid
 
         hf_x = (
@@ -758,7 +758,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 trace.x = hf_x
                 trace.y = hf_y
                 trace.text = hf_hovertext
-                return super(self._figure_class, self).add_trace(trace=trace, **trace_kwargs)
+                return super(self._figure_class, self).add_trace(
+                    trace=trace, **trace_kwargs
+                )
         else:
             self._print(f"trace {trace['type']} is not a high-frequency trace")
 
@@ -773,7 +775,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 trace["text"] = None
                 trace["hovertext"] = hf_hovertext
 
-            return super(self._figure_class, self).add_trace(trace=trace, **trace_kwargs)
+            return super(self._figure_class, self).add_trace(
+                trace=trace, **trace_kwargs
+            )
 
     # def add_traces(*args, **kwargs):
     #     raise NotImplementedError("This functionality is not (yet) supported")
@@ -952,7 +956,10 @@ class _FigureWidgetResamplerM(type(AbstractFigureAggregator), type(go.FigureWidg
     # MetaClass for the FigureWidgetResampler
     pass
 
-class FigureWidgetResampler(AbstractFigureAggregator, go.FigureWidget, metaclass=_FigureWidgetResamplerM):
+
+class FigureWidgetResampler(
+    AbstractFigureAggregator, go.FigureWidget, metaclass=_FigureWidgetResamplerM
+):
     def __init__(
         self,
         figure: go.FigureWidget,
@@ -990,7 +997,7 @@ class FigureWidgetResampler(AbstractFigureAggregator, go.FigureWidget, metaclass
                 self._prev_x_ranges = list(x_ranges)
 
             relayout_dict = {}  # variable in which we aim to reconstruct the relayout
-            # serialize the layout in a new dict object 
+            # serialize the layout in a new dict object
             layout = {
                 xaxis_str: layout[xaxis_str].to_plotly_json()
                 for xaxis_str in self._xaxis_list
@@ -1027,14 +1034,14 @@ class FigureWidgetResampler(AbstractFigureAggregator, go.FigureWidget, metaclass
 
         def update_spike_ranges(layout, *showspikes):
             relayout_dict = {}  # variable in which we aim to reconstruct the relayout
-            # serialize the layout in a new dict object 
+            # serialize the layout in a new dict object
             layout = {
                 xaxis_str: layout[xaxis_str].to_plotly_json()
                 for xaxis_str in self._xaxis_list
             }
 
             for xaxis_str, showspike in zip(self._xaxis_list, showspikes):
-                # Autorange must be set to True and showspikes must be in the 
+                # Autorange must be set to True and showspikes must be in the
                 # layout dict
                 if (
                     layout[xaxis_str].get("autorange", False)
