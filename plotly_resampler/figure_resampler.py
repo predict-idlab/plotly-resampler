@@ -23,8 +23,11 @@ import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from jupyter_dash import JupyterDash
-from dash import Dash
+
+try:
+    from jupyter_dash import JupyterDash
+except:
+    from dash import Dash
 from plotly.basedatatypes import BaseTraceType, BaseFigure
 from trace_updater import TraceUpdater
 
@@ -456,7 +459,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(...)
             >>> fig.hf_data[-1]["y"] = - s ** 2  # adjust the y-property of the trace added above
-            >>> fig._hf_data
+            >>> fig.hf_data
             [
                 {
                     'max_n_samples': 1000,
@@ -961,6 +964,7 @@ class FigureWidgetResampler(
     AbstractFigureAggregator, go.FigureWidget, metaclass=_FigureWidgetResamplerM
 ):
     """Data aggregation functionality wrapper for ``go.FigureWidgets``."""
+
     def __init__(
         self,
         figure: go.FigureWidget,
@@ -985,20 +989,20 @@ class FigureWidgetResampler(
             verbose,
         )
 
-        self._prev_x_ranges = []  # Contains the previous x-range values
-        if verbose:
-            # used for logging purposes to save a history of layout changes
-            self._relayout_hist = []
+        self._prev_layout = None  # Contains the previous xaxis layout configuration
+
+        # used for logging purposes to save a history of layout changes
+        self._relayout_hist = []
 
         # A list of al xaxis string names e.g., "xaxis", "xaxis2", "xaxis3", ....
         self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
 
-        # Assign the the methods to the update class
-        self._showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
-        self.layout.on_change(self._update_spike_ranges, *self._showspike_keys)
+        # Assign the the update-methods to the corresponding classes
+        showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
+        self.layout.on_change(self._update_spike_ranges, *showspike_keys)
 
-        self._x_relayout_keys = [f"{xaxis}.range" for xaxis in self._xaxis_list]
-        self.layout.on_change(self._update_x_ranges, *self._x_relayout_keys)
+        x_relayout_keys = [f"{xaxis}.range" for xaxis in self._xaxis_list]
+        self.layout.on_change(self._update_x_ranges, *x_relayout_keys)
 
     def _update_x_ranges(self, layout, *x_ranges):
         """Update the the go.Figure data based on changed x-ranges.
@@ -1013,43 +1017,47 @@ class FigureWidgetResampler(
             items, indicating the current/new (if changed) left-right x-range,
             respectively.
         """
-        if not len(self._prev_x_ranges):
-            self._prev_x_ranges = list(x_ranges)
-
         relayout_dict = {}  # variable in which we aim to reconstruct the relayout
         # serialize the layout in a new dict object
         layout = {
             xaxis_str: layout[xaxis_str].to_plotly_json()
             for xaxis_str in self._xaxis_list
         }
+        if self._prev_layout is None:
+            self._prev_layout = layout
 
-        for i, (xaxis_str, x_range) in enumerate(zip(self._xaxis_list, x_ranges)):
+        for xaxis_str, x_range in zip(self._xaxis_list, x_ranges):
             # We also check whether "range" is within the xaxis its layout otherwise
             # It is most-likely an autorange check
-            if "range" in layout[xaxis_str] and (
-                self._prev_x_ranges[i][0] != x_range[0]
-                or self._prev_x_ranges[i][1] != x_range[1]
+            if (
+                "range" in layout[xaxis_str]
+                and self._prev_layout[xaxis_str].get("range", []) != x_range
             ):
                 # a change took place -> add to the relayout dict
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
                 relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
 
-        # Update the previous x-ranges
-        self._prev_x_ranges = list(x_ranges)
+                # An update will take place for that trace 
+                # -> save current xaxis range to _prev_layout
+                self._prev_layout[xaxis_str]['range'] = x_range
 
         if len(relayout_dict):
             # Construct the update data
             update_data = self.construct_update_data(relayout_dict)
 
             if self._print_verbose:
-                self._relayout_hist.append(dict(zip(self._x_relayout_keys, x_ranges)))
+                self._relayout_hist.append(dict(zip(self._xaxis_list, x_ranges)))
                 self._relayout_hist.append(layout)
-                self._relayout_hist.append(["xaxis-range", len(update_data)])
+                self._relayout_hist.append(["xaxis-range", len(update_data) - 1])
                 self._relayout_hist.append("-" * 30)
 
             with self.batch_update():
                 # First update the layout (first item of update_data)
                 self.layout.update(update_data[0])
+
+                for xaxis_str in self._xaxis_list:
+                    if 'showspikes' in layout[xaxis_str]:
+                        self.layout[xaxis_str].pop("showspikes")
 
                 # Then update the data
                 for updated_trace in update_data[1:]:
@@ -1081,7 +1089,7 @@ class FigureWidgetResampler(
                 layout[xaxis_str].get("autorange", False)
                 # we only perform updates for traces which have 'range' property,
                 # as we do need to reconstruct the update-data for these traces
-                and layout[xaxis_str].get("range", None) is not None
+                and self._prev_layout[xaxis_str].get("range", None) is not None
                 # showspikes must also be present
                 and "showspikes" in layout[xaxis_str]
             ):
@@ -1089,12 +1097,14 @@ class FigureWidgetResampler(
                 relayout_dict[f"{xaxis_str}.showspikes"] = showspike
 
         if len(relayout_dict):
+            # An update will take place, save current layout to _prev_layout
+            self._prev_layout = layout
+
             # Construct the update data
             update_data = self.construct_update_data(relayout_dict)
             if self._print_verbose:
-                # self._relayout_hist.append(dict(zip(self._showspike_keys, showspikes)))
                 self._relayout_hist.append(layout)
-                self._relayout_hist.append(["showspikes", len(update_data)])
+                self._relayout_hist.append(["showspikes", len(update_data) - 1])
                 self._relayout_hist.append("-" * 30)
 
             with self.batch_update():
@@ -1112,15 +1122,17 @@ class FigureWidgetResampler(
                 for updated_trace in update_data[1:]:
                     trace_idx = updated_trace.pop("index")
                     self.data[trace_idx].update(updated_trace)
-
         elif self._print_verbose:
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
 
+    def show(self, *args, **kwargs):
+        super(go.FigureWidget, self).show(*args, **kwargs)
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
     """Data aggregation functionality for Figures."""
+
     def __init__(
         self,
         figure: go.Figure = go.Figure(),
