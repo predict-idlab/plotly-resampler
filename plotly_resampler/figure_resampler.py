@@ -23,11 +23,8 @@ import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-
-try:
-    from jupyter_dash import JupyterDash
-except:
-    from dash import Dash
+from jupyter_dash import JupyterDash
+from dash import Dash
 from plotly.basedatatypes import BaseTraceType, BaseFigure
 from trace_updater import TraceUpdater
 
@@ -978,7 +975,9 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-        assert isinstance(figure, go.FigureWidget)
+        if not isinstance(figure, go.FigureWidget):
+            figure = go.FigureWidget(figure)
+
         super().__init__(
             figure,
             convert_existing_traces,
@@ -996,6 +995,9 @@ class FigureWidgetResampler(
 
         # A list of al xaxis string names e.g., "xaxis", "xaxis2", "xaxis3", ....
         self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
+        # edge case: an empty `go.Figure()` does not yet contain xaxis keys
+        if not len(self._xaxis_list):
+            self._xaxis_list = ['xaxis']
 
         # Assign the the update-methods to the corresponding classes
         showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
@@ -1090,11 +1092,12 @@ class FigureWidgetResampler(
                 # we only perform updates for traces which have 'range' property,
                 # as we do need to reconstruct the update-data for these traces
                 and self._prev_layout[xaxis_str].get("range", None) is not None
-                # showspikes must also be present
-                and "showspikes" in layout[xaxis_str]
             ):
                 relayout_dict[f"{xaxis_str}.autorange"] = True
                 relayout_dict[f"{xaxis_str}.showspikes"] = showspike
+                # autorange -> we pop the xaxis range
+                if 'range' in layout[xaxis_str]:
+                    del layout[xaxis_str]['range']
 
         if len(relayout_dict):
             # An update will take place, save current layout to _prev_layout
