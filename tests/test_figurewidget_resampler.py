@@ -6,6 +6,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 import pytest
 import numpy as np
 import pandas as pd
+from copy import copy
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureWidgetResampler, EfficientLTTB, EveryNthPoint
@@ -323,7 +324,9 @@ def test_proper_copy_of_wrapped_fig(float_series):
         )
     )
 
-    plotly_resampler_fig = FigureWidgetResampler(plotly_fig, default_n_shown_samples=500)
+    plotly_resampler_fig = FigureWidgetResampler(
+        plotly_fig, default_n_shown_samples=500
+    )
 
     assert len(plotly_fig.data) == 1
     assert all(plotly_fig.data[0].x == float_series.index)
@@ -502,3 +505,346 @@ def test_hf_data_property():
     assert len(fr.hf_data) == 1
     assert len(fr.hf_data[0]["x"]) == n
     fr.hf_data[0] = -2 * y
+
+
+def test_updates_two_traces():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # zoom in on both traces
+    fw_fig.layout.update(
+        {"xaxis": {"range": [10_000, 200_000]}, "xaxis2": {"range": [0, 200_000]}},
+        overwrite=False,
+    )
+
+    # check whether the two traces were updated with the xaxis-range method
+    assert ["xaxis-range-update", 2] in fw_fig._relayout_hist
+    assert sum([["xaxis-range-update", 2] == rh for rh in fw_fig._relayout_hist]) == 1
+    # check whether the showspikes update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # apply an autorange, see whether an update takes place
+    fw_fig._relayout_hist.clear()
+    fw_fig.layout.update({"xaxis": {"autorange": True}})
+    fw_fig.layout.update({"xaxis2": {"autorange": True}})
+
+    assert len(fw_fig._relayout_hist) == 0
+
+    # Perform a reset axis update
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether the two traces were updated with the showspike method
+    assert ["showspikes-update", 2] in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 2] == rh for rh in fw_fig._relayout_hist]) == 1
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # RE-perform a reset axis update
+    fw_fig._relayout_hist.clear()
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether none of the traces we updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_updates_two_traces_single_trace_adjust():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # zoom in on both traces
+    fw_fig.layout.update(
+        {"xaxis2": {"range": [0, 200_000]}},
+        overwrite=False,
+    )
+
+    # check whether the single traces were updated with the xaxis-range method
+    assert ["xaxis-range-update", 1] in fw_fig._relayout_hist
+    assert ["xaxis-range-update", 2] not in fw_fig._relayout_hist
+    assert sum([["xaxis-range-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
+
+    # check whether the showspikes update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    fw_fig._relayout_hist.clear()
+
+    # apply an autorange, see whether an update takes place
+    fw_fig.layout.update({"xaxis": {"autorange": True}})
+    fw_fig.layout.update({"xaxis2": {"autorange": True}})
+
+    assert len(fw_fig._relayout_hist) == 0
+
+    # Perform a reset axis update
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether the single traces was updated with the showspike method
+    assert ["showspikes-update", 1] in fw_fig._relayout_hist
+    assert not ["showspikes-update", 2] in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    fw_fig._relayout_hist.clear()
+
+    # RE-perform a reset axis update
+    #
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether none of the traces we updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_update_direct_reset_axis():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # Perform a reset_axis
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether the two traces was updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 0
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_bare_update_methods():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # equivalent of calling the reset-axis dict update
+    fw_fig._update_spike_ranges(fw_fig.layout, False, False)
+    fw_fig._update_spike_ranges(fw_fig.layout, False, False)
+
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 0
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    fw_fig._relayout_hist.clear()
+
+    # Zoom in on the xaxis2
+    fw_fig._update_x_ranges(
+        copy(fw_fig.layout).update(
+            {"xaxis2": {"range": [0, 200_000]}},
+            overwrite=True,
+        ),
+        (0, len(X)),
+        (0, 200_000),
+    )
+
+    # check whether the single traces were updated with the xaxis-range method
+    assert ["xaxis-range-update", 1] in fw_fig._relayout_hist
+    assert ["xaxis-range-update", 2] not in fw_fig._relayout_hist
+    assert sum([["xaxis-range-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
+
+    # check whether the showspikes update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # check whether the new update call (on the same range) does nothing
+    fw_fig._relayout_hist.clear()
+    fw_fig._update_x_ranges(
+        copy(fw_fig.layout).update(
+            {"xaxis2": {"range": [0, 200_000]}},
+            overwrite=True,
+        ),
+        (0, len(X)),
+        (0, 200_000),
+    )
+
+    # check whether none of the traces we updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # Perform an autorange udpate -> assert that the range i
+    fw_fig._relayout_hist.clear()
+    fw_fig.layout.update({"xaxis2": {"autorange": True}, "yaxis2": {"autorange": True}})
+    assert len(fw_fig._relayout_hist) == 0
+
+    fw_fig.layout.update({"yaxis2": {"range": [0, 2]}})
+    assert len(fw_fig._relayout_hist) == 0
+
+    # perform an reset axis
+    fw_fig._relayout_hist.clear()
+    l = fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        },
+        overwrite=True,  # by setting this to true -> the update call will not takte clear
+    )
+    fw_fig._update_spike_ranges(l, False, False)
+
+    # Assert that only a single trace was updated
+    assert ["showspikes-update", 1] in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
