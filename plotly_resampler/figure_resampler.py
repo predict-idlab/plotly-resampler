@@ -1050,7 +1050,7 @@ class FigureWidgetResampler(
             if self._print_verbose:
                 self._relayout_hist.append(dict(zip(self._xaxis_list, x_ranges)))
                 self._relayout_hist.append(layout)
-                self._relayout_hist.append(["xaxis-range", len(update_data) - 1])
+                self._relayout_hist.append(["xaxis-range-update", len(update_data) - 1])
                 self._relayout_hist.append("-" * 30)
 
             with self.batch_update():
@@ -1085,6 +1085,9 @@ class FigureWidgetResampler(
             for xaxis_str in self._xaxis_list
         }
 
+        if self._prev_layout is None:
+            return
+
         for xaxis_str, showspike in zip(self._xaxis_list, showspikes):
             if (
                 # autorange key must be set to True
@@ -1107,7 +1110,7 @@ class FigureWidgetResampler(
             update_data = self.construct_update_data(relayout_dict)
             if self._print_verbose:
                 self._relayout_hist.append(layout)
-                self._relayout_hist.append(["showspikes", len(update_data) - 1])
+                self._relayout_hist.append(["showspikes-update", len(update_data) - 1])
                 self._relayout_hist.append("-" * 30)
 
             with self.batch_update():
@@ -1129,8 +1132,8 @@ class FigureWidgetResampler(
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
 
-    def show(self, *args, **kwargs):
-        super(go.FigureWidget, self).show(*args, **kwargs)
+    # def show(self, *args, **kwargs):
+    #     super(go.FigureWidget, self).show(*args, **kwargs)
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
