@@ -4,33 +4,45 @@
 Getting started 🚀
 ==================
 
+``plotly-resampler`` serves two main **modules**:
 
-``plotly-resampler`` maintains its interactiveness on large data by applying front-end 
-**resampling**.
-
-
-Users can interact with 2 components:
-
-* :ref:`FigureResampler <FigureResampler>`: a wrapper for *plotly.graph\_objects* that serves the adaptive resampling functionality.
-* :ref:`aggregation <aggregation>`: this module withholds various data aggregation methods.
+* :py:mod:`figure_resampler <plotly_resampler.figure_resampler>`: a wrapper for *plotly.graph\_objects Figures*,  coupling the dynamic resampling functionality to the *Figure*.
+* :py:mod:`aggregation <plotly_resampler.aggregation>`: a module withholds various data aggregation methods.
 
 Installation ⚙️
 ---------------
 
-Install via :raw-html:`<a href="https://pypi.org/project/plotly-resampler/"><b>pip</b><a>`:
+Install via `pip <https://pypi.org/project/plotly-resampler>`_:
 
 .. code:: bash
 
     pip install plotly-resampler
 
-
 How to use 📈
 -------------
 
-To **add dynamic resampling to a plotly Figure**, you should;  
+Dynamic resampling callbacks are realized with either:
 
-  1. wrap the plotly Figure with :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>`
-  2. call :func:`.show_dash() <plotly_resampler.figure_resampler.FigureResampler.show_dash>` on the Figure
+* `Dash <https://github.com/plotly/dash>`_ callbacks, when a ``go.Figure`` object is wrapped with dynamic aggregation functionality.
+
+  .. note::
+
+      This is especially useful when working with **dash functionality** or when you do **not want to solely operate in jupyter environments**.
+
+  To **add dynamic resampling**, you should:
+    1. wrap the plotly Figure with :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>`
+    2. call :func:`.show_dash() <plotly_resampler.figure_resampler.FigureResampler.show_dash>` on the Figure
+
+* `FigureWidget.layout.on_change <https://plotly.com/python-api-reference/generated/plotly.html?highlight=on_change#plotly.basedatatypes.BasePlotlyType.on_change>`_ , when a ``go.FigureWidget`` is used within a ``.ipynb`` environment.
+
+  .. note::
+
+      This is especially useful when developing in ``jupyter`` environments and when **you cannot open/forward a network-port**.
+
+
+  To **add dynamic resampling** using a **FigureWidget**, you should:
+    1. wrap your plotly Figure (can be a ``go.Figure``) with :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`
+    2. Create a cell output for the ``FigureWidgetResampler`` instance
 
 .. tip::
 
@@ -38,11 +50,11 @@ To **add dynamic resampling to a plotly Figure**, you should;
 
 .. note::
 
-  Any plotly Figure can be wrapped with :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>`! 🎉 :raw-html:`<br>`
-  But, (obviously) only the scatter traces will be resampled. 
+  Any plotly Figure can be wrapped with dynamic aggregation functionality! 🎉 :raw-html:`<br>`
+  But, (obviously) only the scatter traces will be resampled.
 
-Working example ✅
-------------------
+Working examples ✅
+-------------------
 
 .. code:: py
 
@@ -56,6 +68,10 @@ Working example ✅
     fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=sin)
 
     fig.show_dash(mode='inline')
+
+The gif below demonstrates the example usage of of :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`, where ``JupyterLab`` is used as environment and the ``FigureWidgetResampler`` instance it's output is redirected into a new view. Also note how you are able to dynamically add traces!
+
+.. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif
 
 Important considerations & tips 🚨
 ----------------------------------
@@ -99,7 +115,7 @@ Plotly-resampler & not high-frequency traces 🔍
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. Tip::
-  
+
   In the *Skin conductance example* of the :raw-html:`<a href="https://github.com/predict-idlab/plotly-resampler/tree/main/examples"><b>basic_example.ipynb</b><a>`, we deal with such low-frequency traces.
 
 The :func:`add_trace <plotly_resampler.figure_resampler.FigureResampler.add_trace>` method allows configuring argument which allows us to deal with low-frequency traces.
@@ -108,11 +124,11 @@ The :func:`add_trace <plotly_resampler.figure_resampler.FigureResampler.add_trac
 Use-cases
 """""""""
 
-* **not resampling** trace data: To achieve this, set:  
+* **not resampling** trace data: To achieve this, set:
 
   * ``max_n_samples`` = len(hf_x)
 
-* **not resampling** trace data, but **slicing to the view**: To achieve this, set: 
+* **not resampling** trace data, but **slicing to the view**: To achieve this, set:
 
   * ``max_n_samples`` = len(hf_x)
   * ``limit_to_view`` = True

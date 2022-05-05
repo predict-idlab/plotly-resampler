@@ -17,7 +17,7 @@
 
 > `plotly_resampler`: visualize large sequential data by **adding resampling functionality to Plotly figures**
 
-[Plotly](https://github.com/plotly/plotly.py) is an awesome interactive visualization library, however it can get pretty slow when a lot of data points are visualized (100 000+ datapoints). This library solves this by downsampling the data respective to the view and then plotting the downsampled points. When you interact with the plot (panning, zooming, ...), [dash](https://github.com/plotly/dash) callbacks are used to resample and redraw the figures. 
+[Plotly](https://github.com/plotly/plotly.py) is an awesome interactive visualization library, however it can get pretty slow when a lot of data points are visualized (100 000+ datapoints). This library solves this by downsampling (aggregating) the data respective to the view and then plotting the aggregated points. When you interact with the plot (panning, zooming, ...), callbacks are used to aggregate and update the figure. 
 
 <p align="center">
     <a href="#readme">
@@ -26,6 +26,10 @@
 </p>
 
 In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resampler/blob/main/examples/basic_example.ipynb) over `110,000,000` data points are visualized! 
+
+<!-- These dynamic aggregation callbacks are realized with: -->
+<!-- * [Dash](https://github.com/plotly/dash) when a `go.Figure` object is wrapped with dynamic aggregation functionality, see example ⬆️. -->
+<!-- * The [FigureWidget.layout.on_change](https://plotly.com/python-api-reference/generated/plotly.html?highlight=on_change#plotly.basedatatypes.BasePlotlyType.on_change) method, when a `go.FigureWidget` is used within a `.ipynb` environment. -->
 
 <!-- #### Useful links -->
 
@@ -41,12 +45,16 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 ## Usage
 
-To **add dynamic resampling to your plotly Figure**, you should;
-1. wrap the plotly Figure with `FigureResampler`
-2. call `.show_dash()` on the Figure
+To **add dynamic resampling** to your plotly Figure
+* using a web application with *Dash* callbacks, you should;
+  1. wrap the plotly Figure with `FigureResampler`
+  2. call `.show_dash()` on the Figure
+* within a *jupyter* environment and *without creating a web application*, you should:
+  1. wrap the plotly Figure with `FigureWidgetResampler`
+  2. output the `FigureWidgetResampler` instance in a cell
 
 > **Note**:  
-> Any plotly Figure can be wrapped with FigureResampler! 🎉  
+> Any plotly Figure can be wrapped with FigureResampler and FigureWidgetResampler! 🎉  
 > But, (obviously) only the scatter traces will be resampled.
 
 > **Tip** 💡:  
@@ -56,15 +64,26 @@ To **add dynamic resampling to your plotly Figure**, you should;
 
 ```python
 import plotly.graph_objects as go; import numpy as np
-from plotly_resampler import FigureResampler
+from plotly_resampler import FigureResampler, FigureWidgetResampler
 
 x = np.arange(1_000_000)
 noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 
+# FigureResampler: dynamic aggregation via a Dash web-app
 fig = FigureResampler(go.Figure())
 fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
 
 fig.show_dash(mode='inline')
+```
+
+#### FigureWidgetResampler: dynamic aggregation via `FigureWidget.layout.on_change`
+```python
+... 
+# FigureWidgetResampler: dynamic aggregation via `FigureWidget.layout.on_change`
+fig = FigureWidgetResampler(go.Figure())
+fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
+
+fig
 ```
 
 ### Features
@@ -74,16 +93,16 @@ fig.show_dash(mode='inline')
   * allows all other plotly figure construction flexibility to be used!
 * **Environment-independent** 
   * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, Google Colab, and even as application (on a server)
-* Interface for **various downsampling algorithms**:
-  * ability to define your preferred sequence aggregation method
+* Interface for **various aggregation algorithms**:
+  * ability to develop or select your preferred sequence aggregation method
 
 
 ### Important considerations & tips
 
-* When running the code on a server, you should forward the port of the `FigureResampler.show_dash()` method to your local machine.
+* When running the code on a server, you should forward the port of the `FigureResampler.show_dash()` method to your local machine.<br>
+  **note** that you can add dynamic aggregation to plotly figures with the `FigureWidgetResampler` wrapper.
 * In general, when using downsampling one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.  
-  The <b><a style="color:orange">[R]</a></b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not.
-
+  The <b><a style="color:orange">[R]</a></b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not. Additionally, the `~<range>` suffix represent the mean aggregation bin size in terms of the sequence index.
 ## Future work 🔨
 
 * Support `.add_traces()` (currently only `.add_trace` is supported)
