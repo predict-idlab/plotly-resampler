@@ -1,6 +1,4 @@
-"""**plotly\_resampler**: visualizing large sequences
-
-"""
+"""**plotly\_resampler**: visualizing large sequences."""
 
 from .aggregation import (
     LTTB,
