@@ -29,7 +29,13 @@ class FigureWidgetResampler(
 ):
     """Data aggregation functionality wrapper for ``go.FigureWidgets``.
 
-    .. attention:: This wrapper only works within ``jupyter``-based environments.
+    .. attention::
+
+        * This wrapper only works within ``jupyter``-based environments.
+        * The ``.show()`` method returns a **static figure** on which the
+          **dynamic resampling cannot be performed**. To allow dynamic resampling,
+          you should just output the ``FigureWidgetResampler`` object in a cell.
+
     """
 
     def __init__(
