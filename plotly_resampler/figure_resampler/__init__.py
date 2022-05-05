@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Module withholdingg wrappers for the plotly ``go.Figure`` and ``go.FigureWidget`` class 
-which allows bookkeeping and back-end based resampling of high-frequency sequential data.
+Module withholding wrappers for the plotly ``go.Figure`` and ``go.FigureWidget`` class 
+which allows bookkeeping and back-end based resampling of high-frequency sequential
+data.
 
 Tip
 ---

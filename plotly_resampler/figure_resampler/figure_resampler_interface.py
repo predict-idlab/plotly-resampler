@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Abstract interface of which the concrete *Resampler* classes write towards.
+Abstract ``AbstractFigureAggregator`` interface for the concrete *Resampler* classes.
+
+.. |br| raw:: html
+
+   <br>
 
 """
 

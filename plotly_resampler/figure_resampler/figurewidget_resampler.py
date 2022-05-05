@@ -2,6 +2,8 @@
 """
 ``FigureWidgetResampler`` wrapper around the plotly ``go.FigureWidget`` class.
 
+Utilizes the ``fig.layout.on_change`` method to enable dynamic resampling.
+
 """
 
 from __future__ import annotations
@@ -25,7 +27,10 @@ class _FigureWidgetResamplerM(type(AbstractFigureAggregator), type(go.FigureWidg
 class FigureWidgetResampler(
     AbstractFigureAggregator, go.FigureWidget, metaclass=_FigureWidgetResamplerM
 ):
-    """Data aggregation functionality wrapper for ``go.FigureWidgets``."""
+    """Data aggregation functionality wrapper for ``go.FigureWidgets``.
+
+    .. attention:: This wrapper only works within ``jupyter``-based environments.
+    """
 
     def __init__(
         self,
@@ -105,7 +110,7 @@ class FigureWidgetResampler(
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
                 relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
 
-                # An update will take place for that trace 
+                # An update will take place for that trace
                 # -> save current xaxis range to _prev_layout
                 self._prev_layout[xaxis_str]['range'] = x_range
 

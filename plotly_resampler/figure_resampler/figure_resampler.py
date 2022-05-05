@@ -2,6 +2,8 @@
 """
 ``FigureResampler`` wrapper around the plotly ``go.Figure`` class.
 
+Creates a web-application and uses ``dash`` callbacks to enable dynamic resampling.
+
 """
 
 from __future__ import annotations
@@ -88,8 +90,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             ``config`` parameter for this property in this method.
             See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
-            Additional app.run_server() kwargs.
-            e.g.: port
+            Additional app.run_server() kwargs. e.g.: port
 
         """
         graph_properties = {} if graph_properties is None else graph_properties
