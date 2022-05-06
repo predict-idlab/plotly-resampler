@@ -7,7 +7,12 @@ plotly-resampler in various use cases.
 
 The testing CI/CD of plotly resampler uses _selenium_ and _selenium-wire_ to test the
 interactiveness of various figures. All these figures are shown in
-the [basic-example notebook](basic_example.ipynb)
+the [basic example notebook](basic_example.ipynb)
+
+### 0.1 Figurewidget example
+
+The [figurewidget example notebook](figurewidget_example.ipynb) utilizes the `FigureWidgetResampler` wrapper to 
+create a `go.FigureWidget` with dynamic aggregation functionality. A major advantage of this approach is that this does not create a web application, thus not needing to be able to create / forward a network port.
 
 ## 1. Dash apps
 
