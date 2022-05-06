@@ -5,32 +5,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>plotly_resampler.figure_resampler &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
+    <title>plotly_resampler.figure_resampler.figure_resampler_interface &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+  <link href="../../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
 
     
   <link rel="stylesheet"
-    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
   <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
   <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
 
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <link rel="shortcut icon" href="../../_static/icon.png"/>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../../_static/icon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -49,8 +49,8 @@
     
     
 
-<a class="navbar-brand" href="../../index.html">
-  <img src="../../_static/logo.png" class="logo" alt="logo">
+<a class="navbar-brand" href="../../../index.html">
+  <img src="../../../_static/logo.png" class="logo" alt="logo">
 </a>
 
 
@@ -68,19 +68,19 @@
       <div class="navbar-center-item">
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../getting_started.html">
+ <a class="reference internal nav-link" href="../../../getting_started.html">
   Getting started 🚀
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../dash_app_integration.html">
+ <a class="reference internal nav-link" href="../../../dash_app_integration.html">
   Integration with a dash app 🤝
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../api_reference.html">
+ <a class="reference internal nav-link" href="../../../api_reference.html">
   API reference 📖
  </a>
 </li>
@@ -114,7 +114,7 @@
             
             <!-- Only show if we have sidebars configured, else just a small margin  -->
             <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
   <i class="icon fas fa-search"></i>
   <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
 </form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
@@ -143,15 +143,14 @@
               
               <div>
                 
-  <h1>Source code for plotly_resampler.figure_resampler</h1><div class="highlight"><pre>
+  <h1>Source code for plotly_resampler.figure_resampler.figure_resampler_interface</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Wrapper around the plotly ``go.Figure`` class which allows bookkeeping and</span>
-<span class="sd">back-end based resampling of high-frequency sequential data.</span>
+<span class="sd">Abstract ``AbstractFigureAggregator`` interface for the concrete *Resampler* classes.</span>
 
-<span class="sd">Tip</span>
-<span class="sd">---</span>
-<span class="sd">The term `high-frequency` actually refers very large amounts of sequential data.</span>
+<span class="sd">.. |br| raw:: html</span>
+
+<span class="sd">   &lt;br&gt;</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 
@@ -160,7 +159,6 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost&quot;</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
@@ -169,20 +167,20 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
-<span class="kn">from</span> <span class="nn">jupyter_dash</span> <span class="kn">import</span> <span class="n">JupyterDash</span>
-<span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseTraceType</span>
-<span class="kn">from</span> <span class="nn">trace_updater</span> <span class="kn">import</span> <span class="n">TraceUpdater</span>
+<span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseTraceType</span><span class="p">,</span> <span class="n">BaseFigure</span>
 
-<span class="kn">from</span> <span class="nn">.aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">EfficientLTTB</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">round_td_str</span><span class="p">,</span> <span class="n">round_number_str</span>
+<span class="kn">from</span> <span class="nn">..aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">EfficientLTTB</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">round_td_str</span><span class="p">,</span> <span class="n">round_number_str</span>
+
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
 
 
-<div class="viewcode-block" id="FigureResampler"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler">[docs]</a><span class="k">class</span> <span class="nc">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AbstractFigureAggregator"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator">[docs]</a><span class="k">class</span> <span class="nc">AbstractFigureAggregator</span><span class="p">(</span><span class="n">BaseFigure</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Abstract interface for data aggregation functionality for plotly figures.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(),</span>
+        <span class="n">figure</span><span class="p">:</span> <span class="n">BaseFigure</span><span class="p">,</span>
         <span class="n">convert_existing_traces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">default_n_shown_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">default_downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="n">EfficientLTTB</span><span class="p">(),</span>
@@ -197,9 +195,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        figure: go.Figure</span>
+<span class="sd">        figure: BaseFigure</span>
 <span class="sd">            The figure that will be decorated. Can be either an empty figure</span>
-<span class="sd">            (e.g., ``go.Figure()`` or ``make_subplots()``) or an existing figure.</span>
+<span class="sd">            (e.g., ``go.Figure()``, ``make_subplots()``, ``go.FigureWidget``) or an</span>
+<span class="sd">            existing figure, by default a go.Figure().</span>
 <span class="sd">        convert_existing_traces: bool</span>
 <span class="sd">            A bool indicating whether the high-frequency traces of the passed ``figure``</span>
 <span class="sd">            should be resampled, by default True. Hence, when set to False, the</span>
@@ -238,14 +237,12 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span> <span class="o">=</span> <span class="n">default_downsampler</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="p">:</span> <span class="n">JupyterDash</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="vm">__class__</span>
 
         <span class="k">if</span> <span class="n">convert_existing_traces</span><span class="p">:</span>
             <span class="c1"># call __init__ with the correct layout and set the `_grid_ref` of the</span>
             <span class="c1"># to-be-converted figure</span>
-            <span class="n">f_</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">figure</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+            <span class="n">f_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">figure</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
             <span class="n">f_</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_ref</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">f_</span><span class="p">)</span>
 
@@ -602,7 +599,7 @@
 <span class="sd">            &gt;&gt;&gt; fig = FigureResampler(go.Figure())</span>
 <span class="sd">            &gt;&gt;&gt; fig.add_trace(...)</span>
 <span class="sd">            &gt;&gt;&gt; fig.hf_data[-1][&quot;y&quot;] = - s ** 2  # adjust the y-property of the trace added above</span>
-<span class="sd">            &gt;&gt;&gt; fig._hf_data</span>
+<span class="sd">            &gt;&gt;&gt; fig.hf_data</span>
 <span class="sd">            [</span>
 <span class="sd">                {</span>
 <span class="sd">                    &#39;max_n_samples&#39;: 1000,</span>
@@ -640,7 +637,7 @@
             <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span> <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span> <span class="k">else</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
         <span class="p">)</span>
 
-<div class="viewcode-block" id="FigureResampler.add_trace"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.add_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_trace</span><span class="p">(</span>
+<div class="viewcode-block" id="AbstractFigureAggregator.add_trace"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_trace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BaseTraceType</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
         <span class="n">max_n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -747,7 +744,8 @@
 
         <span class="c1"># First add the trace, as each (even the non-hf_data traces), must contain this</span>
         <span class="c1"># key for comparison</span>
-        <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="n">uuid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span>
+        <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uuid</span>
 
         <span class="n">hf_x</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
@@ -866,7 +864,7 @@
                 <span class="c1"># identified by its UUID</span>
                 <span class="n">axis_type</span> <span class="o">=</span> <span class="s2">&quot;date&quot;</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;linear&quot;</span>
                 <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span> <span class="k">if</span> <span class="n">downsampler</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">downsampler</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span><span class="p">[</span><span class="n">trace</span><span class="o">.</span><span class="n">uid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span><span class="p">[</span><span class="n">uuid</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="s2">&quot;max_n_samples&quot;</span><span class="p">:</span> <span class="n">max_n_samples</span><span class="p">,</span>
                     <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">hf_x</span><span class="p">,</span>
                     <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">hf_y</span><span class="p">,</span>
@@ -895,13 +893,17 @@
                 <span class="c1"># Hence, you first downsample the trace.</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_update_trace_data</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span>
+                <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uuid</span>
+                <span class="k">return</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[i] NOT resampling </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - len=</span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">hf_x</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">hf_y</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">hf_hovertext</span>
-                <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+                    <span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span>
+                <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;trace </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> is not a high-frequency trace&quot;</span><span class="p">)</span>
 
@@ -916,7 +918,9 @@
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_hovertext</span>
 
-            <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span></div>
+            <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
+                <span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span>
+            <span class="p">)</span></div>
 
     <span class="c1"># def add_traces(*args, **kwargs):</span>
     <span class="c1">#     raise NotImplementedError(&quot;This functionality is not (yet) supported&quot;)</span>
@@ -927,7 +931,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="p">{}</span>
 
-<div class="viewcode-block" id="FigureResampler.replace"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.replace">[docs]</a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">convert_existing_traces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractFigureAggregator.replace"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.replace">[docs]</a>    <span class="k">def</span> <span class="nf">replace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">,</span> <span class="n">convert_existing_traces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Replace the current figure layout with the passed figure object.</span>
 
 <span class="sd">        Parameters</span>
@@ -948,7 +952,7 @@
             <span class="n">resampled_trace_prefix_suffix</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">),</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="FigureResampler.construct_update_data"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.construct_update_data">[docs]</a>    <span class="k">def</span> <span class="nf">construct_update_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relayout_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
+<div class="viewcode-block" id="AbstractFigureAggregator.construct_update_data"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data">[docs]</a>    <span class="k">def</span> <span class="nf">construct_update_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relayout_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Construct the to-be-updated front-end data, based on the layout change.</span>
 
 <span class="sd">        Attention</span>
@@ -1055,31 +1059,6 @@
             <span class="n">layout_traces_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace_reduced</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">layout_traces_list</span></div>
 
-<div class="viewcode-block" id="FigureResampler.register_update_graph_callback"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">[docs]</a>    <span class="k">def</span> <span class="nf">register_update_graph_callback</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">app</span><span class="p">:</span> <span class="n">dash</span><span class="o">.</span><span class="n">Dash</span> <span class="o">|</span> <span class="n">JupyterDash</span><span class="p">,</span> <span class="n">graph_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">trace_updater_id</span><span class="p">:</span> <span class="nb">str</span>
-    <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Register the :func:`construct_update_data` method as callback function to</span>
-<span class="sd">        the passed dash-app.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        app: Union[dash.Dash, JupyterDash]</span>
-<span class="sd">            The app in which the callback will be registered.</span>
-<span class="sd">        graph_id:</span>
-<span class="sd">            The id of the ``dcc.Graph``-component which withholds the to-be resampled</span>
-<span class="sd">            Figure.</span>
-<span class="sd">        trace_updater_id</span>
-<span class="sd">            The id of the ``TraceUpdater`` component. This component is leveraged by</span>
-<span class="sd">            ``FigureResampler`` to efficiently POST the to-be-updated data to the</span>
-<span class="sd">            front-end.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">callback</span><span class="p">(</span>
-            <span class="n">dash</span><span class="o">.</span><span class="n">dependencies</span><span class="o">.</span><span class="n">Output</span><span class="p">(</span><span class="n">trace_updater_id</span><span class="p">,</span> <span class="s2">&quot;updateData&quot;</span><span class="p">),</span>
-            <span class="n">dash</span><span class="o">.</span><span class="n">dependencies</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">graph_id</span><span class="p">,</span> <span class="s2">&quot;relayoutData&quot;</span><span class="p">),</span>
-            <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">construct_update_data</span><span class="p">)</span></div>
-
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_re_matches</span><span class="p">(</span><span class="n">regex</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">,</span> <span class="n">strings</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns all the items in ``strings`` which regex.match(es) ``regex``.&quot;&quot;&quot;</span>
@@ -1088,103 +1067,7 @@
             <span class="n">m</span> <span class="o">=</span> <span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
-
-<div class="viewcode-block" id="FigureResampler.show_dash"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.show_dash">[docs]</a>    <span class="k">def</span> <span class="nf">show_dash</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">config</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">graph_properties</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-    <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Registers the :func:`update_graph` callback &amp; show the figure in a dash app.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        mode: str, optional</span>
-<span class="sd">            Display mode. One of:\n</span>
-<span class="sd">              * ``&quot;external&quot;``: The URL of the app will be displayed in the notebook</span>
-<span class="sd">                output cell. Clicking this URL will open the app in the default</span>
-<span class="sd">                web browser.</span>
-<span class="sd">              * ``&quot;inline&quot;``: The app will be displayed inline in the notebook output</span>
-<span class="sd">                cell in an iframe.</span>
-<span class="sd">              * ``&quot;jupyterlab&quot;``: The app will be displayed in a dedicated tab in the</span>
-<span class="sd">                JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``</span>
-<span class="sd">                extension.</span>
-<span class="sd">            By default None, which will result in the same behavior as ``&quot;external&quot;``.</span>
-<span class="sd">        config: dict, optional</span>
-<span class="sd">            The configuration options for displaying this figure, by default None.</span>
-<span class="sd">            This ``config`` parameter is the same as the dict that you would pass as</span>
-<span class="sd">            ``config`` argument to the `show` method.</span>
-<span class="sd">            See more https://plotly.com/python/configuration-options/</span>
-<span class="sd">        graph_properties: dict, optional</span>
-<span class="sd">            Dictionary of (keyword, value) for the properties that should be passed to</span>
-<span class="sd">            the dcc.Graph, by default None.</span>
-<span class="sd">            e.g.: {&quot;style&quot;: {&quot;width&quot;: &quot;50%&quot;}}</span>
-<span class="sd">            Note: &quot;config&quot; is not allowed as key in this dict, as there is a distinct</span>
-<span class="sd">            ``config`` parameter for this property in this method.</span>
-<span class="sd">            See more https://dash.plotly.com/dash-core-components/graph</span>
-<span class="sd">        **kwargs: dict</span>
-<span class="sd">            Additional app.run_server() kwargs.</span>
-<span class="sd">            e.g.: port</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">graph_properties</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">graph_properties</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">graph_properties</span>
-        <span class="k">assert</span> <span class="s2">&quot;config&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">graph_properties</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c1"># There is a param for config</span>
-        <span class="c1"># 1. Construct the Dash app layout</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">JupyterDash</span><span class="p">(</span><span class="s2">&quot;local_app&quot;</span><span class="p">)</span>
-        <span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
-            <span class="p">[</span>
-                <span class="n">dash</span><span class="o">.</span><span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
-                    <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;resample-figure&quot;</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="n">config</span><span class="p">,</span> <span class="o">**</span><span class="n">graph_properties</span>
-                <span class="p">),</span>
-                <span class="n">TraceUpdater</span><span class="p">(</span>
-                    <span class="nb">id</span><span class="o">=</span><span class="s2">&quot;trace-updater&quot;</span><span class="p">,</span> <span class="n">gdID</span><span class="o">=</span><span class="s2">&quot;resample-figure&quot;</span><span class="p">,</span> <span class="n">sequentialUpdate</span><span class="o">=</span><span class="kc">False</span>
-                <span class="p">),</span>
-            <span class="p">]</span>
-        <span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">register_update_graph_callback</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;resample-figure&quot;</span><span class="p">,</span> <span class="s2">&quot;trace-updater&quot;</span><span class="p">)</span>
-
-        <span class="c1"># 2. Run the app</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline&quot;</span>
-            <span class="ow">and</span> <span class="s2">&quot;height&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span>
-        <span class="p">):</span>
-            <span class="c1"># If figure height is specified -&gt; re-use is for inline dash app height</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="mi">18</span>
-
-        <span class="c1"># store the app information, so it can be killed</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_port</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="s2">&quot;8050&quot;</span><span class="p">)</span>
-
-        <span class="n">app</span><span class="o">.</span><span class="n">run_server</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="FigureResampler.stop_server"><a class="viewcode-back" href="../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.stop_server">[docs]</a>    <span class="k">def</span> <span class="nf">stop_server</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">warn</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Stop the running dash-app.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        warn: bool</span>
-<span class="sd">            Whether a warning message will be shown or  not, by default True.</span>
-
-<span class="sd">        .. attention::</span>
-<span class="sd">            This only works if the dash-app was started with :func:`show_dash`.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-
-            <span class="n">old_server</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_server_threads</span><span class="o">.</span><span class="n">get</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">))</span>
-            <span class="k">if</span> <span class="n">old_server</span><span class="p">:</span>
-                <span class="n">old_server</span><span class="o">.</span><span class="n">kill</span><span class="p">()</span>
-                <span class="n">old_server</span><span class="o">.</span><span class="n">join</span><span class="p">()</span>
-                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">_app</span><span class="o">.</span><span class="n">_server_threads</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_port</span><span class="p">)]</span>
-        <span class="k">elif</span> <span class="n">warn</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-                <span class="s2">&quot;Could not stop the server, either the </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">- &#39;show-dash&#39; method was not called, or </span><span class="se">\n</span><span class="s2">&quot;</span>
-                <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">- the dash-server wasn&#39;t started with &#39;show_dash&#39;&quot;</span>
-            <span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span></div>
 </pre></div>
 
               </div>
@@ -1201,7 +1084,7 @@
     </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+  <script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
 <footer class="footer mt-5 mt-md-0">
   <div class="container">
     

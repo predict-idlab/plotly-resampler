@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>plotly_resampler.figure_resampler &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
+    <title>plotly_resampler.figure_resampler.figure_resampler &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -32,8 +32,8 @@
     <link rel="shortcut icon" href="../_static/icon.png"/>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="plotly_resampler.figure_resampler.figure_resampler" href="plotly_resampler.figure_resampler.figure_resampler.html" />
-    <link rel="prev" title="API reference 📖" href="../api_reference.html" />
+    <link rel="next" title="plotly_resampler.figure_resampler.figure_resampler_interface" href="plotly_resampler.figure_resampler.figure_resampler_interface.html" />
+    <link rel="prev" title="plotly_resampler.figure_resampler" href="plotly_resampler.figure_resampler.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="None">
     
@@ -124,7 +124,7 @@
   <div class="bd-toc-item active">
     <ul class="current nav bd-sidenav">
  <li class="toctree-l1 current active has-children">
-  <a class="current reference internal" href="#">
+  <a class="reference internal" href="plotly_resampler.figure_resampler.html">
    plotly_resampler.figure_resampler
   </a>
   <input checked="" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
@@ -132,9 +132,9 @@
    <i class="fas fa-chevron-down">
    </i>
   </label>
-  <ul>
-   <li class="toctree-l2">
-    <a class="reference internal" href="plotly_resampler.figure_resampler.figure_resampler.html">
+  <ul class="current">
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
      plotly_resampler.figure_resampler.figure_resampler
     </a>
    </li>
@@ -211,30 +211,19 @@
               
               <div>
                 
-  <section id="module-plotly_resampler.figure_resampler">
-<span id="plotly-resampler-figure-resampler"></span><h1>plotly_resampler.figure_resampler<a class="headerlink" href="#module-plotly_resampler.figure_resampler" title="Permalink to this headline">#</a></h1>
-<p>Module withholding wrappers for the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> and <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code> class
-which allows bookkeeping and back-end based resampling of high-frequency sequential
-data.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>The term <cite>high-frequency</cite> actually refers very large amounts of sequential data.</p>
-</div>
-<p class="rubric">Modules</p>
+  <section id="module-plotly_resampler.figure_resampler.figure_resampler">
+<span id="plotly-resampler-figure-resampler-figure-resampler"></span><h1>plotly_resampler.figure_resampler.figure_resampler<a class="headerlink" href="#module-plotly_resampler.figure_resampler.figure_resampler" title="Permalink to this headline">#</a></h1>
+<p><code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code> wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> class.</p>
+<p>Creates a web-application and uses <code class="docutils literal notranslate"><span class="pre">dash</span></code> callbacks to enable dynamic resampling.</p>
+<p class="rubric">Classes</p>
 <table class="autosummary longtable table autosummary">
 <colgroup>
 <col style="width: 10%" />
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="plotly_resampler.figure_resampler.figure_resampler.html#module-plotly_resampler.figure_resampler.figure_resampler" title="plotly_resampler.figure_resampler.figure_resampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler</span></code></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code> wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> class.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="plotly_resampler.figure_resampler.figure_resampler_interface.html#module-plotly_resampler.figure_resampler.figure_resampler_interface" title="plotly_resampler.figure_resampler.figure_resampler_interface"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface</span></code></a></p></td>
-<td><p>Abstract <code class="docutils literal notranslate"><span class="pre">AbstractFigureAggregator</span></code> interface for the concrete <em>Resampler</em> classes.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="plotly_resampler.figure_resampler.figurewidget_resampler.html#module-plotly_resampler.figure_resampler.figurewidget_resampler" title="plotly_resampler.figure_resampler.figurewidget_resampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figurewidget_resampler</span></code></a></p></td>
-<td><p><code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code> class.</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler" title="plotly_resampler.figure_resampler.figure_resampler.FigureResampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FigureResampler</span></code></a>([figure, ...])</p></td>
+<td><p>Data aggregation functionality for <code class="docutils literal notranslate"><span class="pre">go.Figures</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -246,17 +235,17 @@ data.</p>
               
               <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="../api_reference.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="plotly_resampler.figure_resampler.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">API reference 📖</p>
+            <p class="prev-next-title">plotly_resampler.figure_resampler</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="plotly_resampler.figure_resampler.figure_resampler.html" title="next page">
+    <a class='right-next' id="next-link" href="plotly_resampler.figure_resampler.figure_resampler_interface.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">plotly_resampler.figure_resampler.figure_resampler</p>
+        <p class="prev-next-title">plotly_resampler.figure_resampler.figure_resampler_interface</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

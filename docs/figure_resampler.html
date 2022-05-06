@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>FigureResampler &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
+    <title>AbstractFigureAggregator &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -123,9 +123,29 @@
               
               <div class="toc-item">
                 
+<div class="tocsection onthispage mt-5 pt-1 pb-3">
+    <i class="fas fa-list"></i> On this page
+</div>
 
 <nav id="bd-toc-nav">
-    
+    <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   AbstractFigureAggregator
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#figureresampler">
+   FigureResampler
+  </a>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#figurewidgetresampler">
+   FigureWidgetResampler
+  </a>
+ </li>
+</ul>
+
 </nav>
               </div>
               
@@ -145,24 +165,20 @@
               
               <div>
                 
-  <section id="module-plotly_resampler.figure_resampler">
-<span id="figureresampler"></span><h1>FigureResampler<a class="headerlink" href="#module-plotly_resampler.figure_resampler" title="Permalink to this headline">#</a></h1>
-<p>Wrapper around the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> class which allows bookkeeping and
-back-end based resampling of high-frequency sequential data.</p>
-<div class="admonition tip">
-<p class="admonition-title">Tip</p>
-<p>The term <cite>high-frequency</cite> actually refers very large amounts of sequential data.</p>
-</div>
+  <section id="abstractfigureaggregator">
+<h1>AbstractFigureAggregator<a class="headerlink" href="#abstractfigureaggregator" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
-<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=Figure({</span>&#160;&#160;&#160;&#160; <span class="pre">'data':</span> <span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'layout':</span> <span class="pre">{'template':</span> <span class="pre">'...'}</span> <span class="pre">})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figure.Figure</span></code></p>
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractFigureAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.basedatatypes.BaseFigure</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Abstract interface for data aggregation functionality for plotly figures.</p>
 <p>Instantiate a resampling data mirror.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>figure</strong> (<em>go.Figure</em>) – The figure that will be decorated. Can be either an empty figure
-(e.g., <code class="docutils literal notranslate"><span class="pre">go.Figure()</span></code> or <code class="docutils literal notranslate"><span class="pre">make_subplots()</span></code>) or an existing figure.</p></li>
+<li><p><strong>figure</strong> (<em>BaseFigure</em>) – The figure that will be decorated. Can be either an empty figure
+(e.g., <code class="docutils literal notranslate"><span class="pre">go.Figure()</span></code>, <code class="docutils literal notranslate"><span class="pre">make_subplots()</span></code>, <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code>) or an
+existing figure, by default a go.Figure().</p></li>
 <li><p><strong>convert_existing_traces</strong> (<em>bool</em>) – A bool indicating whether the high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code>
 should be resampled, by default True. Hence, when set to False, the
 high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> will not be resampled.</p></li>
@@ -171,7 +187,7 @@ by default 1000.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <ul>
-<li><p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p></li>
+<li><p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p></li>
 <li><p>If a trace withholds fewer datapoints than this parameter,
 the data will <em>not</em> be aggregated.</p></li>
 </ul>
@@ -182,7 +198,7 @@ will be used as default downsampler, by default <code class="docutils literal no
 _interleave_gaps_ set to True.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
+<p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
 </div>
 </p></li>
 <li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
@@ -196,8 +212,8 @@ its legend-name, by default True.</p></li>
 </dd>
 </dl>
 <dl class="py property">
-<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.hf_data">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hf_data</span></span><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.hf_data" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.hf_data">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hf_data</span></span><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.hf_data" title="Permalink to this definition">#</a></dt>
 <dd><p>Property to adjust the <cite>data</cite> component of the current graph</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -207,7 +223,7 @@ its legend-name, by default True.</p></li>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">hf_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">s</span> <span class="o">**</span> <span class="mi">2</span>  <span class="c1"># adjust the y-property of the trace added above</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">_hf_data</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">hf_data</span>
 <span class="go">[</span>
 <span class="go">    {</span>
 <span class="go">        &#39;max_n_samples&#39;: 1000,</span>
@@ -223,8 +239,8 @@ its legend-name, by default True.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.add_trace">
-<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">
+<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="Permalink to this definition">#</a></dt>
 <dd><p>Add a trace to the figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -287,7 +303,7 @@ e.g.: row=.., col=…, secondary_y=…</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Constructing traces with <strong>very large data amounts</strong> really takes some time.
-To speed this up; use this <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method and</p>
+To speed this up; use this <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method and</p>
 <ol class="arabic simple">
 <li><p>Create a trace with no data (empty lists)</p></li>
 <li><p>pass the high frequency data to this method using the <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> and <code class="docutils literal notranslate"><span class="pre">hf_y</span></code>
@@ -334,8 +350,8 @@ also storing the low-frequency series in the back-end.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.replace">
-<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.replace" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.replace">
+<span class="sig-name descname"><span class="pre">replace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.replace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.replace" title="Permalink to this definition">#</a></dt>
 <dd><p>Replace the current figure layout with the passed figure object.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -349,8 +365,8 @@ resampled, by default True.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.construct_update_data">
-<span class="sig-name descname"><span class="pre">construct_update_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relayout_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.construct_update_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.construct_update_data" title="Permalink to this definition">#</a></dt>
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data">
+<span class="sig-name descname"><span class="pre">construct_update_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relayout_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.construct_update_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data" title="Permalink to this definition">#</a></dt>
 <dd><p>Construct the to-be-updated front-end data, based on the layout change.</p>
 <div class="admonition attention">
 <p class="admonition-title">Attention</p>
@@ -378,28 +394,58 @@ in each dict.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">
-<span class="sig-name descname"><span class="pre">register_update_graph_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_updater_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.register_update_graph_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback" title="Permalink to this definition">#</a></dt>
-<dd><p>Register the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.construct_update_data" title="plotly_resampler.figure_resampler.FigureResampler.construct_update_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">construct_update_data()</span></code></a> method as callback function to
-the passed dash-app.</p>
+</dd></dl>
+
+</section>
+<section id="figureresampler">
+<h1>FigureResampler<a class="headerlink" href="#figureresampler" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=Figure({</span>&#160;&#160;&#160;&#160; <span class="pre">'data':</span> <span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'layout':</span> <span class="pre">{'template':</span> <span class="pre">'...'}</span> <span class="pre">})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figure.Figure</span></code></p>
+<p>Data aggregation functionality for <code class="docutils literal notranslate"><span class="pre">go.Figures</span></code>.</p>
+<p>Instantiate a resampling data mirror.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>app</strong> (<em>Union</em><em>[</em><em>dash.Dash</em><em>, </em><em>JupyterDash</em><em>]</em>) – The app in which the callback will be registered.</p></li>
-<li><p><strong>graph_id</strong> (<em>str</em>) – The id of the <code class="docutils literal notranslate"><span class="pre">dcc.Graph</span></code>-component which withholds the to-be resampled
-Figure.</p></li>
-<li><p><strong>trace_updater_id</strong> (<em>str</em>) – The id of the <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> component. This component is leveraged by
-<code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code> to efficiently POST the to-be-updated data to the
-front-end.</p></li>
+<li><p><strong>figure</strong> (<em>BaseFigure</em>) – The figure that will be decorated. Can be either an empty figure
+(e.g., <code class="docutils literal notranslate"><span class="pre">go.Figure()</span></code>, <code class="docutils literal notranslate"><span class="pre">make_subplots()</span></code>, <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code>) or an
+existing figure, by default a go.Figure().</p></li>
+<li><p><strong>convert_existing_traces</strong> (<em>bool</em>) – A bool indicating whether the high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code>
+should be resampled, by default True. Hence, when set to False, the
+high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> will not be resampled.</p></li>
+<li><p><strong>default_n_shown_samples</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>The default number of samples that will be shown for each trace,
+by default 1000.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li><p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p></li>
+<li><p>If a trace withholds fewer datapoints than this parameter,
+the data will <em>not</em> be aggregated.</p></li>
+</ul>
+</div>
+</p></li>
+<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
+_interleave_gaps_ set to True.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
+</div>
+</p></li>
+<li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
+will be added to the trace its legend-name when a resampled version of the
+trace is shown. By default a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
+(no suffix is shown).</p></li>
+<li><p><strong>show_mean_aggregation_size</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the mean aggregation bin size will be added as a suffix to the trace
+its legend-name, by default True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether some verbose messages will be printed or not, by default False.</p></li>
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.show_dash">
-<span class="sig-name descname"><span class="pre">show_dash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.show_dash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">show_dash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler.show_dash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="Permalink to this definition">#</a></dt>
 <dd><p>Registers the <code class="xref py py-func docutils literal notranslate"><span class="pre">update_graph()</span></code> callback &amp; show the figure in a dash app.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -429,8 +475,7 @@ e.g.: {“style”: {“width”: “50%”}}
 Note: “config” is not allowed as key in this dict, as there is a distinct
 <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter for this property in this method.
 See more <a class="reference external" href="https://dash.plotly.com/dash-core-components/graph">https://dash.plotly.com/dash-core-components/graph</a></p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional app.run_server() kwargs.
-e.g.: port</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional app.run_server() kwargs. e.g.: port</p></li>
 </ul>
 </dd>
 </dl>
@@ -438,7 +483,7 @@ e.g.: port</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.stop_server">
-<span class="sig-name descname"><span class="pre">stop_server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">warn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler.html#FigureResampler.stop_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.stop_server" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">stop_server</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">warn</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler.stop_server"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.stop_server" title="Permalink to this definition">#</a></dt>
 <dd><p>Stop the running dash-app.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -450,6 +495,83 @@ e.g.: port</p></li>
 </dl>
 </dd></dl>
 
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">
+<span class="sig-name descname"><span class="pre">register_update_graph_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trace_updater_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler.register_update_graph_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback" title="Permalink to this definition">#</a></dt>
+<dd><p>Register the <code class="xref py py-func docutils literal notranslate"><span class="pre">construct_update_data()</span></code> method as callback function to
+the passed dash-app.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>app</strong> (<em>Union</em><em>[</em><em>dash.Dash</em><em>, </em><em>JupyterDash</em><em>]</em>) – The app in which the callback will be registered.</p></li>
+<li><p><strong>graph_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The id of the <code class="docutils literal notranslate"><span class="pre">dcc.Graph</span></code>-component which withholds the to-be resampled
+Figure.</p></li>
+<li><p><strong>trace_updater_id</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The id of the <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> component. This component is leveraged by
+<code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code> to efficiently POST the to-be-updated data to the
+front-end.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="figurewidgetresampler">
+<h1>FigureWidgetResampler<a class="headerlink" href="#figurewidgetresampler" title="Permalink to this headline">#</a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureWidgetResampler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureWidgetResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=Figure({</span>&#160;&#160;&#160;&#160; <span class="pre">'data':</span> <span class="pre">[]</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'layout':</span> <span class="pre">{'template':</span> <span class="pre">'...'}</span> <span class="pre">})</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figurewidget_resampler.html#FigureWidgetResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureWidgetResampler" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figurewidget.FigureWidget</span></code></p>
+<p>Data aggregation functionality wrapper for <code class="docutils literal notranslate"><span class="pre">go.FigureWidgets</span></code>.</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
+<ul class="simple">
+<li><p>This wrapper only works within <code class="docutils literal notranslate"><span class="pre">jupyter</span></code>-based environments.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">.show()</span></code> method returns a <strong>static figure</strong> on which the
+<strong>dynamic resampling cannot be performed</strong>. To allow dynamic resampling,
+you should just output the <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> object in a cell.</p></li>
+</ul>
+</div>
+<p>Instantiate a resampling data mirror.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>figure</strong> (<em>BaseFigure</em>) – The figure that will be decorated. Can be either an empty figure
+(e.g., <code class="docutils literal notranslate"><span class="pre">go.Figure()</span></code>, <code class="docutils literal notranslate"><span class="pre">make_subplots()</span></code>, <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code>) or an
+existing figure, by default a go.Figure().</p></li>
+<li><p><strong>convert_existing_traces</strong> (<em>bool</em>) – A bool indicating whether the high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code>
+should be resampled, by default True. Hence, when set to False, the
+high-frequency traces of the passed <code class="docutils literal notranslate"><span class="pre">figure</span></code> will not be resampled.</p></li>
+<li><p><strong>default_n_shown_samples</strong> (<em>int</em><em>, </em><em>optional</em>) – <p>The default number of samples that will be shown for each trace,
+by default 1000.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul>
+<li><p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p></li>
+<li><p>If a trace withholds fewer datapoints than this parameter,
+the data will <em>not</em> be aggregated.</p></li>
+</ul>
+</div>
+</p></li>
+<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
+_interleave_gaps_ set to True.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
+</div>
+</p></li>
+<li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
+will be added to the trace its legend-name when a resampled version of the
+trace is shown. By default a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
+(no suffix is shown).</p></li>
+<li><p><strong>show_mean_aggregation_size</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the mean aggregation bin size will be added as a suffix to the trace
+its legend-name, by default True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether some verbose messages will be printed or not, by default False.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 </section>

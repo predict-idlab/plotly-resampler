@@ -13,12 +13,6 @@ plotly\_resampler.figure\_resampler
 
    
    
-   .. rubric:: Classes
-
-   .. autosummary::
-   
-      FigureResampler
-   
    
 
    
@@ -26,4 +20,14 @@ plotly\_resampler.figure\_resampler
    
 
 
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   plotly_resampler.figure_resampler.figure_resampler
+   plotly_resampler.figure_resampler.figure_resampler_interface
+   plotly_resampler.figure_resampler.figurewidget_resampler
 

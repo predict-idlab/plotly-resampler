@@ -155,8 +155,8 @@
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#working-example">
-   Working example ✅
+  <a class="reference internal nav-link" href="#working-examples">
+   Working examples ✅
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
@@ -206,41 +206,61 @@
                 
   <section id="getting-started">
 <h1>Getting started 🚀<a class="headerlink" href="#getting-started" title="Permalink to this headline">#</a></h1>
-<p><code class="docutils literal notranslate"><span class="pre">plotly-resampler</span></code> maintains its interactiveness on large data by applying front-end
-<strong>resampling</strong>.</p>
-<p>Users can interact with 2 components:</p>
+<p><code class="docutils literal notranslate"><span class="pre">plotly-resampler</span></code> serves two main <strong>modules</strong>:</p>
 <ul class="simple">
-<li><p><a class="reference internal" href="figure_resampler.html#module-plotly_resampler.figure_resampler"><span class="std std-ref">FigureResampler</span></a>: a wrapper for <em>plotly.graph_objects</em> that serves the adaptive resampling functionality.</p></li>
-<li><p><a class="reference internal" href="aggregation.html#aggregation"><span class="std std-ref">aggregation</span></a>: this module withholds various data aggregation methods.</p></li>
+<li><p><a class="reference internal" href="_autosummary/plotly_resampler.figure_resampler.html#module-plotly_resampler.figure_resampler" title="plotly_resampler.figure_resampler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">figure_resampler</span></code></a>: a wrapper for <em>plotly.graph_objects Figures</em>,  coupling the dynamic resampling functionality to the <em>Figure</em>.</p></li>
+<li><p><a class="reference internal" href="_autosummary/plotly_resampler.aggregation.html#module-plotly_resampler.aggregation" title="plotly_resampler.aggregation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">aggregation</span></code></a>: a module that withholds various data aggregation methods.</p></li>
 </ul>
 <section id="installation">
 <h2>Installation ⚙️<a class="headerlink" href="#installation" title="Permalink to this headline">#</a></h2>
-<p>Install via <span class="raw-html"><a href="https://pypi.org/project/plotly-resampler/"><b>pip</b><a></span>:</p>
+<p>Install via <a class="reference external" href="https://pypi.org/project/plotly-resampler">pip</a>:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip install plotly-resampler
 </pre></div>
 </div>
 </section>
 <section id="how-to-use">
 <h2>How to use 📈<a class="headerlink" href="#how-to-use" title="Permalink to this headline">#</a></h2>
-<p>To <strong>add dynamic resampling to a plotly Figure</strong>, you should;</p>
-<blockquote>
-<div><ol class="arabic simple">
+<p>Dynamic resampling callbacks are realized with either:</p>
+<ul>
+<li><p><a class="reference external" href="https://github.com/plotly/dash">Dash</a> callbacks, when a <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> object is wrapped with dynamic aggregation functionality.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is especially useful when working with <strong>dash functionality</strong> or when you do <strong>not want to solely operate in jupyter environments</strong>.</p>
+</div>
+<dl class="simple">
+<dt>To <strong>add dynamic resampling</strong>, you should:</dt><dd><ol class="arabic simple">
 <li><p>wrap the plotly Figure with <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler" title="plotly_resampler.figure_resampler.FigureResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureResampler</span></code></a></p></li>
 <li><p>call <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">.show_dash()</span></code></a> on the Figure</p></li>
 </ol>
-</div></blockquote>
+</dd>
+</dl>
+</li>
+<li><p><a class="reference external" href="https://plotly.com/python-api-reference/generated/plotly.html?highlight=on_change#plotly.basedatatypes.BasePlotlyType.on_change">FigureWidget.layout.on_change</a> , when a <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code> is used within a <code class="docutils literal notranslate"><span class="pre">.ipynb</span></code> environment.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This is especially useful when developing in <code class="docutils literal notranslate"><span class="pre">jupyter</span></code> environments and when <strong>you cannot open/forward a network-port</strong>.</p>
+</div>
+<dl class="simple">
+<dt>To <strong>add dynamic resampling</strong> using a <strong>FigureWidget</strong>, you should:</dt><dd><ol class="arabic simple">
+<li><p>wrap your plotly Figure (can be a <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code>) with <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler" title="plotly_resampler.figure_resampler.FigureWidgetResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code></a></p></li>
+<li><p>output the <code class="docutils literal notranslate"><span class="pre">`FigureWidgetResampler</span></code> instance in a cell</p></li>
+</ol>
+</dd>
+</dl>
+</li>
+</ul>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
-<p>For <strong>significant faster initial loading</strong> of the Figure, we advise to wrap the constructor of the plotly Figure with <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler" title="plotly_resampler.figure_resampler.FigureResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureResampler</span></code></a> and add the trace data as <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> and <code class="docutils literal notranslate"><span class="pre">hf_y</span></code></p>
+<p>For <strong>significant faster initial loading</strong> of the Figure, we advise to wrap the constructor of the plotly Figure with either <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler" title="plotly_resampler.figure_resampler.FigureResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureResampler</span></code></a> or <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler" title="plotly_resampler.figure_resampler.FigureWidgetResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code></a> and add the trace data as <code class="docutils literal notranslate"><span class="pre">hf_x</span></code> and <code class="docutils literal notranslate"><span class="pre">hf_y</span></code></p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Any plotly Figure can be wrapped with <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler" title="plotly_resampler.figure_resampler.FigureResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureResampler</span></code></a>! 🎉 <span class="raw-html"><br></span>
+<p>Any plotly Figure can be wrapped with dynamic aggregation functionality! 🎉 <span class="raw-html"><br></span>
 But, (obviously) only the scatter traces will be resampled.</p>
 </div>
 </section>
-<section id="working-example">
-<h2>Working example ✅<a class="headerlink" href="#working-example" title="Permalink to this headline">#</a></h2>
+<section id="working-examples">
+<h2>Working examples ✅<a class="headerlink" href="#working-examples" title="Permalink to this headline">#</a></h2>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span><span class="p">;</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
 
@@ -253,6 +273,8 @@ But, (obviously) only the scatter traces will be resampled.</p>
 <span class="n">fig</span><span class="o">.</span><span class="n">show_dash</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s1">&#39;inline&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>The gif below demonstrates the example usage of of <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler" title="plotly_resampler.figure_resampler.FigureWidgetResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code></a>, where <code class="docutils literal notranslate"><span class="pre">JupyterLab</span></code> is used as environment and the <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> instance it’s output is redirected into a new view. Also note how you are able to dynamically add traces!</p>
+<img alt="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif" />
 </section>
 <section id="important-considerations-tips">
 <h2>Important considerations &amp; tips 🚨<a class="headerlink" href="#important-considerations-tips" title="Permalink to this headline">#</a></h2>
@@ -264,7 +286,7 @@ The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></sp
 </ul>
 <section id="dynamically-adjusting-the-scatter-data">
 <h3>Dynamically adjusting the scatter data 🔩<a class="headerlink" href="#dynamically-adjusting-the-scatter-data" title="Permalink to this headline">#</a></h3>
-<p>The raw high-frequency trace data can be adjusted using the <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.hf_data" title="plotly_resampler.figure_resampler.FigureResampler.hf_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">hf_data</span></code></a> property of the FigureResampler instance.</p>
+<p>The raw high-frequency trace data can be adjusted using the <code class="xref py py-func docutils literal notranslate"><span class="pre">hf_data</span></code> property of the FigureResampler instance.</p>
 <p>Working example ⬇️:</p>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span><span class="p">;</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
@@ -293,7 +315,7 @@ The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></sp
 <p class="admonition-title">Tip</p>
 <p>In the <em>Skin conductance example</em> of the <span class="raw-html"><a href="https://github.com/predict-idlab/plotly-resampler/tree/main/examples"><b>basic_example.ipynb</b><a></span>, we deal with such low-frequency traces.</p>
 </div>
-<p>The <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.add_trace" title="plotly_resampler.figure_resampler.FigureResampler.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace</span></code></a> method allows configuring argument which allows us to deal with low-frequency traces.</p>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace</span></code> method allows configuring argument which allows us to deal with low-frequency traces.</p>
 <section id="use-cases">
 <h4>Use-cases<a class="headerlink" href="#use-cases" title="Permalink to this headline">#</a></h4>
 <ul class="simple">

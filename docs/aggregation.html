@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Aggregation &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
+    <title>Series-wise data aggregation &#8212; plotly-resampler &#34;0.5.0&#34; documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -130,13 +130,13 @@
 <nav id="bd-toc-nav">
     <ul class="visible nav section-nav flex-column">
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-plotly_resampler.aggregation.aggregators">
-   Aggregator classes
+  <a class="reference internal nav-link" href="#module-plotly_resampler.aggregation.aggregation_interface">
+   Aggregation interface
   </a>
  </li>
  <li class="toc-h2 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-plotly_resampler.aggregation.aggregation_interface">
-   Aggregation interface
+  <a class="reference internal nav-link" href="#module-plotly_resampler.aggregation.aggregators">
+   Aggregator classes
   </a>
  </li>
 </ul>
@@ -160,8 +160,50 @@
               
               <div>
                 
-  <section id="aggregation">
-<h1>Aggregation<a class="headerlink" href="#aggregation" title="Permalink to this headline">#</a></h1>
+  <section id="series-wise-data-aggregation">
+<h1>Series-wise data aggregation<a class="headerlink" href="#series-wise-data-aggregation" title="Permalink to this headline">#</a></h1>
+<section id="module-plotly_resampler.aggregation.aggregation_interface">
+<span id="aggregation-interface"></span><h2>Aggregation interface<a class="headerlink" href="#module-plotly_resampler.aggregation.aggregation_interface" title="Permalink to this headline">#</a></h2>
+<p>AbstractSeriesAggregator interface-class, subclassed by concrete aggregators.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregation_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractSeriesAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype_regex_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregation_interface.html#AbstractSeriesAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="Permalink to this definition">#</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<p>Constructor of AbstractSeriesAggregator.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
+sampled data. A quantile-based approach is used to determine the gaps /
+irregularly sampled data. By default, True.</p></li>
+<li><p><strong>dtype_regex_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List containing the regex matching the supported datatypes, by default None.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate">
+<span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregation_interface.html#AbstractSeriesAggregator.aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate" title="Permalink to this definition">#</a></dt>
+<dd><p>Aggregate (downsample) the given input series to the given n_out samples.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>s</strong> (<em>pd.Series</em>) – The series that has to be aggregated.</p></li>
+<li><p><strong>n_out</strong> (<em>int</em>) – The number of samples that the downsampled series should contain.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The aggregated series.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>pd.Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<hr class="docutils" />
 <section id="module-plotly_resampler.aggregation.aggregators">
 <span id="aggregator-classes"></span><h2>Aggregator classes<a class="headerlink" href="#module-plotly_resampler.aggregation.aggregators" title="Permalink to this headline">#</a></h2>
 <p>Compatible implementation for various aggregation/downsample methods.</p>
@@ -306,47 +348,6 @@ by default None.</p></li>
 </ul>
 </dd>
 </dl>
-</dd></dl>
-
-</section>
-<section id="module-plotly_resampler.aggregation.aggregation_interface">
-<span id="aggregation-interface"></span><h2>Aggregation interface<a class="headerlink" href="#module-plotly_resampler.aggregation.aggregation_interface" title="Permalink to this headline">#</a></h2>
-<p>AbstractSeriesAggregator interface-class, subclassed by concrete aggregators.</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregation_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractSeriesAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype_regex_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregation_interface.html#AbstractSeriesAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="Permalink to this definition">#</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
-<p>Constructor of AbstractSeriesAggregator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
-sampled data. A quantile-based approach is used to determine the gaps /
-irregularly sampled data. By default, True.</p></li>
-<li><p><strong>dtype_regex_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List containing the regex matching the supported datatypes, by default None.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate">
-<span class="sig-name descname"><span class="pre">aggregate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">s</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_out</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregation_interface.html#AbstractSeriesAggregator.aggregate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate" title="Permalink to this definition">#</a></dt>
-<dd><p>Aggregate (downsample) the given input series to the given n_out samples.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>s</strong> (<em>pd.Series</em>) – The series that has to be aggregated.</p></li>
-<li><p><strong>n_out</strong> (<em>int</em>) – The number of samples that the downsampled series should contain.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The aggregated series.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>pd.Series</p>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 </section>
