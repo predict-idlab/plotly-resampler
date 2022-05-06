@@ -10,6 +10,12 @@ This is the documentation of `plotly-resampler <https://github.com/predict-idlab
 
 .. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/basic_example.gif
 
+.. raw:: html 
+   
+   <br><br>
+
+As shown in the demo above, ``plotly-resampler`` maintains its interactiveness on large data by applying front-end **resampling respective to the view**.
+
 .. raw:: html
 
     <embed>

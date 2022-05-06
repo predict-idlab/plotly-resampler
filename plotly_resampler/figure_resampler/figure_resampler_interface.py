@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Wrapper around the plotly ``go.Figure`` class which allows bookkeeping and
-back-end based resampling of high-frequency sequential data.
+Abstract ``AbstractFigureAggregator`` interface for the concrete *Resampler* classes.
 
-Tip
----
-The term `high-frequency` actually refers very large amounts of sequential data.
+.. |br| raw:: html
+
+   <br>
 
 """
 
@@ -14,7 +13,6 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
-import warnings
 from copy import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
@@ -23,20 +21,20 @@ import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from jupyter_dash import JupyterDash
-from plotly.basedatatypes import BaseTraceType
-from trace_updater import TraceUpdater
+from plotly.basedatatypes import BaseTraceType, BaseFigure
 
-from .aggregation import AbstractSeriesAggregator, EfficientLTTB
-from .utils import round_td_str, round_number_str
+from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..utils import round_td_str, round_number_str
+
+from abc import ABC
 
 
-class FigureResampler(go.Figure):
-    """"""
+class AbstractFigureAggregator(BaseFigure, ABC):
+    """Abstract interface for data aggregation functionality for plotly figures."""
 
     def __init__(
         self,
-        figure: go.Figure = go.Figure(),
+        figure: BaseFigure,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -51,9 +49,10 @@ class FigureResampler(go.Figure):
 
         Parameters
         ----------
-        figure: go.Figure
+        figure: BaseFigure
             The figure that will be decorated. Can be either an empty figure
-            (e.g., ``go.Figure()`` or ``make_subplots()``) or an existing figure.
+            (e.g., ``go.Figure()``, ``make_subplots()``, ``go.FigureWidget``) or an
+            existing figure, by default a go.Figure().
         convert_existing_traces: bool
             A bool indicating whether the high-frequency traces of the passed ``figure``
             should be resampled, by default True. Hence, when set to False, the
@@ -92,14 +91,12 @@ class FigureResampler(go.Figure):
 
         self._global_downsampler = default_downsampler
 
-        self._app: JupyterDash | None = None
-        self._port: int | None = None
-        self._host: str | None = None
+        self._figure_class = figure.__class__
 
         if convert_existing_traces:
             # call __init__ with the correct layout and set the `_grid_ref` of the
             # to-be-converted figure
-            f_ = go.Figure(layout=figure.layout)
+            f_ = self._figure_class(layout=figure.layout)
             f_._grid_ref = figure._grid_ref
             super().__init__(f_)
 
@@ -456,7 +453,7 @@ class FigureResampler(go.Figure):
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(...)
             >>> fig.hf_data[-1]["y"] = - s ** 2  # adjust the y-property of the trace added above
-            >>> fig._hf_data
+            >>> fig.hf_data
             [
                 {
                     'max_n_samples': 1000,
@@ -601,7 +598,8 @@ class FigureResampler(go.Figure):
 
         # First add the trace, as each (even the non-hf_data traces), must contain this
         # key for comparison
-        trace.uid = str(uuid4())
+        uuid = str(uuid4())
+        trace.uid = uuid
 
         hf_x = (
             trace["x"]
@@ -720,7 +718,7 @@ class FigureResampler(go.Figure):
                 # identified by its UUID
                 axis_type = "date" if isinstance(hf_x, pd.DatetimeIndex) else "linear"
                 d = self._global_downsampler if downsampler is None else downsampler
-                self._hf_data[trace.uid] = {
+                self._hf_data[uuid] = {
                     "max_n_samples": max_n_samples,
                     "x": hf_x,
                     "y": hf_y,
@@ -749,13 +747,17 @@ class FigureResampler(go.Figure):
                 # Hence, you first downsample the trace.
                 trace = self._check_update_trace_data(trace)
                 assert trace is not None
-                return super().add_trace(trace=trace, **trace_kwargs)
+                super(self._figure_class, self).add_trace(trace=trace, **trace_kwargs)
+                self.data[-1].uid = uuid
+                return
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
                 trace.x = hf_x
                 trace.y = hf_y
                 trace.text = hf_hovertext
-                return super().add_trace(trace=trace, **trace_kwargs)
+                return super(self._figure_class, self).add_trace(
+                    trace=trace, **trace_kwargs
+                )
         else:
             self._print(f"trace {trace['type']} is not a high-frequency trace")
 
@@ -770,7 +772,9 @@ class FigureResampler(go.Figure):
                 trace["text"] = None
                 trace["hovertext"] = hf_hovertext
 
-            return super().add_trace(trace=trace, **trace_kwargs)
+            return super(self._figure_class, self).add_trace(
+                trace=trace, **trace_kwargs
+            )
 
     # def add_traces(*args, **kwargs):
     #     raise NotImplementedError("This functionality is not (yet) supported")
@@ -909,31 +913,6 @@ class FigureResampler(go.Figure):
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
 
-    def register_update_graph_callback(
-        self, app: dash.Dash | JupyterDash, graph_id: str, trace_updater_id: str
-    ):
-        """Register the :func:`construct_update_data` method as callback function to
-        the passed dash-app.
-
-        Parameters
-        ----------
-        app: Union[dash.Dash, JupyterDash]
-            The app in which the callback will be registered.
-        graph_id:
-            The id of the ``dcc.Graph``-component which withholds the to-be resampled
-            Figure.
-        trace_updater_id
-            The id of the ``TraceUpdater`` component. This component is leveraged by
-            ``FigureResampler`` to efficiently POST the to-be-updated data to the
-            front-end.
-
-        """
-        app.callback(
-            dash.dependencies.Output(trace_updater_id, "updateData"),
-            dash.dependencies.Input(graph_id, "relayoutData"),
-            prevent_initial_call=True,
-        )(self.construct_update_data)
-
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
         """Returns all the items in ``strings`` which regex.match(es) ``regex``."""
@@ -943,99 +922,3 @@ class FigureResampler(go.Figure):
             if m is not None:
                 matches.append(m.string)
         return sorted(matches)
-
-    def show_dash(
-        self,
-        mode=None,
-        config: dict | None = None,
-        graph_properties: dict | None = None,
-        **kwargs,
-    ):
-        """Registers the :func:`update_graph` callback & show the figure in a dash app.
-
-        Parameters
-        ----------
-        mode: str, optional
-            Display mode. One of:\n
-              * ``"external"``: The URL of the app will be displayed in the notebook
-                output cell. Clicking this URL will open the app in the default
-                web browser.
-              * ``"inline"``: The app will be displayed inline in the notebook output
-                cell in an iframe.
-              * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
-                JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
-                extension.
-            By default None, which will result in the same behavior as ``"external"``.
-        config: dict, optional
-            The configuration options for displaying this figure, by default None.
-            This ``config`` parameter is the same as the dict that you would pass as
-            ``config`` argument to the `show` method.
-            See more https://plotly.com/python/configuration-options/
-        graph_properties: dict, optional
-            Dictionary of (keyword, value) for the properties that should be passed to
-            the dcc.Graph, by default None.
-            e.g.: {"style": {"width": "50%"}}
-            Note: "config" is not allowed as key in this dict, as there is a distinct
-            ``config`` parameter for this property in this method.
-            See more https://dash.plotly.com/dash-core-components/graph
-        **kwargs: dict
-            Additional app.run_server() kwargs.
-            e.g.: port
-
-        """
-        graph_properties = {} if graph_properties is None else graph_properties
-        assert "config" not in graph_properties.keys()  # There is a param for config
-        # 1. Construct the Dash app layout
-        app = JupyterDash("local_app")
-        app.layout = dash.html.Div(
-            [
-                dash.dcc.Graph(
-                    id="resample-figure", figure=self, config=config, **graph_properties
-                ),
-                TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
-                ),
-            ]
-        )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
-
-        # 2. Run the app
-        if (
-            self.layout.height is not None
-            and mode == "inline"
-            and "height" not in kwargs
-        ):
-            # If figure height is specified -> re-use is for inline dash app height
-            kwargs["height"] = self.layout.height + 18
-
-        # store the app information, so it can be killed
-        self._app = app
-        self._host = kwargs.get("host", "127.0.0.1")
-        self._port = kwargs.get("port", "8050")
-
-        app.run_server(mode=mode, **kwargs)
-
-    def stop_server(self, warn: bool = True):
-        """Stop the running dash-app.
-
-        Parameters
-        ----------
-        warn: bool
-            Whether a warning message will be shown or  not, by default True.
-
-        .. attention::
-            This only works if the dash-app was started with :func:`show_dash`.
-        """
-        if self._app is not None:
-
-            old_server = self._app._server_threads.get((self._host, self._port))
-            if old_server:
-                old_server.kill()
-                old_server.join()
-                del self._app._server_threads[(self._host, self._port)]
-        elif warn:
-            warnings.warn(
-                "Could not stop the server, either the \n"
-                + "\t- 'show-dash' method was not called, or \n"
-                + "\t- the dash-server wasn't started with 'show_dash'"
-            )

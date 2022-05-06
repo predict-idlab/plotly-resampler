@@ -1,4 +1,4 @@
-"""Code which tests the FigureResampler functionalities"""
+"""Code which tests the FigureWidgetResampler functionalities"""
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
@@ -6,10 +6,10 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 import pytest
 import numpy as np
 import pandas as pd
-import multiprocessing
+from copy import copy
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
+from plotly_resampler import FigureWidgetResampler, EfficientLTTB, EveryNthPoint
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -23,13 +23,13 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     kwarg_space_list = [
         {},
         {
-            "default_downsampler": LTTB(interleave_gaps=True),
+            "default_downsampler": EfficientLTTB(interleave_gaps=True),
             "resampled_trace_prefix_suffix": tuple(["<b>[r]</b>", "~~"]),
             "verbose": True,
         },
     ]
     for kwarg_space in kwarg_space_list:
-        fig = FigureResampler(base_fig, **kwarg_space)
+        fig = FigureWidgetResampler(base_fig, **kwarg_space)
 
         fig.add_trace(
             go.Scatter(x=float_series.index, y=float_series),
@@ -67,7 +67,7 @@ def test_add_trace_not_resampling(float_series):
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
 
-    fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000)
 
     fig.add_trace(
         go.Scatter(
@@ -90,14 +90,14 @@ def test_add_trace_not_resampling(float_series):
 
 
 def test_add_scatter_trace_no_data():
-    fig = FigureResampler(default_n_shown_samples=1000)
+    fig = FigureWidgetResampler(default_n_shown_samples=1000)
 
     # no x and y data
     fig.add_trace(go.Scatter())
 
 
 def test_add_scatter_trace_no_x():
-    fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+    fig = FigureWidgetResampler(go.Figure(), default_n_shown_samples=1000)
 
     # no x data
     fig.add_trace(go.Scatter(y=[2, 1, 4, 3], name="s1"))
@@ -112,7 +112,7 @@ def test_add_not_a_hf_trace(float_series):
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
 
-    fig = FigureResampler(base_fig, default_n_shown_samples=1000, verbose=True)
+    fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000, verbose=True)
 
     fig.add_trace(
         go.Scatter(
@@ -141,7 +141,7 @@ def test_box_histogram(float_series):
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
 
-    fig = FigureResampler(base_fig, default_n_shown_samples=1000, verbose=True)
+    fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000, verbose=True)
 
     fig.add_trace(
         go.Scattergl(x=float_series.index, y=float_series, name="float_series"),
@@ -178,7 +178,7 @@ def test_cat_box_histogram(float_series):
         cols=2,
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
-    fig = FigureResampler(base_fig, default_n_shown_samples=1000, verbose=True)
+    fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000, verbose=True)
 
     fig.add_trace(
         go.Scattergl(name="cat_series", x=cat_series.index, y=cat_series),
@@ -213,7 +213,7 @@ def test_replace_figure(float_series):
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
 
-    fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    fr_fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000)
 
     go_fig = go.Figure()
     go_fig.add_trace(go.Scattergl(x=float_series.index, y=float_series, name="fs"))
@@ -242,7 +242,7 @@ def test_nan_removed_input(float_series):
         specs=[[{}, {}], [{"colspan": 2}, None]],
     )
 
-    fig = FigureResampler(
+    fig = FigureWidgetResampler(
         base_fig,
         default_n_shown_samples=1000,
         resampled_trace_prefix_suffix=(
@@ -297,7 +297,7 @@ def test_multiple_timezones():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fr_fig = FigureResampler(
+    fr_fig = FigureWidgetResampler(
         make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
         default_n_shown_samples=500,
         convert_existing_traces=False,
@@ -324,7 +324,9 @@ def test_proper_copy_of_wrapped_fig(float_series):
         )
     )
 
-    plotly_resampler_fig = FigureResampler(plotly_fig, default_n_shown_samples=500)
+    plotly_resampler_fig = FigureWidgetResampler(
+        plotly_fig, default_n_shown_samples=500
+    )
 
     assert len(plotly_fig.data) == 1
     assert all(plotly_fig.data[0].x == float_series.index)
@@ -352,7 +354,7 @@ def test_2d_input_y():
     )
 
     with pytest.raises(AssertionError) as e_info:
-        _ = FigureResampler(  # does not alter plotly_fig
+        _ = FigureWidgetResampler(  # does not alter plotly_fig
             plotly_fig,
             default_n_shown_samples=500,
         )
@@ -375,7 +377,7 @@ def test_time_tz_slicing():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
+    fig = FigureWidgetResampler(go.Figure())
 
     for s in cs:
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
@@ -401,7 +403,7 @@ def test_time_tz_slicing_different_timestamp():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
+    fig = FigureWidgetResampler(go.Figure())
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
         t_start = t_start.tz_convert(cs[(i + 1) % len(cs)].index.tz)
@@ -429,7 +431,7 @@ def test_different_tz_no_tz_series_slicing():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
+    fig = FigureWidgetResampler(go.Figure())
 
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(
@@ -466,7 +468,7 @@ def test_multiple_tz_no_tz_series_slicing():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
+    fig = FigureWidgetResampler(go.Figure())
 
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(
@@ -485,7 +487,7 @@ def test_multiple_tz_no_tz_series_slicing():
 def test_check_update_figure_dict():
     # mostly written to test the check_update_figure_dict with
     # "updated_trace_indices" = None
-    fr = FigureResampler(go.Figure())
+    fr = FigureWidgetResampler(go.Figure())
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
@@ -493,44 +495,8 @@ def test_check_update_figure_dict():
     fr._check_update_figure_dict(fr.to_dict())
 
 
-def test_stop_server_inline():
-    # mostly written to test the check_update_figure_dict whether the inline + height
-    # line option triggers
-    fr = FigureResampler(go.Figure())
-    n = 100_000
-    x = np.arange(n)
-    y = np.sin(x)
-    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
-    fr.update_layout(height=900)
-    fr.stop_server()
-    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline"))
-    proc.start()
-    import time
-
-    time.sleep(3)
-    fr.stop_server()
-    proc.terminate()
-
-
-def test_stop_server_external():
-    fr = FigureResampler(go.Figure())
-    n = 100_000
-    x = np.arange(n)
-    y = np.sin(x)
-    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
-    fr.update_layout(height=900)
-    fr.stop_server()
-    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="external"))
-    proc.start()
-    import time
-
-    time.sleep(3)
-    fr.stop_server()
-    proc.terminate()
-
-
 def test_hf_data_property():
-    fr = FigureResampler(go.Figure(), default_n_shown_samples=2_000)
+    fr = FigureWidgetResampler(go.Figure(), default_n_shown_samples=2_000)
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
@@ -539,3 +505,346 @@ def test_hf_data_property():
     assert len(fr.hf_data) == 1
     assert len(fr.hf_data[0]["x"]) == n
     fr.hf_data[0] = -2 * y
+
+
+def test_updates_two_traces():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # zoom in on both traces
+    fw_fig.layout.update(
+        {"xaxis": {"range": [10_000, 200_000]}, "xaxis2": {"range": [0, 200_000]}},
+        overwrite=False,
+    )
+
+    # check whether the two traces were updated with the xaxis-range method
+    assert ["xaxis-range-update", 2] in fw_fig._relayout_hist
+    assert sum([["xaxis-range-update", 2] == rh for rh in fw_fig._relayout_hist]) == 1
+    # check whether the showspikes update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # apply an autorange, see whether an update takes place
+    fw_fig._relayout_hist.clear()
+    fw_fig.layout.update({"xaxis": {"autorange": True}})
+    fw_fig.layout.update({"xaxis2": {"autorange": True}})
+
+    assert len(fw_fig._relayout_hist) == 0
+
+    # Perform a reset axis update
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether the two traces were updated with the showspike method
+    assert ["showspikes-update", 2] in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 2] == rh for rh in fw_fig._relayout_hist]) == 1
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # RE-perform a reset axis update
+    fw_fig._relayout_hist.clear()
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether none of the traces we updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_updates_two_traces_single_trace_adjust():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # zoom in on both traces
+    fw_fig.layout.update(
+        {"xaxis2": {"range": [0, 200_000]}},
+        overwrite=False,
+    )
+
+    # check whether the single traces were updated with the xaxis-range method
+    assert ["xaxis-range-update", 1] in fw_fig._relayout_hist
+    assert ["xaxis-range-update", 2] not in fw_fig._relayout_hist
+    assert sum([["xaxis-range-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
+
+    # check whether the showspikes update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    fw_fig._relayout_hist.clear()
+
+    # apply an autorange, see whether an update takes place
+    fw_fig.layout.update({"xaxis": {"autorange": True}})
+    fw_fig.layout.update({"xaxis2": {"autorange": True}})
+
+    assert len(fw_fig._relayout_hist) == 0
+
+    # Perform a reset axis update
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether the single traces was updated with the showspike method
+    assert ["showspikes-update", 1] in fw_fig._relayout_hist
+    assert not ["showspikes-update", 2] in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    fw_fig._relayout_hist.clear()
+
+    # RE-perform a reset axis update
+    #
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether none of the traces we updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_update_direct_reset_axis():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # Perform a reset_axis
+    fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        }
+    )
+
+    # check whether the two traces was updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 0
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_bare_update_methods():
+    n = 1_000_000
+    X = np.arange(n)
+    Y = np.random.rand(n) / 5 + np.sin(np.arange(n) / 10000)
+
+    fw_fig = FigureWidgetResampler(
+        make_subplots(rows=2, shared_xaxes=False), verbose=True
+    )
+    fw_fig.update_layout(height=400, showlegend=True)
+
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 90) * X / 2000, row=1, col=1)
+    fw_fig.add_trace(go.Scattergl(), hf_x=X, hf_y=(Y + 3) * 0.99999**X, row=2, col=1)
+
+    # equivalent of calling the reset-axis dict update
+    fw_fig._update_spike_ranges(fw_fig.layout, False, False)
+    fw_fig._update_spike_ranges(fw_fig.layout, False, False)
+
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 0
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    fw_fig._relayout_hist.clear()
+
+    # Zoom in on the xaxis2
+    fw_fig._update_x_ranges(
+        copy(fw_fig.layout).update(
+            {"xaxis2": {"range": [0, 200_000]}},
+            overwrite=True,
+        ),
+        (0, len(X)),
+        (0, 200_000),
+    )
+
+    # check whether the single traces were updated with the xaxis-range method
+    assert ["xaxis-range-update", 1] in fw_fig._relayout_hist
+    assert ["xaxis-range-update", 2] not in fw_fig._relayout_hist
+    assert sum([["xaxis-range-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
+
+    # check whether the showspikes update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # check whether the new update call (on the same range) does nothing
+    fw_fig._relayout_hist.clear()
+    fw_fig._update_x_ranges(
+        copy(fw_fig.layout).update(
+            {"xaxis2": {"range": [0, 200_000]}},
+            overwrite=True,
+        ),
+        (0, len(X)),
+        (0, 200_000),
+    )
+
+    # check whether none of the traces we updated with the showspike method
+    assert ["showspikes-update", 1] not in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # Perform an autorange udpate -> assert that the range i
+    fw_fig._relayout_hist.clear()
+    fw_fig.layout.update({"xaxis2": {"autorange": True}, "yaxis2": {"autorange": True}})
+    assert len(fw_fig._relayout_hist) == 0
+
+    fw_fig.layout.update({"yaxis2": {"range": [0, 2]}})
+    assert len(fw_fig._relayout_hist) == 0
+
+    # perform an reset axis
+    fw_fig._relayout_hist.clear()
+    l = fw_fig.layout.update(
+        {
+            "xaxis": {"autorange": True, "showspikes": False},
+            "xaxis2": {"autorange": True, "showspikes": False},
+        },
+        overwrite=True,  # by setting this to true -> the update call will not takte clear
+    )
+    fw_fig._update_spike_ranges(l, False, False)
+
+    # Assert that only a single trace was updated
+    assert ["showspikes-update", 1] in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fw_fig._relayout_hist
+            ]
+        )
+        == 0
+    )
