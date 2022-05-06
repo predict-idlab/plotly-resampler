@@ -149,3 +149,28 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 + "\t- 'show-dash' method was not called, or \n"
                 + "\t- the dash-server wasn't started with 'show_dash'"
             )
+
+    def register_update_graph_callback(
+        self, app: dash.Dash, graph_id: str, trace_updater_id: str
+    ):
+        """Register the :func:`construct_update_data` method as callback function to
+        the passed dash-app.
+
+        Parameters
+        ----------
+        app: Union[dash.Dash, JupyterDash]
+            The app in which the callback will be registered.
+        graph_id:
+            The id of the ``dcc.Graph``-component which withholds the to-be resampled
+            Figure.
+        trace_updater_id
+            The id of the ``TraceUpdater`` component. This component is leveraged by
+            ``FigureResampler`` to efficiently POST the to-be-updated data to the
+            front-end.
+
+        """
+        app.callback(
+            dash.dependencies.Output(trace_updater_id, "updateData"),
+            dash.dependencies.Input(graph_id, "relayoutData"),
+            prevent_initial_call=True,
+        )(self.construct_update_data)

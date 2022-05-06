@@ -90,7 +90,7 @@ def test_add_trace_not_resampling(float_series):
 
 
 def test_add_scatter_trace_no_data():
-    fig = FigureWidgetResampler(go.Figure(), default_n_shown_samples=1000)
+    fig = FigureWidgetResampler(default_n_shown_samples=1000)
 
     # no x and y data
     fig.add_trace(go.Scatter())

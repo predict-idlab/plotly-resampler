@@ -73,7 +73,7 @@ class FigureWidgetResampler(
         self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
         # edge case: an empty `go.Figure()` does not yet contain xaxis keys
         if not len(self._xaxis_list):
-            self._xaxis_list = ['xaxis']
+            self._xaxis_list = ["xaxis"]
 
         # Assign the the update-methods to the corresponding classes
         showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
@@ -118,7 +118,7 @@ class FigureWidgetResampler(
 
                 # An update will take place for that trace
                 # -> save current xaxis range to _prev_layout
-                self._prev_layout[xaxis_str]['range'] = x_range
+                self._prev_layout[xaxis_str]["range"] = x_range
 
         if len(relayout_dict):
             # Construct the update data
@@ -135,7 +135,7 @@ class FigureWidgetResampler(
                 self.layout.update(update_data[0])
 
                 for xaxis_str in self._xaxis_list:
-                    if 'showspikes' in layout[xaxis_str]:
+                    if "showspikes" in layout[xaxis_str]:
                         self.layout[xaxis_str].pop("showspikes")
 
                 # Then update the data
@@ -177,8 +177,8 @@ class FigureWidgetResampler(
                 relayout_dict[f"{xaxis_str}.autorange"] = True
                 relayout_dict[f"{xaxis_str}.showspikes"] = showspike
                 # autorange -> we pop the xaxis range
-                if 'range' in layout[xaxis_str]:
-                    del layout[xaxis_str]['range']
+                if "range" in layout[xaxis_str]:
+                    del layout[xaxis_str]["range"]
 
         if len(relayout_dict):
             # An update will take place, save current layout to _prev_layout
@@ -209,6 +209,3 @@ class FigureWidgetResampler(
         elif self._print_verbose:
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
-
-    # def show(self, *args, **kwargs):
-    #     super(go.FigureWidget, self).show(*args, **kwargs)
