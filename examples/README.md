@@ -11,8 +11,9 @@ the [basic example notebook](basic_example.ipynb)
 
 ### 0.1 Figurewidget example
 
-The [figurewidget example notebook](figurewidget_example.ipynb) utilizes the `FigureWidgetResampler` wrapper to 
-create a `go.FigureWidget` with dynamic aggregation functionality. A major advantage of this approach is that this does not create a web application, thus not needing to be able to create / forward a network port.
+The [figurewidget example notebook](figurewidget_example.ipynb) utilizes the `FigureWidgetResampler` wrapper to create a `go.FigureWidget` with dynamic aggregation functionality. A major advantage of this approach is that this does not create a web application, thus not needing to be able to create / forward a network port.
+
+Additionally, this notebook highlights how to use the `FigureWidget` its on-click callback to utilize plotly for large **time series annotation**.
 
 ## 1. Dash apps
 
