@@ -30,6 +30,8 @@ from abc import ABC
 
 
 class AbstractFigureAggregator(BaseFigure, ABC):
+    """Abstract interface for data aggregation functionality for plotly figures."""
+
     def __init__(
         self,
         figure: BaseFigure,

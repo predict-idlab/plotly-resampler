@@ -7,7 +7,7 @@ Getting started 🚀
 ``plotly-resampler`` serves two main **modules**:
 
 * :py:mod:`figure_resampler <plotly_resampler.figure_resampler>`: a wrapper for *plotly.graph\_objects Figures*,  coupling the dynamic resampling functionality to the *Figure*.
-* :py:mod:`aggregation <plotly_resampler.aggregation>`: a module withholds various data aggregation methods.
+* :py:mod:`aggregation <plotly_resampler.aggregation>`: a module that withholds various data aggregation methods.
 
 Installation ⚙️
 ---------------
@@ -42,11 +42,11 @@ Dynamic resampling callbacks are realized with either:
 
   To **add dynamic resampling** using a **FigureWidget**, you should:
     1. wrap your plotly Figure (can be a ``go.Figure``) with :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`
-    2. Create a cell output for the ``FigureWidgetResampler`` instance
+    2. output the ```FigureWidgetResampler`` instance in a cell
 
 .. tip::
 
-  For **significant faster initial loading** of the Figure, we advise to wrap the constructor of the plotly Figure with :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` and add the trace data as ``hf_x`` and ``hf_y``
+  For **significant faster initial loading** of the Figure, we advise to wrap the constructor of the plotly Figure with either :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` or :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>` and add the trace data as ``hf_x`` and ``hf_y``
 
 .. note::
 

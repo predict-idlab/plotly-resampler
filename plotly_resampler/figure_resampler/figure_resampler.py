@@ -50,7 +50,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             verbose,
         )
 
-        # The figureAggregator needs a dash app
+        # The FigureResampler needs a dash app
         self._app: JupyterDash | Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
@@ -96,7 +96,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties.keys()  # There is a param for config
         # 1. Construct the Dash app layout
-        app = JupyterDash("local_app")  # TODO -> was jupyterdash
+        app = JupyterDash("local_app")
         app.layout = dash.html.Div(
             [
                 dash.dcc.Graph(

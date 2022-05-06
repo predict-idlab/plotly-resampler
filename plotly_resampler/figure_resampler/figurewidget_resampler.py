@@ -40,7 +40,7 @@ class FigureWidgetResampler(
 
     def __init__(
         self,
-        figure: go.FigureWidget,
+        figure: go.FigureWidget | go.Figure = go.Figure(),
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
