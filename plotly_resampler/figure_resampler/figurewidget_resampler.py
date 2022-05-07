@@ -205,7 +205,8 @@ class FigureWidgetResampler(
 
             with self.batch_update():
                 # First update the layout (first item of update_data)
-                self.layout.update(update_data[0])
+                if not force_update:
+                    self.layout.update(update_data[0])
 
                 # Also:  Remove the showspikes from the layout, otherwise the autorange
                 # will not work as intended (it will not be triggered again)
@@ -225,18 +226,36 @@ class FigureWidgetResampler(
     def reset_axes(self):
         """Reset the axes of the FigureWidgetResampler.
 
-        This is useful when adjusting the `hf_data` properties of the 
+        This is useful when adjusting the `hf_data` properties of the
         FigureWidgetResampler.
         """
-        # First, set all ranges to None
-        for axis_str in self._xaxis_list + self._yaxis_list:
-            if "range" in self.layout[axis_str]:
-                self.layout[axis_str]["range"] = None
-        # Update the figure data
         self._update_spike_ranges(
             self.layout, [False] * len(self._xaxis_list), force_update=True
         )
         # Reset the layout
         self.update_layout(
-            {axis: {"autorange": True} for axis in self._xaxis_list + self._yaxis_list}
+            {
+                axis: {"autorange": True, "range": None}
+                for axis in self._xaxis_list + self._yaxis_list
+            }
         )
+
+    def reload_data(self):
+        """Reload all the data of FigureWidgetResampler for the current range-view.
+
+        This is useful when adjusting the `hf_data` properties of the
+        FigureWidgetResampler.
+        """
+        # TODO
+        # First, set all ranges to None
+        # for axis_str in self._xaxis_list + self._yaxis_list:
+        #     if "range" in self.layout[axis_str]:
+        #         self.layout[axis_str]["range"] = None
+        # Update the figure data
+        self._update_x_ranges(
+            self.layout, [False] * len(self._xaxis_list), force_update=True
+        )
+        # Reset the layout
+        # self.update_layout(
+        #     {axis: {"autorange": True} for axis in self._xaxis_list + self._yaxis_list}
+        # )
