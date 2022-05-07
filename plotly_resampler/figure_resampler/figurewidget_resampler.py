@@ -227,7 +227,7 @@ class FigureWidgetResampler(
         """Reset the axes of the FigureWidgetResampler.
 
         This is useful when adjusting the `hf_data` properties of the
-        FigureWidgetResampler.
+        ``FigureWidgetResampler``.
         """
         self._update_spike_ranges(
             self.layout, [False] * len(self._xaxis_list), force_update=True
@@ -244,18 +244,14 @@ class FigureWidgetResampler(
         """Reload all the data of FigureWidgetResampler for the current range-view.
 
         This is useful when adjusting the `hf_data` properties of the
-        FigureWidgetResampler.
+        ``FigureWidgetResampler``.
         """
-        # TODO
-        # First, set all ranges to None
-        # for axis_str in self._xaxis_list + self._yaxis_list:
-        #     if "range" in self.layout[axis_str]:
-        #         self.layout[axis_str]["range"] = None
-        # Update the figure data
-        self._update_x_ranges(
+        self._update_spike_ranges(
             self.layout, [False] * len(self._xaxis_list), force_update=True
         )
-        # Reset the layout
-        # self.update_layout(
-        #     {axis: {"autorange": True} for axis in self._xaxis_list + self._yaxis_list}
-        # )
+        # Resample the data for the current range-view
+        self._update_x_ranges(
+            self.layout,
+            # Pass the current view to trigger a resample operation
+            *[self.layout[xaxis_str]["range"] for xaxis_str in self._xaxis_list],
+        )

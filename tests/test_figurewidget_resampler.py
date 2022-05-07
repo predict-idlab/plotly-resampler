@@ -530,6 +530,29 @@ def test_hf_data_property_reset_axes():
     assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] > -10
 
 
+def test_hf_data_property_reload_data():
+    fwr = FigureWidgetResampler(go.Figure(), default_n_shown_samples=2_000)
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+
+    fwr.layout.update(
+        {"xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-20, 3]}},
+        overwrite=False,
+    )
+
+    assert len(fwr.hf_data) == 1
+    assert len(fwr.hf_data[0]["x"]) == n
+    fwr.hf_data[0] = -2 * y
+
+    fwr.reload_data()
+    assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
+    assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
+
+
 def test_updates_two_traces():
     n = 1_000_000
     X = np.arange(n)
