@@ -517,7 +517,7 @@ def test_hf_data_property_reset_axes():
     fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
 
     fwr.layout.update(
-        {"xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-3, 3]}},
+        {"xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-20, 3]}},
         overwrite=False,
     )
 
@@ -527,6 +527,7 @@ def test_hf_data_property_reset_axes():
 
     fwr.reset_axes()
     assert fwr.data[0]['x'][-1] > 20_000
+    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] > -10
 
 
 def test_updates_two_traces():

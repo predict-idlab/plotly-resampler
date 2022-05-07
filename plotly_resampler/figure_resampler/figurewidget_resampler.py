@@ -234,7 +234,7 @@ class FigureWidgetResampler(
                 self.layout[axis_str]["range"] = None
         # Update the figure data
         self._update_spike_ranges(
-            self.layout, [False] * len(self._xaxis_list), override=True
+            self.layout, [False] * len(self._xaxis_list), force_update=True
         )
         # Reset the layout
         self.update_layout(
