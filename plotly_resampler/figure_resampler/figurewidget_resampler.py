@@ -73,7 +73,7 @@ class FigureWidgetResampler(
         # e.g., "xaxis", "xaxis2", "xaxis3", .... for _xaxis_list
         self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
         self._yaxis_list = self._re_matches(re.compile("yaxis\d*"), self._layout.keys())
-        # edge case: an empty `go.Figure()` does not yet contain xaxis keys
+        # edge case: an empty `go.Figure()` does not yet contain axes keys
         if not len(self._xaxis_list):
             self._xaxis_list = ["xaxis"]
             self._yaxis_list = ["yaxis"]
@@ -160,7 +160,7 @@ class FigureWidgetResampler(
             to true/false for the corresponding xaxis in ``self._xaxis_list``.
         force_update: bool
             Bool indicating whether the range updates need to take place. This is
-            especially useful when you have recently updated te figure it's data (with
+            especially useful when you have recently updated the figure its data (with
             the hf_data property) and want to perform an autoscale, independent from
             the current figure-layout.
         """
