@@ -69,11 +69,14 @@ class FigureWidgetResampler(
         # used for logging purposes to save a history of layout changes
         self._relayout_hist = []
 
-        # A list of al xaxis string names e.g., "xaxis", "xaxis2", "xaxis3", ....
+        # A list of al xaxis and yaxis string names
+        # e.g., "xaxis", "xaxis2", "xaxis3", .... for _xaxis_list
         self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
-        # edge case: an empty `go.Figure()` does not yet contain xaxis keys
+        self._yaxis_list = self._re_matches(re.compile("yaxis\d*"), self._layout.keys())
+        # edge case: an empty `go.Figure()` does not yet contain axes keys
         if not len(self._xaxis_list):
             self._xaxis_list = ["xaxis"]
+            self._yaxis_list = ["yaxis"]
 
         # Assign the the update-methods to the corresponding classes
         showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
@@ -143,7 +146,7 @@ class FigureWidgetResampler(
                     trace_idx = updated_trace.pop("index")
                     self.data[trace_idx].update(updated_trace)
 
-    def _update_spike_ranges(self, layout, *showspikes):
+    def _update_spike_ranges(self, layout, *showspikes, force_update=False):
         """Update the go.Figure based on the changed spike-ranges.
 
         Parameters
@@ -155,6 +158,11 @@ class FigureWidgetResampler(
         *showspikes: iterable
             A iterable where each item is a bool, indicating  whether showspikes is set
             to true/false for the corresponding xaxis in ``self._xaxis_list``.
+        force_update: bool
+            Bool indicating whether the range updates need to take place. This is
+            especially useful when you have recently updated the figure its data (with
+            the hf_data property) and want to perform an autoscale, independent from
+            the current figure-layout.
         """
         relayout_dict = {}  # variable in which we aim to reconstruct the relayout
         # serialize the layout in a new dict object
@@ -168,11 +176,15 @@ class FigureWidgetResampler(
 
         for xaxis_str, showspike in zip(self._xaxis_list, showspikes):
             if (
+                force_update
+                or
                 # autorange key must be set to True
-                layout[xaxis_str].get("autorange", False)
-                # we only perform updates for traces which have 'range' property,
-                # as we do need to reconstruct the update-data for these traces
-                and self._prev_layout[xaxis_str].get("range", None) is not None
+                (
+                    layout[xaxis_str].get("autorange", False)
+                    # we only perform updates for traces which have 'range' property,
+                    # as we do need to reconstruct the update-data for these traces
+                    and self._prev_layout[xaxis_str].get("range", None) is not None
+                )
             ):
                 relayout_dict[f"{xaxis_str}.autorange"] = True
                 relayout_dict[f"{xaxis_str}.showspikes"] = showspike
@@ -193,7 +205,8 @@ class FigureWidgetResampler(
 
             with self.batch_update():
                 # First update the layout (first item of update_data)
-                self.layout.update(update_data[0])
+                if not force_update:
+                    self.layout.update(update_data[0])
 
                 # Also:  Remove the showspikes from the layout, otherwise the autorange
                 # will not work as intended (it will not be triggered again)
@@ -209,3 +222,36 @@ class FigureWidgetResampler(
         elif self._print_verbose:
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
+
+    def reset_axes(self):
+        """Reset the axes of the FigureWidgetResampler.
+
+        This is useful when adjusting the `hf_data` properties of the
+        ``FigureWidgetResampler``.
+        """
+        self._update_spike_ranges(
+            self.layout, [False] * len(self._xaxis_list), force_update=True
+        )
+        # Reset the layout
+        self.update_layout(
+            {
+                axis: {"autorange": True, "range": None}
+                for axis in self._xaxis_list + self._yaxis_list
+            }
+        )
+
+    def reload_data(self):
+        """Reload all the data of FigureWidgetResampler for the current range-view.
+
+        This is useful when adjusting the `hf_data` properties of the
+        ``FigureWidgetResampler``.
+        """
+        self._update_spike_ranges(
+            self.layout, [False] * len(self._xaxis_list), force_update=True
+        )
+        # Resample the data for the current range-view
+        self._update_x_ranges(
+            self.layout,
+            # Pass the current view to trigger a resample operation
+            *[self.layout[xaxis_str]["range"] for xaxis_str in self._xaxis_list],
+        )

@@ -76,23 +76,26 @@ The gif below demonstrates the example usage of of :class:`FigureWidgetResampler
 Important considerations & tips 🚨
 ----------------------------------
 
-* When running the code on a server, you should forward the port of the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` method to your local machine.
+* When running the code on a server, you should forward the port of the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` method to your local machine. :raw-html:`<br>`
+  **Note** that you can add dynamic aggregation to plotly figures with the  :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>` wrapper without needing to forward a port!
 * In general, when using downsampling one should be aware of (possible) `aliasing <https://en.wikipedia.org/wiki/Aliasing>`_ effects. :raw-html:`<br>`
   The :raw-html:`<b><a style="color:orange">[R]</a></b>` in the legend indicates when the corresponding trace is resampled (and thus possibly distorted). :raw-html:`<br>`
   The :raw-html:`<a style="color:orange"><b>~</b> <i>delta</i></a>` suffix in the legend represents the mean index delta for consecutive aggregated data points.
+* The plotly **autoscale** event (triggered by the autoscale button or a double-click within the graph), **does not reset the axes but autoscales the current graph-view of plotly-resampler figures**. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the `reset_axis` button. If you want to give feedback and discuss this further with the developers, see this issue `#49 <https://github.com/predict-idlab/plotly-resampler/issues/49>`_.
 
 
 Dynamically adjusting the scatter data 🔩
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The raw high-frequency trace data can be adjusted using the :func:`hf_data <plotly_resampler.figure_resampler.FigureResampler.hf_data>` property of the FigureResampler instance.
+The raw high-frequency trace data can be adjusted using the :func:`hf_data <plotly_resampler.figure_resampler.FigureResampler.hf_data>` property of the plotly-resampler Figure instance.
 
 Working example ⬇️:
 
 .. code:: py
 
     import plotly.graph_objects as go; import numpy as np
-    from plotly_resampler import FigureResampler
+    from plotly_resampler import FigureResampler 
+    # Note: a FigureWidgetResampler can be used here as well
 
     # Construct the hf-data
     x = np.arange(1_000_000)
@@ -110,6 +113,14 @@ Working example ⬇️:
 
     `hf_data` only withholds high-frequency traces (i.e., traces that are aggregated)
 
+.. tip::
+
+    The ``FigureWidgetResampler`` graph will not be automatically redrawn after 
+    adjusting the fig its `hf_data` property,. The redrawning can be triggered by 
+    manually calling either:
+
+    * :func:`FigureWidgetResampler.reload_data <plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data>`, which keeps the current-graph range.
+    * :func:`FigureWidgetResampler.reset_axes <plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes>`, which performs a graph update.
 
 Plotly-resampler & not high-frequency traces 🔍
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
