@@ -76,10 +76,12 @@ The gif below demonstrates the example usage of of :class:`FigureWidgetResampler
 Important considerations & tips 🚨
 ----------------------------------
 
-* When running the code on a server, you should forward the port of the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` method to your local machine.
+* When running the code on a server, you should forward the port of the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` method to your local machine. :raw-html:`<br>`
+  **Note** that you can add dynamic aggregation to plotly figures with the  :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>` wrapper without needing to forward a port!
 * In general, when using downsampling one should be aware of (possible) `aliasing <https://en.wikipedia.org/wiki/Aliasing>`_ effects. :raw-html:`<br>`
   The :raw-html:`<b><a style="color:orange">[R]</a></b>` in the legend indicates when the corresponding trace is resampled (and thus possibly distorted). :raw-html:`<br>`
   The :raw-html:`<a style="color:orange"><b>~</b> <i>delta</i></a>` suffix in the legend represents the mean index delta for consecutive aggregated data points.
+* The plotly **autoscale** event (triggered by the autoscale button or a double-click within the graph), **does not reset the axes but autoscales the current graph-view of plotly-resampler figures**. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the `reset_axis` button. If you want to give feedback and discuss this further with the developers, see this issue `#49 <https://github.com/predict-idlab/plotly-resampler/issues/49>`_.
 
 
 Dynamically adjusting the scatter data 🔩
