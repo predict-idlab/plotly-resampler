@@ -85,14 +85,15 @@ Important considerations & tips 🚨
 Dynamically adjusting the scatter data 🔩
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-The raw high-frequency trace data can be adjusted using the :func:`hf_data <plotly_resampler.figure_resampler.FigureResampler.hf_data>` property of the FigureResampler instance.
+The raw high-frequency trace data can be adjusted using the :func:`hf_data <plotly_resampler.figure_resampler.FigureResampler.hf_data>` property of the plotly-resampler Figure instance.
 
 Working example ⬇️:
 
 .. code:: py
 
     import plotly.graph_objects as go; import numpy as np
-    from plotly_resampler import FigureResampler
+    from plotly_resampler import FigureResampler 
+    # Note: a FigureWidgetResampler can be used here as well
 
     # Construct the hf-data
     x = np.arange(1_000_000)
@@ -110,6 +111,14 @@ Working example ⬇️:
 
     `hf_data` only withholds high-frequency traces (i.e., traces that are aggregated)
 
+.. tip::
+
+    The ``FigureWidgetResampler`` graph will not be automatically redrawn after 
+    adjusting the fig its `hf_data` property,. The redrawning can be triggered by 
+    manually calling either:
+
+    * :func:`FigureWidgetResampler.reload_data <plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data>`, which keeps the current-graph range.
+    * :func:`FigureWidgetResampler.reset_axes <plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes>`, which performs a graph update.
 
 Plotly-resampler & not high-frequency traces 🔍
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
