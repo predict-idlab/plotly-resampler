@@ -279,17 +279,20 @@ But, (obviously) only the scatter traces will be resampled.</p>
 <section id="important-considerations-tips">
 <h2>Important considerations &amp; tips 🚨<a class="headerlink" href="#important-considerations-tips" title="Permalink to this headline">#</a></h2>
 <ul class="simple">
-<li><p>When running the code on a server, you should forward the port of the <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">FigureResampler.show_dash</span></code></a> method to your local machine.</p></li>
+<li><p>When running the code on a server, you should forward the port of the <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">FigureResampler.show_dash</span></code></a> method to your local machine. <span class="raw-html"><br></span>
+<strong>Note</strong> that you can add dynamic aggregation to plotly figures with the  <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler" title="plotly_resampler.figure_resampler.FigureWidgetResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code></a> wrapper without needing to forward a port!</p></li>
 <li><p>In general, when using downsampling one should be aware of (possible) <a class="reference external" href="https://en.wikipedia.org/wiki/Aliasing">aliasing</a> effects. <span class="raw-html"><br></span>
 The <span class="raw-html"><b><a style="color:orange">[R]</a></b></span> in the legend indicates when the corresponding trace is resampled (and thus possibly distorted). <span class="raw-html"><br></span>
 The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></span> suffix in the legend represents the mean index delta for consecutive aggregated data points.</p></li>
+<li><p>The plotly <strong>autoscale</strong> event (triggered by the autoscale button or a double-click within the graph), <strong>does not reset the axes but autoscales the current graph-view of plotly-resampler figures</strong>. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the <cite>reset_axis</cite> button. If you want to give feedback and discuss this further with the developers, see this issue <a class="reference external" href="https://github.com/predict-idlab/plotly-resampler/issues/49">#49</a>.</p></li>
 </ul>
 <section id="dynamically-adjusting-the-scatter-data">
 <h3>Dynamically adjusting the scatter data 🔩<a class="headerlink" href="#dynamically-adjusting-the-scatter-data" title="Permalink to this headline">#</a></h3>
-<p>The raw high-frequency trace data can be adjusted using the <code class="xref py py-func docutils literal notranslate"><span class="pre">hf_data</span></code> property of the FigureResampler instance.</p>
+<p>The raw high-frequency trace data can be adjusted using the <code class="xref py py-func docutils literal notranslate"><span class="pre">hf_data</span></code> property of the plotly-resampler Figure instance.</p>
 <p>Working example ⬇️:</p>
 <div class="highlight-py notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span><span class="p">;</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
+<span class="c1"># Note: a FigureWidgetResampler can be used here as well</span>
 
 <span class="c1"># Construct the hf-data</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>
@@ -307,6 +310,16 @@ The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></sp
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p><cite>hf_data</cite> only withholds high-frequency traces (i.e., traces that are aggregated)</p>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> graph will not be automatically redrawn after
+adjusting the fig its <cite>hf_data</cite> property,. The redrawning can be triggered by
+manually calling either:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data" title="plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">FigureWidgetResampler.reload_data</span></code></a>, which keeps the current-graph range.</p></li>
+<li><p><a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes" title="plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes"><code class="xref py py-func docutils literal notranslate"><span class="pre">FigureWidgetResampler.reset_axes</span></code></a>, which performs a graph update.</p></li>
+</ul>
 </div>
 </section>
 <section id="plotly-resampler-not-high-frequency-traces">
