@@ -793,6 +793,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     "downsampler": d,
                     "text": hf_text,
                     "hovertext": hf_hovertext,
+<<<<<<< HEAD
+=======
+                    # marker: { color: [], size: [] }
+>>>>>>> :sheep: adding hf_color and hf_markersize argument
                     "marker_size": hf_marker_size,
                     "marker_color": hf_marker_color,
                 }
