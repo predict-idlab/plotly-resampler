@@ -307,12 +307,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     .loc[s_res.index]
                 )
 
-
-            # print('setting marker size')
-            # if isinstance(trace, dict) and "marker" not in trace:
-            # trace["marker"] = {}
-            # trace["marker"]["size"] = (4 + np.abs(s_res.values) * 10).astype(int)
-            # trace["marker"]["color"] = np.abs(s_res.values)
             return trace
         else:
             self._print("hf_data not found")
