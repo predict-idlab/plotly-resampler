@@ -596,6 +596,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
             trace its ``text`` or ``hovertext`` argument.
+        TODO Docs
 
         **trace_kwargs: dict
             Additional trace related keyword arguments.
