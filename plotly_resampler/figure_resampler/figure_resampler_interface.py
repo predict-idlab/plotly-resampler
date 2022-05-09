@@ -270,15 +270,28 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             hovertext = hf_trace_data.get("hovertext")
             if isinstance(hovertext, pd.Series):
                 # TODO -> this can be optimized
-                trace["hovertext"] = pd.merge_asof(
-                    s_res,
-                    hovertext,
-                    left_index=True,
-                    right_index=True,
-                    direction="nearest",
-                )[hovertext.name].values
+                # TODO -> meer metadata geven aan de aggregators
+                trace["hovertext"] = hovertext.loc[s_res.index]
+                # np.abs(s_res.values) * 10
             else:
                 trace["hovertext"] = hovertext
+
+            if "marker" not in trace:
+                trace["marker"] = {}
+
+            marker_size = hf_trace_data.get("marker_size")
+            if isinstance(marker_size, pd.Series):
+                trace["marker"]["size"] = marker_size.loc[s_res.index]
+
+            marker_color = hf_trace_data.get("marker_color")
+            if isinstance(marker_color, pd.Series):
+                trace["marker"]["color"] = marker_color.loc[s_res.index]
+
+            # print('setting marker size')
+            # if isinstance(trace, dict) and "marker" not in trace:
+                # trace["marker"] = {}
+            # trace["marker"]["size"] = (4 + np.abs(s_res.values) * 10).astype(int)
+            # trace["marker"]["color"] = np.abs(s_res.values)
             return trace
         else:
             self._print("hf_data not found")
@@ -501,6 +514,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_x: Iterable = None,
         hf_y: Iterable = None,
         hf_hovertext: Union[str, Iterable] = None,
+        hf_marker_size: Union[str, Iterable] = None,
+        hf_marker_color: Union[str, Iterable] = None,
         **trace_kwargs,
     ):
         """Add a trace to the figure.
@@ -541,6 +556,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
             trace its ``text`` or ``hovertext`` argument.
+        TODO Docs
+
         **trace_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
@@ -601,23 +618,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         uuid = str(uuid4())
         trace.uid = uuid
 
-        hf_x = (
-            trace["x"]
-            if hasattr(trace, "x") and hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
-        )
-        if isinstance(hf_x, tuple):
-            hf_x = list(hf_x)
+        hf_x = trace["x"] if hasattr(trace, "x") and hf_x is None else hf_x
+        # if isinstance(hf_x, tuple):
+        # hf_x = list(hf_x)
+        hf_x = np.asarray(hf_x)
 
-        hf_y = (
-            trace["y"]
-            if hasattr(trace, "y") and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, pd.Series)
-            else hf_y
-        )
+        hf_y = trace["y"] if hasattr(trace, "y") and hf_y is None else hf_y
         hf_y = np.asarray(hf_y)
 
         # Note: "hovertext" takes precedence over "text"
@@ -629,6 +635,22 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else trace["text"]
             if hasattr(trace, "text")
             else None
+        )
+
+        hf_marker_size = (
+            trace["marker"]["size"]
+            if hf_marker_size is None
+            and hasattr(trace, "marker")
+            and "size" in trace["marker"]
+            else hf_marker_size
+        )
+
+        hf_marker_color = (
+            trace["marker"]["color"]
+            if hf_marker_color is None
+            and hasattr(trace, "marker")
+            and "color" in trace["marker"]
+            else hf_marker_color
         )
 
         high_frequency_traces = ["scatter", "scattergl"]
@@ -658,6 +680,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # Note: this also converts hf_hovertext to a np.ndarray
             if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
                 hf_hovertext = np.asarray(hf_hovertext)
+            if isinstance(hf_marker_size, (list, np.ndarray, pd.Series)):
+                hf_marker_size = np.asarray(hf_marker_size)
+            if isinstance(hf_marker_color, (list, np.ndarray, pd.Series)):
+                hf_marker_color = np.asarray(hf_marker_color)
 
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN data points & might distort
@@ -688,6 +714,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if isinstance(hf_hovertext, np.ndarray):
                 hf_hovertext = pd.Series(
                     data=hf_hovertext, index=hf_x, copy=False, name="hovertext"
+                )
+            if isinstance(hf_marker_size, np.ndarray):
+                hf_marker_size = pd.Series(
+                    data=hf_marker_size, index=hf_x, copy=False, name="marker_size"
+                )
+            if isinstance(hf_marker_color, np.ndarray):
+                hf_marker_color = pd.Series(
+                    data=hf_marker_color, index=hf_x, copy=False, name="marker_color"
                 )
 
             n_samples = len(hf_x)
@@ -725,6 +759,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     "axis_type": axis_type,
                     "downsampler": d,
                     "hovertext": hf_hovertext,
+                    # marker: { color: [], size: [] }
+                    "marker_size": hf_marker_size,
+                    "marker_color": hf_marker_color,
                 }
 
                 # Before we update the trace, we create a new pointer to that trace in
@@ -771,6 +808,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hasattr(trace, "text") and hasattr(trace, "hovertext"):
                 trace["text"] = None
                 trace["hovertext"] = hf_hovertext
+
+            if hasattr(trace, "marker"):
+                if hasattr(trace["marker"], "color"):
+                    trace["marker"]["color"] = hf_marker_color
+                if hasattr(trace["marker"], "size"):
+                    trace["marker"]["size"] = hf_marker_size
 
             return super(self._figure_class, self).add_trace(
                 trace=trace, **trace_kwargs
@@ -901,7 +944,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list.append(extra_layout_updates)
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
+        relevant_keys = [
+            "x",
+            "y",
+            "text",
+            "hovertext",
+            "name",
+            "marker",
+            "mode",
+        ]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
