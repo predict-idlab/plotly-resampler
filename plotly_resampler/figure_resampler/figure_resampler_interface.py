@@ -610,10 +610,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         hf_y = (
             trace["y"] if hasattr(trace, "y") and hf_y is None 
-            else hf_y.values if isinstance(hf_y, (pd.Series)) 
-            else hf_y if isinstance(hf_y, pd.Index)
-            else np.asarray(hf_y)
+            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index))
+            else hf_y
         )
+        hf_y = np.asarray(hf_y)
 
         # Note: "hovertext" takes precedence over "text"
         hf_hovertext = (

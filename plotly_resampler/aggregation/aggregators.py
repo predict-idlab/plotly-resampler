@@ -44,7 +44,10 @@ class LTTB(AbstractSeriesAggregator):
 
     """
 
-    def __init__(self, interleave_gaps: bool = True, ):
+    def __init__(
+        self,
+        interleave_gaps: bool = True,
+    ):
         """
         Parameters
         ----------
@@ -56,7 +59,7 @@ class LTTB(AbstractSeriesAggregator):
         super().__init__(
             interleave_gaps,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
-                             + ["category", "bool"],
+            + ["category", "bool"],
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
@@ -66,11 +69,11 @@ class LTTB(AbstractSeriesAggregator):
         s_i = s.index.values
 
         if s_i.dtype.type == np.datetime64:
-            # lttbc does not support this datatype -> convert to int 
+            # lttbc does not support this datatype -> convert to int
             # (where the time is represented in ns)
             s_i = s_i.astype(int)
             idx, data = lttbc.downsample(s_i, s_v, n_out)
-            idx = pd.to_datetime(idx, unit='ns', utc=True).tz_convert(s.index.tz)
+            idx = pd.to_datetime(idx, unit="ns", utc=True).tz_convert(s.index.tz)
         else:
             idx, data = lttbc.downsample(s_i, s_v, n_out)
             idx = idx.astype(s_i.dtype)
@@ -129,12 +132,14 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
         # add the corresponding offset
         argmin = (
             s[: block_size * offset.shape[0]]
-            .values.reshape(-1, block_size).argmin(axis=1)
+            .values.reshape(-1, block_size)
+            .argmin(axis=1)
             + offset
         )
         argmax = (
-            s[argmax_offset: block_size * offset.shape[0] + argmax_offset]
-            .values.reshape(-1, block_size).argmax(axis=1)
+            s[argmax_offset : block_size * offset.shape[0] + argmax_offset]
+            .values.reshape(-1, block_size)
+            .argmax(axis=1)
             + offset
             + argmax_offset
         )
@@ -150,7 +155,7 @@ class MinMaxAggregator(AbstractSeriesAggregator):
     .. note::
         This method is rather efficient when scaling to large data sizes and can be used
         as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the 
+        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the
         :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>`.
 
     """
@@ -173,20 +178,20 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         block_size = math.ceil(s.shape[0] / n_out * 2)
 
         # Calculate the offset range which will be added to the argmin and argmax pos
-        offset = np.arange(
-            0, stop=s.shape[0] - block_size, step=block_size
-        )
+        offset = np.arange(0, stop=s.shape[0] - block_size, step=block_size)
 
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
             s[: block_size * offset.shape[0]]
-            .values.reshape(-1, block_size).argmin(axis=1)
+            .values.reshape(-1, block_size)
+            .argmin(axis=1)
             + offset
         )
         argmax = (
             s[: block_size * offset.shape[0]]
-            .values.reshape(-1, block_size).argmax(axis=1)
+            .values.reshape(-1, block_size)
+            .argmax(axis=1)
             + offset
         )
         # Sort the argmin & argmax (where we append the first and last index item)
@@ -209,9 +214,13 @@ class EfficientLTTB(AbstractSeriesAggregator):
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
         """
-        self.lttb = LTTB(interleave_gaps=interleave_gaps)
-        self.minmax = MinMaxOverlapAggregator(interleave_gaps=interleave_gaps)
-        super().__init__(interleave_gaps, dtype_regex_list=None)
+        self.lttb = LTTB(interleave_gaps=False)
+        self.minmax = MinMaxOverlapAggregator(interleave_gaps=False)
+        super().__init__(
+            interleave_gaps,
+            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
+            + ["category", "bool"],
+        )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         if s.shape[0] > n_out * 1_000:
@@ -249,7 +258,7 @@ class FuncAggregator(AbstractSeriesAggregator):
     """
 
     def __init__(
-            self, aggregation_func, interleave_gaps: bool = True, dtype_regex_list=None
+        self, aggregation_func, interleave_gaps: bool = True, dtype_regex_list=None
     ):
         """
         Parameters
