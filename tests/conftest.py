@@ -59,7 +59,7 @@ def cat_series() -> pd.Series:
 
 @pytest.fixture
 def bool_series() -> pd.Series:
-    bool_list = [True, False, True, True, True, True]
+    bool_list = [True, False, True, True, True, True] + [True] * 50
     return pd.Series(bool_list * (_nb_samples // len(bool_list)), dtype="bool")
 
 

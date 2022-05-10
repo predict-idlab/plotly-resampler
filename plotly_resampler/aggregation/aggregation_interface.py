@@ -68,9 +68,11 @@ class AbstractSeriesAggregator(ABC):
             sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
 
             # calculate the min and max and calculate the median on that
-            med_diff = np.median(np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))))
+            med_diff = np.quantile(
+                np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))), q=0.55
+            )
         else:
-            med_diff = np.median(s_idx_diff)
+            med_diff = np.quantile(s_idx_diff, q=0.55)
 
         return med_diff, s_idx_diff
 
