@@ -56,7 +56,7 @@ class AbstractSeriesAggregator(ABC):
         # ----- divide and conquer heuristic to calculate the median diff ------
         # remark: thanks to the prepend -> s_idx_diff.shape === len(s)
         siv = s.index.values
-        s_idx_diff = np.diff(s.index.values, prepend=np.asarray([0], dtype=siv.dtype))
+        s_idx_diff = np.diff(s.index.values, prepend=siv[0])
 
         # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
