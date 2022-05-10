@@ -194,6 +194,19 @@ class MinMaxAggregator(AbstractSeriesAggregator):
             .argmax(axis=1)
             + offset
         )
+
+        # Note: the implementation below flips the array to search from 
+        # right-to left (as min or max will always usee the first same minimum item, 
+        # i.e. the most left item)
+        # This however creates a large computational overhead -> we do not use this 
+        # implementation and suggest using the minmaxaggregator.
+        # argmax = (
+        #     (block_size - 1)
+        #     - np.fliplr(
+        #         s[: block_size * offset.shape[0]].values.reshape(-1, block_size)
+        #     ).argmax(axis=1)
+        # ) + offset
+
         # Sort the argmin & argmax (where we append the first and last index item)
         # and then slice the original series on these indexes.
         return s.iloc[np.unique(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
