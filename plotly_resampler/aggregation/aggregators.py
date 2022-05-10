@@ -216,7 +216,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         if s.shape[0] > n_out * 1_000:
             s = self.minmax._aggregate(s, n_out * 50)
-        return self.lttb.aggregate(s, n_out)
+        return self.lttb._aggregate(s, n_out)
 
 
 class EveryNthPoint(AbstractSeriesAggregator):
