@@ -54,7 +54,9 @@ class AbstractSeriesAggregator(ABC):
     @staticmethod
     def _calc_med_diff(s: pd.Series) -> Tuple[float, np.ndarray]:
         # ----- divide and conquer heuristic to calculate the median diff ------
-        s_idx_diff = np.diff(s.index.values)  # remark: s_idx_diff.shape === len(s) -1
+        # remark: thanks to the prepend -> s_idx_diff.shape === len(s)
+        siv = s.index.values
+        s_idx_diff = np.diff(s.index.values, prepend=siv[0])
 
         # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
@@ -66,9 +68,11 @@ class AbstractSeriesAggregator(ABC):
             sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
 
             # calculate the min and max and calculate the median on that
-            med_diff = np.median(np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))))
+            med_diff = np.quantile(
+                np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))), q=0.55
+            )
         else:
-            med_diff = np.median(s_idx_diff)
+            med_diff = np.quantile(s_idx_diff, q=0.55)
 
         return med_diff, s_idx_diff
 
@@ -77,17 +81,17 @@ class AbstractSeriesAggregator(ABC):
         med_diff, s_idx_diff = self._calc_med_diff(s)
         # add None data-points in-between the gaps
         if med_diff is not None:
-            df_gap_idx = s.index.values[1:][s_idx_diff > 3 * med_diff]
+            df_gap_idx = s.index.values[s_idx_diff > 3 * med_diff]
             if len(df_gap_idx):
                 df_res_gap = pd.Series(
                     index=df_gap_idx, data=None, name=s.name, copy=False
                 )
 
                 if isinstance(df_res_gap.index, pd.DatetimeIndex):
-                    # Due to the s.index`.values` cast, df_res_gap has lost 
+                    # Due to the s.index`.values` cast, df_res_gap has lost
                     # time-information, so now we restore it
-                    df_res_gap.index = (
-                        df_res_gap.index.tz_localize('UTC').tz_convert(s.index.tz)
+                    df_res_gap.index = df_res_gap.index.tz_localize("UTC").tz_convert(
+                        s.index.tz
                     )
 
                 # Note:
@@ -104,8 +108,7 @@ class AbstractSeriesAggregator(ABC):
         med_diff, s_idx_diff = self._calc_med_diff(s)
         if med_diff is not None:
             # Replace data-points with None where the gaps occur
-            s.iloc[1:].loc[s_idx_diff > 3 * med_diff] = None
-
+            s.loc[s_idx_diff > 3 * med_diff] = None
         return s
 
     def aggregate(self, s: pd.Series, n_out: int) -> pd.Series:

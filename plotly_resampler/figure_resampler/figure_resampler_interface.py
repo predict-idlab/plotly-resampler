@@ -602,20 +602,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         trace.uid = uuid
 
         hf_x = (
-            trace["x"]
-            if hasattr(trace, "x") and hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
+            trace["x"] if hasattr(trace, "x") and hf_x is None 
+            else hf_x.values if isinstance(hf_x, pd.Series)
+            else hf_x if isinstance(hf_x, pd.Index)
+            else np.asarray(hf_x)
         )
-        if isinstance(hf_x, tuple):
-            hf_x = list(hf_x)
 
         hf_y = (
-            trace["y"]
-            if hasattr(trace, "y") and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, pd.Series)
+            trace["y"] if hasattr(trace, "y") and hf_y is None 
+            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index))
             else hf_y
         )
         hf_y = np.asarray(hf_y)
