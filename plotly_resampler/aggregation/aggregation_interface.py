@@ -61,18 +61,16 @@ class AbstractSeriesAggregator(ABC):
         # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
         n_blcks = 128
-        if s.shape[0] > n_blcks:
+        if s.shape[0] > 10 * n_blcks:
             blck_size = s_idx_diff.shape[0] // n_blcks
 
             # convert the index series index diff into a reshaped view (i.e., sid_v)
             sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
 
             # calculate the min and max and calculate the median on that
-            med_diff = np.quantile(
-                np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))), q=0.55
-            )
+            med_diff = np.median(np.mean(sid_v, axis=0))
         else:
-            med_diff = np.quantile(s_idx_diff, q=0.55)
+            med_diff = np.median(s_idx_diff)
 
         return med_diff, s_idx_diff
 
