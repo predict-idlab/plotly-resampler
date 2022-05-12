@@ -93,6 +93,40 @@ def test_every_nth_point_empty_series():
     assert out.equals(empty_series)
 
 
+# ---------------- EveryNthPoint ----------- test nan_position
+def test_every_nth_point_nan_position(float_series):
+    fs = float_series.copy()
+    fs[100:200] = None
+    fs = fs.dropna()
+
+    # BEGIN
+    nan_idx = fs.index[
+        EveryNthPoint(nan_position="begin")._replace_gap_end_none(fs.copy()).isna()
+    ].values
+    assert len(nan_idx) == 1
+    assert nan_idx[0] == 99
+
+    # END
+    nan_idx = fs.index[
+        EveryNthPoint(nan_position="end")._replace_gap_end_none(fs.copy()).isna()
+    ].values
+    assert len(nan_idx) == 1
+    assert nan_idx[0] == 200
+
+    # BOTH
+    nan_idx = fs.index[
+        EveryNthPoint(nan_position="both")._replace_gap_end_none(fs.copy()).isna()
+    ].values
+    assert len(nan_idx) == 2
+    assert nan_idx[0] == 99
+    assert nan_idx[1] == 200
+
+    # DEFAULT argument -> end
+    nan_idx = fs.index[EveryNthPoint()._replace_gap_end_none(fs.copy()).isna()].values
+    assert len(nan_idx) == 1
+    assert nan_idx[0] == 200
+
+
 # --------------------------------- MinMAxOverlap ------------------------------------
 def test_mmo_float_time_data(float_series):
     float_series.index = pd.date_range(
