@@ -342,7 +342,7 @@ class FuncAggregator(AbstractSeriesAggregator):
         ----------
         aggregation_func: Callable
             The aggregation function which will be applied on each pin.
-         interleave_gaps: bool, optional
+        interleave_gaps: bool, optional
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
