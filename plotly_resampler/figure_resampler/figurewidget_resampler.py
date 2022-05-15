@@ -172,7 +172,7 @@ class FigureWidgetResampler(
         }
 
         if self._prev_layout is None:
-            return
+            self._prev_layout = layout
 
         for xaxis_str, showspike in zip(self._xaxis_list, showspikes):
             if (
