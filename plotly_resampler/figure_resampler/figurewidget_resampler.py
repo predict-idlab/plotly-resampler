@@ -230,7 +230,7 @@ class FigureWidgetResampler(
         ``FigureWidgetResampler``.
         """
         self._update_spike_ranges(
-            self.layout, [False] * len(self._xaxis_list), force_update=True
+            self.layout, *[False] * len(self._xaxis_list), force_update=True
         )
         # Reset the layout
         self.update_layout(
@@ -247,7 +247,7 @@ class FigureWidgetResampler(
         ``FigureWidgetResampler``.
         """
         self._update_spike_ranges(
-            self.layout, [False] * len(self._xaxis_list), force_update=True
+            self.layout, *[False] * len(self._xaxis_list), force_update=True
         )
         # Resample the data for the current range-view
         self._update_x_ranges(

@@ -496,15 +496,18 @@ def test_check_update_figure_dict():
 
 
 def test_hf_data_property():
-    fr = FigureWidgetResampler(go.Figure(), default_n_shown_samples=2_000)
+    fwr = FigureWidgetResampler(go.Figure(), default_n_shown_samples=2_000)
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
-    assert len(fr.hf_data) == 0
-    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
-    assert len(fr.hf_data) == 1
-    assert len(fr.hf_data[0]["x"]) == n
-    fr.hf_data[0] = -2 * y
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    assert len(fwr.hf_data) == 1
+    assert len(fwr.hf_data[0]["x"]) == n
+    fwr.hf_data[0]["x"] = x
+    fwr.hf_data[0]["y"] = -2 * y
+    assert np.all(fwr.hf_data[0]["x"] == x)
+    assert np.all(fwr.hf_data[0]["y"] == y * -2)
 
 
 def test_hf_data_property_reset_axes():
@@ -523,11 +526,15 @@ def test_hf_data_property_reset_axes():
 
     assert len(fwr.hf_data) == 1
     assert len(fwr.hf_data[0]["x"]) == n
-    fwr.hf_data[0] = -2 * y
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reset_axes()
-    assert fwr.data[0]['x'][-1] > 20_000
-    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] > -10
+    assert (fwr.data[0]['x'][0] <= 100) & (fwr.data[0]['x'][-1] >= 99_900)
+    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
+    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] < - 100
 
 
 def test_hf_data_property_reload_data():
@@ -546,11 +553,89 @@ def test_hf_data_property_reload_data():
 
     assert len(fwr.hf_data) == 1
     assert len(fwr.hf_data[0]["x"]) == n
-    fwr.hf_data[0] = -2 * y
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reload_data()
     assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
+    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
     assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
+
+
+def test_hf_data_property_subplots_reset_axes():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=1, col=1)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-20, 3]},
+            "xaxis2": {"range": [40_000, 60_000]}, "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+
+    assert len(fwr.hf_data) == 2
+    assert len(fwr.hf_data[0]["x"]) == n
+    assert len(fwr.hf_data[1]["x"]) == n
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+    fwr.hf_data[1]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+
+    fwr.reset_axes()
+    assert (fwr.data[0]['x'][0] <= 100) & (fwr.data[0]['x'][-1] >= 99_900)
+    assert (fwr.data[1]['x'][0] <= 100) & (fwr.data[1]['x'][-1] >= 99_900)
+    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
+    assert np.all(fwr.data[1]['y'] == new_y[fwr.data[1]["x"]])
+    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] < - 100
+    assert fwr.layout['yaxis2'].range is None or fwr.layout['yaxis2'].range[0] < - 100
+
+
+def test_hf_data_property_subplots_reload_data():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=1, col=1)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-20, 3]},
+            "xaxis2": {"range": [40_000, 60_000]}, "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+
+    assert len(fwr.hf_data) == 2
+    assert len(fwr.hf_data[0]["x"]) == n
+    assert len(fwr.hf_data[1]["x"]) == n
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+    fwr.hf_data[1]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+
+    fwr.reload_data()
+    assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
+    assert (fwr.data[1]['x'][0] >= 40_000) & (fwr.data[1]['x'][-1] <= 60_000)
+    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
+    assert np.all(fwr.data[1]['y'] == new_y[fwr.data[1]["x"]])
+    assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
+    assert (fwr.layout['yaxis2'].range[0] == -10) & (fwr.layout['yaxis2'].range[-1] == 3)
 
 
 def test_updates_two_traces():
