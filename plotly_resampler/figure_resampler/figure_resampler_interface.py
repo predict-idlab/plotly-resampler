@@ -530,7 +530,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         limit_to_view: boolean, optional
             If set to True the trace's datapoints will be cut to the corresponding
             front-end view, even if the total number of samples is lower than
-            ``max_n_samples``, By default False.
+            ``max_n_samples``, By default False.\n
+            Remark that setting this parameter to True ensures that low frequency traces
+            are added to the ``hf_data`` property.
         hf_x: Iterable, optional
             The original high frequency series positions, can be either a time-series or
             an increasing, numerical index. If set, this has priority over the trace its
@@ -873,14 +875,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             elif len(autorange_matches) and not len(spike_matches):
                 # PreventUpdate returns a 204 status code response on the
                 # relayout post request
-                raise dash.exceptions.PreventUpdate()
+                return dash.no_update
 
         # If we do not have any traces to be updated, we will return an empty
         # request response
         if len(updated_trace_indices) == 0:
             # PreventUpdate returns a 204 status-code response on the relayout post
             # request
-            raise dash.exceptions.PreventUpdate()
+            return dash.no_update
 
         # -------------------- construct callback data --------------------------
         layout_traces_list: List[dict] = []  # the data

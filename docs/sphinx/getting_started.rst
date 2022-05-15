@@ -111,7 +111,12 @@ Working example ⬇️:
 
 .. Note::
 
-    `hf_data` only withholds high-frequency traces (i.e., traces that are aggregated)
+    `hf_data` only withholds high-frequency traces (i.e., traces that are aggregated).
+    To add non high-frequency traces (i.e., traces with fewer data points than
+    *max_n_samples*), you need to set the ``limit_to_view`` argument to *True* when adding 
+    the corresponding trace with the  :func:`add_trace <plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace>` function.
+
+
 
 .. tip::
 
