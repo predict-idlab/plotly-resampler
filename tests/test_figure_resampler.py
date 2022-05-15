@@ -539,3 +539,12 @@ def test_hf_data_property():
     assert len(fr.hf_data) == 1
     assert len(fr.hf_data[0]["x"]) == n
     fr.hf_data[0] = -2 * y
+
+
+def test_fr_add_empty_trace():
+    fig = FigureResampler(go.Figure())
+    fig.add_trace(go.Scattergl(name="Test"), limit_to_view=True)
+
+    assert len(fig.hf_data) == 1
+    assert len(fig.hf_data[0]["x"]) == 0
+    assert len(fig.hf_data[0]["y"]) == 0

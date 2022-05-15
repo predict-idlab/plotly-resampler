@@ -217,15 +217,16 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 )
             else:
                 hf_series = self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"])
-                start = hf_series.index[0] if start is None else start
-                end = hf_series.index[-1] if end is None else end
-                if hf_series.index.is_integer():
-                    start = round(start)
-                    end = round(end)
+                if len(hf_series) and (start is not None or end is not None):
+                    start = hf_series.index[0] if start is None else start
+                    end = hf_series.index[-1] if end is None else end
+                    if hf_series.index.is_integer():
+                        start = round(start)
+                        end = round(end)
 
-                # Search the index-positions
-                start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
-                hf_series = hf_series.iloc[start_idx:end_idx]
+                    # Search the index-positions
+                    start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
+                    hf_series = hf_series.iloc[start_idx:end_idx]
 
             # Return an invisible, single-point, trace when the sliced hf_series doesn't
             # contain any data in the current view
@@ -470,6 +471,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     @staticmethod
     def _to_hf_series(x: np.ndarray, y: np.ndarray) -> pd.Series:
         """Construct the hf-series.
+
+        By constructing the hf-series this way, users can dynamically adjust the hf
+        series argument.
 
         Parameters
         ----------

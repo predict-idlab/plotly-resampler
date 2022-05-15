@@ -526,8 +526,8 @@ def test_hf_data_property_reset_axes():
     fwr.hf_data[0] = -2 * y
 
     fwr.reset_axes()
-    assert fwr.data[0]['x'][-1] > 20_000
-    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] > -10
+    assert fwr.data[0]["x"][-1] > 20_000
+    assert fwr.layout["yaxis"].range is None or fwr.layout["yaxis"].range[0] > -10
 
 
 def test_hf_data_property_reload_data():
@@ -549,8 +549,8 @@ def test_hf_data_property_reload_data():
     fwr.hf_data[0] = -2 * y
 
     fwr.reload_data()
-    assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
-    assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
+    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
+    assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
 
 
 def test_updates_two_traces():
@@ -894,3 +894,12 @@ def test_bare_update_methods():
         )
         == 0
     )
+
+
+def test_fwr_add_empty_trace():
+    fig = FigureWidgetResampler(go.FigureWidget())
+    fig.add_trace(go.Scattergl(name="Test"), limit_to_view=True)
+
+    assert len(fig.hf_data) == 1
+    assert len(fig.hf_data[0]["x"]) == 0
+    assert len(fig.hf_data[0]["y"]) == 0
