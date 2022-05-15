@@ -74,7 +74,7 @@ class AbstractSeriesAggregator(ABC):
         # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
         n_blcks = 128
-        if s.shape[0] > 10 * n_blcks:
+        if s.shape[0] > 5 * n_blcks:
             blck_size = s_idx_diff.shape[0] // n_blcks
 
             # convert the index series index diff into a reshaped view (i.e., sid_v)
@@ -120,7 +120,7 @@ class AbstractSeriesAggregator(ABC):
         if med_diff is not None:
             # Replace data-points with None where the gaps occur
             # The default is the end of a gap
-            nan_mask = s_idx_diff > 3 * med_diff
+            nan_mask = s_idx_diff > 4 * med_diff
             if self.nan_position == "begin":
                 # Replace the last non-gap datapoint (begin of gap) with Nan
                 nan_mask = np.roll(nan_mask, -1)
