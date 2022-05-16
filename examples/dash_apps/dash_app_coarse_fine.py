@@ -15,7 +15,7 @@ __author__ = "Jonas Van Der Donckt"
 
 from pathlib import Path
 from typing import List, Union
-import re 
+import re
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -23,7 +23,6 @@ import plotly.graph_objects as go
 import trace_updater
 from dash import Input, Output, State, dcc, html
 
-from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler
 
 from callback_helpers import multiple_folder_file_selector
@@ -80,15 +79,20 @@ def serve_layout() -> dbc.Container:
                         ),
                         md=2,
                     ),
-                    # Add the graph and the trace updater component
+                    # Add the graphs and the trace updater component
                     dbc.Col(
                         [
-                            dcc.Graph(id="coarse-graph", figure=go.Figure()),
+                            # The coarse graph whose updates will fetch data for the
+                            # broad graph
+                            dcc.Graph(
+                                id="coarse-graph",
+                                figure=go.Figure(),
+                                config={"modeBarButtonsToAdd": ["drawrect"]},
+                            ),
                             dcc.Graph(id="plotly-resampler-graph", figure=go.Figure()),
+                            # The broad traph
                             trace_updater.TraceUpdater(
-                                id="trace-updater",
-                                gdID="plotly-resampler-graph",
-                                sequentialUpdate=False,
+                                id="trace-updater", gdID="plotly-resampler-graph"
                             ),
                         ],
                         md=10,
@@ -106,9 +110,9 @@ app.layout = serve_layout()
 
 # Register the graph update callbacks to the layout
 @app.callback(
-    Output('trace-updater', "updateData"),
-    Input('coarse-graph', "relayoutData"),
-    Input('plotly-resampler-graph', "relayoutData"),
+    Output("trace-updater", "updateData"),
+    Input("coarse-graph", "relayoutData"),
+    Input("plotly-resampler-graph", "relayoutData"),
     prevent_initial_call=True,
 )
 def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout):
@@ -116,19 +120,19 @@ def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout):
 
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0].get("prop_id", "").split(".")[0]
-    
-    if trigger_id == 'plotly-resampler-graph':
+
+    if trigger_id == "plotly-resampler-graph":
         return fr_fig.construct_update_data(fine_grained_relayout)
-    elif trigger_id == 'coarse-graph':
+    elif trigger_id == "coarse-graph":
+        if "shapes" in coarse_grained_relayout:
+            print(coarse_grained_relayout)
         cl_k = coarse_grained_relayout.keys()
         # we do not resampler when and autorange / autosize event takes place
         matches = fr_fig._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
         if len(matches):
             return fr_fig.construct_update_data(coarse_grained_relayout)
 
-    raise dash.exceptions.PreventUpdate()
- 
-
+    return dash.no_update
 
 
 # ------------------------------ Visualization logic ---------------------------------
@@ -151,16 +155,16 @@ def plot_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampler:
     # the figureResampler object. Otherwise the coupled callbacks would be lost and it
     # is not (straightforward) to construct dynamic callbacks in dash.
     fr_fig._global_n_shown_samples = 3000
-    fr_fig.replace(make_subplots(rows=len(file_list), shared_xaxes=False))
+    fr_fig.replace(go.Figure())
     fr_fig.update_layout(height=min(900, 350 * len(file_list)))
 
-    for i, f in enumerate(file_list, 1):
+    for f in file_list:
         df = pd.read_parquet(f)  # should be replaced by more generic data loading code
         if "timestamp" in df.columns:
             df = df.set_index("timestamp")
 
         for c in df.columns:
-            fr_fig.add_trace(go.Scatter(name=c), hf_x=df.index, hf_y=df[c], row=i, col=1)
+            fr_fig.add_trace(go.Scatter(name=c), hf_x=df.index, hf_y=df[c])
     return fr_fig
 
 
@@ -204,14 +208,21 @@ def plot_graph(
         if len(file_list):
             dynamic_fig = plot_multiple_files(file_list)
             coarse_fig = go.Figure(dynamic_fig)
-            coarse_fig.update_layout(title='<b>coarse view</b>', height=250)
+            coarse_fig.update_layout(title="<b>coarse view</b>", height=250)
             coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
             coarse_fig.update_layout(showlegend=False)
+            coarse_fig._config = coarse_fig._config.update(
+                {"modeBarButtonsToAdd": ["drawrect"]}
+            )
 
             dynamic_fig._global_n_shown_samples = 1000
-            dynamic_fig.update_layout(title='<b>dynamic view<b>', height=450)
+            dynamic_fig.update_layout(title="<b>dynamic view<b>", height=450)
             dynamic_fig.update_layout(margin=dict(l=0, r=0, b=40, t=40, pad=10))
-            dynamic_fig.update_layout(legend=dict(orientation="h", y=-.11, xanchor="right", x=1, font_size=18))
+            dynamic_fig.update_layout(
+                legend=dict(
+                    orientation="h", y=-0.11, xanchor="right", x=1, font_size=18
+                )
+            )
 
             # coarse_fig['layout'].update(dict(title='coarse view', title_x=0.5, height=250))
             return coarse_fig, dynamic_fig
