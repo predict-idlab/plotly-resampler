@@ -24,3 +24,4 @@ which `plotly-resampler` is integrated
 | --- | --- |
 | [file visualization](dash_apps/dash_app.py) | load and visualize multiple `.parquet` files with plotly-resampler |
 | [dynamic sine generator](dash_apps/construct_dynamic_figures.py) | expeonential sine generator which uses [pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) to remove and construct plotly-resampler graphs dynamically |
+| [dynamic static graph](dash_apps/dash_app_coarse_fine.py) | Visualization dashboard in which a dynamic (i.e., plotly-resampler graph) and static graph (i.e., go.Figure) are shown (made for [this issue](https://github.com/predict-idlab/plotly-resampler/issues/56)). Relayout events on the coarse graph update the dynamic graph.
