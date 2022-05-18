@@ -119,7 +119,7 @@ class FigureWidgetResampler(
             if (
                 "range" in layout[xaxis_str]
                 and self._prev_layout[xaxis_str].get("range", []) != x_range
-                or force_update and x_range is not None
+                or (force_update and x_range is not None)
             ):
                 # a change took place -> add to the relayout dict
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
