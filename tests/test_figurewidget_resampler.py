@@ -634,9 +634,9 @@ def test_hf_data_property_reset_axes():
     assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reset_axes()
-    assert (fwr.data[0]['x'][0] <= 100) & (fwr.data[0]['x'][-1] >= 99_900)
-    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
-    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] < - 100
+    assert (fwr.data[0]["x"][0] <= 100) & (fwr.data[0]["x"][-1] >= 99_900)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert fwr.layout["yaxis"].range is None or fwr.layout["yaxis"].range[0] < -100
 
 
 def test_hf_data_property_reload_data():
@@ -661,9 +661,9 @@ def test_hf_data_property_reload_data():
     assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reload_data()
-    assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
-    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
-    assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
+    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
 
 
 def test_hf_data_property_subplots_reset_axes():
@@ -678,8 +678,10 @@ def test_hf_data_property_subplots_reset_axes():
 
     fwr.layout.update(
         {
-            "xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-20, 3]},
-            "xaxis2": {"range": [40_000, 60_000]}, "yaxis2": {"range": [-10, 3]},
+            "xaxis": {"range": [10_000, 20_000]},
+            "yaxis": {"range": [-20, 3]},
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
         },
         overwrite=False,
     )
@@ -695,12 +697,12 @@ def test_hf_data_property_subplots_reset_axes():
     assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reset_axes()
-    assert (fwr.data[0]['x'][0] <= 100) & (fwr.data[0]['x'][-1] >= 99_900)
-    assert (fwr.data[1]['x'][0] <= 100) & (fwr.data[1]['x'][-1] >= 99_900)
-    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
-    assert np.all(fwr.data[1]['y'] == new_y[fwr.data[1]["x"]])
-    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] < - 100
-    assert fwr.layout['yaxis2'].range is None or fwr.layout['yaxis2'].range[0] < - 100
+    assert (fwr.data[0]["x"][0] <= 100) & (fwr.data[0]["x"][-1] >= 99_900)
+    assert (fwr.data[1]["x"][0] <= 100) & (fwr.data[1]["x"][-1] >= 99_900)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert np.all(fwr.data[1]["y"] == new_y[fwr.data[1]["x"]])
+    assert fwr.layout["yaxis"].range is None or fwr.layout["yaxis"].range[0] < -100
+    assert fwr.layout["yaxis2"].range is None or fwr.layout["yaxis2"].range[0] < -100
 
 
 def test_hf_data_property_subplots_reload_data():
@@ -715,8 +717,10 @@ def test_hf_data_property_subplots_reload_data():
 
     fwr.layout.update(
         {
-            "xaxis": {"range": [10_000, 20_000]}, "yaxis": {"range": [-20, 3]},
-            "xaxis2": {"range": [40_000, 60_000]}, "yaxis2": {"range": [-10, 3]},
+            "xaxis": {"range": [10_000, 20_000]},
+            "yaxis": {"range": [-20, 3]},
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
         },
         overwrite=False,
     )
@@ -732,12 +736,14 @@ def test_hf_data_property_subplots_reload_data():
     assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reload_data()
-    assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
-    assert (fwr.data[1]['x'][0] >= 40_000) & (fwr.data[1]['x'][-1] <= 60_000)
-    assert np.all(fwr.data[0]['y'] == new_y[fwr.data[0]["x"]])
-    assert np.all(fwr.data[1]['y'] == new_y[fwr.data[1]["x"]])
-    assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
-    assert (fwr.layout['yaxis2'].range[0] == -10) & (fwr.layout['yaxis2'].range[-1] == 3)
+    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
+    assert (fwr.data[1]["x"][0] >= 40_000) & (fwr.data[1]["x"][-1] <= 60_000)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert np.all(fwr.data[1]["y"] == new_y[fwr.data[1]["x"]])
+    assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
+    assert (fwr.layout["yaxis2"].range[0] == -10) & (
+        fwr.layout["yaxis2"].range[-1] == 3
+    )
 
 
 def test_updates_two_traces():
@@ -1090,3 +1096,108 @@ def test_fwr_add_empty_trace():
     assert len(fig.hf_data) == 1
     assert len(fig.hf_data[0]["x"]) == 0
     assert len(fig.hf_data[0]["y"]) == 0
+
+
+def test_fwr_updata_trace_data_zoom():
+    k = 1_000_000
+    fig = FigureWidgetResampler(
+        go.FigureWidget(make_subplots(rows=2, cols=1)), verbose=True
+    )
+    fig.add_trace(
+        go.Scattergl(name="A", line_color="red"), limit_to_view=True, row=1, col=1
+    )
+    fig.add_trace(
+        go.Scattergl(name="B", line_color="green"), limit_to_view=True, row=2, col=1
+    )
+
+    fig._relayout_hist.clear()
+
+    A = np.random.randn(k)
+    fig.hf_data[0]["x"] = np.arange(k)
+    fig.hf_data[0]["y"] = np.arange(k) + A * 300 * 20
+
+    fig.hf_data[1]["x"] = fig.hf_data[0]["x"]
+    fig.hf_data[1]["y"] = -np.arange(k) + A * 300 * 40
+    fig.reload_data()
+
+    # In the current implementation -> reload data will update all traces
+    # Since there was no zoom-in event -> the `showspikes-update` will be called
+    assert ["showspikes-update", 2] in fig._relayout_hist
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # zoom in on the first row it's xaxis and perform a layout update
+    l = fig.layout.update(
+        {"xaxis": {"range": [0, 100_000]}},
+        overwrite=True,
+    )
+    fig._update_x_ranges(
+        l, (0, 100_000), (fig.hf_data[1]["x"][0], fig.hf_data[1]["x"][-1])
+    )
+
+    fig._relayout_hist.clear()
+
+    fig.hf_data[1]['x'] = fig.hf_data[0]['x']
+    fig.hf_data[1]['y'] = - np.arange(k) + A * 300 * 10
+    fig.reload_data()
+
+    # In the current implementation -> reload data will update all traces
+    # As we have performed a zoom event -> the`update showspikes` `will be called
+    # TODO -> for some reason this assert does not succeed when not showing the graph
+    # data
+    # assert ["xaxis-range-update", len(fig.hf_data)] in fig._relayout_hist
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+    # zoom in on the second row it's xaxis and perform a layout update
+    l = fig.layout.update(
+        {"xaxis2": {"range": [200_000, 500_000]}},
+        overwrite=True,
+    )
+    fig._update_x_ranges(
+        l, (0, 100_000), (200_000, 500_000)
+    )
+
+    fig._relayout_hist.clear()
+    fig.hf_data[0]['x'] = fig.hf_data[0]['x']
+    fig.hf_data[0]['y'] = - np.arange(k) + A * 300 * 39
+    fig.hf_data[1]['x'] = fig.hf_data[0]['x']
+    fig.hf_data[1]['y'] = - np.arange(k) + A * 300 * 25
+    fig.reload_data()
+
+    # In the current implementation -> reload data will update all traces
+    # As we have performed a zoom event -> the`update showspikes` `will be called
+    assert ["xaxis-range-update", len(fig.hf_data)] in fig._relayout_hist
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    
+
