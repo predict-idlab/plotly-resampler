@@ -233,6 +233,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if len(hf_series) == 0:
                 trace["x"] = [start]
                 trace["y"] = [None]
+                trace["text"] = ""
                 trace["hovertext"] = ""
                 return trace
 
@@ -266,6 +267,20 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if len(self._suffix) and trace["name"].endswith(self._suffix):
                     name = name[: -len(self._suffix)]
             trace["name"] = name
+
+            # Check if text also needs to be resampled
+            text = hf_trace_data.get("text")
+            if isinstance(text, pd.Series):
+                # TODO -> this can be optimized
+                trace["text"] = pd.merge_asof(
+                    s_res,
+                    text,
+                    left_index=True,
+                    right_index=True,
+                    direction="nearest",
+                )[text.name].values
+            else:
+                trace["text"] = text
 
             # Check if hovertext also needs to be resampled
             hovertext = hf_trace_data.get("hovertext")
@@ -462,6 +477,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     'y': array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),
                     'axis_type': 'linear',
                     'downsampler': <plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0>,
+                    'text': None,
                     'hovertext': None
                 },
             ]
@@ -504,6 +520,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
         hf_y: Iterable = None,
+        hf_text: Union[str, Iterable] = None,
         hf_hovertext: Union[str, Iterable] = None,
         **trace_kwargs,
     ):
@@ -544,9 +561,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y: Iterable, optional
             The original high frequency values. If set, this has priority over the
             trace its data.
+        hf_text: Iterable, optional
+            The original high frequency text. If set, this has priority over the trace
+            its ``text`` argument.
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
-            trace its ``text`` or ``hovertext`` argument.
+            trace its ```hovertext`` argument.
         **trace_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
@@ -588,10 +608,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         ---------
         * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do
           not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
-        * ``hf_x``, ``hf_y``, and ``hf_hovertext`` are useful when you deal with large
-          amounts of data (as it can increase the speed of this add_trace() method with
-          ~30%). These arguments have priority over the trace's data and (hover)text
-          attributes.
+        * ``hf_x``, ``hf_y``, ``hf_text``, and ``hf_hovertext`` are useful when you deal
+          with large amounts of data (as it can increase the speed of this add_trace() 
+          method with ~30%). These arguments have priority over the trace's data and 
+          (hover)text attributes.
         * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
           the the automatic-zooming (y-scaling) as these will not be stored in the
           back-end and thus not be scaled to the view.
@@ -621,14 +641,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
         hf_y = np.asarray(hf_y)
 
-        # Note: "hovertext" takes precedence over "text"
+        hf_text = (
+            hf_text
+            if hf_text is not None
+            else trace["text"]
+            if hasattr(trace, "text") and trace["text"] is not None
+            else None
+        )
+
         hf_hovertext = (
             hf_hovertext
             if hf_hovertext is not None
             else trace["hovertext"]
             if hasattr(trace, "hovertext") and trace["hovertext"] is not None
-            else trace["text"]
-            if hasattr(trace, "text")
             else None
         )
 
@@ -651,12 +676,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
             )
 
-            # Make sure to set the text-attribute to None as the default plotly behavior
-            # for these high-dimensional traces (scatters) is that text will be shown in
-            # hovertext and not in on-graph texts (as is the case with bar-charts)
-            trace["text"] = None
-
-            # Note: this also converts hf_hovertext to a np.ndarray
+            # Note: this also converts hf_text and hf_hovertext to a np.ndarray
+            if isinstance(hf_text, (list, np.ndarray, pd.Series)):
+                hf_text = np.asarray(hf_text)
             if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
                 hf_hovertext = np.asarray(hf_hovertext)
 
@@ -667,6 +689,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 not_nan_mask = ~pd.isna(hf_y)
                 hf_x = hf_x[not_nan_mask]
                 hf_y = hf_y[not_nan_mask]
+                if isinstance(hf_text, np.ndarray):
+                    hf_text = hf_text[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
@@ -683,9 +707,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
 
-            # Convert the hovertext to a pd.Series if it's now a np.ndarray
-            # Note: The size of hovertext must be the same size as hf_x otherwise a
-            #   ValueError will be thrown
+            # Convert the text and hovertext to a pd.Series if it's now a np.ndarray
+            # Note: The size of hf_text and hf_hovertext must be the same size as hf_x 
+            # otherwise a ValueError will be thrown
+            if isinstance(hf_text, np.ndarray):
+                hf_text = pd.Series(
+                    data=hf_text, index=hf_x, copy=False, name="text"
+                )
             if isinstance(hf_hovertext, np.ndarray):
                 hf_hovertext = pd.Series(
                     data=hf_hovertext, index=hf_x, copy=False, name="hovertext"
@@ -725,6 +753,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     "y": hf_y,
                     "axis_type": axis_type,
                     "downsampler": d,
+                    "text": hf_text,
                     "hovertext": hf_hovertext,
                 }
 
@@ -755,7 +784,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
                 trace.x = hf_x
                 trace.y = hf_y
-                trace.text = hf_hovertext
+                trace.text = hf_text
+                trace.hovertext = hf_hovertext
                 return super(self._figure_class, self).add_trace(
                     trace=trace, **trace_kwargs
                 )
@@ -769,8 +799,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hasattr(trace, "y"):
                 trace["y"] = hf_y
 
-            if hasattr(trace, "text") and hasattr(trace, "hovertext"):
-                trace["text"] = None
+            if hasattr(trace, "text"):
+                trace["text"] = hf_text
+
+            if hasattr(trace, "hovertext"):
                 trace["hovertext"] = hf_hovertext
 
             return super(self._figure_class, self).add_trace(
