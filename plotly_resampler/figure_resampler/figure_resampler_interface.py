@@ -270,29 +270,21 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             # Check if text also needs to be resampled
             text = hf_trace_data.get("text")
-            if isinstance(text, pd.Series):
-                # TODO -> this can be optimized
-                trace["text"] = pd.merge_asof(
-                    s_res,
-                    text,
-                    left_index=True,
-                    right_index=True,
-                    direction="nearest",
-                )[text.name].values
+            if isinstance(text, (np.ndarray, pd.Series)):
+                # TODO -> extra logic is necessary for the detection and processing of
+                # non data-point selection downsamplers
+                trace["text"] = self._to_hf_series(x=hf_trace_data["x"], y=text).loc[
+                    s_res.index
+                ]
             else:
                 trace["text"] = text
 
             # Check if hovertext also needs to be resampled
             hovertext = hf_trace_data.get("hovertext")
-            if isinstance(hovertext, pd.Series):
-                # TODO -> this can be optimized
-                trace["hovertext"] = pd.merge_asof(
-                    s_res,
-                    hovertext,
-                    left_index=True,
-                    right_index=True,
-                    direction="nearest",
-                )[hovertext.name].values
+            if isinstance(hovertext, (np.ndarray, pd.Series)):
+                trace["hovertext"] = self._to_hf_series(
+                    x=hf_trace_data["x"], y=hovertext
+                ).loc[s_res.index]
             else:
                 trace["hovertext"] = hovertext
             return trace
@@ -503,6 +495,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         pd.Series
             The constructed hf_series
         """
+        # Note this is the same behavior as plotly support
+        # i.e. it also used the `values` property of the `x` and `y` parameters when
+        # these are pd.Series
+        if isinstance(x, pd.Series):
+            x = x.values
+
+        if isinstance(y, pd.Series):
+            y = y.values
+
         return pd.Series(
             data=y,
             index=x,
@@ -609,8 +610,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do
           not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
         * ``hf_x``, ``hf_y``, ``hf_text``, and ``hf_hovertext`` are useful when you deal
-          with large amounts of data (as it can increase the speed of this add_trace() 
-          method with ~30%). These arguments have priority over the trace's data and 
+          with large amounts of data (as it can increase the speed of this add_trace()
+          method with ~30%). These arguments have priority over the trace's data and
           (hover)text attributes.
         * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
           the the automatic-zooming (y-scaling) as these will not be stored in the
@@ -628,15 +629,20 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         trace.uid = uuid
 
         hf_x = (
-            trace["x"] if hasattr(trace, "x") and hf_x is None 
-            else hf_x.values if isinstance(hf_x, pd.Series)
-            else hf_x if isinstance(hf_x, pd.Index)
+            trace["x"]
+            if hasattr(trace, "x") and hf_x is None
+            else hf_x.values
+            if isinstance(hf_x, pd.Series)
+            else hf_x
+            if isinstance(hf_x, pd.Index)
             else np.asarray(hf_x)
         )
 
         hf_y = (
-            trace["y"] if hasattr(trace, "y") and hf_y is None 
-            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index))
+            trace["y"]
+            if hasattr(trace, "y") and hf_y is None
+            else hf_y.values
+            if isinstance(hf_y, (pd.Series, pd.Index))
             else hf_y
         )
         hf_y = np.asarray(hf_y)
@@ -706,18 +712,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 hf_y = hf_y.astype("uint32")
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
-
-            # Convert the text and hovertext to a pd.Series if it's now a np.ndarray
-            # Note: The size of hf_text and hf_hovertext must be the same size as hf_x 
-            # otherwise a ValueError will be thrown
-            if isinstance(hf_text, np.ndarray):
-                hf_text = pd.Series(
-                    data=hf_text, index=hf_x, copy=False, name="text"
-                )
-            if isinstance(hf_hovertext, np.ndarray):
-                hf_hovertext = pd.Series(
-                    data=hf_hovertext, index=hf_x, copy=False, name="hovertext"
-                )
 
             n_samples = len(hf_x)
             # These traces will determine the autoscale RANGE!
