@@ -13,14 +13,14 @@ TODO: add an rectangle on the coarse graph
 
 __author__ = "Jonas Van Der Donckt"
 
-from pathlib import Path
-from typing import List, Union
 import re
 import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objects as go
 import trace_updater
+from pathlib import Path
+from typing import List, Union
 from dash import Input, Output, State, dcc, html
 
 from plotly_resampler import FigureResampler
@@ -90,7 +90,7 @@ def serve_layout() -> dbc.Container:
                                 config={"modeBarButtonsToAdd": ["drawrect"]},
                             ),
                             dcc.Graph(id="plotly-resampler-graph", figure=go.Figure()),
-                            # The broad traph
+                            # The broad graph
                             trace_updater.TraceUpdater(
                                 id="trace-updater", gdID="plotly-resampler-graph"
                             ),
@@ -127,7 +127,7 @@ def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout):
         if "shapes" in coarse_grained_relayout:
             print(coarse_grained_relayout)
         cl_k = coarse_grained_relayout.keys()
-        # we do not resampler when and autorange / autosize event takes place
+        # We do not resample when and autorange / autosize event takes place
         matches = fr_fig._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
         if len(matches):
             return fr_fig.construct_update_data(coarse_grained_relayout)
