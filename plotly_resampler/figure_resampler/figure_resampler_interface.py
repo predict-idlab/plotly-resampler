@@ -293,19 +293,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             marker_size = hf_trace_data.get("marker_size")
             if isinstance(marker_size, (np.ndarray, pd.Series)):
-                trace["marker"]["size"] = (
-                    self._to_hf_series(x=hf_trace_data["x"], y=marker_size)
-                    .loc[s_res.index]
-                    .loc[s_res.index]
-                )
+                trace["marker"]["size"] = self._to_hf_series(
+                    x=hf_trace_data["x"], y=marker_size
+                ).loc[s_res.index]
 
             marker_color = hf_trace_data.get("marker_color")
             if isinstance(marker_color, (np.ndarray, pd.Series)):
-                trace["marker"]["color"] = (
-                    self._to_hf_series(x=hf_trace_data["x"], y=marker_color)
-                    .loc[s_res.index]
-                    .loc[s_res.index]
-                )
+                trace["marker"]["color"] = self._to_hf_series(
+                    x=hf_trace_data["x"], y=marker_color
+                ).loc[s_res.index]
 
             return trace
         else:
@@ -689,17 +685,21 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         hf_marker_size = (
             trace["marker"]["size"]
-            if hf_marker_size is None
-            and hasattr(trace, "marker")
-            and "size" in trace["marker"]
+            if (
+                hf_marker_size is None
+                and hasattr(trace, "marker")
+                and "size" in trace["marker"]
+            )
             else hf_marker_size
         )
 
         hf_marker_color = (
             trace["marker"]["color"]
-            if hf_marker_color is None
-            and hasattr(trace, "marker")
-            and "color" in trace["marker"]
+            if (
+                hf_marker_color is None
+                and hasattr(trace, "marker")
+                and "color" in trace["marker"]
+            )
             else hf_marker_color
         )
 
@@ -793,10 +793,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     "downsampler": d,
                     "text": hf_text,
                     "hovertext": hf_hovertext,
-<<<<<<< HEAD
-=======
-                    # marker: { color: [], size: [] }
->>>>>>> :sheep: adding hf_color and hf_markersize argument
                     "marker_size": hf_marker_size,
                     "marker_color": hf_marker_color,
                 }
