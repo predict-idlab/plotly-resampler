@@ -11,7 +11,7 @@ from .figure_resampler import FigureResampler, FigureWidgetResampler
 
 __docformat__ = "numpy"
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
-__version__ = "0.6.4"
+__version__ = "0.6.4.1"
 
 __all__ = [
     "__version__",
