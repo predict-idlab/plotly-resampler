@@ -299,13 +299,13 @@
         <span class="c1"># Calculate the argmin &amp; argmax on the reshaped view of `s` &amp;</span>
         <span class="c1"># add the corresponding offset</span>
         <span class="n">argmin</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
         <span class="p">)</span>
         <span class="n">argmax</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="p">[</span><span class="n">argmax_offset</span> <span class="p">:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">argmax_offset</span><span class="p">]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">argmax_offset</span> <span class="p">:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">argmax_offset</span><span class="p">]</span>
             <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
@@ -364,13 +364,13 @@
         <span class="c1"># Calculate the argmin &amp; argmax on the reshaped view of `s` &amp;</span>
         <span class="c1"># add the corresponding offset</span>
         <span class="n">argmin</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
         <span class="p">)</span>
         <span class="n">argmax</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
             <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
