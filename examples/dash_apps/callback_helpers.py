@@ -41,7 +41,7 @@ def _register_selection_callbacks(app, ids=None):
 
 
 def multiple_folder_file_selector(
-    app, name_folders_list: List[Dict[str, dict]]
+    app, name_folders_list: List[Dict[str, dict]], multi=True
 ) -> dbc.Card:
     """Constructs a folder user date selector
 
@@ -78,7 +78,7 @@ def multiple_folder_file_selector(
                                 id=f"file-selector{i}",
                                 options=[],
                                 clearable=True,
-                                multi=True,
+                                multi=multi,
                             ),
                             html.Br(),
                         ]

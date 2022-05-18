@@ -16,6 +16,7 @@ class AbstractSeriesAggregator(ABC):
     def __init__(
         self,
         interleave_gaps: bool = True,
+        nan_position: str = "end",
         dtype_regex_list: List[str] = None,
     ):
         """Constructor of AbstractSeriesAggregator.
@@ -26,12 +27,24 @@ class AbstractSeriesAggregator(ABC):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a 
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a 
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with 
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set 
+                to *True*.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.
 
         """
         self.interleave_gaps = interleave_gaps
         self.dtype_regex_list = dtype_regex_list
+        self.nan_position = nan_position.lower()
         super().__init__()
 
     @abstractmethod
@@ -61,18 +74,16 @@ class AbstractSeriesAggregator(ABC):
         # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
         n_blcks = 128
-        if s.shape[0] > n_blcks:
+        if s.shape[0] > 5 * n_blcks:
             blck_size = s_idx_diff.shape[0] // n_blcks
 
             # convert the index series index diff into a reshaped view (i.e., sid_v)
             sid_v: np.ndarray = s_idx_diff[: blck_size * n_blcks].reshape(n_blcks, -1)
 
             # calculate the min and max and calculate the median on that
-            med_diff = np.quantile(
-                np.concatenate((sid_v.min(axis=0), sid_v.max(axis=0))), q=0.55
-            )
+            med_diff = np.median(np.mean(sid_v, axis=1))
         else:
-            med_diff = np.quantile(s_idx_diff, q=0.55)
+            med_diff = np.median(s_idx_diff)
 
         return med_diff, s_idx_diff
 
@@ -108,7 +119,15 @@ class AbstractSeriesAggregator(ABC):
         med_diff, s_idx_diff = self._calc_med_diff(s)
         if med_diff is not None:
             # Replace data-points with None where the gaps occur
-            s.loc[s_idx_diff > 3 * med_diff] = None
+            # The default is the end of a gap
+            nan_mask = s_idx_diff > 4 * med_diff
+            if self.nan_position == "begin":
+                # Replace the last non-gap datapoint (begin of gap) with Nan
+                nan_mask = np.roll(nan_mask, -1)
+            elif self.nan_position == "both":
+                # Replace the encompassing gap datapoints with Nan
+                nan_mask |= np.roll(nan_mask, -1)
+            s.loc[nan_mask] = None
         return s
 
     def aggregate(self, s: pd.Series, n_out: int) -> pd.Series:

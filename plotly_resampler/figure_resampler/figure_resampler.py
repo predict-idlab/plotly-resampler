@@ -28,7 +28,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
     def __init__(
         self,
-        figure: go.Figure = go.Figure(),
+        figure: go.Figure = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -39,6 +39,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
+        if figure is None:
+            figure = go.Figure()
+
         assert isinstance(figure, go.Figure)
         super().__init__(
             figure,

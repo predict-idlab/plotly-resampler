@@ -36,7 +36,8 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
             row=1,
             col=1,
             limit_to_view=False,
-            hf_hovertext="text",
+            hf_text="text",
+            hf_hovertext="hovertext",
         )
 
         fig.add_trace(
@@ -75,7 +76,8 @@ def test_add_trace_not_resampling(float_series):
         ),
         row=1,
         col=1,
-        hf_hovertext="text",
+        hf_text="text",
+        hf_hovertext="hovertext",
     )
 
     fig.add_trace(
@@ -85,7 +87,8 @@ def test_add_trace_not_resampling(float_series):
         col=1,
         hf_x=float_series.index[-800:],
         hf_y=float_series[-800:],
-        hf_hovertext="text",
+        hf_text="text",
+        hf_hovertext="hovertext",
     )
 
 
@@ -120,7 +123,8 @@ def test_add_not_a_hf_trace(float_series):
         ),
         row=1,
         col=1,
-        hf_hovertext="text",
+        hf_text="text",
+        hf_hovertext="hovertext",
     )
 
     # add a not hf-trace
@@ -147,7 +151,8 @@ def test_box_histogram(float_series):
         go.Scattergl(x=float_series.index, y=float_series, name="float_series"),
         row=1,
         col=1,
-        hf_hovertext="text",
+        hf_text="text",
+        hf_hovertext="hovertext",
     )
 
     fig.add_trace(go.Box(x=float_series.values, name="float_series"), row=1, col=2)
@@ -184,7 +189,8 @@ def test_cat_box_histogram(float_series):
         go.Scattergl(name="cat_series", x=cat_series.index, y=cat_series),
         row=1,
         col=1,
-        hf_hovertext="text",
+        hf_text="text",
+        hf_hovertext="hovertext",
     )
 
     fig.add_trace(go.Box(x=float_series.values, name="float_box_pow"), row=1, col=2)
@@ -257,7 +263,8 @@ def test_nan_removed_input(float_series):
         go.Scatter(x=float_series.index, y=float_series, name="float_series"),
         row=1,
         col=1,
-        hf_hovertext="text",
+        hf_text="text",
+        hf_hovertext="hovertext",
     )
 
     # here we test whether we are able to deal with not-nan output
@@ -280,6 +287,96 @@ def test_nan_removed_input(float_series):
         ),
         row=1,
         col=2,
+    )
+
+
+def test_hf_text():
+    y = np.arange(10_000)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(
+        go.Scatter(name="blabla", text=y.astype(str)),
+        hf_y=y,
+    )
+
+    assert np.all(fig.hf_data[0]["text"] == y.astype(str))
+    assert fig.hf_data[0]["hovertext"] is None
+
+    assert len(fig.data[0].y) < 5_000
+    assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
+    assert fig.data[0].hovertext is None
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(go.Scatter(name="blabla"), hf_y=y, hf_text=y.astype(str))
+
+    assert np.all(fig.hf_data[0]["text"] == y.astype(str))
+    assert fig.hf_data[0]["hovertext"] is None
+
+    assert len(fig.data[0].y) < 5_000
+    assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
+    assert fig.data[0].hovertext is None
+
+
+def test_hf_hovertext():
+    y = np.arange(10_000)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(
+        go.Scatter(name="blabla", hovertext=y.astype(str)),
+        hf_y=y,
+    )
+
+    assert np.all(fig.hf_data[0]["hovertext"] == y.astype(str))
+    assert fig.hf_data[0]["text"] is None
+
+    assert len(fig.data[0].y) < 5_000
+    assert np.all(fig.data[0].hovertext == fig.data[0].y.astype(int).astype(str))
+    assert fig.data[0].text is None
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(go.Scatter(name="blabla"), hf_y=y, hf_hovertext=y.astype(str))
+
+    assert np.all(fig.hf_data[0]["hovertext"] == y.astype(str))
+    assert fig.hf_data[0]["text"] is None
+
+    assert len(fig.data[0].y) < 5_000
+    assert np.all(fig.data[0].hovertext == fig.data[0].y.astype(int).astype(str))
+    assert fig.data[0].text is None
+
+
+def test_hf_text_and_hf_hovertext():
+    y = np.arange(10_000)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(
+        go.Scatter(name="blabla", text=y.astype(str), hovertext=y.astype(str)[::-1]),
+        hf_y=y,
+    )
+
+    assert np.all(fig.hf_data[0]["text"] == y.astype(str))
+    assert np.all(fig.hf_data[0]["hovertext"] == y.astype(str)[::-1])
+
+    assert len(fig.data[0].y) < 5_000
+    assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
+    assert np.all(
+        fig.data[0].hovertext == (9_999 - fig.data[0].y).astype(int).astype(str)
+    )
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(
+        go.Scatter(name="blabla"),
+        hf_y=y,
+        hf_text=y.astype(str),
+        hf_hovertext=y.astype(str)[::-1],
+    )
+
+    assert np.all(fig.hf_data[0]["text"] == y.astype(str))
+    assert np.all(fig.hf_data[0]["hovertext"] == y.astype(str)[::-1])
+
+    assert len(fig.data[0].y) < 5_000
+    assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
+    assert np.all(
+        fig.data[0].hovertext == (9_999 - fig.data[0].y).astype(int).astype(str)
     )
 
 
@@ -496,15 +593,18 @@ def test_check_update_figure_dict():
 
 
 def test_hf_data_property():
-    fr = FigureWidgetResampler(go.Figure(), default_n_shown_samples=2_000)
+    fwr = FigureWidgetResampler(go.Figure(), default_n_shown_samples=2_000)
     n = 100_000
     x = np.arange(n)
     y = np.sin(x)
-    assert len(fr.hf_data) == 0
-    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
-    assert len(fr.hf_data) == 1
-    assert len(fr.hf_data[0]["x"]) == n
-    fr.hf_data[0] = -2 * y
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    assert len(fwr.hf_data) == 1
+    assert len(fwr.hf_data[0]["x"]) == n
+    fwr.hf_data[0]["x"] = x
+    fwr.hf_data[0]["y"] = -2 * y
+    assert np.all(fwr.hf_data[0]["x"] == x)
+    assert np.all(fwr.hf_data[0]["y"] == y * -2)
 
 
 def test_hf_data_property_reset_axes():
@@ -523,11 +623,15 @@ def test_hf_data_property_reset_axes():
 
     assert len(fwr.hf_data) == 1
     assert len(fwr.hf_data[0]["x"]) == n
-    fwr.hf_data[0] = -2 * y
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reset_axes()
-    assert fwr.data[0]['x'][-1] > 20_000
-    assert fwr.layout['yaxis'].range is None or fwr.layout['yaxis'].range[0] > -10
+    assert (fwr.data[0]["x"][0] <= 100) & (fwr.data[0]["x"][-1] >= 99_900)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert fwr.layout["yaxis"].range is None or fwr.layout["yaxis"].range[0] < -100
 
 
 def test_hf_data_property_reload_data():
@@ -546,11 +650,95 @@ def test_hf_data_property_reload_data():
 
     assert len(fwr.hf_data) == 1
     assert len(fwr.hf_data[0]["x"]) == n
-    fwr.hf_data[0] = -2 * y
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reload_data()
-    assert (fwr.data[0]['x'][0] >= 10_000) & (fwr.data[0]['x'][-1] <= 20_000)
-    assert (fwr.layout['yaxis'].range[0] == -20) & (fwr.layout['yaxis'].range[-1] == 3)
+    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
+
+
+def test_hf_data_property_subplots_reset_axes():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=1, col=1)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis": {"range": [10_000, 20_000]},
+            "yaxis": {"range": [-20, 3]},
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+
+    assert len(fwr.hf_data) == 2
+    assert len(fwr.hf_data[0]["x"]) == n
+    assert len(fwr.hf_data[1]["x"]) == n
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+    fwr.hf_data[1]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+
+    fwr.reset_axes()
+    assert (fwr.data[0]["x"][0] <= 100) & (fwr.data[0]["x"][-1] >= 99_900)
+    assert (fwr.data[1]["x"][0] <= 100) & (fwr.data[1]["x"][-1] >= 99_900)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert np.all(fwr.data[1]["y"] == new_y[fwr.data[1]["x"]])
+    assert fwr.layout["yaxis"].range is None or fwr.layout["yaxis"].range[0] < -100
+    assert fwr.layout["yaxis2"].range is None or fwr.layout["yaxis2"].range[0] < -100
+
+
+def test_hf_data_property_subplots_reload_data():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=1, col=1)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis": {"range": [10_000, 20_000]},
+            "yaxis": {"range": [-20, 3]},
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+
+    assert len(fwr.hf_data) == 2
+    assert len(fwr.hf_data[0]["x"]) == n
+    assert len(fwr.hf_data[1]["x"]) == n
+    new_y = -2 * y
+    fwr.hf_data[0]["y"] = new_y
+    fwr.hf_data[1]["y"] = new_y
+
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+    assert np.all(fwr.hf_data[0]["y"] == new_y)
+
+    fwr.reload_data()
+    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
+    assert (fwr.data[1]["x"][0] >= 40_000) & (fwr.data[1]["x"][-1] <= 60_000)
+    assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
+    assert np.all(fwr.data[1]["y"] == new_y[fwr.data[1]["x"]])
+    assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
+    assert (fwr.layout["yaxis2"].range[0] == -10) & (
+        fwr.layout["yaxis2"].range[-1] == 3
+    )
 
 
 def test_updates_two_traces():
@@ -894,3 +1082,296 @@ def test_bare_update_methods():
         )
         == 0
     )
+
+
+def test_fwr_add_empty_trace():
+    fig = FigureWidgetResampler(go.FigureWidget())
+    fig.add_trace(go.Scattergl(name="Test"), limit_to_view=True)
+
+    assert len(fig.hf_data) == 1
+    assert len(fig.hf_data[0]["x"]) == 0
+    assert len(fig.hf_data[0]["y"]) == 0
+
+
+def test_fwr_updata_trace_data_zoom():
+    k = 50_000
+    fig = FigureWidgetResampler(
+        go.FigureWidget(make_subplots(rows=2, cols=1)), verbose=True
+    )
+    fig.add_trace(
+        go.Scattergl(name="A", line_color="red"), limit_to_view=True, row=1, col=1
+    )
+    fig.add_trace(
+        go.Scattergl(name="B", line_color="green"), limit_to_view=True, row=2, col=1
+    )
+
+    fig._relayout_hist.clear()
+
+    A = np.random.randn(k)
+    fig.hf_data[0]["x"] = np.arange(k)
+    fig.hf_data[0]["y"] = np.arange(k) + A * 300 * 20
+
+    fig.hf_data[1]["x"] = fig.hf_data[0]["x"]
+    fig.hf_data[1]["y"] = -np.arange(k) + A * 300 * 40
+    fig.reload_data()
+
+    # In the current implementation -> reload data will update all traces
+    # Since there was no zoom-in event -> the `showspikes-update` will be called
+    assert ["showspikes-update", 2] in fig._relayout_hist
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "xaxis-range-update" in rh if isinstance(rh, list) else False
+                for rh in fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # zoom in on the first row it's xaxis and perform a layout update
+    l = fig.layout.update(
+        {"xaxis": {"range": [0, 100_000]}},
+        overwrite=True,
+    )
+    fig._update_x_ranges(
+        l, (0, 100_000), (fig.hf_data[1]["x"][0], fig.hf_data[1]["x"][-1])
+    )
+
+    fig._relayout_hist.clear()
+
+    fig.hf_data[1]["x"] = fig.hf_data[0]["x"]
+    fig.hf_data[1]["y"] = -np.arange(k) + A * 300 * 10
+    fig.reload_data()
+
+    # In the current implementation -> reload data will update all traces
+    # As we have performed a zoom event -> the`update showspikes` `will be called
+    # TODO -> for some reason this assert does not succeed when not showing the graph
+    # data
+    # assert ["xaxis-range-update", len(fig.hf_data)] in fig._relayout_hist
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+    # zoom in on the second row it's xaxis and perform a layout update
+    l = fig.layout.update(
+        {"xaxis2": {"range": [200_000, 500_000]}},
+        overwrite=True,
+    )
+    fig._update_x_ranges(l, (0, 100_000), (200_000, 500_000))
+
+    fig._relayout_hist.clear()
+    fig.hf_data[0]["x"] = fig.hf_data[0]["x"]
+    fig.hf_data[0]["y"] = -np.arange(k) + A * 300 * 39
+    fig.hf_data[1]["x"] = fig.hf_data[0]["x"]
+    fig.hf_data[1]["y"] = -np.arange(k) + A * 300 * 25
+    fig.reload_data()
+
+    # In the current implementation -> reload data will update all traces
+    # As we have performed a zoom event -> the`update showspikes` `will be called
+    assert ["xaxis-range-update", len(fig.hf_data)] in fig._relayout_hist
+
+    # check whether the xaxis-range-update was did not enter the update state
+    assert (
+        sum(
+            [
+                "showspikes-update" in rh if isinstance(rh, list) else False
+                for rh in fig._relayout_hist
+            ]
+        )
+        == 0
+    )
+
+
+def test_fwr_text_update():
+    k = 10_000
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    A = np.random.randn(k)
+    fig.hf_data[0]["x"] = np.arange(k)
+    fig.hf_data[0]["y"] = np.arange(k) + A * 300 * 20
+    fig.hf_data[0]["text"] = (-A * 20).astype(int).astype(str)
+    fig.reload_data()
+
+    assert ["showspikes-update", 1] in fig._relayout_hist
+    assert ["xaxis-range-update", 1] not in fig._relayout_hist
+
+    text = fig.data[0]["text"].astype(int)
+    hovertext = fig.data[0]["hovertext"]
+
+    assert len(text) == 1000
+    assert hovertext is None
+
+
+def test_fwr_hovertext_update():
+    k = 10_000
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="B", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with fig.batch_update():
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = np.arange(k)
+        fig.hf_data[0]["y"] = np.arange(k) + A * 300 * 20
+        fig.hf_data[0]["hovertext"] = (-A * 20).astype(int).astype(str)
+        fig.reload_data()
+
+    assert ["showspikes-update", 1] in fig._relayout_hist
+    assert ["xaxis-range-update", 1] not in fig._relayout_hist
+
+    text = fig.data[0]["text"]
+    hovertext = fig.data[0]["hovertext"].astype(int)
+
+    assert len(hovertext) == 1000
+    assert text is None
+
+
+def test_fwr_text_hovertext_update():
+    k = 10_000
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="B", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with fig.batch_update():
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = np.arange(k)
+        fig.hf_data[0]["y"] = np.arange(k) + A * 300 * 20
+        fig.hf_data[0]["text"] = (-A * 20).astype(int).astype(str)
+        fig.hf_data[0]["hovertext"] = (A * 20).astype(int).astype(str)
+        fig.reload_data()
+
+    assert ["showspikes-update", 1] in fig._relayout_hist
+    assert ["xaxis-range-update", 1] not in fig._relayout_hist
+
+    text = fig.data[0]["text"].astype(int)
+    hovertext = fig.data[0]["hovertext"].astype(int)
+
+    assert len(hovertext) == 1000
+    assert len(text) == 1000
+
+    # text === -hovertext -> so the sum should their length
+    assert (text == -hovertext).sum() == 1000
+
+
+def test_fwr_adjust_text_unequal_length():
+    k = 10_000
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with pytest.raises(ValueError):
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = np.arange(k + 100)
+        fig.hf_data[0]["y"] = np.arange(k + 100) + A * 300 * 20
+        fig.hf_data[0]["text"] = (-A * 20).astype(int).astype(str)
+        fig.reload_data()
+
+
+def test_fwr_hovertext_adjust_unequal_length():
+    k = 10_000
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with pytest.raises(ValueError):
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = np.arange(k - 500)
+        fig.hf_data[0]["y"] = np.arange(k - 500) + A * 300 * 20
+        fig.hf_data[0]["hovertext"] = (-A * 20).astype(int).astype(str)
+        fig.reload_data()
+
+
+def test_fwr_hovertext_adjust_unequal_length():
+    k = 10_000
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with pytest.raises(ValueError):
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = pd.Series(np.arange(k - 500))
+        fig.hf_data[0]["y"] = np.arange(k - 500) + A * 300 * 20
+        fig.hf_data[0]["hovertext"] = (-A * 20).astype(int).astype(str)
+        fig.reload_data()
+
+
+def test_fwr_adjust_series_input():
+    k = 10_000
+    a_k = np.arange(k)
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with fig.batch_update():
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = pd.Series(index=a_k + 1_000_000, data=a_k - 2000)
+        fig.hf_data[0]["y"] = pd.Series(index=a_k - 9999, data=a_k + 5 + np.abs(A) * 50)
+        fig.reload_data()
+
+    assert ["showspikes-update", 1] in fig._relayout_hist
+    assert ["xaxis-range-update", 1] not in fig._relayout_hist
+
+    x = fig.data[0]["x"]
+    y = fig.data[0]["y"]
+
+    # asser that hf x and y its values are used and not its index
+    assert x[0] == -2000
+    assert y[0] >= 5
+
+
+def test_fwr_adjust_series_text_input():
+    k = 10_000
+    a_k = np.arange(k)
+    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
+    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
+
+    fig._relayout_hist.clear()
+
+    with fig.batch_update():
+        A = np.random.randn(k)
+        fig.hf_data[0]["x"] = pd.Series(index=a_k + 10_000, data=a_k - 2000)
+        fig.hf_data[0]["y"] = pd.Series(index=a_k, data=a_k + 10 + np.abs(A) * 50)
+        fig.hf_data[0]["hovertext"] = pd.Series(
+            index=a_k - 1_000_000, data=(-A * 20).astype(int).astype(str)
+        )
+        fig.hf_data[0]["text"] = pd.Series(
+            index=a_k + 1_000_000, data=(A * 20).astype(int).astype(str)
+        )
+        fig.reload_data()
+
+    assert ["showspikes-update", 1] in fig._relayout_hist
+    assert ["xaxis-range-update", 1] not in fig._relayout_hist
+
+    x = fig.data[0]["x"]
+    y = fig.data[0]["y"]
+
+    # asser that hf x and y its values are used and not its index
+    assert x[0] == -2000
+    assert y[0] >= 10
+
+    text = fig.data[0]["text"].astype(int)
+    hovertext = fig.data[0]["hovertext"].astype(int)
+
+    assert len(hovertext) == 1000
+    assert len(text) == 1000
+
+    # text === -hovertext -> so the sum should their length
+    assert (text == -hovertext).sum() == 1000

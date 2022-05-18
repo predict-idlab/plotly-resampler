@@ -44,10 +44,7 @@ class LTTB(AbstractSeriesAggregator):
 
     """
 
-    def __init__(
-        self,
-        interleave_gaps: bool = True,
-    ):
+    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
         """
         Parameters
         ----------
@@ -55,9 +52,22 @@ class LTTB(AbstractSeriesAggregator):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+
         """
         super().__init__(
             interleave_gaps,
+            nan_position,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
             + ["category", "bool"],
         )
@@ -105,7 +115,7 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
 
     """
 
-    def __init__(self, interleave_gaps: bool = True):
+    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
         """
         Parameters
         ----------
@@ -113,9 +123,21 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+
         """
         # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, dtype_regex_list=None)
+        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         # The block size 2x the bin size we also perform the ceil-operation
@@ -160,7 +182,7 @@ class MinMaxAggregator(AbstractSeriesAggregator):
 
     """
 
-    def __init__(self, interleave_gaps: bool = True):
+    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
         """
         Parameters
         ----------
@@ -168,9 +190,22 @@ class MinMaxAggregator(AbstractSeriesAggregator):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes, by default None.
         """
         # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, dtype_regex_list=None)
+        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         # The block size 2x the bin size we also perform the ceil-operation
@@ -195,10 +230,10 @@ class MinMaxAggregator(AbstractSeriesAggregator):
             + offset
         )
 
-        # Note: the implementation below flips the array to search from 
-        # right-to left (as min or max will always usee the first same minimum item, 
+        # Note: the implementation below flips the array to search from
+        # right-to left (as min or max will always usee the first same minimum item,
         # i.e. the most left item)
-        # This however creates a large computational overhead -> we do not use this 
+        # This however creates a large computational overhead -> we do not use this
         # implementation and suggest using the minmaxaggregator.
         # argmax = (
         #     (block_size - 1)
@@ -218,7 +253,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
     aggregating the reduced result with :class:`LTTB <LTTB>`.
     """
 
-    def __init__(self, interleave_gaps: bool = True):
+    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
         """
         Parameters
         ----------
@@ -226,11 +261,24 @@ class EfficientLTTB(AbstractSeriesAggregator):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+
         """
         self.lttb = LTTB(interleave_gaps=False)
         self.minmax = MinMaxOverlapAggregator(interleave_gaps=False)
         super().__init__(
             interleave_gaps,
+            nan_position,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
             + ["category", "bool"],
         )
@@ -244,7 +292,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
 class EveryNthPoint(AbstractSeriesAggregator):
     """Naive (but fast) aggregator method which returns every N'th point."""
 
-    def __init__(self, interleave_gaps: bool = True):
+    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
         """
         Parameters
         ----------
@@ -252,9 +300,21 @@ class EveryNthPoint(AbstractSeriesAggregator):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+
         """
         # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, dtype_regex_list=None)
+        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         return s[:: max(1, math.ceil(len(s) / n_out))]
@@ -263,7 +323,7 @@ class EveryNthPoint(AbstractSeriesAggregator):
 class FuncAggregator(AbstractSeriesAggregator):
     """Aggregator instance which uses the passed aggregation func.
 
-    .. note::
+    .. attention::
         The user has total control which `aggregation_func` is passed to this method,
         hence it is the users' responsibility to handle categorical and bool-based
         data types.
@@ -271,7 +331,11 @@ class FuncAggregator(AbstractSeriesAggregator):
     """
 
     def __init__(
-        self, aggregation_func, interleave_gaps: bool = True, dtype_regex_list=None
+        self,
+        aggregation_func,
+        interleave_gaps: bool = True,
+        nan_position="end",
+        dtype_regex_list=None,
     ):
         """
         Parameters
@@ -282,13 +346,23 @@ class FuncAggregator(AbstractSeriesAggregator):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
         dtype_regex_list: List[str], optional
-            List containing the regex matching the supported data types,
-            by default None.
+            List containing the regex matching the supported datatypes, by default None.
 
         """
         self.aggregation_func = aggregation_func
-        super().__init__(interleave_gaps, dtype_regex_list)
+        super().__init__(interleave_gaps, nan_position, dtype_regex_list)
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         if isinstance(s.index, pd.DatetimeIndex):

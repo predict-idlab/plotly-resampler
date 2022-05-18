@@ -40,7 +40,7 @@ class FigureWidgetResampler(
 
     def __init__(
         self,
-        figure: go.FigureWidget | go.Figure = go.Figure(),
+        figure: go.FigureWidget | go.Figure = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -51,6 +51,9 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
+        if figure is None:
+            figure = go.FigureWidget()
+
         if not isinstance(figure, go.FigureWidget):
             figure = go.FigureWidget(figure)
 
@@ -85,7 +88,7 @@ class FigureWidgetResampler(
         x_relayout_keys = [f"{xaxis}.range" for xaxis in self._xaxis_list]
         self.layout.on_change(self._update_x_ranges, *x_relayout_keys)
 
-    def _update_x_ranges(self, layout, *x_ranges):
+    def _update_x_ranges(self, layout, *x_ranges, force_update: bool = False):
         """Update the the go.Figure data based on changed x-ranges.
 
         Parameters
@@ -98,6 +101,8 @@ class FigureWidgetResampler(
             A iterable list of current x-ranges, where each x-range is a tuple of two
             items, indicating the current/new (if changed) left-right x-range,
             respectively.
+        fore_update: bool
+            Whether an update of all traces will be forced, by default False.
         """
         relayout_dict = {}  # variable in which we aim to reconstruct the relayout
         # serialize the layout in a new dict object
@@ -114,6 +119,7 @@ class FigureWidgetResampler(
             if (
                 "range" in layout[xaxis_str]
                 and self._prev_layout[xaxis_str].get("range", []) != x_range
+                or (force_update and x_range is not None)
             ):
                 # a change took place -> add to the relayout dict
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
@@ -172,7 +178,7 @@ class FigureWidgetResampler(
         }
 
         if self._prev_layout is None:
-            return
+            self._prev_layout = layout
 
         for xaxis_str, showspike in zip(self._xaxis_list, showspikes):
             if (
@@ -230,7 +236,7 @@ class FigureWidgetResampler(
         ``FigureWidgetResampler``.
         """
         self._update_spike_ranges(
-            self.layout, [False] * len(self._xaxis_list), force_update=True
+            self.layout, *[False] * len(self._xaxis_list), force_update=True
         )
         # Reset the layout
         self.update_layout(
@@ -246,12 +252,24 @@ class FigureWidgetResampler(
         This is useful when adjusting the `hf_data` properties of the
         ``FigureWidgetResampler``.
         """
-        self._update_spike_ranges(
-            self.layout, [False] * len(self._xaxis_list), force_update=True
-        )
-        # Resample the data for the current range-view
-        self._update_x_ranges(
-            self.layout,
-            # Pass the current view to trigger a resample operation
-            *[self.layout[xaxis_str]["range"] for xaxis_str in self._xaxis_list],
-        )
+        if all(
+            self.layout[xaxis].autorange
+            or (
+                self.layout[xaxis].autorange is None
+                and self.layout[xaxis].range is None
+            )
+            for xaxis in self._xaxis_list
+        ):
+            self._update_spike_ranges(
+                self.layout, *[False] * len(self._xaxis_list), force_update=True
+            )
+        else:
+            # Resample the data for the current range-view
+            self._update_x_ranges(
+                self.layout,
+                # Pass the current view to trigger a resample operation
+                *[self.layout[xaxis_str]["range"] for xaxis_str in self._xaxis_list],
+                force_update=True,
+            )
+            # TODO: when we know which traces have changed we can use
+            # a new -> `update_xaxis_str` argument.
