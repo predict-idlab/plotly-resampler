@@ -186,7 +186,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span> <span class="o">|</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">(),</span>
+        <span class="n">figure</span><span class="p">:</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span> <span class="o">|</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">convert_existing_traces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">default_n_shown_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
         <span class="n">default_downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="n">EfficientLTTB</span><span class="p">(),</span>
@@ -197,6 +197,9 @@
         <span class="n">show_mean_aggregation_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="k">if</span> <span class="n">figure</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span><span class="p">()</span>
+
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span><span class="p">):</span>
             <span class="n">figure</span> <span class="o">=</span> <span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span>
 
@@ -231,7 +234,7 @@
         <span class="n">x_relayout_keys</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xaxis</span><span class="si">}</span><span class="s2">.range&quot;</span> <span class="k">for</span> <span class="n">xaxis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">on_change</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_update_x_ranges</span><span class="p">,</span> <span class="o">*</span><span class="n">x_relayout_keys</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_update_x_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="o">*</span><span class="n">x_ranges</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_update_x_ranges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">layout</span><span class="p">,</span> <span class="o">*</span><span class="n">x_ranges</span><span class="p">,</span> <span class="n">force_update</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Update the the go.Figure data based on changed x-ranges.</span>
 
 <span class="sd">        Parameters</span>
@@ -244,6 +247,8 @@
 <span class="sd">            A iterable list of current x-ranges, where each x-range is a tuple of two</span>
 <span class="sd">            items, indicating the current/new (if changed) left-right x-range,</span>
 <span class="sd">            respectively.</span>
+<span class="sd">        fore_update: bool</span>
+<span class="sd">            Whether an update of all traces will be forced, by default False.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">relayout_dict</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># variable in which we aim to reconstruct the relayout</span>
         <span class="c1"># serialize the layout in a new dict object</span>
@@ -260,6 +265,7 @@
             <span class="k">if</span> <span class="p">(</span>
                 <span class="s2">&quot;range&quot;</span> <span class="ow">in</span> <span class="n">layout</span><span class="p">[</span><span class="n">xaxis_str</span><span class="p">]</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_layout</span><span class="p">[</span><span class="n">xaxis_str</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;range&quot;</span><span class="p">,</span> <span class="p">[])</span> <span class="o">!=</span> <span class="n">x_range</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="n">force_update</span> <span class="ow">and</span> <span class="n">x_range</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span>
             <span class="p">):</span>
                 <span class="c1"># a change took place -&gt; add to the relayout dict</span>
                 <span class="n">relayout_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xaxis_str</span><span class="si">}</span><span class="s2">.range[0]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -318,7 +324,7 @@
         <span class="p">}</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prev_layout</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prev_layout</span> <span class="o">=</span> <span class="n">layout</span>
 
         <span class="k">for</span> <span class="n">xaxis_str</span><span class="p">,</span> <span class="n">showspike</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">,</span> <span class="n">showspikes</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span>
@@ -376,7 +382,7 @@
 <span class="sd">        ``FigureWidgetResampler``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_spike_ranges</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">),</span> <span class="n">force_update</span><span class="o">=</span><span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="o">*</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">),</span> <span class="n">force_update</span><span class="o">=</span><span class="kc">True</span>
         <span class="p">)</span>
         <span class="c1"># Reset the layout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
@@ -392,15 +398,27 @@
 <span class="sd">        This is useful when adjusting the `hf_data` properties of the</span>
 <span class="sd">        ``FigureWidgetResampler``.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_spike_ranges</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">),</span> <span class="n">force_update</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
-        <span class="c1"># Resample the data for the current range-view</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_x_ranges</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
-            <span class="c1"># Pass the current view to trigger a resample operation</span>
-            <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis_str</span><span class="p">][</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">xaxis_str</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">],</span>
-        <span class="p">)</span></div></div>
+        <span class="k">if</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">autorange</span>
+            <span class="ow">or</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">autorange</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis</span><span class="p">]</span><span class="o">.</span><span class="n">range</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">xaxis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span>
+        <span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_spike_ranges</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span> <span class="o">*</span><span class="p">[</span><span class="kc">False</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">),</span> <span class="n">force_update</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Resample the data for the current range-view</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_update_x_ranges</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">,</span>
+                <span class="c1"># Pass the current view to trigger a resample operation</span>
+                <span class="o">*</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis_str</span><span class="p">][</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">xaxis_str</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">],</span>
+                <span class="n">force_update</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span></div></div>
+            <span class="c1"># TODO: when we know which traces have changed we can use</span>
+            <span class="c1"># a new -&gt; `update_xaxis_str` argument.</span>
 </pre></div>
 
               </div>

@@ -162,6 +162,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">nan_position</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;end&quot;</span><span class="p">,</span>
         <span class="n">dtype_regex_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Constructor of AbstractSeriesAggregator.</span>
@@ -172,12 +173,24 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a </span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a </span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with </span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set </span>
+<span class="sd">                to *True*.</span>
 <span class="sd">        dtype_regex_list: List[str], optional</span>
 <span class="sd">            List containing the regex matching the supported datatypes, by default None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span> <span class="o">=</span> <span class="n">interleave_gaps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dtype_regex_list</span> <span class="o">=</span> <span class="n">dtype_regex_list</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nan_position</span> <span class="o">=</span> <span class="n">nan_position</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
     <span class="nd">@abstractmethod</span>
@@ -207,18 +220,16 @@
         <span class="c1"># To do so - use a quantile-based (median) approach where we reshape the data</span>
         <span class="c1"># into `n_blocks` blocks and calculate the min</span>
         <span class="n">n_blcks</span> <span class="o">=</span> <span class="mi">128</span>
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_blcks</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">n_blcks</span><span class="p">:</span>
             <span class="n">blck_size</span> <span class="o">=</span> <span class="n">s_idx_diff</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">//</span> <span class="n">n_blcks</span>
 
             <span class="c1"># convert the index series index diff into a reshaped view (i.e., sid_v)</span>
             <span class="n">sid_v</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">s_idx_diff</span><span class="p">[:</span> <span class="n">blck_size</span> <span class="o">*</span> <span class="n">n_blcks</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_blcks</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
             <span class="c1"># calculate the min and max and calculate the median on that</span>
-            <span class="n">med_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">sid_v</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span> <span class="n">sid_v</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))),</span> <span class="n">q</span><span class="o">=</span><span class="mf">0.55</span>
-            <span class="p">)</span>
+            <span class="n">med_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">sid_v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">med_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">s_idx_diff</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="mf">0.55</span><span class="p">)</span>
+            <span class="n">med_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">median</span><span class="p">(</span><span class="n">s_idx_diff</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">med_diff</span><span class="p">,</span> <span class="n">s_idx_diff</span>
 
@@ -254,7 +265,15 @@
         <span class="n">med_diff</span><span class="p">,</span> <span class="n">s_idx_diff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calc_med_diff</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">med_diff</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># Replace data-points with None where the gaps occur</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">s_idx_diff</span> <span class="o">&gt;</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">med_diff</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="c1"># The default is the end of a gap</span>
+            <span class="n">nan_mask</span> <span class="o">=</span> <span class="n">s_idx_diff</span> <span class="o">&gt;</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">med_diff</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_position</span> <span class="o">==</span> <span class="s2">&quot;begin&quot;</span><span class="p">:</span>
+                <span class="c1"># Replace the last non-gap datapoint (begin of gap) with Nan</span>
+                <span class="n">nan_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">nan_mask</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nan_position</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+                <span class="c1"># Replace the encompassing gap datapoints with Nan</span>
+                <span class="n">nan_mask</span> <span class="o">|=</span> <span class="n">np</span><span class="o">.</span><span class="n">roll</span><span class="p">(</span><span class="n">nan_mask</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">nan_mask</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">return</span> <span class="n">s</span>
 
 <div class="viewcode-block" id="AbstractSeriesAggregator.aggregate"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>

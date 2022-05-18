@@ -167,7 +167,7 @@
 <p>AbstractSeriesAggregator interface-class, subclassed by concrete aggregators.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregation_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractSeriesAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype_regex_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregation_interface.html#AbstractSeriesAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregation_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractSeriesAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype_regex_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregation_interface.html#AbstractSeriesAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>Constructor of AbstractSeriesAggregator.</p>
 <dl class="field-list simple">
@@ -176,6 +176,19 @@
 <li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
 <li><p><strong>dtype_regex_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List containing the regex matching the supported datatypes, by default None.</p></li>
 </ul>
 </dd>
@@ -209,7 +222,7 @@ irregularly sampled data. By default, True.</p></li>
 <p>Compatible implementation for various aggregation/downsample methods.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregators.LTTB">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">LTTB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#LTTB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.LTTB" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">LTTB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#LTTB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.LTTB" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator</span></code></a></p>
 <p>Largest Triangle Three Buckets (LTTB) aggregation method.</p>
 <div class="admonition tip">
@@ -241,16 +254,31 @@ make aggregation decisions.
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
-irregularly sampled data. By default, True.</p>
+irregularly sampled data. By default, True.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">MinMaxOverlapAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#MinMaxOverlapAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">MinMaxOverlapAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#MinMaxOverlapAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator</span></code></a></p>
 <p>Aggregation method which performs binned min-max aggregation over 50% overlapping
 windows.</p>
@@ -266,16 +294,31 @@ algorithm, as <a class="reference internal" href="#plotly_resampler.aggregation.
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
-irregularly sampled data. By default, True.</p>
+irregularly sampled data. By default, True.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregators.MinMaxAggregator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">MinMaxAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#MinMaxAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.MinMaxAggregator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">MinMaxAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#MinMaxAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.MinMaxAggregator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator</span></code></a></p>
 <p>Aggregation method which performs binned min-max aggregation over fully
 overlapping windows.</p>
@@ -288,50 +331,96 @@ algorithm, as <a class="reference internal" href="#plotly_resampler.aggregation.
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
-irregularly sampled data. By default, True.</p>
+irregularly sampled data. By default, True.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
+<li><p><strong>dtype_regex_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List containing the regex matching the supported datatypes, by default None.</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregators.EfficientLTTB">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">EfficientLTTB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#EfficientLTTB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.EfficientLTTB" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">EfficientLTTB</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#EfficientLTTB"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.EfficientLTTB" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator</span></code></a></p>
 <p>Efficient version off LTTB by first reducing really large datasets with
 the <a class="reference internal" href="#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator" title="plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MinMaxOverlapAggregator</span></code></a> and then further
 aggregating the reduced result with <a class="reference internal" href="#plotly_resampler.aggregation.aggregators.LTTB" title="plotly_resampler.aggregation.aggregators.LTTB"><code class="xref py py-class docutils literal notranslate"><span class="pre">LTTB</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
-irregularly sampled data. By default, True.</p>
+irregularly sampled data. By default, True.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregators.EveryNthPoint">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">EveryNthPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#EveryNthPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.EveryNthPoint" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">EveryNthPoint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#EveryNthPoint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.EveryNthPoint" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator</span></code></a></p>
 <p>Naive (but fast) aggregator method which returns every N’th point.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
-irregularly sampled data. By default, True.</p>
+irregularly sampled data. By default, True.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.aggregation.aggregators.FuncAggregator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">FuncAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggregation_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype_regex_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#FuncAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.FuncAggregator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.aggregators.</span></span><span class="sig-name descname"><span class="pre">FuncAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">aggregation_func</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interleave_gaps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nan_position</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'end'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype_regex_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/aggregators.html#FuncAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.aggregators.FuncAggregator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator</span></code></a></p>
 <p>Aggregator instance which uses the passed aggregation func.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
+<div class="admonition attention">
+<p class="admonition-title">Attention</p>
 <p>The user has total control which <cite>aggregation_func</cite> is passed to this method,
 hence it is the users’ responsibility to handle categorical and bool-based
 data types.</p>
@@ -343,8 +432,20 @@ data types.</p>
 <li><p><strong>interleave_gaps</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether None values should be added when there are gaps / irregularly
 sampled data. A quantile-based approach is used to determine the gaps /
 irregularly sampled data. By default, True.</p></li>
-<li><p><strong>dtype_regex_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List containing the regex matching the supported data types,
-by default None.</p></li>
+<li><p><strong>nan_position</strong> (<em>str</em><em>, </em><em>optional</em>) – <p>Indicates where nans must be placed when gaps are detected.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'end'</span></code>, the first point after a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'begin'</span></code>, the last point before a gap will be replaced with a
+nan-value</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">'both'</span></code>, both the encompassing gap datapoints are replaced with
+nan-values</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This parameter only has an effect when <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set
+to <em>True</em>.</p>
+</div>
+</p></li>
+<li><p><strong>dtype_regex_list</strong> (<em>List</em><em>[</em><em>str</em><em>]</em><em>, </em><em>optional</em>) – List containing the regex matching the supported datatypes, by default None.</p></li>
 </ul>
 </dd>
 </dl>

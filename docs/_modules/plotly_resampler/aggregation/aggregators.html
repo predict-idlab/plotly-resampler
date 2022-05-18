@@ -190,10 +190,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -201,9 +198,22 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with</span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set</span>
+<span class="sd">                to *True*.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">interleave_gaps</span><span class="p">,</span>
+            <span class="n">nan_position</span><span class="p">,</span>
             <span class="n">dtype_regex_list</span><span class="o">=</span><span class="p">[</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">\d*&quot;</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;uint&quot;</span><span class="p">]]</span>
             <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">],</span>
         <span class="p">)</span>
@@ -251,7 +261,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -259,9 +269,21 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with</span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set</span>
+<span class="sd">                to *True*.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this downsampler supports all pd.Series dtypes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">nan_position</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="c1"># The block size 2x the bin size we also perform the ceil-operation</span>
@@ -306,7 +328,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -314,9 +336,22 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with</span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set</span>
+<span class="sd">                to *True*.</span>
+<span class="sd">        dtype_regex_list: List[str], optional</span>
+<span class="sd">            List containing the regex matching the supported datatypes, by default None.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this downsampler supports all pd.Series dtypes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">nan_position</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="c1"># The block size 2x the bin size we also perform the ceil-operation</span>
@@ -341,10 +376,10 @@
             <span class="o">+</span> <span class="n">offset</span>
         <span class="p">)</span>
 
-        <span class="c1"># Note: the implementation below flips the array to search from </span>
-        <span class="c1"># right-to left (as min or max will always usee the first same minimum item, </span>
+        <span class="c1"># Note: the implementation below flips the array to search from</span>
+        <span class="c1"># right-to left (as min or max will always usee the first same minimum item,</span>
         <span class="c1"># i.e. the most left item)</span>
-        <span class="c1"># This however creates a large computational overhead -&gt; we do not use this </span>
+        <span class="c1"># This however creates a large computational overhead -&gt; we do not use this</span>
         <span class="c1"># implementation and suggest using the minmaxaggregator.</span>
         <span class="c1"># argmax = (</span>
         <span class="c1">#     (block_size - 1)</span>
@@ -364,7 +399,7 @@
 <span class="sd">    aggregating the reduced result with :class:`LTTB &lt;LTTB&gt;`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -372,11 +407,24 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with</span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set</span>
+<span class="sd">                to *True*.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span> <span class="o">=</span> <span class="n">LTTB</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">minmax</span> <span class="o">=</span> <span class="n">MinMaxOverlapAggregator</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">interleave_gaps</span><span class="p">,</span>
+            <span class="n">nan_position</span><span class="p">,</span>
             <span class="n">dtype_regex_list</span><span class="o">=</span><span class="p">[</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">\d*&quot;</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;uint&quot;</span><span class="p">]]</span>
             <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">],</span>
         <span class="p">)</span>
@@ -390,7 +438,7 @@
 <div class="viewcode-block" id="EveryNthPoint"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint">[docs]</a><span class="k">class</span> <span class="nc">EveryNthPoint</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every N&#39;th point.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -398,9 +446,21 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with</span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set</span>
+<span class="sd">                to *True*.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this downsampler supports all pd.Series dtypes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">nan_position</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">s</span><span class="p">[::</span> <span class="nb">max</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_out</span><span class="p">))]</span></div>
@@ -409,7 +469,7 @@
 <div class="viewcode-block" id="FuncAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.FuncAggregator">[docs]</a><span class="k">class</span> <span class="nc">FuncAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Aggregator instance which uses the passed aggregation func.</span>
 
-<span class="sd">    .. note::</span>
+<span class="sd">    .. attention::</span>
 <span class="sd">        The user has total control which `aggregation_func` is passed to this method,</span>
 <span class="sd">        hence it is the users&#39; responsibility to handle categorical and bool-based</span>
 <span class="sd">        data types.</span>
@@ -417,7 +477,11 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">aggregation_func</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">aggregation_func</span><span class="p">,</span>
+        <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">,</span>
+        <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
@@ -428,13 +492,23 @@
 <span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
 <span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
 <span class="sd">            irregularly sampled data. By default, True.</span>
+<span class="sd">        nan_position: str, optional</span>
+<span class="sd">            Indicates where nans must be placed when gaps are detected. \n</span>
+<span class="sd">            If ``&#39;end&#39;``, the first point after a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;begin&#39;``, the last point before a gap will be replaced with a</span>
+<span class="sd">            nan-value \n</span>
+<span class="sd">            If ``&#39;both&#39;``, both the encompassing gap datapoints are replaced with</span>
+<span class="sd">            nan-values \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This parameter only has an effect when ``interleave_gaps`` is set</span>
+<span class="sd">                to *True*.</span>
 <span class="sd">        dtype_regex_list: List[str], optional</span>
-<span class="sd">            List containing the regex matching the supported data types,</span>
-<span class="sd">            by default None.</span>
+<span class="sd">            List containing the regex matching the supported datatypes, by default None.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_func</span> <span class="o">=</span> <span class="n">aggregation_func</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="n">nan_position</span><span class="p">,</span> <span class="n">dtype_regex_list</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>

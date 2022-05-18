@@ -220,22 +220,22 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.EfficientLTTB" title="plotly_resampler.aggregation.aggregators.EfficientLTTB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EfficientLTTB</span></code></a>([interleave_gaps])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.EfficientLTTB" title="plotly_resampler.aggregation.aggregators.EfficientLTTB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EfficientLTTB</span></code></a>([interleave_gaps, nan_position])</p></td>
 <td><p>Efficient version off LTTB by first reducing really large datasets with the <a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator" title="plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">MinMaxOverlapAggregator</span></code></a> and then further aggregating the reduced result with <a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB" title="plotly_resampler.aggregation.aggregators.LTTB"><code class="xref py py-class docutils literal notranslate"><span class="pre">LTTB</span></code></a>.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint" title="plotly_resampler.aggregation.aggregators.EveryNthPoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EveryNthPoint</span></code></a>([interleave_gaps])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint" title="plotly_resampler.aggregation.aggregators.EveryNthPoint"><code class="xref py py-obj docutils literal notranslate"><span class="pre">EveryNthPoint</span></code></a>([interleave_gaps, nan_position])</p></td>
 <td><p>Naive (but fast) aggregator method which returns every N'th point.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.FuncAggregator" title="plotly_resampler.aggregation.aggregators.FuncAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FuncAggregator</span></code></a>(aggregation_func[, ...])</p></td>
 <td><p>Aggregator instance which uses the passed aggregation func.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB" title="plotly_resampler.aggregation.aggregators.LTTB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LTTB</span></code></a>([interleave_gaps])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB" title="plotly_resampler.aggregation.aggregators.LTTB"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LTTB</span></code></a>([interleave_gaps, nan_position])</p></td>
 <td><p>Largest Triangle Three Buckets (LTTB) aggregation method.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxAggregator" title="plotly_resampler.aggregation.aggregators.MinMaxAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MinMaxAggregator</span></code></a>([interleave_gaps])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxAggregator" title="plotly_resampler.aggregation.aggregators.MinMaxAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MinMaxAggregator</span></code></a>([interleave_gaps, nan_position])</p></td>
 <td><p>Aggregation method which performs binned min-max aggregation over fully overlapping windows.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator" title="plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MinMaxOverlapAggregator</span></code></a>([interleave_gaps])</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator" title="plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MinMaxOverlapAggregator</span></code></a>([interleave_gaps, ...])</p></td>
 <td><p>Aggregation method which performs binned min-max aggregation over 50% overlapping windows.</p></td>
 </tr>
 </tbody>

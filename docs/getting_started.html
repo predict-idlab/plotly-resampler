@@ -309,7 +309,10 @@ The <span class="raw-html"><a style="color:orange"><b>~</b> <i>delta</i></a></sp
 </div>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p><cite>hf_data</cite> only withholds high-frequency traces (i.e., traces that are aggregated)</p>
+<p><cite>hf_data</cite> only withholds high-frequency traces (i.e., traces that are aggregated).
+To add non high-frequency traces (i.e., traces with fewer data points than
+<em>max_n_samples</em>), you need to set the <code class="docutils literal notranslate"><span class="pre">limit_to_view</span></code> argument to <em>True</em> when adding
+the corresponding trace with the  <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace</span></code></a> function.</p>
 </div>
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>

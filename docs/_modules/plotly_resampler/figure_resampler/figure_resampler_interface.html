@@ -363,21 +363,23 @@
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
-                <span class="n">start</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
-                <span class="n">end</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">end</span>
-                <span class="k">if</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
-                    <span class="n">start</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
-                    <span class="n">end</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_series</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
+                    <span class="n">end</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">end</span>
+                    <span class="k">if</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+                        <span class="n">start</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
+                        <span class="n">end</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
 
-                <span class="c1"># Search the index-positions</span>
-                <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">])</span>
-                <span class="n">hf_series</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+                    <span class="c1"># Search the index-positions</span>
+                    <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">])</span>
+                    <span class="n">hf_series</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
 
             <span class="c1"># Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t</span>
             <span class="c1"># contain any data in the current view</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_series</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
                 <span class="k">return</span> <span class="n">trace</span>
 
@@ -412,17 +414,23 @@
                     <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">)]</span>
             <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
 
+            <span class="c1"># Check if text also needs to be resampled</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="c1"># TODO -&gt; extra logic is necessary for the detection and processing of</span>
+                <span class="c1"># non data-point selection downsamplers</span>
+                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                    <span class="n">s_res</span><span class="o">.</span><span class="n">index</span>
+                <span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
+
             <span class="c1"># Check if hovertext also needs to be resampled</span>
             <span class="n">hovertext</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hovertext&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hovertext</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
-                <span class="c1"># TODO -&gt; this can be optimized</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">merge_asof</span><span class="p">(</span>
-                    <span class="n">s_res</span><span class="p">,</span>
-                    <span class="n">hovertext</span><span class="p">,</span>
-                    <span class="n">left_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">right_index</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                    <span class="n">direction</span><span class="o">=</span><span class="s2">&quot;nearest&quot;</span><span class="p">,</span>
-                <span class="p">)[</span><span class="n">hovertext</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hovertext</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span>
+                    <span class="n">x</span><span class="o">=</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">hovertext</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hovertext</span>
             <span class="k">return</span> <span class="n">trace</span>
@@ -607,6 +615,7 @@
 <span class="sd">                    &#39;y&#39;: array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),</span>
 <span class="sd">                    &#39;axis_type&#39;: &#39;linear&#39;,</span>
 <span class="sd">                    &#39;downsampler&#39;: &lt;plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0&gt;,</span>
+<span class="sd">                    &#39;text&#39;: None,</span>
 <span class="sd">                    &#39;hovertext&#39;: None</span>
 <span class="sd">                },</span>
 <span class="sd">            ]</span>
@@ -616,6 +625,9 @@
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Construct the hf-series.</span>
+
+<span class="sd">        By constructing the hf-series this way, users can dynamically adjust the hf</span>
+<span class="sd">        series argument.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -629,6 +641,15 @@
 <span class="sd">        pd.Series</span>
 <span class="sd">            The constructed hf_series</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Note this is the same behavior as plotly support</span>
+        <span class="c1"># i.e. it also used the `values` property of the `x` and `y` parameters when</span>
+        <span class="c1"># these are pd.Series</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">values</span>
+
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
             <span class="n">data</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
             <span class="n">index</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
@@ -646,6 +667,7 @@
         <span class="c1"># Use these if you want some speedups (and are working with really large data)</span>
         <span class="n">hf_x</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">hf_y</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hf_text</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">hf_hovertext</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">,</span>
     <span class="p">):</span>
@@ -676,7 +698,9 @@
 <span class="sd">        limit_to_view: boolean, optional</span>
 <span class="sd">            If set to True the trace&#39;s datapoints will be cut to the corresponding</span>
 <span class="sd">            front-end view, even if the total number of samples is lower than</span>
-<span class="sd">            ``max_n_samples``, By default False.</span>
+<span class="sd">            ``max_n_samples``, By default False.\n</span>
+<span class="sd">            Remark that setting this parameter to True ensures that low frequency traces</span>
+<span class="sd">            are added to the ``hf_data`` property.</span>
 <span class="sd">        hf_x: Iterable, optional</span>
 <span class="sd">            The original high frequency series positions, can be either a time-series or</span>
 <span class="sd">            an increasing, numerical index. If set, this has priority over the trace its</span>
@@ -684,9 +708,12 @@
 <span class="sd">        hf_y: Iterable, optional</span>
 <span class="sd">            The original high frequency values. If set, this has priority over the</span>
 <span class="sd">            trace its data.</span>
+<span class="sd">        hf_text: Iterable, optional</span>
+<span class="sd">            The original high frequency text. If set, this has priority over the trace</span>
+<span class="sd">            its ``text`` argument.</span>
 <span class="sd">        hf_hovertext: Iterable, optional</span>
 <span class="sd">            The original high frequency hovertext. If set, this has priority over the</span>
-<span class="sd">            trace its ``text`` or ``hovertext`` argument.</span>
+<span class="sd">            trace its ```hovertext`` argument.</span>
 <span class="sd">        **trace_kwargs: dict</span>
 <span class="sd">            Additional trace related keyword arguments.</span>
 <span class="sd">            e.g.: row=.., col=..., secondary_y=...</span>
@@ -728,10 +755,10 @@
 <span class="sd">        ---------</span>
 <span class="sd">        * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do</span>
 <span class="sd">          not allow ``NaN`` values in ``hf_x`` or ``trace.x``.</span>
-<span class="sd">        * ``hf_x``, ``hf_y``, and ``hf_hovertext`` are useful when you deal with large</span>
-<span class="sd">          amounts of data (as it can increase the speed of this add_trace() method with</span>
-<span class="sd">          ~30%). These arguments have priority over the trace&#39;s data and (hover)text</span>
-<span class="sd">          attributes.</span>
+<span class="sd">        * ``hf_x``, ``hf_y``, ``hf_text``, and ``hf_hovertext`` are useful when you deal</span>
+<span class="sd">          with large amounts of data (as it can increase the speed of this add_trace()</span>
+<span class="sd">          method with ~30%). These arguments have priority over the trace&#39;s data and</span>
+<span class="sd">          (hover)text attributes.</span>
 <span class="sd">        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder</span>
 <span class="sd">          the the automatic-zooming (y-scaling) as these will not be stored in the</span>
 <span class="sd">          back-end and thus not be scaled to the view.</span>
@@ -748,27 +775,37 @@
         <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uuid</span>
 
         <span class="n">hf_x</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hf_x</span> <span class="ow">is</span> <span class="kc">None</span> 
-            <span class="k">else</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">hf_x</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hf_x</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">hf_x</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span>
             <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span>
         <span class="p">)</span>
 
         <span class="n">hf_y</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hf_y</span> <span class="ow">is</span> <span class="kc">None</span> 
-            <span class="k">else</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">))</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hf_y</span> <span class="ow">is</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">values</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">))</span>
             <span class="k">else</span> <span class="n">hf_y</span>
         <span class="p">)</span>
         <span class="n">hf_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
 
-        <span class="c1"># Note: &quot;hovertext&quot; takes precedence over &quot;text&quot;</span>
+        <span class="n">hf_text</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">hf_text</span>
+            <span class="k">if</span> <span class="n">hf_text</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
         <span class="n">hf_hovertext</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">hf_hovertext</span>
             <span class="k">if</span> <span class="n">hf_hovertext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span>
             <span class="k">else</span> <span class="kc">None</span>
         <span class="p">)</span>
 
@@ -791,12 +828,9 @@
                 <span class="s2">&quot;(i.e., x and y, or hf_x and hf_y) to be &lt;= 1 dimensional!&quot;</span>
             <span class="p">)</span>
 
-            <span class="c1"># Make sure to set the text-attribute to None as the default plotly behavior</span>
-            <span class="c1"># for these high-dimensional traces (scatters) is that text will be shown in</span>
-            <span class="c1"># hovertext and not in on-graph texts (as is the case with bar-charts)</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-
-            <span class="c1"># Note: this also converts hf_hovertext to a np.ndarray</span>
+            <span class="c1"># Note: this also converts hf_text and hf_hovertext to a np.ndarray</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_text</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="n">hf_text</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_text</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_hovertext</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
                 <span class="n">hf_hovertext</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_hovertext</span><span class="p">)</span>
 
@@ -807,6 +841,8 @@
                 <span class="n">not_nan_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
                 <span class="n">hf_x</span> <span class="o">=</span> <span class="n">hf_x</span><span class="p">[</span><span class="n">not_nan_mask</span><span class="p">]</span>
                 <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="p">[</span><span class="n">not_nan_mask</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_text</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                    <span class="n">hf_text</span> <span class="o">=</span> <span class="n">hf_text</span><span class="p">[</span><span class="n">not_nan_mask</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
                     <span class="n">hf_hovertext</span> <span class="o">=</span> <span class="n">hf_hovertext</span><span class="p">[</span><span class="n">not_nan_mask</span><span class="p">]</span>
 
@@ -822,14 +858,6 @@
                 <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
 
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">),</span> <span class="s2">&quot;x and y have different length!&quot;</span>
-
-            <span class="c1"># Convert the hovertext to a pd.Series if it&#39;s now a np.ndarray</span>
-            <span class="c1"># Note: The size of hovertext must be the same size as hf_x otherwise a</span>
-            <span class="c1">#   ValueError will be thrown</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
-                <span class="n">hf_hovertext</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-                    <span class="n">data</span><span class="o">=</span><span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;hovertext&quot;</span>
-                <span class="p">)</span>
 
             <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span>
             <span class="c1"># These traces will determine the autoscale RANGE!</span>
@@ -865,6 +893,7 @@
                     <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">hf_y</span><span class="p">,</span>
                     <span class="s2">&quot;axis_type&quot;</span><span class="p">:</span> <span class="n">axis_type</span><span class="p">,</span>
                     <span class="s2">&quot;downsampler&quot;</span><span class="p">:</span> <span class="n">d</span><span class="p">,</span>
+                    <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">hf_text</span><span class="p">,</span>
                     <span class="s2">&quot;hovertext&quot;</span><span class="p">:</span> <span class="n">hf_hovertext</span><span class="p">,</span>
                 <span class="p">}</span>
 
@@ -895,7 +924,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[i] NOT resampling </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - len=</span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">hf_x</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">hf_y</span>
-                <span class="n">trace</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">hf_hovertext</span>
+                <span class="n">trace</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">hf_text</span>
+                <span class="n">trace</span><span class="o">.</span><span class="n">hovertext</span> <span class="o">=</span> <span class="n">hf_hovertext</span>
                 <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
                     <span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span>
                 <span class="p">)</span>
@@ -909,8 +939,10 @@
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">):</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_y</span>
 
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">):</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">):</span>
+                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_text</span>
+
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">):</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_hovertext</span>
 
             <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span>
@@ -1019,14 +1051,14 @@
             <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">autorange_matches</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">spike_matches</span><span class="p">):</span>
                 <span class="c1"># PreventUpdate returns a 204 status code response on the</span>
                 <span class="c1"># relayout post request</span>
-                <span class="k">raise</span> <span class="n">dash</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">PreventUpdate</span><span class="p">()</span>
+                <span class="k">return</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span>
 
         <span class="c1"># If we do not have any traces to be updated, we will return an empty</span>
         <span class="c1"># request response</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">updated_trace_indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># PreventUpdate returns a 204 status-code response on the relayout post</span>
             <span class="c1"># request</span>
-            <span class="k">raise</span> <span class="n">dash</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">PreventUpdate</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span>
 
         <span class="c1"># -------------------- construct callback data --------------------------</span>
         <span class="n">layout_traces_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the data</span>
