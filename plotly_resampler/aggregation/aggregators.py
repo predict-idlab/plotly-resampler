@@ -153,13 +153,13 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-            s[: block_size * offset.shape[0]]
+            s.iloc[: block_size * offset.shape[0]]
             .values.reshape(-1, block_size)
             .argmin(axis=1)
             + offset
         )
         argmax = (
-            s[argmax_offset : block_size * offset.shape[0] + argmax_offset]
+            s.iloc[argmax_offset : block_size * offset.shape[0] + argmax_offset]
             .values.reshape(-1, block_size)
             .argmax(axis=1)
             + offset
@@ -218,13 +218,13 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-            s[: block_size * offset.shape[0]]
+            s.iloc[: block_size * offset.shape[0]]
             .values.reshape(-1, block_size)
             .argmin(axis=1)
             + offset
         )
         argmax = (
-            s[: block_size * offset.shape[0]]
+            s.iloc[: block_size * offset.shape[0]]
             .values.reshape(-1, block_size)
             .argmax(axis=1)
             + offset
