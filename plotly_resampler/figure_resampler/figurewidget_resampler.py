@@ -40,7 +40,7 @@ class FigureWidgetResampler(
 
     def __init__(
         self,
-        figure: go.FigureWidget | go.Figure = go.Figure(),
+        figure: go.FigureWidget | go.Figure = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -51,6 +51,9 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
+        if figure is None:
+            figure = go.FigureWidget()
+
         if not isinstance(figure, go.FigureWidget):
             figure = go.FigureWidget(figure)
 
@@ -249,7 +252,14 @@ class FigureWidgetResampler(
         This is useful when adjusting the `hf_data` properties of the
         ``FigureWidgetResampler``.
         """
-        if all(self.layout[xaxis].range is None for xaxis in self._xaxis_list):
+        if all(
+            self.layout[xaxis].autorange
+            or (
+                self.layout[xaxis].autorange is None
+                and self.layout[xaxis].range is None
+            )
+            for xaxis in self._xaxis_list
+        ):
             self._update_spike_ranges(
                 self.layout, *[False] * len(self._xaxis_list), force_update=True
             )
