@@ -90,7 +90,7 @@ class LTTB(AbstractSeriesAggregator):
             #         significantly less prone to it than the previos implementation.
             s_i0 = s_i[0].astype(np.int64)
             idx, data = lttbc.downsample(
-                (s_i.astype(np.int64) - s_i0).astype(np.float64), s_v, 1000
+                (s_i.astype(np.int64) - s_i0).astype(np.float64), s_v, n_out
             )
 
             # add the start-offset and convert back to datetime
