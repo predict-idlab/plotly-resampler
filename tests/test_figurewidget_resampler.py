@@ -3,13 +3,15 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
-import pytest
+from copy import copy
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
-from copy import copy
 import plotly.graph_objects as go
+import pytest
 from plotly.subplots import make_subplots
-from plotly_resampler import FigureWidgetResampler, EfficientLTTB, EveryNthPoint
+from plotly_resampler import EfficientLTTB, EveryNthPoint, FigureWidgetResampler
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -1375,3 +1377,157 @@ def test_fwr_adjust_series_text_input():
 
     # text === -hovertext -> so the sum should their length
     assert (text == -hovertext).sum() == 1000
+
+
+def test_fwr_time_based_data_ns():
+    n = 100_000
+    fig = FigureWidgetResampler(
+        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+    )
+
+    for i in range(3):
+        s = pd.Series(
+            index=pd.date_range(
+                datetime.now(), freq=f"{np.random.randint(5,100_000)}ns", periods=n
+            ),
+            data=np.arange(n),
+        )
+
+        fig.add_trace(
+            go.Scatter(name="hf_text"),
+            hf_x=s.index,
+            hf_y=s,
+            hf_text=s.astype(str),
+            hf_hovertext=(-s).astype(str),
+        )
+
+        x = fig.data[i]["x"]
+        y = fig.data[i]["y"]
+
+        assert len(x) == 1000
+        assert len(y) == 1000
+
+        text = fig.data[i]["text"].astype(int)
+        hovertext = fig.data[i]["hovertext"].astype(int)
+
+        assert len(hovertext) == 1000
+        assert len(text) == 1000
+
+        # text === -hovertext -> so the sum should their length
+        assert (text == -hovertext).sum() == 1000
+
+
+def test_fwr_time_based_data_us():
+    n = 100_000
+    fig = FigureWidgetResampler(
+        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+    )
+
+    for i in range(3):
+        s = pd.Series(
+            index=pd.date_range(
+                datetime.now(), freq=f"{np.random.randint(5,100_000)}us", periods=n
+            ),
+            data=np.arange(n),
+        )
+
+        fig.add_trace(
+            go.Scatter(name="hf_text"),
+            hf_x=s.index,
+            hf_y=s,
+            hf_text=s.astype(str),
+            hf_hovertext=(-s).astype(str),
+        )
+
+        x = fig.data[i]["x"]
+        y = fig.data[i]["y"]
+
+        assert len(x) == 1000
+        assert len(y) == 1000
+
+        text = fig.data[i]["text"].astype(int)
+        hovertext = fig.data[i]["hovertext"].astype(int)
+
+        assert len(hovertext) == 1000
+        assert len(text) == 1000
+
+        # text === -hovertext -> so the sum should their length
+        assert (text == -hovertext).sum() == 1000
+
+
+def test_fwr_time_based_data_ms():
+    n = 100_000
+    fig = FigureWidgetResampler(
+        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+    )
+
+    for i in range(3):
+        s = pd.Series(
+            index=pd.date_range(
+                datetime.now(), freq=f"{np.random.randint(5,10_000)}ms", periods=n
+            ),
+            data=np.arange(n),
+        )
+
+        fig.add_trace(
+            go.Scatter(name="hf_text"),
+            hf_x=s.index,
+            hf_y=s,
+            hf_text=s.astype(str),
+            hf_hovertext=(-s).astype(str),
+        )
+
+        x = fig.data[i]["x"]
+        y = fig.data[i]["y"]
+
+        assert len(x) == 1000
+        assert len(y) == 1000
+
+        text = fig.data[i]["text"].astype(int)
+        hovertext = fig.data[i]["hovertext"].astype(int)
+
+        assert len(hovertext) == 1000
+        assert len(text) == 1000
+
+        # text === -hovertext -> so the sum should their length
+        assert (text == -hovertext).sum() == 1000
+
+
+def test_fwr_time_based_data_s():
+    n = 100_000
+    fig = FigureWidgetResampler(
+        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+    )
+
+    for i in range(3):
+        s = pd.Series(
+            index=pd.date_range(
+                datetime.now(),
+                freq=pd.Timedelta(f"{round(np.abs(np.random.randn()) * 1000, 4)}s"),
+                periods=n,
+            ),
+            data=np.arange(n),
+        )
+
+        fig.add_trace(
+            go.Scatter(name="hf_text"),
+            hf_x=s.index,
+            hf_y=s,
+            hf_text=s.astype(str),
+            hf_hovertext=(-s).astype(str),
+        )
+
+        x = fig.data[i]["x"]
+        y = fig.data[i]["y"]
+
+        assert len(x) == 1000
+        assert len(y) == 1000
+
+        text = fig.data[i]["text"].astype(int)
+        hovertext = fig.data[i]["hovertext"].astype(int)
+
+        assert len(hovertext) == 1000
+        assert len(text) == 1000
+
+        # text === -hovertext -> so the sum should their length
+        assert (text == -hovertext).sum() == 1000

@@ -81,9 +81,22 @@ class LTTB(AbstractSeriesAggregator):
         if s_i.dtype.type == np.datetime64:
             # lttbc does not support this datatype -> convert to int
             # (where the time is represented in ns)
-            s_i = s_i.astype(int)
-            idx, data = lttbc.downsample(s_i, s_v, n_out)
-            idx = pd.to_datetime(idx, unit="ns", utc=True).tz_convert(s.index.tz)
+            # REMARK:
+            #   -> additional logic is needed to mitigate rounding errors 
+            #   First, the start offset is subtracted, after which the input series
+            #   is set in the already requested format, i.e. np.float64
+
+            # NOTE -> Rounding errors can still persist, but this approach is already
+            #         significantly less prone to it than the previos implementation.
+            s_i0 = s_i[0].astype(np.int64)
+            idx, data = lttbc.downsample(
+                (s_i.astype(np.int64) - s_i0).astype(np.float64), s_v, 1000
+            )
+
+            # add the start-offset and convert back to datetime
+            idx = pd.to_datetime(
+                idx.astype(np.int64) + s_i0, unit="ns", utc=True
+            ).tz_convert(s.index.tz)
         else:
             idx, data = lttbc.downsample(s_i, s_v, n_out)
             idx = idx.astype(s_i.dtype)
