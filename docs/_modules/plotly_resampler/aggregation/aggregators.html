@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>plotly_resampler.aggregation.aggregators &#8212; plotly-resampler &#34;0.6.4.1&#34; documentation</title>
+    <title>plotly_resampler.aggregation.aggregators &#8212; plotly-resampler &#34;0.6.4.2&#34; documentation</title>
     
   <!-- Loaded before other Sphinx assets -->
   <link href="../../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
@@ -227,9 +227,22 @@
         <span class="k">if</span> <span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">:</span>
             <span class="c1"># lttbc does not support this datatype -&gt; convert to int</span>
             <span class="c1"># (where the time is represented in ns)</span>
-            <span class="n">s_i</span> <span class="o">=</span> <span class="n">s_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
-            <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
+            <span class="c1"># REMARK:</span>
+            <span class="c1">#   -&gt; additional logic is needed to mitigate rounding errors </span>
+            <span class="c1">#   First, the start offset is subtracted, after which the input series</span>
+            <span class="c1">#   is set in the already requested format, i.e. np.float64</span>
+
+            <span class="c1"># NOTE -&gt; Rounding errors can still persist, but this approach is already</span>
+            <span class="c1">#         significantly less prone to it than the previos implementation.</span>
+            <span class="n">s_i0</span> <span class="o">=</span> <span class="n">s_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+            <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="n">s_i0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span>
+            <span class="p">)</span>
+
+            <span class="c1"># add the start-offset and convert back to datetime</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
+                <span class="n">idx</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">+</span> <span class="n">s_i0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
