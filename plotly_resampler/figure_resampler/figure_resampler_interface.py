@@ -16,6 +16,7 @@ import re
 from copy import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
+from collections import namedtuple
 
 import dash
 import numpy as np
@@ -28,9 +29,13 @@ from ..utils import round_td_str, round_number_str
 
 from abc import ABC
 
+_hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"])
+
 
 class AbstractFigureAggregator(BaseFigure, ABC):
     """Abstract interface for data aggregation functionality for plotly figures."""
+
+    _high_frequency_traces = ["scatter", "scattergl"]  # TODO maybe change this
 
     def __init__(
         self,
@@ -104,6 +109,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 self.add_trace(trace)
         else:
             super().__init__(figure)
+        self._data_validator.set_uid = False
 
     def _print(self, *values):
         """Helper method for printing if ``verbose`` is set to True."""
@@ -512,6 +518,188 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             dtype="category" if y.dtype.type == np.str_ else y.dtype,
         )
 
+    def _parse_get_trace_props(
+        self,
+        trace: BaseTraceType,
+        hf_x=None,
+        hf_y=None,
+        hf_text=None,
+        hf_hovertext=None,
+    ) -> _hf_data_container:
+        """Parse and capture the relevant high-frequnecy trace-props in a datacontainer.
+
+        Parameters
+        ----------
+        trace : BaseTraceType
+            The trace which will be parsed.
+        hf_x : _type_, optional
+            high-frequency trace "x" data, overrides the current trace its x-data
+        hf_y : _type_, optional
+            high-frequnency trace "y" data, overrides the current trace its y-data
+        hf_text : _type_, optional
+            high-frequency trace "text" data, overrieds the current trace its text-data.
+        hf_hovertext : _type_, optional
+            high-frequency trace "hovertext" data, overrides the current trace its
+            hovertext data.
+
+        Returns
+        -------
+        _hf_data_container
+            A namedtuple which serves as a datacontainer
+
+        """
+        hf_x = (
+            trace["x"]
+            if hasattr(trace, "x") and hf_x is None
+            else hf_x.values
+            if isinstance(hf_x, pd.Series)
+            else hf_x
+            if isinstance(hf_x, pd.Index)
+            else np.asarray(hf_x)
+        )
+
+        hf_y = (
+            trace["y"]
+            if hasattr(trace, "y") and hf_y is None
+            else hf_y.values
+            if isinstance(hf_y, (pd.Series, pd.Index))
+            else hf_y
+        )
+        hf_y = np.asarray(hf_y)
+
+        hf_text = (
+            hf_text
+            if hf_text is not None
+            else trace["text"]
+            if hasattr(trace, "text") and trace["text"] is not None
+            else None
+        )
+
+        hf_hovertext = (
+            hf_hovertext
+            if hf_hovertext is not None
+            else trace["hovertext"]
+            if hasattr(trace, "hovertext") and trace["hovertext"] is not None
+            else None
+        )
+
+        if trace["type"].lower() in self._high_frequency_traces:
+            if hf_x is None:  # if no data as x or hf_x is passed
+                if hf_y.ndim != 0:  # if hf_y is an array
+                    hf_x = pd.RangeIndex(0, len(hf_y)) # np.arange(len(hf_y))
+                else:  # if no data as y or hf_y is passed
+                    hf_x = np.asarray(None)
+
+            assert hf_y.ndim == np.ndim(hf_x), (
+                "plotly-resampler requires scatter data "
+                "(i.e., x and y, or hf_x and hf_y) to have the same dimensionality!"
+            )
+            # When the x or y of a trace has more than 1 dimension, it is not at all
+            # straightforward how it should be resampled.
+            assert hf_y.ndim <= 1 and np.ndim(hf_x) <= 1, (
+                "plotly-resampler requires scatter data "
+                "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
+            )
+
+            # Note: this also converts hf_text and hf_hovertext to a np.ndarray
+            if isinstance(hf_text, (list, np.ndarray, pd.Series)):
+                hf_text = np.asarray(hf_text)
+            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
+                hf_hovertext = np.asarray(hf_hovertext)
+
+            # Remove NaNs for efficiency (storing less meaningless data)
+            # NaNs introduce gaps between enclosing non-NaN data points & might distort
+            # the resampling algorithms
+            if pd.isna(hf_y).any():
+                not_nan_mask = ~pd.isna(hf_y)
+                hf_x = hf_x[not_nan_mask]
+                hf_y = hf_y[not_nan_mask]
+                if isinstance(hf_text, np.ndarray):
+                    hf_text = hf_text[not_nan_mask]
+                if isinstance(hf_hovertext, np.ndarray):
+                    hf_hovertext = hf_hovertext[not_nan_mask]
+
+            # If the categorical or string-like hf_y data is of type object (happens
+            # when y argument is used for the trace constructor instead of hf_y), we
+            # transform it to type string as such it will be sent as categorical data
+            # to the downsampling algorithm
+            if hf_y.dtype == "object":
+                hf_y = hf_y.astype("str")
+
+            # orjson encoding doesn't like to encode with uint8 & uint16 dtype
+            if str(hf_y.dtype) in ["uint8", "uint16"]:
+                hf_y = hf_y.astype("uint32")
+
+            assert len(hf_x) == len(hf_y), "x and y have different length!"
+        else:
+            self._print(f"trace {trace['type']} is not a high-frequency trace")
+
+            # hf_x and hf_y have priority over the traces' data
+            if hasattr(trace, "x"):
+                trace["x"] = hf_x
+
+            if hasattr(trace, "y"):
+                trace["y"] = hf_y
+
+            if hasattr(trace, "text"):
+                trace["text"] = hf_text
+
+            if hasattr(trace, "hovertext"):
+                trace["hovertext"] = hf_hovertext
+
+        return _hf_data_container(hf_x, hf_y, hf_text, hf_hovertext)
+
+    def _construct_hf_data_dict(
+        self, dc, trace, downsampler, max_n_samples: int, offset=0
+    ) -> dict:
+        """Create the `hf_data` dict item which will be put in the `_hf_data` property.
+
+        Parameters
+        ----------
+        dc : _hf_data_container
+            The hf_data container, withholding the parsed hf-data
+        trace : BaseTraceType
+            The trace.
+        downsampler : AbstractSeriesAggregator
+            The downsampler which will be used.
+        max_n_samples : int
+            The max number of output samples.
+
+        Returns
+        -------
+        dict
+            The hf_data dict.
+        """
+        # We will re-create this each time as hf_x and hf_y withholds
+        # high-frequency data
+        # index = pd.Index(hf_x, copy=False, name="timestamp")
+        hf_series = self._to_hf_series(x=dc.x, y=dc.y)
+
+        # Checking this now avoids less interpretable `KeyError` when resampling
+        assert hf_series.index.is_monotonic_increasing
+
+        # As we support prefix-suffixing of downsampled data, we assure that
+        # each trace has a name
+        # https://github.com/plotly/plotly.py/blob/ce0ed07d872c487698bde9d52e1f1aadf17aa65f/packages/python/plotly/plotly/basedatatypes.py#L539
+        # The link above indicates that the trace index is derived from `data`
+        if trace.name is None:
+            trace.name = f"trace {len(self.data) + offset}"
+
+        # Determine (1) the axis type and (2) the downsampler instance
+        # & (3) store a hf_data entry for the corresponding trace,
+        # identified by its UUID
+        axis_type = "date" if isinstance(dc.x, pd.DatetimeIndex) else "linear"
+        d = self._global_downsampler if downsampler is None else downsampler
+        return {
+            "max_n_samples": max_n_samples,
+            "x": dc.x,
+            "y": dc.y,
+            "axis_type": axis_type,
+            "downsampler": d,
+            "text": dc.text,
+            "hovertext": dc.hovertext,
+        }
+
     def add_trace(
         self,
         trace: Union[BaseTraceType, dict],
@@ -623,146 +811,41 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if max_n_samples is None:
             max_n_samples = self._global_n_shown_samples
 
-        # First add the trace, as each (even the non-hf_data traces), must contain this
+        # First add an UUID, as each (even the non-hf_data traces), must contain this
         # key for comparison
         uuid = str(uuid4())
+
+        # Validate the trace and conver to a trace object
+        if not isinstance(trace, BaseTraceType):
+            trace = self._data_validator.validate_coerce(trace)[0]
         trace.uid = uuid
 
-        hf_x = (
-            trace["x"]
-            if hasattr(trace, "x") and hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
-            if isinstance(hf_x, pd.Index)
-            else np.asarray(hf_x)
-        )
+        dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
 
-        hf_y = (
-            trace["y"]
-            if hasattr(trace, "y") and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, (pd.Series, pd.Index))
-            else hf_y
-        )
-        hf_y = np.asarray(hf_y)
-
-        hf_text = (
-            hf_text
-            if hf_text is not None
-            else trace["text"]
-            if hasattr(trace, "text") and trace["text"] is not None
-            else None
-        )
-
-        hf_hovertext = (
-            hf_hovertext
-            if hf_hovertext is not None
-            else trace["hovertext"]
-            if hasattr(trace, "hovertext") and trace["hovertext"] is not None
-            else None
-        )
-
-        high_frequency_traces = ["scatter", "scattergl"]
-        if trace["type"].lower() in high_frequency_traces:
-            if hf_x is None:  # if no data as x or hf_x is passed
-                if hf_y.ndim != 0:  # if hf_y is an array
-                    hf_x = np.arange(len(hf_y))
-                else:  # if no data as y or hf_y is passed
-                    hf_x = np.asarray(None)
-
-            assert hf_y.ndim == np.ndim(hf_x), (
-                "plotly-resampler requires scatter data "
-                "(i.e., x and y, or hf_x and hf_y) to have the same dimensionality!"
-            )
-            # When the x or y of a trace has more than 1 dimension, it is not at all
-            # straightforward how it should be resampled.
-            assert hf_y.ndim <= 1 and np.ndim(hf_x) <= 1, (
-                "plotly-resampler requires scatter data "
-                "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
-            )
-
-            # Note: this also converts hf_text and hf_hovertext to a np.ndarray
-            if isinstance(hf_text, (list, np.ndarray, pd.Series)):
-                hf_text = np.asarray(hf_text)
-            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
-                hf_hovertext = np.asarray(hf_hovertext)
-
-            # Remove NaNs for efficiency (storing less meaningless data)
-            # NaNs introduce gaps between enclosing non-NaN data points & might distort
-            # the resampling algorithms
-            if pd.isna(hf_y).any():
-                not_nan_mask = ~pd.isna(hf_y)
-                hf_x = hf_x[not_nan_mask]
-                hf_y = hf_y[not_nan_mask]
-                if isinstance(hf_text, np.ndarray):
-                    hf_text = hf_text[not_nan_mask]
-                if isinstance(hf_hovertext, np.ndarray):
-                    hf_hovertext = hf_hovertext[not_nan_mask]
-
-            # If the categorical or string-like hf_y data is of type object (happens
-            # when y argument is used for the trace constructor instead of hf_y), we
-            # transform it to type string as such it will be sent as categorical data
-            # to the downsampling algorithm
-            if hf_y.dtype == "object":
-                hf_y = hf_y.astype("str")
-
-            # orjson encoding doesn't like to encode with uint8 & uint16 dtype
-            if str(hf_y.dtype) in ["uint8", "uint16"]:
-                hf_y = hf_y.astype("uint32")
-
-            assert len(hf_x) == len(hf_y), "x and y have different length!"
-
-            n_samples = len(hf_x)
-            # These traces will determine the autoscale RANGE!
-            #   -> so also store when `limit_to_view` is set.
+        n_samples = len(dc.x)
+        # These traces will determine the autoscale RANGE!
+        #   -> so also store when `limit_to_view` is set.
+        if trace["type"].lower() in self._high_frequency_traces:
             if n_samples > max_n_samples or limit_to_view:
                 self._print(
                     f"\t[i] DOWNSAMPLE {trace['name']}\t{n_samples}->{max_n_samples}"
                 )
 
-                # We will re-create this each time as hf_x and hf_y withholds
-                # high-frequency data
-                # index = pd.Index(hf_x, copy=False, name="timestamp")
-                hf_series = self._to_hf_series(x=hf_x, y=hf_y)
-
-                # Checking this now avoids less interpretable `KeyError` when resampling
-                assert hf_series.index.is_monotonic_increasing
-
-                # As we support prefix-suffixing of downsampled data, we assure that
-                # each trace has a name
-                # https://github.com/plotly/plotly.py/blob/ce0ed07d872c487698bde9d52e1f1aadf17aa65f/packages/python/plotly/plotly/basedatatypes.py#L539
-                # The link above indicates that the trace index is derived from `data`
-                if trace.name is None:
-                    trace.name = f"trace {len(self.data)}"
-
-                # Determine (1) the axis type and (2) the downsampler instance
-                # & (3) store a hf_data entry for the corresponding trace,
-                # identified by its UUID
-                axis_type = "date" if isinstance(hf_x, pd.DatetimeIndex) else "linear"
-                d = self._global_downsampler if downsampler is None else downsampler
-                self._hf_data[uuid] = {
-                    "max_n_samples": max_n_samples,
-                    "x": hf_x,
-                    "y": hf_y,
-                    "axis_type": axis_type,
-                    "downsampler": d,
-                    "text": hf_text,
-                    "hovertext": hf_hovertext,
-                }
+                self._hf_data[uuid] = self._construct_hf_data_dict(
+                    dc,
+                    trace=trace,
+                    downsampler=downsampler,
+                    max_n_samples=max_n_samples,
+                )
 
                 # Before we update the trace, we create a new pointer to that trace in
                 # which the downsampled data will be stored. This way, the original
                 # data of the trace to this `add_trace` method will not be altered.
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
-                if not isinstance(trace, dict):
-                    trace = trace._props
+                trace = trace._props  # convert the trace into a dict
                 trace = {
-                    k: trace[k]
-                    for k in set(trace.keys()).difference(
-                        {"text", "hovertext", "x", "y"}
-                    )
+                    k: trace[k] for k in set(trace.keys()).difference(set(dc._fields))
                 }
 
                 # NOTE:
@@ -771,45 +854,89 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # Hence, you first downsample the trace.
                 trace = self._check_update_trace_data(trace)
                 assert trace is not None
-                super(self._figure_class, self).add_trace(trace=trace, **trace_kwargs)
-                self.data[-1].uid = uuid
-                return
-            else:
-                self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
-                trace.x = hf_x
-                trace.y = hf_y
-                trace.text = hf_text
-                trace.hovertext = hf_hovertext
                 return super(self._figure_class, self).add_trace(
                     trace=trace, **trace_kwargs
                 )
-        else:
-            self._print(f"trace {trace['type']} is not a high-frequency trace")
+            else:
+                self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
+                trace.x = dc.x
+                trace.y = dc.y
+                trace.text = dc.text
+                trace.hovertext = dc.hovertext
+                return super(self._figure_class, self).add_trace(
+                    trace=trace, **trace_kwargs
+                )
+        return super(self._figure_class, self).add_trace(trace=trace, **trace_kwargs)
 
-            # hf_x and hf_y have priority over the traces' data
-            if hasattr(trace, "x"):
-                trace["x"] = hf_x
+    def add_traces(
+        self,
+        data,
+        rows=None,
+        cols=None,
+        secondary_ys=None,
+        max_n_samples: int = None,
+        downsamplers: AbstractSeriesAggregator = None,
+        limit_to_views: bool = False,
+        **kwargs,
+    ):
+        # data => a list of traces or a list of dicts
+        data = [
+            self._data_validator.validate_coerce(trace)[0]
+            if not isinstance(trace, BaseTraceType)
+            else trace
+            for trace in data
+        ]
 
-            if hasattr(trace, "y"):
-                trace["y"] = hf_y
+        # Convert the data properties
+        if isinstance(max_n_samples, (int, np.integer)) or max_n_samples is None:
+            max_n_samples = [max_n_samples] * len(data)
+        if isinstance(downsamplers, AbstractSeriesAggregator) or downsamplers is None:
+            downsamplers = [downsamplers] * len(data)
+        if isinstance(limit_to_views, bool):
+            limit_to_views = [limit_to_views] * len(data)
 
-            if hasattr(trace, "text"):
-                trace["text"] = hf_text
+        for i, (trace, max_out, downsampler, limit_to_view) in enumerate(
+            zip(data, max_n_samples, downsamplers, limit_to_views)
+        ):
+            if (
+                trace.type.lower() not in self._high_frequency_traces
+                or self._hf_data.get(trace.uid) is not None
+            ):
+                continue
 
-            if hasattr(trace, "hovertext"):
-                trace["hovertext"] = hf_hovertext
+            max_out = self._global_n_shown_samples if max_out is None else max_out
+            if len(trace["y"]) <= max_out and not limit_to_view:
+                continue
 
-            return super(self._figure_class, self).add_trace(
-                trace=trace, **trace_kwargs
+            d = self._global_downsampler if downsampler is None else downsampler
+
+            uuid_str = str(uuid4())
+            trace["uid"] = uuid_str
+            dc = self._parse_get_trace_props(trace)
+            self._hf_data[uuid_str] = self._construct_hf_data_dict(
+                dc,
+                trace=trace,
+                downsampler=d,
+                max_n_samples=max_out,
+                offset=i
             )
 
-    # def add_traces(*args, **kwargs):
-    #     raise NotImplementedError("This functionality is not (yet) supported")
+            trace = trace._props  # convert the trace into a dict
+            trace = {k: trace[k] for k in set(trace.keys()).difference(set(dc._fields))}
+
+            trace = self._check_update_trace_data(trace)
+            assert trace is not None
+
+            data[i] = trace
+
+        super(self._figure_class, self).add_traces(data, rows, cols, secondary_ys)
 
     def _clear_figure(self):
         """Clear the current figure object it's data and layout."""
         self._hf_data = {}
         self.data = []
+        self._data = {}
+        self._layout = {}
         self.layout = {}
 
     def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
