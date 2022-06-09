@@ -935,7 +935,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         """Clear the current figure object it's data and layout."""
         self._hf_data = {}
         self.data = []
-        self._data = {}
+        self._data = []
         self._layout = {}
         self.layout = {}
 
