@@ -36,7 +36,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
             row=1,
             col=1,
             limit_to_view=False,
-            hf_text = "text",
+            hf_text="text",
             hf_hovertext="hovertext",
         )
 
@@ -154,7 +154,6 @@ def test_box_histogram(float_series):
         hf_text="text",
         hf_hovertext="hovertext",
     )
-
 
     fig.add_trace(go.Box(x=float_series.values, name="float_series"), row=1, col=2)
     fig.add_trace(
@@ -307,13 +306,8 @@ def test_hf_text():
     assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
     assert fig.data[0].hovertext is None
 
-
     fig = FigureResampler()
-    fig.add_trace(
-        go.Scatter(name="blabla"),
-        hf_y=y,
-        hf_text=y.astype(str)
-    )
+    fig.add_trace(go.Scatter(name="blabla"), hf_y=y, hf_text=y.astype(str))
 
     assert np.all(fig.hf_data[0]["text"] == y.astype(str))
     assert fig.hf_data[0]["hovertext"] is None
@@ -340,11 +334,7 @@ def test_hf_hovertext():
     assert fig.data[0].text is None
 
     fig = FigureResampler()
-    fig.add_trace(
-        go.Scatter(name="blabla"),
-        hf_y=y,
-        hf_hovertext=y.astype(str)
-    )
+    fig.add_trace(go.Scatter(name="blabla"), hf_y=y, hf_hovertext=y.astype(str))
 
     assert np.all(fig.hf_data[0]["hovertext"] == y.astype(str))
     assert fig.hf_data[0]["text"] is None
@@ -368,14 +358,16 @@ def test_hf_text_and_hf_hovertext():
 
     assert len(fig.data[0].y) < 5_000
     assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
-    assert np.all(fig.data[0].hovertext == (9_999 - fig.data[0].y).astype(int).astype(str))
+    assert np.all(
+        fig.data[0].hovertext == (9_999 - fig.data[0].y).astype(int).astype(str)
+    )
 
     fig = FigureResampler()
     fig.add_trace(
         go.Scatter(name="blabla"),
         hf_y=y,
         hf_text=y.astype(str),
-        hf_hovertext=y.astype(str)[::-1]
+        hf_hovertext=y.astype(str)[::-1],
     )
 
     assert np.all(fig.hf_data[0]["text"] == y.astype(str))
@@ -383,7 +375,9 @@ def test_hf_text_and_hf_hovertext():
 
     assert len(fig.data[0].y) < 5_000
     assert np.all(fig.data[0].text == fig.data[0].y.astype(int).astype(str))
-    assert np.all(fig.data[0].hovertext == (9_999 - fig.data[0].y).astype(int).astype(str))
+    assert np.all(
+        fig.data[0].hovertext == (9_999 - fig.data[0].y).astype(int).astype(str)
+    )
 
 
 def test_multiple_timezones():
@@ -651,3 +645,19 @@ def test_fr_add_empty_trace():
     assert len(fig.hf_data) == 1
     assert len(fig.hf_data[0]["x"]) == 0
     assert len(fig.hf_data[0]["y"]) == 0
+
+
+def test_fr_from_dict():
+    y = np.array([1] * 10_000)
+    base_fig = {
+        "type": "scatter",
+        "y": y,
+    }
+
+    fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    assert len(fr_fig.hf_data) == 1
+    assert (fr_fig.hf_data[0]["y"] == y).all()
+    assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[0]["y"] == [1] * 1_000).all()

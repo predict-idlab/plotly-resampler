@@ -1531,3 +1531,19 @@ def test_fwr_time_based_data_s():
 
         # text === -hovertext -> so the sum should their length
         assert (text == -hovertext).sum() == 1000
+
+
+def test_fwr_from_dict():
+    y = np.array([1] * 10_000)
+    base_fig = {
+        "type": "scatter",
+        "y": y,
+    }
+
+    fr_fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000)
+    assert len(fr_fig.hf_data) == 1
+    assert (fr_fig.hf_data[0]["y"] == y).all()
+    assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[0]["y"] == [1] * 1_000).all()
