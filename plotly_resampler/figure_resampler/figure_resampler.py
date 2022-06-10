@@ -20,7 +20,7 @@ from jupyter_dash import JupyterDash
 from trace_updater import TraceUpdater
 
 from .figure_resampler_interface import AbstractFigureAggregator
-from .utils import _is_figure
+from .utils import is_figure
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 
 
@@ -40,7 +40,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-        if not _is_figure(figure):  # TODO: does this make sense?
+        if not is_figure(figure):  # TODO: does this make sense?
             figure = go.Figure(figure)
         elif isinstance(figure, FigureResampler):
             print("passing")  # TODO make composable

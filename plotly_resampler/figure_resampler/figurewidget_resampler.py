@@ -16,7 +16,7 @@ from typing import Tuple
 import plotly.graph_objects as go
 
 from .figure_resampler import AbstractFigureAggregator
-from .utils import _is_figurewidget
+from .utils import is_figurewidget
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 
 
@@ -52,7 +52,7 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-        if not _is_figurewidget(figure):  # robust check when go.FigureWidget is wrapped
+        if not is_figurewidget(figure):  # robust check when go.FigureWidget is wrapped
             figure = go.FigureWidget(figure)
 
         # TODO: seems to be compasable?

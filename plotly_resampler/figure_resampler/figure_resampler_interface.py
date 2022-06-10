@@ -25,7 +25,7 @@ import plotly.graph_objects as go
 from plotly.basedatatypes import BaseTraceType, BaseFigure
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
-from ..utils import round_td_str, round_number_str
+from .utils import round_td_str, round_number_str
 
 from abc import ABC
 
