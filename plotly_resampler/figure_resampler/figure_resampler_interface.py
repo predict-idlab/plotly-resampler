@@ -57,7 +57,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         figure: BaseFigure
             The figure that will be decorated. Can be either an empty figure
             (e.g., ``go.Figure()``, ``make_subplots()``, ``go.FigureWidget``) or an
-            existing figure, by default a go.Figure().
+            existing figure.
         convert_existing_traces: bool
             A bool indicating whether the high-frequency traces of the passed ``figure``
             should be resampled, by default True. Hence, when set to False, the
