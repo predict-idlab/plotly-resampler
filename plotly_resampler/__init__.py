@@ -23,3 +23,14 @@ __all__ = [
     "EveryNthPoint",
     "FuncAggregator",
 ]
+
+
+try:  # Enable ipywidgets on google colab!
+    import sys
+
+    if "google.colab" in sys.modules:
+        from google.colab import output
+
+        output.enable_custom_widget_manager()
+except ImportError:
+    pass
