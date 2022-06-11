@@ -18,7 +18,7 @@ import plotly.graph_objects as go
 from .figure_resampler_interface import AbstractFigureAggregator
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from plotly.basedatatypes import BaseFigure
-from plotly_resampler.figure_resampler.utils import is_figurewidget, is_fr, is_fwr
+from plotly_resampler.figure_resampler.utils import is_figurewidget
 
 
 class _FigureWidgetResamplerM(type(AbstractFigureAggregator), type(go.FigureWidget)):

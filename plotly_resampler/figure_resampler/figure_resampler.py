@@ -22,7 +22,7 @@ from trace_updater import TraceUpdater
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
-from .utils import is_figure, is_fwr, is_fr
+from .utils import is_figure, is_fwr
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
