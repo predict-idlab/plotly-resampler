@@ -12,9 +12,10 @@ from typing import Any
 def is_figure(figure: Any) -> bool:
     """Check if the figure is a plotly go.Figure.
 
-    Note: this method does not use isinstance(figure, go.Figure) as this will not work
-    when go.Figure is decorated (after executing the the `register_plotly_resampler`
-    function).
+    .. Note::
+        This method does not use isinstance(figure, go.Figure) as this will not work
+        when go.Figure is decorated (after executing the the 
+        ``register_plotly_resampler`` function).
 
     Parameters
     ----------
@@ -33,9 +34,10 @@ def is_figure(figure: Any) -> bool:
 def is_figurewidget(figure: Any):
     """Check if the figure is a plotly go.FigureWidget.
 
-    Note: this method does not use isinstance(figure, go.FigureWidget) as this will not
-    work when go.FigureWidget is decorated (after executing the the
-    `register_plotly_resampler` function).
+    .. Note::
+        This method does not use isinstance(figure, go.FigureWidget) as this will not
+        work when go.FigureWidget is decorated (after executing the the
+        ``register_plotly_resampler`` function).
 
     Parameters
     ----------

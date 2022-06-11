@@ -460,7 +460,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         """Property to adjust the `data` component of the current graph
 
         .. note::
-            The user has full responisbility to adjust ``hf_data`` properly.
+            The user has full responsibility to adjust ``hf_data`` properly.
 
 
         Example:
@@ -526,7 +526,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_text=None,
         hf_hovertext=None,
     ) -> _hf_data_container:
-        """Parse and capture the relevant high-frequnecy trace-props in a datacontainer.
+        """Parse and capture the possibly high-frequency trace-props in a datacontainer.
 
         Parameters
         ----------
@@ -535,9 +535,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_x : _type_, optional
             high-frequency trace "x" data, overrides the current trace its x-data
         hf_y : _type_, optional
-            high-frequnency trace "y" data, overrides the current trace its y-data
+            high-frequency trace "y" data, overrides the current trace its y-data
         hf_text : _type_, optional
-            high-frequency trace "text" data, overrieds the current trace its text-data.
+            high-frequency trace "text" data, overrides the current trace its text-data.
         hf_hovertext : _type_, optional
             high-frequency trace "hovertext" data, overrides the current trace its
             hovertext data.
@@ -586,7 +586,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if trace["type"].lower() in self._high_frequency_traces:
             if hf_x is None:  # if no data as x or hf_x is passed
                 if hf_y.ndim != 0:  # if hf_y is an array
-                    hf_x = pd.RangeIndex(0, len(hf_y)) # np.arange(len(hf_y))
+                    hf_x = pd.RangeIndex(0, len(hf_y))  # np.arange(len(hf_y))
                 else:  # if no data as y or hf_y is passed
                     hf_x = np.asarray(None)
 
@@ -647,7 +647,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hasattr(trace, "hovertext"):
                 trace["hovertext"] = hf_hovertext
 
-        return _hf_data_container(hf_x, hf_y, hf_text, hf_hovertext)
+        return _hf_data_container((hf_x, hf_y, hf_text, hf_hovertext))
 
     def _construct_hf_data_dict(
         self, dc, trace, downsampler, max_n_samples: int, offset=0
@@ -815,7 +815,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # key for comparison
         uuid = str(uuid4())
 
-        # Validate the trace and conver to a trace object
+        # Validate the trace and convert to a trace object
         if not isinstance(trace, BaseTraceType):
             trace = self._data_validator.validate_coerce(trace)[0]
         trace.uid = uuid
@@ -854,32 +854,70 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # Hence, you first downsample the trace.
                 trace = self._check_update_trace_data(trace)
                 assert trace is not None
-                return super(self._figure_class, self).add_trace(
-                    trace=trace, **trace_kwargs
-                )
+                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
                 trace.x = dc.x
                 trace.y = dc.y
                 trace.text = dc.text
                 trace.hovertext = dc.hovertext
-                return super(self._figure_class, self).add_trace(
-                    trace=trace, **trace_kwargs
-                )
-        return super(self._figure_class, self).add_trace(trace=trace, **trace_kwargs)
+                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+
+        return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
 
     def add_traces(
         self,
-        data,
-        rows=None,
-        cols=None,
-        secondary_ys=None,
-        max_n_samples: int = None,
-        downsamplers: AbstractSeriesAggregator = None,
-        limit_to_views: bool = False,
-        **kwargs,
+        data: List[BaseTraceType | dict],
+        max_n_samples: None | List[int] | int = None,
+        downsamplers: None
+        | List[AbstractSeriesAggregator]
+        | AbstractFigureAggregator = None,
+        limit_to_views: List[bool] | bool = False,
+        **traces_kwargs,
     ):
-        # data => a list of traces or a list of dicts
+        """Add traces to the figure
+
+        Parameters
+        ----------
+        data : List[BaseTraceType  |  dict]
+            A list of trace specifications to be added.
+            Trace specifications may be either:
+
+              - Instances of trace classes from the plotly.graph_objs
+                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
+              - Dicts where:
+
+                  - The 'type' property specifies the trace type (e.g.
+                    'scatter', 'bar', 'area', etc.). If the dict has no 'type'
+                    property then 'scatter' is assumed.
+                  - All remaining properties are passed to the constructor
+                    of the specified trace type.
+
+        max_n_samples : None | List[int] | int, optional
+              The maximum number of samples that will be shown for each trace.
+              If a single integer is passed, all traces will use this number. If this
+              variable is not set; ``_global_n_shown_samples`` will be used.
+        downsamplers : None | List[AbstractSeriesAggregator] | AbstractFigureAggregator, optional
+            The downsampler that will be used to aggregate the traces. If a single
+            aggregator is passed, all traces will use this aggregator.
+            If this variable is not set, ``_global_downsampler`` will be used.
+        limit_to_views : None | List[bool] | bool, optional
+            List of limit_to_view booleans for the added traces.  If set to True
+            the trace's datapoints will be cut to the corresponding front-end view,
+            even if the total number of samples is lower than ``max_n_samples``. If a
+            single boolean is passed, all to be added traces will use this value,
+            by default False.\n
+            Remark that setting this parameter to True ensures that low frequency traces
+            are added to the ``hf_data`` property.
+        **traces_kwargs: dict
+            Additional trace related keyword arguments.
+            e.g.: rows=.., cols=..., secondary_ys=...
+
+            .. seealso::
+                `Figure.add_traces <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces>`_ docs.
+
+        """
+        # Convert each trace into a trace object
         data = [
             self._data_validator.validate_coerce(trace)[0]
             if not isinstance(trace, BaseTraceType)
@@ -914,11 +952,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             trace["uid"] = uuid_str
             dc = self._parse_get_trace_props(trace)
             self._hf_data[uuid_str] = self._construct_hf_data_dict(
-                dc,
-                trace=trace,
-                downsampler=d,
-                max_n_samples=max_out,
-                offset=i
+                dc, trace=trace, downsampler=d, max_n_samples=max_out, offset=i
             )
 
             trace = trace._props  # convert the trace into a dict
@@ -929,7 +963,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             data[i] = trace
 
-        super(self._figure_class, self).add_traces(data, rows, cols, secondary_ys)
+        super(self._figure_class, self).add_traces(data, **traces_kwargs)
 
     def _clear_figure(self):
         """Clear the current figure object it's data and layout."""
