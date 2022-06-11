@@ -1,3 +1,5 @@
+"""Utility functions for the figure_resampler submodule."""
+
 import math
 import pandas as pd
 
@@ -14,7 +16,7 @@ def is_figure(figure: Any) -> bool:
 
     .. Note::
         This method does not use isinstance(figure, go.Figure) as this will not work
-        when go.Figure is decorated (after executing the the 
+        when go.Figure is decorated (after executing the
         ``register_plotly_resampler`` function).
 
     Parameters
@@ -31,12 +33,58 @@ def is_figure(figure: Any) -> bool:
     return isinstance(figure, BaseFigure) and (not isinstance(figure, BaseFigureWidget))
 
 
+def is_fr(figure: Any) -> bool:
+    """Check if the figure is a plotly FigureResampler.
+
+    .. Note::
+        This method does not use isinstance(figure, go.Figure) as this will not work
+        when go.Figure is decorated (after executing the
+        ``register_plotly_resampler`` function).
+
+    Parameters
+    ----------
+    figure : Any
+        The figure to check.
+
+    Returns
+    -------
+    bool
+        True if the figure is a plotly go.Figure.
+    """
+    from plotly_resampler import FigureResampler
+
+    return isinstance(figure, FigureResampler)
+
+
+def is_fwr(figure: Any) -> bool:
+    """Check if the figure is a plotly FigureWidgetResampler.
+
+    .. Note::
+        This method does not use isinstance(figure, go.Figure) as this will not work
+        when go.Figure is decorated (after executing the
+        ``register_plotly_resampler`` function).
+
+    Parameters
+    ----------
+    figure : Any
+        The figure to check.
+
+    Returns
+    -------
+    bool
+        True if the figure is a plotly go.Figure.
+    """
+    from plotly_resampler import FigureWidgetResampler
+
+    return isinstance(figure, FigureWidgetResampler)
+
+
 def is_figurewidget(figure: Any):
     """Check if the figure is a plotly go.FigureWidget.
 
     .. Note::
         This method does not use isinstance(figure, go.FigureWidget) as this will not
-        work when go.FigureWidget is decorated (after executing the the
+        work when go.FigureWidget is decorated (after executing the
         ``register_plotly_resampler`` function).
 
     Parameters
@@ -104,6 +152,11 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
 
 
 def round_td_str(td: pd.Timedelta) -> str:
+    """Round a timedelta to the nearest unit and convert to a string.
+
+    .. seealso::
+        :func:`timedelta_to_str`
+    """
     for t_s in ["D", "H", "min", "s", "ms", "us", "ns"]:
         if td > 0.95 * pd.Timedelta(f"1{t_s}"):
             return timedelta_to_str(td.round(t_s))
