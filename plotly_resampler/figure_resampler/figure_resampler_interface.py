@@ -105,11 +105,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             f_._grid_ref = figure._grid_ref
             super().__init__(f_)
 
-            for trace in figure.data:
-                self.add_trace(trace)
+            # make sure that the UIDs of these traces do not get adjusted
+            self._data_validator.set_uid = False
+            self.add_traces(list(figure.data))
         else:
             super().__init__(figure)
-        self._data_validator.set_uid = False
+            self._data_validator.set_uid = False
 
     def _print(self, *values):
         """Helper method for printing if ``verbose`` is set to True."""
@@ -811,14 +812,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if max_n_samples is None:
             max_n_samples = self._global_n_shown_samples
 
-        # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison
-        uuid = str(uuid4())
-
         # Validate the trace and convert to a trace object
         if not isinstance(trace, BaseTraceType):
             trace = self._data_validator.validate_coerce(trace)[0]
-        trace.uid = uuid
+
+        # First add an UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison, if the trace already has an UUID, we will keep it.
+        uuid_str = str(uuid4()) if trace.uid is None else trace.uid
+        trace.uid = uuid_str
 
         dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
 
@@ -831,7 +832,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     f"\t[i] DOWNSAMPLE {trace['name']}\t{n_samples}->{max_n_samples}"
                 )
 
-                self._hf_data[uuid] = self._construct_hf_data_dict(
+                self._hf_data[uuid_str] = self._construct_hf_data_dict(
                     dc,
                     trace=trace,
                     downsampler=downsampler,
@@ -876,6 +877,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         **traces_kwargs,
     ):
         """Add traces to the figure
+
+        .. note::
+            make sure to look at the :func:`add_trace` function for more info about
+            **speed optimization**, and dealing with not
 
         Parameters
         ----------
@@ -948,8 +953,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             d = self._global_downsampler if downsampler is None else downsampler
 
-            uuid_str = str(uuid4())
-            trace["uid"] = uuid_str
+            # First add an UUID, as each (even the non-hf_data traces), must contain this
+            # key for comparison, if the trace already has an UUID, we will keep it.
+            uuid_str = str(uuid4()) if trace.uid is None else trace.uid
+            trace.uid = uuid_str
+
             dc = self._parse_get_trace_props(trace)
             self._hf_data[uuid_str] = self._construct_hf_data_dict(
                 dc, trace=trace, downsampler=d, max_n_samples=max_out, offset=i
@@ -960,7 +968,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             trace = self._check_update_trace_data(trace)
             assert trace is not None
-
             data[i] = trace
 
         super(self._figure_class, self).add_traces(data, **traces_kwargs)

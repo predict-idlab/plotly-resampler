@@ -17,11 +17,12 @@ import dash
 import plotly.graph_objects as go
 from dash import Dash
 from jupyter_dash import JupyterDash
+from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
-from .figure_resampler_interface import AbstractFigureAggregator
-from .utils import is_figure
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from .figure_resampler_interface import AbstractFigureAggregator
+from .utils import is_figure, is_fwr, is_fr
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
@@ -29,7 +30,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
     def __init__(
         self,
-        figure: go.Figure | dict = None,
+        figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -40,14 +41,35 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-        if not is_figure(figure):  # TODO: does this make sense?
-            figure = go.Figure(figure)
-        elif isinstance(figure, FigureResampler):
-            print("passing")  # TODO make composable
-            pass
+        # Parse the figure input before calling `super`
+        if is_figure(figure):
+            # Base case, the figure does not need to be adjusted
+            f = figure
+        else:
+            # Create a new figure object and make sure that the trace uid will not get
+            # adjusted when they are added.
+            f = go.Figure()
+            f._data_validator.set_uid = False
+
+            if isinstance(figure, BaseFigure):
+                # A base figure object, we first copy the layout and grid ref
+                f.layout = figure.layout
+                f._grid_ref = figure._grid_ref
+
+                if is_fwr(figure):
+                    # Note This hack ensures that the this figure object initially uses 
+                    # data of the whole view. More concretely; we use the FigureWidgetResampler 
+                    # constructor to compose the figure object with itself; and in this 
+                    # new object we reset the axes.
+                    figure = figure.__class__(figure)
+
+                f.add_traces(list(figure.data))
+            elif isinstance(figure, (dict, list)):
+                # A single trace dict or a list of traces
+                f.add_traces(figure)
 
         super().__init__(
-            figure,
+            f,
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
@@ -55,6 +77,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             show_mean_aggregation_size,
             verbose,
         )
+
+        # Copy the `_hf_data` if the previous figure was an AbstractFigureAggregator
+        if isinstance(figure, AbstractFigureAggregator):
+            self._hf_data = figure._hf_data
 
         # The FigureResampler needs a dash app
         self._app: JupyterDash | Dash | None = None

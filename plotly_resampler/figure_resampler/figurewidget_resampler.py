@@ -15,9 +15,10 @@ from typing import Tuple
 
 import plotly.graph_objects as go
 
-from .figure_resampler import AbstractFigureAggregator
-from .utils import is_figurewidget
+from .figure_resampler_interface import AbstractFigureAggregator
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from plotly.basedatatypes import BaseFigure
+from plotly_resampler.figure_resampler.utils import is_figurewidget, is_fr, is_fwr
 
 
 class _FigureWidgetResamplerM(type(AbstractFigureAggregator), type(go.FigureWidget)):
@@ -41,7 +42,7 @@ class FigureWidgetResampler(
 
     def __init__(
         self,
-        figure: go.FigureWidget | go.Figure | dict = None,
+        figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -52,13 +53,23 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-        if not is_figurewidget(figure):  # robust check when go.FigureWidget is wrapped
-            figure = go.FigureWidget(figure)
 
-        # TODO: seems to be compasable?
+        # Parse the figure input before calling `super`
+        f = go.FigureWidget()
+        f._data_validator.set_uid = False
+
+        if isinstance(figure, BaseFigure):
+            # A base figure object, we first copy the layout and grid ref
+            f.layout = figure.layout
+            f._grid_ref = figure._grid_ref
+
+            f.add_traces(list(figure.data))
+        elif isinstance(figure, (dict, list)):
+            # A single trace dict or a list of traces
+            f.add_traces(figure)
 
         super().__init__(
-            figure,
+            f,
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
@@ -66,6 +77,10 @@ class FigureWidgetResampler(
             show_mean_aggregation_size,
             verbose,
         )
+
+        # Copy the `_hf_data` if the previous figure was an AbstractFigureAggregator
+        if isinstance(figure, AbstractFigureAggregator):
+            self._hf_data = figure._hf_data
 
         self._prev_layout = None  # Contains the previous xaxis layout configuration
 
@@ -80,6 +95,11 @@ class FigureWidgetResampler(
         if not len(self._xaxis_list):
             self._xaxis_list = ["xaxis"]
             self._yaxis_list = ["yaxis"]
+
+        # make sure to reset the axes when we deal with either a FigureWidget or a 
+        # FigureWidgetResampler
+        if is_figurewidget(figure) and len(self.data):
+            self.reset_axes()
 
         # Assign the the update-methods to the corresponding classes
         showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
