@@ -647,7 +647,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hasattr(trace, "hovertext"):
                 trace["hovertext"] = hf_hovertext
 
-        return _hf_data_container((hf_x, hf_y, hf_text, hf_hovertext))
+        return _hf_data_container(hf_x, hf_y, hf_text, hf_hovertext)
 
     def _construct_hf_data_dict(
         self, dc, trace, downsampler, max_n_samples: int, offset=0
