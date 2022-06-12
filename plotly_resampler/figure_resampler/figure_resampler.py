@@ -22,7 +22,7 @@ from trace_updater import TraceUpdater
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
-from .utils import is_figure, is_fwr
+from .utils import is_figure, is_fr
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
@@ -42,7 +42,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         verbose: bool = False,
     ):
         # Parse the figure input before calling `super`
-        if is_figure(figure):
+        if is_figure(figure) and not is_fr(figure):
             # Base case, the figure does not need to be adjusted
             f = figure
         else:
@@ -55,15 +55,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 # A base figure object, we first copy the layout and grid ref
                 f.layout = figure.layout
                 f._grid_ref = figure._grid_ref
-
-                if is_fwr(figure):
-                    # Note This hack ensures that the this figure object initially uses 
-                    # data of the whole view. More concretely; we use the FigureWidgetResampler 
-                    # constructor to compose the figure object with itself; and in this 
-                    # new object we reset the axes.
-                    figure = figure.__class__(figure)
-
-                f.add_traces(list(figure.data))
+                f.add_traces(figure.data)
             elif isinstance(figure, (dict, list)):
                 # A single trace dict or a list of traces
                 f.add_traces(figure)
@@ -78,9 +70,22 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             verbose,
         )
 
-        # Copy the `_hf_data` if the previous figure was an AbstractFigureAggregator
         if isinstance(figure, AbstractFigureAggregator):
-            self._hf_data = figure._hf_data
+            # Copy the `_hf_data` if the previous figure was an AbstractFigureAggregator
+            # and adjust the default `max_n_samples` and `downsampler`
+            self._hf_data = self._copy_hf_data(
+                figure._hf_data, adjust_default_values=True
+            )
+
+            # Note: This hack ensures that the this figure object initially uses
+            # data of the whole view. More concretely; we create a dict 
+            # serialization figure and adjust the hf-traces to the whole view 
+            # with the check-update method (by passing no range / filter args)
+            with self.batch_update():
+                graph_dict: dict = self._get_current_graph()
+                update_indices = self._check_update_figure_dict(graph_dict)
+                for idx in update_indices:
+                    self.data[idx].update(graph_dict["data"][idx])
 
         # The FigureResampler needs a dash app
         self._app: JupyterDash | Dash | None = None
