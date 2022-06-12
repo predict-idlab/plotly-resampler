@@ -809,6 +809,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
           also storing the low-frequency series in the back-end.
 
         """
+        # to comply with the plotly data input acceptance behavior
+        if isinstance(trace, (list, tuple)):
+            raise ValueError("Trace must be either a dict or a BaseTraceType")
+
         if max_n_samples is None:
             max_n_samples = self._global_n_shown_samples
 
@@ -868,7 +872,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
     def add_traces(
         self,
-        data: List[BaseTraceType | dict],
+        data: List[BaseTraceType | dict] | BaseTraceType | Dict,
         max_n_samples: None | List[int] | int = None,
         downsamplers: None
         | List[AbstractSeriesAggregator]
@@ -922,6 +926,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 `Figure.add_traces <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces>`_ docs.
 
         """
+        # note: Plotly its add_traces also a allows non list-like input e.g. a scatter 
+        # object; the code below is an exact copy of their internally applied parsing
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+
         # Convert each trace into a trace object
         data = [
             self._data_validator.validate_coerce(trace)[0]
@@ -948,7 +957,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 continue
 
             max_out = self._global_n_shown_samples if max_out is None else max_out
-            if len(trace["y"]) <= max_out and not limit_to_view:
+            if not limit_to_view and (trace.y is None or len(trace.y) <= max_out):
                 continue
 
             d = self._global_downsampler if downsampler is None else downsampler
