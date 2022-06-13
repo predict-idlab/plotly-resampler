@@ -73,13 +73,13 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         if isinstance(figure, AbstractFigureAggregator):
             # Copy the `_hf_data` if the previous figure was an AbstractFigureAggregator
             # and adjust the default `max_n_samples` and `downsampler`
-            self._hf_data = self._copy_hf_data(
-                figure._hf_data, adjust_default_values=True
+            self._hf_data.update(
+                self._copy_hf_data(figure._hf_data, adjust_default_values=True)
             )
 
             # Note: This hack ensures that the this figure object initially uses
-            # data of the whole view. More concretely; we create a dict 
-            # serialization figure and adjust the hf-traces to the whole view 
+            # data of the whole view. More concretely; we create a dict
+            # serialization figure and adjust the hf-traces to the whole view
             # with the check-update method (by passing no range / filter args)
             with self.batch_update():
                 graph_dict: dict = self._get_current_graph()
