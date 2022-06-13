@@ -1,12 +1,6 @@
-from email.mime import base
-import pytest
-import numpy as np
-import pandas as pd
-import multiprocessing
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from plotly_resampler import FigureResampler, FigureWidgetResampler, LTTB, EveryNthPoint
-from typing import List
+from plotly_resampler import FigureResampler, FigureWidgetResampler
 
 
 # ----------------------- Figure as Base -----------------------
@@ -411,6 +405,81 @@ if True:
         for trace in fr_fr.data:
             assert len(trace["y"]) == 10_000
 
+    def test_fr_fr_scatter_no_agg_agg(float_series, bool_series, cat_series):
+        # This initial figure object does not contain any aggregated data as
+        # default_n_shown samples >= the input data
+        base_fig = FigureResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=10_000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(go.Scatter(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        assert len(base_fig.hf_data) == 0
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fr_fr = FigureResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fr_fr.data) == 3
+        assert len(fr_fr.hf_data) == 3
+        for trace in fr_fr.data:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fr_fr._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+
+        # 2. No scatters are aggregated
+        fr_fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr_fr.data) == 3
+        assert len(fr_fr.hf_data) == 0
+        for trace in fr_fr.data:
+            assert len(trace["y"]) == 10_000
+
+    def test_fr_fr_scatter_agg_limit_to_view(float_series, bool_series, cat_series):
+        # we test whether the to view limited LF series will also get copied.
+        base_fig = FigureResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=1000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(
+            go.Scatter(y=bool_series[:800]), limit_to_view=True, row=1, col=2
+        )
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fr_fr = FigureResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fr_fr.data) == 3
+        assert len(fr_fr.hf_data) == 3
+        for trace in fr_fr.data[:1] + fr_fr.data[2:]:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fr_fr._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+        assert len(fr_fr.data[1]["y"]) == 800
+
+        # 2. No scatters are aggregated
+        fr_fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr_fr.data) == 3
+        assert len(fr_fr.hf_data) == 3
+        for trace in fr_fr.data[:1] + fr_fr.data[2:]:
+            assert len(trace["y"]) == 10_000
+        assert len(fr_fr.data[1]["y"]) == 800
+
     def test_fwr_fr_scatter_agg(float_series, bool_series, cat_series):
         base_fig = FigureResampler(
             make_subplots(
@@ -444,7 +513,82 @@ if True:
         for trace in fw_fr.data:
             assert len(trace["y"]) == 10_000
 
-    def test_fwr_fr_scatter_agg_no_default(float_series, bool_series, cat_series):
+    def test_fwr_fr_scatter_no_agg_agg(float_series, bool_series, cat_series):
+        # This initial figure object does not contain any aggregated data as
+        # default_n_shown samples >= the input data
+        base_fig = FigureResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=10_000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(go.Scatter(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        assert len(base_fig.hf_data) == 0
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fwr_fr = FigureWidgetResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fwr_fr.data) == 3
+        assert len(fwr_fr.hf_data) == 3
+        for trace in fwr_fr.data:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fwr_fr._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+
+        # 2. No scatters are aggregated
+        fr_fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr_fr.data) == 3
+        assert len(fr_fr.hf_data) == 0
+        for trace in fr_fr.data:
+            assert len(trace["y"]) == 10_000
+
+    def test_fwr_fr_scatter_agg_limit_to_view(float_series, bool_series, cat_series):
+        # we test whether the to view limited LF series will also get copied.
+        base_fig = FigureResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=1000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(
+            go.Scatter(y=bool_series[:800]), limit_to_view=True, row=1, col=2
+        )
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fwr_fr = FigureWidgetResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fwr_fr.data) == 3
+        assert len(fwr_fr.hf_data) == 3
+        for trace in fwr_fr.data[:1] + fwr_fr.data[2:]:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fwr_fr._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+        assert len(fwr_fr.data[1]["y"]) == 800
+
+        # 2. No scatters are aggregated
+        fwr_fr = FigureWidgetResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fwr_fr.data) == 3
+        assert len(fwr_fr.hf_data) == 3
+        for trace in fwr_fr.data[:1] + fwr_fr.data[2:]:
+            assert len(trace["y"]) == 10_000
+        assert len(fwr_fr.data[1]["y"]) == 800
+
+    def test_fr_fr_scatter_agg_no_default(float_series, bool_series, cat_series):
         base_fig = FigureResampler(
             make_subplots(
                 rows=2,
@@ -486,17 +630,17 @@ if True:
 
         # Create FigureWidgetResampler object from a go.Scatter
         # 1. All scatters are aggregated
-        fw_fr = FigureWidgetResampler(base_fig, default_n_shown_samples=2_000)
-        assert len(fw_fr.data) == 3
-        assert len(fw_fr.hf_data) == 3
-        for trace in fw_fr.data[:1] + fw_fr.data[2:]:
+        fwr_fr = FigureWidgetResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fwr_fr.data) == 3
+        assert len(fwr_fr.hf_data) == 3
+        for trace in fwr_fr.data[:1] + fwr_fr.data[2:]:
             # NOTE: default arguments are overtaken, so the default number of samples
             # of the wrapped `FigureResampler` traces are overriden by the default
             # number of samples of this class
             assert len(trace["y"]) == 2_000
 
         # this was not a default value, so it remains its original value; i.e 1000
-        assert len(fw_fr.data[1]["y"]) == 1000
+        assert len(fwr_fr.data[1]["y"]) == 1000
 
     # -------- Mixed
     def test_fr_fr_mixed_agg(float_series):
@@ -638,6 +782,74 @@ if True:
         for trace in fr_fw.data:
             assert len(trace["y"]) == 10_000
 
+    def test_fr_fwr_scatter_no_agg_agg(float_series, bool_series, cat_series):
+        # This inital figure object does not contain any aggregated data as
+        # default_n_shown samples >= the input data
+        base_fig = FigureWidgetResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=10_000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(go.Scatter(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        assert len(base_fig.hf_data) == 0
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fr_fwr = FigureResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fr_fwr.data) == 3
+        assert len(fr_fwr.hf_data) == 3
+        for trace in fr_fwr.data:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fr_fwr._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+
+    def test_fr_fwr_scatter_agg_limit_to_view(float_series, bool_series, cat_series):
+        # we test whether the to view limited LF series will also get copied.
+        base_fig = FigureWidgetResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=1000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(
+            go.Scatter(y=bool_series[:800]), limit_to_view=True, row=1, col=2
+        )
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fr_fw = FigureResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fr_fw.data) == 3
+        assert len(fr_fw.hf_data) == 3
+        for trace in fr_fw.data[:1] + fr_fw.data[2:]:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fr_fw._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+        assert len(fr_fw.data[1]["y"]) == 800
+
+        # 2. No scatters are aggregated
+        fr_fw = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr_fw.data) == 3
+        assert len(fr_fw.hf_data) == 3
+        for trace in fr_fw.data[:1] + fr_fw.data[2:]:
+            assert len(trace["y"]) == 10_000
+        assert len(fr_fw.data[1]["y"]) == 800
+
     def test_fw_fwr_scatter_agg(float_series, bool_series, cat_series):
         base_fig = FigureWidgetResampler(
             make_subplots(
@@ -670,6 +882,74 @@ if True:
         assert len(fw_fw.hf_data) == 3
         for trace in fw_fw.data:
             assert len(trace["y"]) == 10_000
+
+    def test_fwr_fwr_scatter_no_agg_agg(float_series, bool_series, cat_series):
+        # This inital figure object does not contain any aggregated data as
+        # default_n_shown samples >= the input data
+        base_fig = FigureWidgetResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=10_000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(go.Scatter(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        assert len(base_fig.hf_data) == 0
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fwr_fwr = FigureWidgetResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fwr_fwr.data) == 3
+        assert len(fwr_fwr.hf_data) == 3
+        for trace in fwr_fwr.data:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fwr_fwr._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+
+    def test_fwr_fwr_scatter_agg_limit_to_view(float_series, bool_series, cat_series):
+        # we test whether the to view limited LF series will also get copied.
+        base_fig = FigureWidgetResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=1000,
+        )
+        base_fig.add_trace(dict(y=cat_series), row=1, col=1)
+        base_fig.add_trace(
+            go.Scatter(y=bool_series[:800]), limit_to_view=True, row=1, col=2
+        )
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        # Create FigureResampler object from a go.Scatter
+        # 1. All scatters are aggregated
+        fwr_fw = FigureWidgetResampler(base_fig, default_n_shown_samples=2_000)
+        assert len(fwr_fw.data) == 3
+        assert len(fwr_fw.hf_data) == 3
+        for trace in fwr_fw.data[:1] + fwr_fw.data[2:]:
+            # ensure that all uids are in the `_hf_data` property
+            assert trace.uid in fwr_fw._hf_data
+            # NOTE: default arguments are overtaken, so the default number of samples
+            # of the wrapped `FigureResampler` traces are overriden by the default
+            # number of samples of this class
+            assert len(trace["y"]) == 2_000
+        assert len(fwr_fw.data[1]["y"]) == 800
+
+        # 2. No scatters are aggregated
+        fwr_fw = FigureWidgetResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fwr_fw.data) == 3
+        assert len(fwr_fw.hf_data) == 3
+        for trace in fwr_fw.data[:1] + fwr_fw.data[2:]:
+            assert len(trace["y"]) == 10_000
+        assert len(fwr_fw.data[1]["y"]) == 800
 
     def test_fr_fwr_scatter_agg_no_default(float_series, bool_series, cat_series):
         base_fig = FigureWidgetResampler(
@@ -833,7 +1113,7 @@ if True:
 # Performing zoom events on widgets
 if True:
 
-    def test_fr_fwr_scatter_agg(cat_series, bool_series, float_series):
+    def test_fr_fwr_scatter_agg_zoom(cat_series, bool_series, float_series):
         base_fig = FigureWidgetResampler(
             make_subplots(
                 rows=2,
@@ -874,8 +1154,7 @@ if True:
         assert fr_fwr.data[1]["x"][0] == 0
         assert fr_fwr.data[1]["x"][-1] == 9999
 
-
-    def test_fwr_fwr_scatter_agg(cat_series, bool_series, float_series):
+    def test_fwr_fwr_scatter_agg_zoom(cat_series, bool_series, float_series):
         base_fig = FigureWidgetResampler(
             make_subplots(
                 rows=2,
