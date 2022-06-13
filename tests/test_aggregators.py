@@ -88,7 +88,7 @@ def test_every_nth_point_bool_sequence_data(bool_series):
 
 
 def test_every_nth_point_empty_series():
-    empty_series = pd.Series(name="empty")
+    empty_series = pd.Series(name="empty", dtype='float32')
     out = EveryNthPoint(interleave_gaps=True).aggregate(empty_series, n_out=1_000)
     assert out.equals(empty_series)
 
@@ -230,7 +230,7 @@ def test_mmo_bool_sequence_data(bool_series):
 
 
 def test_mmo_empty_series():
-    empty_series = pd.Series(name="empty")
+    empty_series = pd.Series(name="empty", dtype='float32')
     out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
         empty_series, n_out=1_000
     )
