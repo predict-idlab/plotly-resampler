@@ -3,6 +3,8 @@ import plotly.graph_objects as go
 from plotly_resampler.figure_resampler.utils import (
     is_figure,
     is_figurewidget,
+    is_fr,
+    is_fwr,
     timedelta_to_str,
     round_td_str,
     round_number_str,
@@ -24,6 +26,20 @@ def test_is_figure():
     assert not is_figure(FigureWidgetResampler(fig_dict))
 
 
+def test_is_fr():
+    fig_dict = {"type": "scatter", "y": [1, 2, 3]}
+    assert is_fr(FigureResampler())
+    assert is_fr(FigureResampler(fig_dict))
+    assert not is_fr(go.Figure())
+    assert not is_fr(go.Figure(fig_dict))
+    assert not is_fr(go.FigureWidget())
+    assert not is_fr(None)
+    assert not is_fr(fig_dict)
+    assert not is_fr(go.Scatter(y=[1, 2, 3]))
+    assert not is_fr(FigureWidgetResampler())
+    assert not is_fr(FigureWidgetResampler(fig_dict))
+
+
 def test_is_figurewidget():
     fig_dict = {"type": "scatter", "y": [1, 2, 3]}
     assert is_figurewidget(go.FigureWidget())
@@ -36,6 +52,20 @@ def test_is_figurewidget():
     assert not is_figurewidget(go.Scatter(y=[1, 2, 3]))
     assert not is_figurewidget(FigureResampler())
     assert not is_figurewidget(FigureResampler(fig_dict))
+
+
+def test_is_fwr():
+    fig_dict = {"type": "scatter", "y": [1, 2, 3]}
+    assert is_fwr(FigureWidgetResampler())
+    assert is_fwr(FigureWidgetResampler(fig_dict))
+    assert not is_fwr(go.FigureWidget())
+    assert not is_fwr(go.FigureWidget(fig_dict))
+    assert not is_fwr(go.Figure())
+    assert not is_fwr(None)
+    assert not is_fwr(fig_dict)
+    assert not is_fwr(go.Scatter(y=[1, 2, 3]))
+    assert not is_fwr(FigureResampler())
+    assert not is_fwr(FigureResampler(fig_dict))
 
 
 def test_timedelta_to_str():

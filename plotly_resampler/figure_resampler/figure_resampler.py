@@ -42,7 +42,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         verbose: bool = False,
     ):
         # Parse the figure input before calling `super`
-        if is_figure(figure) and not is_fr(figure):
+        if is_figure(figure) and not is_fr(figure):  # go.Figure
             # Base case, the figure does not need to be adjusted
             f = figure
         else:
@@ -51,7 +51,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             f = go.Figure()
             f._data_validator.set_uid = False
 
-            if isinstance(figure, BaseFigure):
+            if isinstance(figure, BaseFigure):  # go.FigureWidget or AbstractFigureAggregator
                 # A base figure object, we first copy the layout and grid ref
                 f.layout = figure.layout
                 f._grid_ref = figure._grid_ref

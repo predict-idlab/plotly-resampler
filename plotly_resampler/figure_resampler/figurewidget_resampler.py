@@ -13,10 +13,10 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 from typing import Tuple
 
 import plotly.graph_objects as go
-
-from .figure_resampler_interface import AbstractFigureAggregator
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from plotly.basedatatypes import BaseFigure
+
+from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from .figure_resampler_interface import AbstractFigureAggregator
 
 
 class _FigureWidgetResamplerM(type(AbstractFigureAggregator), type(go.FigureWidget)):
@@ -51,16 +51,14 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-
         # Parse the figure input before calling `super`
         f = go.FigureWidget()
         f._data_validator.set_uid = False
 
-        if isinstance(figure, BaseFigure):
+        if isinstance(figure, BaseFigure):  # go.Figure or go.FigureWidget or AbstractFigureAggregator
             # A base figure object, we first copy the layout and grid ref
             f.layout = figure.layout
             f._grid_ref = figure._grid_ref
-
             f.add_traces(figure.data)
         elif isinstance(figure, (dict, list)):
             # A single trace dict or a list of traces
