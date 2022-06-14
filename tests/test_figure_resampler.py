@@ -10,6 +10,7 @@ import multiprocessing
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
+from typing import List
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -573,8 +574,8 @@ def test_multiple_tz_no_tz_series_slicing():
         t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
         t_stop = t_stop.tz_localize(cs[(i + 2) % len(cs)].index.tz)
 
-        # Now the assumpton cannot be made that s ahd the same time-zone as the
-        # timestamps -> Assertionerror will be raised.
+        # Now the assumption cannot be made that s has the same time-zone as the
+        # timestamps -> AssertionError will be raised.
         with pytest.raises(AssertionError):
             fig._slice_time(s.tz_localize(None), t_start, t_stop)
 
@@ -661,3 +662,180 @@ def test_fr_from_dict():
     assert len(fr_fig.data[0]["x"]) == 1_000
     assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
     assert (fr_fig.data[0]["y"] == [1] * 1_000).all()
+
+    # assert that all the uuids of data and hf_data match
+    # this is a proxy for assuring that the dynamic aggregation should work
+    assert fr_fig.data[0].uid in fr_fig._hf_data
+
+
+def test_fr_empty_list():
+    # and empty list -> so no concrete traces were added
+    fr_fig = FigureResampler([], default_n_shown_samples=1000)
+    assert len(fr_fig.hf_data) == 0
+    assert len(fr_fig.data) == 0
+
+
+def test_fr_empty_dict():
+    # a dict is a concrete trace so 1 trace should be added
+    fr_fig = FigureResampler({}, default_n_shown_samples=1000)
+    assert len(fr_fig.hf_data) == 0
+    assert len(fr_fig.data) == 1
+
+
+def test_fr_wrong_keys(float_series):
+    base_fig = [
+        {"ydata": float_series.values + 2, "name": "sp2"},
+    ]
+    with pytest.raises(ValueError):
+        FigureResampler(base_fig, default_n_shown_samples=1000)
+
+
+def test_fr_from_list_dict(float_series):
+    base_fig: List[dict] = [
+        {"y": float_series.values + 2, "name": "sp2"},
+        {"y": float_series.values, "name": "s"},
+    ]
+
+    fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    # both traces are HF traces so should be aggregated
+    assert len(fr_fig.hf_data) == 2
+    assert (fr_fig.hf_data[0]["y"] == float_series + 2).all()
+    assert (fr_fig.hf_data[1]["y"] == float_series).all()
+    assert len(fr_fig.data) == 2
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[1]["x"][0] >= 0) & (fr_fig.data[1]["x"][-1] < 10_000)
+
+    # assert that all the uuids of data and hf_data match
+    assert fr_fig.data[0].uid in fr_fig._hf_data
+    assert fr_fig.data[1].uid in fr_fig._hf_data
+
+    # redo the exercise with a new low-freq trace
+    base_fig.append({"y": float_series[:1000], "name": "s_no_agg"})
+    fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    assert len(fr_fig.hf_data) == 2
+    assert len(fr_fig.data) == 3
+
+
+def test_fr_list_dict_add_traces(float_series):
+    fr_fig = FigureResampler(default_n_shown_samples=1000)
+
+    traces: List[dict] = [
+        {"y": float_series.values + 2, "name": "sp2"},
+        {"y": float_series.values, "name": "s"},
+    ]
+    fr_fig.add_traces(traces)
+    # both traces are HF traces so should be aggregated
+    assert len(fr_fig.hf_data) == 2
+    assert (fr_fig.hf_data[0]["y"] == float_series + 2).all()
+    assert (fr_fig.hf_data[1]["y"] == float_series).all()
+    assert len(fr_fig.data) == 2
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[1]["x"][0] >= 0) & (fr_fig.data[1]["x"][-1] < 10_000)
+
+    # assert that all the uuids of data and hf_data match
+    assert fr_fig.data[0].uid in fr_fig._hf_data
+    assert fr_fig.data[1].uid in fr_fig._hf_data
+
+    # redo the exercise with a new low-freq trace
+    fr_fig.add_traces({"y": float_series[:1000], "name": "s_no_agg"})
+    assert len(fr_fig.hf_data) == 2
+    assert len(fr_fig.data) == 3
+
+    # add low-freq trace but set limit_to_view to True
+    fr_fig.add_traces([{"y": float_series[:100], "name": "s_agg"}], limit_to_views=True)
+    assert len(fr_fig.hf_data) == 3
+    assert len(fr_fig.data) == 4
+
+    # add a low-freq trace but adjust max_n_samples
+    # note that we use a tuple as input here
+    fr_fig.add_traces(({"y": float_series[:1000], "name": "s_agg"},), max_n_samples=999)
+    assert len(fr_fig.hf_data) == 4
+    assert len(fr_fig.data) == 5
+
+
+def test_fr_list_dict_add_trace(float_series):
+    fr_fig = FigureResampler(default_n_shown_samples=1000)
+
+    traces: List[dict] = [
+        {"y": float_series.values + 2, "name": "sp2"},
+        {"y": float_series.values, "name": "s"},
+    ]
+    for trace in traces:
+        fr_fig.add_trace(trace)
+
+    # both traces are HF traces so should be aggregated
+    assert len(fr_fig.hf_data) == 2
+    assert (fr_fig.hf_data[0]["y"] == float_series + 2).all()
+    assert (fr_fig.hf_data[1]["y"] == float_series).all()
+    assert len(fr_fig.data) == 2
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[1]["x"][0] >= 0) & (fr_fig.data[1]["x"][-1] < 10_000)
+
+    # assert that all the uuids of data and hf_data match
+    assert fr_fig.data[0].uid in fr_fig._hf_data
+    assert fr_fig.data[1].uid in fr_fig._hf_data
+
+    # redo the exercise with a new low-freq trace
+    fr_fig.add_trace({"y": float_series[:1000], "name": "s_no_agg"})
+    assert len(fr_fig.hf_data) == 2
+    assert len(fr_fig.data) == 3
+
+    # add low-freq trace but set limit_to_view to True
+    fr_fig.add_trace({"y": float_series[:100], "name": "s_agg"}, limit_to_view=True)
+    assert len(fr_fig.hf_data) == 3
+    assert len(fr_fig.data) == 4
+
+    # add a low-freq trace but adjust max_n_samples
+    lf_series = {"y": float_series[:1000], "name": "s_agg"}
+    # plotly its default behavior raises a ValueError when a list or tuple is passed
+    # to add_trace
+    with pytest.raises(ValueError):
+        fr_fig.add_trace([lf_series], max_n_samples=999)
+    with pytest.raises(ValueError):
+        fr_fig.add_trace((lf_series,), max_n_samples=999)
+
+    fr_fig.add_trace(lf_series, max_n_samples=999)
+    assert len(fr_fig.hf_data) == 4
+    assert len(fr_fig.data) == 5
+
+
+def test_fr_list_scatter_add_traces(float_series):
+    fr_fig = FigureResampler(default_n_shown_samples=1000)
+
+    traces: List[dict] = [
+        go.Scattergl({"y": float_series.values + 2, "name": "sp2"}),
+        go.Scatter({"y": float_series.values, "name": "s"}),
+    ]
+    fr_fig.add_traces(tuple(traces))
+    # both traces are HF traces so should be aggregated
+    assert len(fr_fig.hf_data) == 2
+    assert (fr_fig.hf_data[0]["y"] == float_series + 2).all()
+    assert (fr_fig.hf_data[1]["y"] == float_series).all()
+    assert len(fr_fig.data) == 2
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[1]["x"][0] >= 0) & (fr_fig.data[1]["x"][-1] < 10_000)
+
+    # assert that all the uuids of data and hf_data match
+    assert fr_fig.data[0].uid in fr_fig._hf_data
+    assert fr_fig.data[1].uid in fr_fig._hf_data
+
+    # redo the exercise with a new low-freq trace
+    fr_fig.add_traces([go.Scattergl({"y": float_series[:1000], "name": "s_no_agg"})])
+    assert len(fr_fig.hf_data) == 2
+    assert len(fr_fig.data) == 3
+
+    # add low-freq trace but set limit_to_view to True
+    fr_fig.add_traces(go.Scattergl(), limit_to_views=True)
+    assert len(fr_fig.hf_data) == 3
+    assert len(fr_fig.data) == 4
+
+    # add a low-freq trace but adjust max_n_samples
+    fr_fig.add_traces(
+        go.Scatter({"y": float_series[:1000], "name": "s_agg"}), max_n_samples=999
+    )
+    assert len(fr_fig.hf_data) == 4
+    assert len(fr_fig.data) == 5

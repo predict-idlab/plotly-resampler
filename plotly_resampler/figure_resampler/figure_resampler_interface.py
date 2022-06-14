@@ -105,11 +105,29 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             f_._grid_ref = figure._grid_ref
             super().__init__(f_)
 
-            for trace in figure.data:
-                self.add_trace(trace)
+            # make sure that the UIDs of these traces do not get adjusted
+            self._data_validator.set_uid = False
+            self.add_traces(figure.data)
         else:
             super().__init__(figure)
-        self._data_validator.set_uid = False
+            self._data_validator.set_uid = False
+
+        # A list of al xaxis and yaxis string names
+        # e.g., "xaxis", "xaxis2", "xaxis3", .... for _xaxis_list
+        self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
+        self._yaxis_list = self._re_matches(re.compile("yaxis\d*"), self._layout.keys())
+        # edge case: an empty `go.Figure()` does not yet contain axes keys
+        if not len(self._xaxis_list):
+            self._xaxis_list = ["xaxis"]
+            self._yaxis_list = ["yaxis"]
+
+        # Make sure to reset the layout its range
+        self.update_layout(
+            {
+                axis: {"autorange": True, "range": None}
+                for axis in self._xaxis_list + self._yaxis_list
+            }
+        )
 
     def _print(self, *values):
         """Helper method for printing if ``verbose`` is set to True."""
@@ -650,9 +668,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return _hf_data_container(hf_x, hf_y, hf_text, hf_hovertext)
 
     def _construct_hf_data_dict(
-        self, dc, trace, downsampler, max_n_samples: int, offset=0
+        self,
+        dc,
+        trace,
+        downsampler: AbstractSeriesAggregator | None,
+        max_n_samples: int | None,
+        offset=0,
     ) -> dict:
-        """Create the `hf_data` dict item which will be put in the `_hf_data` property.
+        """Create the `hf_data` dict which will be put in the `_hf_data` property.
 
         Parameters
         ----------
@@ -660,9 +683,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The hf_data container, withholding the parsed hf-data
         trace : BaseTraceType
             The trace.
-        downsampler : AbstractSeriesAggregator
+        downsampler : AbstractSeriesAggregator | None
             The downsampler which will be used.
-        max_n_samples : int
+        max_n_samples : int | None
             The max number of output samples.
 
         Returns
@@ -672,7 +695,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         """
         # We will re-create this each time as hf_x and hf_y withholds
         # high-frequency data
-        # index = pd.Index(hf_x, copy=False, name="timestamp")
         hf_series = self._to_hf_series(x=dc.x, y=dc.y)
 
         # Checking this now avoids less interpretable `KeyError` when resampling
@@ -689,13 +711,25 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # & (3) store a hf_data entry for the corresponding trace,
         # identified by its UUID
         axis_type = "date" if isinstance(dc.x, pd.DatetimeIndex) else "linear"
-        d = self._global_downsampler if downsampler is None else downsampler
+
+        default_n_samples = False
+        if max_n_samples is None:
+            default_n_samples = True
+            max_n_samples = self._global_n_shown_samples
+
+        default_downsampler = False
+        if downsampler is None:
+            default_downsampler = True
+            downsampler = self._global_downsampler
+
         return {
             "max_n_samples": max_n_samples,
+            "default_n_samples": default_n_samples,
             "x": dc.x,
             "y": dc.y,
             "axis_type": axis_type,
-            "downsampler": d,
+            "downsampler": downsampler,
+            "default_downsampler": default_downsampler,
             "text": dc.text,
             "hovertext": dc.hovertext,
         }
@@ -808,17 +842,22 @@ class AbstractFigureAggregator(BaseFigure, ABC):
           also storing the low-frequency series in the back-end.
 
         """
-        if max_n_samples is None:
-            max_n_samples = self._global_n_shown_samples
+        # to comply with the plotly data input acceptance behavior
+        if isinstance(trace, (list, tuple)):
+            raise ValueError("Trace must be either a dict or a BaseTraceType")
 
-        # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison
-        uuid = str(uuid4())
+        max_out_s = (
+            self._global_n_shown_samples if max_n_samples is None else max_n_samples
+        )
 
         # Validate the trace and convert to a trace object
         if not isinstance(trace, BaseTraceType):
             trace = self._data_validator.validate_coerce(trace)[0]
-        trace.uid = uuid
+
+        # First add an UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison. If the trace already has an UUID, we will keep it.
+        uuid_str = str(uuid4()) if trace.uid is None else trace.uid
+        trace.uid = uuid_str
 
         dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
 
@@ -826,12 +865,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # These traces will determine the autoscale RANGE!
         #   -> so also store when `limit_to_view` is set.
         if trace["type"].lower() in self._high_frequency_traces:
-            if n_samples > max_n_samples or limit_to_view:
+            if n_samples > max_out_s or limit_to_view:
                 self._print(
-                    f"\t[i] DOWNSAMPLE {trace['name']}\t{n_samples}->{max_n_samples}"
+                    f"\t[i] DOWNSAMPLE {trace['name']}\t{n_samples}->{max_out_s}"
                 )
 
-                self._hf_data[uuid] = self._construct_hf_data_dict(
+                self._hf_data[uuid_str] = self._construct_hf_data_dict(
                     dc,
                     trace=trace,
                     downsampler=downsampler,
@@ -867,7 +906,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
     def add_traces(
         self,
-        data: List[BaseTraceType | dict],
+        data: List[BaseTraceType | dict] | BaseTraceType | Dict,
         max_n_samples: None | List[int] | int = None,
         downsamplers: None
         | List[AbstractSeriesAggregator]
@@ -876,6 +915,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         **traces_kwargs,
     ):
         """Add traces to the figure
+
+        .. note::
+            make sure to look at the :func:`add_trace` function for more info about
+            **speed optimization**, and dealing with not ``high-frequency`` data, but 
+            still want to resample / limit the data to the front-end view.
 
         Parameters
         ----------
@@ -917,6 +961,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 `Figure.add_traces <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces>`_ docs.
 
         """
+        # note: Plotly its add_traces also a allows non list-like input e.g. a scatter
+        # object; the code below is an exact copy of their internally applied parsing
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+
         # Convert each trace into a trace object
         data = [
             self._data_validator.validate_coerce(trace)[0]
@@ -924,6 +973,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else trace
             for trace in data
         ]
+
+        # First add an UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison. If the trace already has an UUID, we will keep it.
+        for trace in data:
+            uuid_str = str(uuid4()) if trace.uid is None else trace.uid
+            trace.uid = uuid_str
 
         # Convert the data properties
         if isinstance(max_n_samples, (int, np.integer)) or max_n_samples is None:
@@ -942,17 +997,17 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             ):
                 continue
 
-            max_out = self._global_n_shown_samples if max_out is None else max_out
-            if len(trace["y"]) <= max_out and not limit_to_view:
+            max_out_s = self._global_n_shown_samples if max_out is None else max_out
+            if not limit_to_view and (trace.y is None or len(trace.y) <= max_out_s):
                 continue
 
-            d = self._global_downsampler if downsampler is None else downsampler
-
-            uuid_str = str(uuid4())
-            trace["uid"] = uuid_str
             dc = self._parse_get_trace_props(trace)
-            self._hf_data[uuid_str] = self._construct_hf_data_dict(
-                dc, trace=trace, downsampler=d, max_n_samples=max_out, offset=i
+            self._hf_data[trace.uid] = self._construct_hf_data_dict(
+                dc,
+                trace=trace,
+                downsampler=downsampler,
+                max_n_samples=max_out,
+                offset=i,
             )
 
             trace = trace._props  # convert the trace into a dict
@@ -960,7 +1015,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             trace = self._check_update_trace_data(trace)
             assert trace is not None
-
             data[i] = trace
 
         super(self._figure_class, self).add_traces(data, **traces_kwargs)
@@ -972,6 +1026,41 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self._data = []
         self._layout = {}
         self.layout = {}
+
+    def _copy_hf_data(self, hf_data: dict, adjust_default_values: bool = False) -> dict:
+        """Copy (i.e. create a new key reference, not a deep copy) of a hf_data dict.
+
+        Parameters
+        ----------
+        hf_data : dict
+            The hf_data dict, having the trace 'uid' as key and the
+            hf-data, together with its aggregation properties as dict-values
+        adjust_default_values: bool
+            Whether the default values (of the downsampler, max # shown samples) will
+            be adjusted according to the values of this object, by default False
+
+        Returns
+        -------
+        dict
+            The copied (& default values adjusted) output dict.
+
+        """
+        hf_data_cp = {
+            k: {
+                k_: hf_data[k][k_]
+                for k_ in set(v.keys())  # .difference(_hf_data_container._fields)
+            }
+            for k, v in hf_data.items()
+        }
+
+        if adjust_default_values:
+            for hf_props in hf_data_cp.values():
+                if hf_props.get("default_downsampler", False):
+                    hf_props["downsampler"] = self._global_downsampler
+                if hf_props.get("default_n_samples", False):
+                    hf_props["max_n_samples"] = self._global_n_shown_samples
+
+        return hf_data_cp
 
     def replace(self, figure: go.Figure, convert_existing_traces: bool = True):
         """Replace the current figure layout with the passed figure object.

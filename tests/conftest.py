@@ -47,20 +47,28 @@ def driver():
 @pytest.fixture
 def float_series() -> pd.Series:
     x = np.arange(_nb_samples).astype(np.uint32)
-    y = np.sin(x / 300).astype(np.float32) + np.random.randn(_nb_samples) / 5
+    y = np.sin(x / 50).astype(np.float32) + np.random.randn(_nb_samples) / 5
     return pd.Series(index=x, data=y)
 
 
 @pytest.fixture
 def cat_series() -> pd.Series:
-    cats_list = ["a", "b", "b", "b", "c", "c", "a", "d", "a"]
-    return pd.Series(cats_list * (_nb_samples // len(cats_list)), dtype="category")
+    cats_list = ["a", "a", "a", "a"] * 2000
+    for i in np.random.randint(0, len(cats_list), 3):
+        cats_list[i] = "b"
+    for i in np.random.randint(0, len(cats_list), 3):
+        cats_list[i] = "c"
+    return pd.Series(cats_list * (_nb_samples // len(cats_list) + 1), dtype="category")[
+        :_nb_samples
+    ]
 
 
 @pytest.fixture
 def bool_series() -> pd.Series:
-    bool_list = [True, False, True, True, True, True] + [True] * 50
-    return pd.Series(bool_list * (_nb_samples // len(bool_list)), dtype="bool")
+    bool_list = [True, False, True, True, True, True] + [True] * 1000
+    return pd.Series(bool_list * (_nb_samples // len(bool_list) + 1), dtype="bool")[
+        :_nb_samples
+    ]
 
 
 @pytest.fixture
@@ -285,7 +293,7 @@ def gsr_figure() -> FigureResampler:
             ' <b style="color:red">[R]</b>',
         ),
         verbose=False,
-        show_mean_aggregation_size=True
+        show_mean_aggregation_size=True,
     )
     fig.update_layout(height=700)
 
@@ -410,7 +418,7 @@ def cat_series_box_hist_figure() -> FigureResampler:
 
     fig.add_trace(go.Box(x=float_series.values, name="float_series"), row=1, col=2)
     fig.add_trace(
-        go.Box(x=float_series.values ** 2, name="float_series**2"), row=1, col=2
+        go.Box(x=float_series.values**2, name="float_series**2"), row=1, col=2
     )
 
     # add a not hf-trace
