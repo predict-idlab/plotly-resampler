@@ -12,7 +12,7 @@ from typing import Any
 
 
 def is_figure(figure: Any) -> bool:
-    """Check if the figure is a plotly go.Figure.
+    """Check if the figure is a plotly go.Figure or a FigureResampler.
 
     .. Note::
         This method does not use isinstance(figure, go.Figure) as this will not work
@@ -27,60 +27,14 @@ def is_figure(figure: Any) -> bool:
     Returns
     -------
     bool
-        True if the figure is a plotly go.Figure.
+        True if the figure is a plotly go.Figure or a FigureResampler.
     """
 
     return isinstance(figure, BaseFigure) and (not isinstance(figure, BaseFigureWidget))
 
 
-def is_fr(figure: Any) -> bool:
-    """Check if the figure is a plotly FigureResampler.
-
-    .. Note::
-        This method does not use isinstance(figure, go.Figure) as this will not work
-        when go.Figure is decorated (after executing the
-        ``register_plotly_resampler`` function).
-
-    Parameters
-    ----------
-    figure : Any
-        The figure to check.
-
-    Returns
-    -------
-    bool
-        True if the figure is a plotly go.Figure.
-    """
-    from plotly_resampler import FigureResampler
-
-    return isinstance(figure, FigureResampler)
-
-
-def is_fwr(figure: Any) -> bool:
-    """Check if the figure is a plotly FigureWidgetResampler.
-
-    .. Note::
-        This method does not use isinstance(figure, go.Figure) as this will not work
-        when go.Figure is decorated (after executing the
-        ``register_plotly_resampler`` function).
-
-    Parameters
-    ----------
-    figure : Any
-        The figure to check.
-
-    Returns
-    -------
-    bool
-        True if the figure is a plotly go.Figure.
-    """
-    from plotly_resampler import FigureWidgetResampler
-
-    return isinstance(figure, FigureWidgetResampler)
-
-
 def is_figurewidget(figure: Any):
-    """Check if the figure is a plotly go.FigureWidget.
+    """Check if the figure is a plotly go.FigureWidget or a FigureWidgetResampler.
 
     .. Note::
         This method does not use isinstance(figure, go.FigureWidget) as this will not
@@ -95,9 +49,51 @@ def is_figurewidget(figure: Any):
     Returns
     -------
     bool
-        True if the figure is a plotly go.FigureWidget.
+        True if the figure is a plotly go.FigureWidget or a FigureWidgetResampler.
     """
     return isinstance(figure, BaseFigureWidget)
+
+
+def is_fr(figure: Any) -> bool:
+    """Check if the figure is a FigureResampler.
+
+    .. Note::
+        This method will not return True if the figure is a plotly go.Figure.
+
+    Parameters
+    ----------
+    figure : Any
+        The figure to check.
+
+    Returns
+    -------
+    bool
+        True if the figure is a FigureResampler.
+    """
+    from plotly_resampler import FigureResampler
+
+    return isinstance(figure, FigureResampler)
+
+
+def is_fwr(figure: Any) -> bool:
+    """Check if the figure is a FigureWidgetResampler.
+
+    .. Note::
+        This method will not return True if the figure is a plotly go.FigureWidget.
+
+    Parameters
+    ----------
+    figure : Any
+        The figure to check.
+
+    Returns
+    -------
+    bool
+        True if the figure is a FigureWidgetResampler.
+    """
+    from plotly_resampler import FigureWidgetResampler
+
+    return isinstance(figure, FigureWidgetResampler)
 
 
 ### Rounding functions for bin size

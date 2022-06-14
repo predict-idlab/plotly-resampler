@@ -675,7 +675,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         max_n_samples: int | None,
         offset=0,
     ) -> dict:
-        """Create the `hf_data` dict item which will be put in the `_hf_data` property.
+        """Create the `hf_data` dict which will be put in the `_hf_data` property.
 
         Parameters
         ----------
@@ -695,7 +695,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         """
         # We will re-create this each time as hf_x and hf_y withholds
         # high-frequency data
-        # index = pd.Index(hf_x, copy=False, name="timestamp")
         hf_series = self._to_hf_series(x=dc.x, y=dc.y)
 
         # Checking this now avoids less interpretable `KeyError` when resampling
@@ -856,7 +855,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             trace = self._data_validator.validate_coerce(trace)[0]
 
         # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison, if the trace already has an UUID, we will keep it.
+        # key for comparison. If the trace already has an UUID, we will keep it.
         uuid_str = str(uuid4()) if trace.uid is None else trace.uid
         trace.uid = uuid_str
 
@@ -975,7 +974,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         ]
 
         # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison, if the trace already has an UUID, we will keep it.
+        # key for comparison. If the trace already has an UUID, we will keep it.
         for trace in data:
             uuid_str = str(uuid4()) if trace.uid is None else trace.uid
             trace.uid = uuid_str

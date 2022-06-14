@@ -574,7 +574,7 @@ def test_multiple_tz_no_tz_series_slicing():
         t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
         t_stop = t_stop.tz_localize(cs[(i + 2) % len(cs)].index.tz)
 
-        # Now the assumption cannot be made that s ahd the same time-zone as the
+        # Now the assumption cannot be made that s has the same time-zone as the
         # timestamps -> AssertionError will be raised.
         with pytest.raises(AssertionError):
             fig._slice_time(s.tz_localize(None), t_start, t_stop)
