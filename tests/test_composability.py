@@ -64,7 +64,6 @@ if True:
 
     # ---- Must not be aggregated
     def test_fr_f_scatter_not_all_agg(float_series, bool_series, cat_series):
-        # TODO hier een variant op met
         base_fig = make_subplots(
             rows=2,
             cols=2,
@@ -244,7 +243,6 @@ if True:
 
     # ---- Must not be aggregated
     def test_fr_fw_scatter_not_all_agg(float_series, bool_series, cat_series):
-        # TODO hier een variant op met
         base_fig = go.FigureWidget(
             make_subplots(
                 rows=2,

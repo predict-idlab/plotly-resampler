@@ -919,7 +919,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         .. note::
             make sure to look at the :func:`add_trace` function for more info about
-            **speed optimization**, and dealing with not
+            **speed optimization**, and dealing with not ``high-frequency`` data, but 
+            still want to resample / limit the data to the front-end view.
 
         Parameters
         ----------
