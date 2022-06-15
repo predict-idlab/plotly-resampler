@@ -48,7 +48,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         else:
             # Create a new figure object and make sure that the trace uid will not get
             # adjusted when they are added.
-            f = go.Figure()
+            f = self._get_figure_class(go.Figure)()
             f._data_validator.set_uid = False
 
             if isinstance(figure, BaseFigure):  # go.FigureWidget or AbstractFigureAggregator
@@ -91,6 +91,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._app: JupyterDash | Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
+
+    # @staticmethod
+    # def _get_figure_class() -> type:
+    #     """Return the class of the underlying figure."""
+    #     from ..module import get_plotly_constr
+    #     return get_plotly_constr(go.Figure)
 
     def show_dash(
         self,

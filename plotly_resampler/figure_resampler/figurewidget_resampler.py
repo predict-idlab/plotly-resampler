@@ -52,7 +52,7 @@ class FigureWidgetResampler(
         verbose: bool = False,
     ):
         # Parse the figure input before calling `super`
-        f = go.FigureWidget()
+        f = self._get_figure_class(go.FigureWidget)()
         f._data_validator.set_uid = False
 
         if isinstance(figure, BaseFigure):  # go.Figure or go.FigureWidget or AbstractFigureAggregator
@@ -243,6 +243,12 @@ class FigureWidgetResampler(
         elif self._print_verbose:
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
+
+    # @staticmethod
+    # def _get_figure_class() -> type:
+    #     """Return the class of the underlying figure."""
+    #     from ..module import get_plotly_constr
+    #     return get_plotly_constr(go.FigureWidget)
 
     def reset_axes(self):
         """Reset the axes of the FigureWidgetResampler.

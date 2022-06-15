@@ -2,7 +2,7 @@
 
 from .aggregation import LTTB, EfficientLTTB, EveryNthPoint
 from .figure_resampler import FigureResampler, FigureWidgetResampler
-from .module import register_plotly_resampler, unregister_plotly_resampler
+from .registering import register_plotly_resampler, unregister_plotly_resampler
 
 __docformat__ = "numpy"
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"

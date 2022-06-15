@@ -96,6 +96,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         self._global_downsampler = default_downsampler
 
+        # Given figure should always be a BaseFigure (that is not wrapped by a plotly-resampler class)
+        assert isinstance(figure, BaseFigure)
+        assert not issubclass(type(figure), AbstractFigureAggregator)
         self._figure_class = figure.__class__
 
         if convert_existing_traces:
@@ -421,6 +424,29 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if updated_trace is not None:
                 updated_trace_indices.append(idx)
         return updated_trace_indices
+
+    @staticmethod
+    def _get_figure_class(constr: type) -> type:
+        """Get the plotly figure class (constructor) for the given class (constructor).
+
+        .. Note::
+            This method will always return a plotly constructor, even when the given
+            `constr` is decorated (after executing the ``register_plotly_resampler`` 
+            function).
+
+        Parameters
+        ----------
+        constr: type
+            The constructor class for which we want to retrieve the plotly constructor.
+
+        Returns
+        -------
+        type:
+            The plotly figure class (constructor) of the given `constr`.
+
+        """
+        from ..registering import get_plotly_constr  # To avoid ImportError
+        return get_plotly_constr(constr)
 
     @staticmethod
     def _slice_time(
