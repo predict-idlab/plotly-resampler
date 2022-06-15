@@ -9,13 +9,21 @@ import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
+from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, register_plotly_resampler, unregister_plotly_resampler
 
 # hyperparameters
 _nb_samples = 10_000
 data_dir = "examples/data/"
 headless = True
 TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
+
+
+@pytest.fixture
+def registering_cleanup():
+    # Cleans up the registering before and after each test
+    unregister_plotly_resampler()
+    yield
+    unregister_plotly_resampler()
 
 
 @pytest.fixture
