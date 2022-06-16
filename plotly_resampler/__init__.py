@@ -15,7 +15,6 @@ __all__ = [
     "EfficientLTTB",
     "LTTB",
     "EveryNthPoint",
-    "FuncAggregator",
     "register_plotly_resampler",
     "unregister_plotly_resampler",
 ]

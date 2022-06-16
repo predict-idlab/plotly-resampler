@@ -9,7 +9,7 @@ from plotly_resampler.figure_resampler.figure_resampler_interface import (
 from plotly_resampler.registering import (
     register_plotly_resampler,
     unregister_plotly_resampler,
-    get_plotly_constr,
+    _get_plotly_constr,
 )
 
 from .conftest import registering_cleanup
@@ -25,8 +25,8 @@ def test_get_plotly_const(registering_cleanup):
     assert not (isfunction(go.Figure) or isfunction(go.FigureWidget))
     assert not issubclass(go.Figure, AbstractFigureAggregator)
     assert not issubclass(go.FigureWidget, AbstractFigureAggregator)
-    assert not issubclass(get_plotly_constr(go.Figure), AbstractFigureAggregator)
-    assert not issubclass(get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
+    assert not issubclass(_get_plotly_constr(go.Figure), AbstractFigureAggregator)
+    assert not issubclass(_get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
 
     register_plotly_resampler()
     assert isfunction(go.Figure) and isfunction(go.FigureWidget)
@@ -34,15 +34,15 @@ def test_get_plotly_const(registering_cleanup):
     assert isinstance(go.FigureWidget(), AbstractFigureAggregator)
     assert issubclass(FigureResampler, AbstractFigureAggregator)
     assert issubclass(FigureWidgetResampler, AbstractFigureAggregator)
-    assert not issubclass(get_plotly_constr(go.Figure), AbstractFigureAggregator)
-    assert not issubclass(get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
+    assert not issubclass(_get_plotly_constr(go.Figure), AbstractFigureAggregator)
+    assert not issubclass(_get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
 
     unregister_plotly_resampler()
     assert not (isfunction(go.Figure) or isfunction(go.FigureWidget))
     assert not issubclass(go.Figure, AbstractFigureAggregator)
     assert not issubclass(go.FigureWidget, AbstractFigureAggregator)
-    assert not issubclass(get_plotly_constr(go.Figure), AbstractFigureAggregator)
-    assert not issubclass(get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
+    assert not issubclass(_get_plotly_constr(go.Figure), AbstractFigureAggregator)
+    assert not issubclass(_get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
 
 
 def test_register_and_unregister_graph_objects(registering_cleanup):
