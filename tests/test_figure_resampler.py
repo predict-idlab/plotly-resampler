@@ -839,3 +839,23 @@ def test_fr_list_scatter_add_traces(float_series):
     )
     assert len(fr_fig.hf_data) == 4
     assert len(fr_fig.data) == 5
+
+
+def test_fr_copy_hf_data(float_series):
+    fr_fig = FigureResampler(default_n_shown_samples=2000)
+    traces: List[dict] = [
+        go.Scattergl({"y": float_series.values + 2, "name": "sp2"}),
+        go.Scatter({"y": float_series.values, "name": "s"}),
+    ]
+    fr_fig.add_traces(tuple(traces))
+
+    hf_data_cp = FigureResampler()._copy_hf_data(fr_fig._hf_data)
+    uid = list(hf_data_cp.keys())[0]
+
+    hf_data_cp[uid]["x"] = np.arange(1000)
+    hf_data_cp[uid]["y"] = float_series[:1000]
+
+    assert len(fr_fig.hf_data[0]["x"]) == 10_000
+    assert len(fr_fig.hf_data[0]["y"]) == 10_000
+    assert len(fr_fig.hf_data[1]["x"]) == 10_000
+    assert len(fr_fig.hf_data[1]["y"]) == 10_000

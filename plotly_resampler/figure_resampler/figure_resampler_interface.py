@@ -1081,7 +1081,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The copied (& default values adjusted) output dict.
 
         """
-        # TODO: add pass by reference tests for this method
         hf_data_cp = {
             uid: {
                 k: hf_dict[k]
