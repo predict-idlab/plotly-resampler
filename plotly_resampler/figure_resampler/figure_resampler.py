@@ -92,12 +92,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._port: int | None = None
         self._host: str | None = None
 
-    # @staticmethod
-    # def _get_figure_class() -> type:
-    #     """Return the class of the underlying figure."""
-    #     from ..module import get_plotly_constr
-    #     return get_plotly_constr(go.Figure)
-
     def show_dash(
         self,
         mode=None,

@@ -35,7 +35,7 @@ _hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"]
 class AbstractFigureAggregator(BaseFigure, ABC):
     """Abstract interface for data aggregation functionality for plotly figures."""
 
-    _high_frequency_traces = ["scatter", "scattergl"]  # TODO maybe change this
+    _high_frequency_traces = ["scatter", "scattergl"]
 
     def __init__(
         self,
@@ -96,7 +96,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         self._global_downsampler = default_downsampler
 
-        # Given figure should always be a BaseFigure (that is not wrapped by a plotly-resampler class)
+        # Given figure should always be a BaseFigure that is not wrapped by
+        # a plotly-resampler class
         assert isinstance(figure, BaseFigure)
         assert not issubclass(type(figure), AbstractFigureAggregator)
         self._figure_class = figure.__class__
@@ -445,8 +446,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The plotly figure class (constructor) of the given `constr`.
 
         """
-        from ..registering import get_plotly_constr  # To avoid ImportError
-        return get_plotly_constr(constr)
+        from ..registering import _get_plotly_constr  # To avoid ImportError
+        return _get_plotly_constr(constr)
 
     @staticmethod
     def _slice_time(
@@ -565,10 +566,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _parse_get_trace_props(
         self,
         trace: BaseTraceType,
-        hf_x=None,
-        hf_y=None,
-        hf_text=None,
-        hf_hovertext=None,
+        hf_x: Iterable = None,
+        hf_y: Iterable = None,
+        hf_text: Iterable = None,
+        hf_hovertext: Iterable = None,
     ) -> _hf_data_container:
         """Parse and capture the possibly high-frequency trace-props in a datacontainer.
 
@@ -576,20 +577,20 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         ----------
         trace : BaseTraceType
             The trace which will be parsed.
-        hf_x : _type_, optional
-            high-frequency trace "x" data, overrides the current trace its x-data
-        hf_y : _type_, optional
-            high-frequency trace "y" data, overrides the current trace its y-data
-        hf_text : _type_, optional
+        hf_x : Iterable, optional
+            high-frequency trace "x" data, overrides the current trace its x-data.
+        hf_y : Iterable, optional
+            high-frequency trace "y" data, overrides the current trace its y-data.
+        hf_text : Iterable, optional
             high-frequency trace "text" data, overrides the current trace its text-data.
-        hf_hovertext : _type_, optional
+        hf_hovertext : Iterable, optional
             high-frequency trace "hovertext" data, overrides the current trace its
             hovertext data.
 
         Returns
         -------
         _hf_data_container
-            A namedtuple which serves as a datacontainer
+            A namedtuple which serves as a datacontainer.
 
         """
         hf_x = (
@@ -695,8 +696,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
     def _construct_hf_data_dict(
         self,
-        dc,
-        trace,
+        dc: _hf_data_container,
+        trace: BaseTraceType,
         downsampler: AbstractSeriesAggregator | None,
         max_n_samples: int | None,
         offset=0,
@@ -706,7 +707,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         Parameters
         ----------
         dc : _hf_data_container
-            The hf_data container, withholding the parsed hf-data
+            The hf_data container, withholding the parsed hf-data.
         trace : BaseTraceType
             The trace.
         downsampler : AbstractSeriesAggregator | None
@@ -720,7 +721,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The hf_data dict.
         """
         # We will re-create this each time as hf_x and hf_y withholds
-        # high-frequency data
+        # high-frequency data and can be adjusted on the fly with the public hf_data
+        # property.
         hf_series = self._to_hf_series(x=dc.x, y=dc.y)
 
         # Checking this now avoids less interpretable `KeyError` when resampling
@@ -748,6 +750,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             default_downsampler = True
             downsampler = self._global_downsampler
 
+        # TODO -> can't we just store the DC here (might be less duplication of
+        #  code knowledge, because now, you need to know all the eligible hf_keys in
+        #  dc
         return {
             "max_n_samples": max_n_samples,
             "default_n_samples": default_n_samples,
@@ -885,6 +890,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         uuid_str = str(uuid4()) if trace.uid is None else trace.uid
         trace.uid = uuid_str
 
+        # construct the hf_data_container
+        # TODO in future version -> maybe regex on kwargs which start with `hf_`
         dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
 
         n_samples = len(dc.x)
@@ -922,6 +929,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
+                # TODO: can be made more generic
                 trace.x = dc.x
                 trace.y = dc.y
                 trace.text = dc.text
@@ -940,10 +948,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         limit_to_views: List[bool] | bool = False,
         **traces_kwargs,
     ):
-        """Add traces to the figure
+        """Add traces to the figure.
 
         .. note::
-            make sure to look at the :func:`add_trace` function for more info about
+            Make sure to look at the :func:`add_trace` function for more info about
             **speed optimization**, and dealing with not ``high-frequency`` data, but 
             still want to resample / limit the data to the front-end view.
 
@@ -954,7 +962,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             Trace specifications may be either:
 
               - Instances of trace classes from the plotly.graph_objs
-                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar)
+                package (e.g plotly.graph_objs.Scatter, plotly.graph_objs.Bar).
               - Dicts where:
 
                   - The 'type' property specifies the trace type (e.g.
@@ -992,7 +1000,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if not isinstance(data, (list, tuple)):
             data = [data]
 
-        # Convert each trace into a trace object
+        # Convert each trace into a BaseTraceType object
         data = [
             self._data_validator.validate_coerce(trace)[0]
             if not isinstance(trace, BaseTraceType)
@@ -1036,9 +1044,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 offset=i,
             )
 
-            trace = trace._props  # convert the trace into a dict
+            # convert the trace into a dict, and only withholds the non-hf props
+            trace = trace._props
             trace = {k: trace[k] for k in set(trace.keys()).difference(set(dc._fields))}
 
+            # update the trace data with the HF props
             trace = self._check_update_trace_data(trace)
             assert trace is not None
             data[i] = trace
@@ -1071,14 +1081,16 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The copied (& default values adjusted) output dict.
 
         """
+        # TODO: add pass by reference tests for this method
         hf_data_cp = {
-            k: {
-                k_: hf_data[k][k_]
-                for k_ in set(v.keys())  # .difference(_hf_data_container._fields)
+            uid: {
+                k: hf_dict[k]
+                for k in set(hf_dict.keys())
             }
-            for k, v in hf_data.items()
+            for uid, hf_dict in hf_data.items()
         }
 
+        # Adjust the default arguments to the current argument values
         if adjust_default_values:
             for hf_props in hf_data_cp.values():
                 if hf_props.get("default_downsampler", False):

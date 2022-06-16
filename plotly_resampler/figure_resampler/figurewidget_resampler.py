@@ -244,12 +244,6 @@ class FigureWidgetResampler(
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
 
-    # @staticmethod
-    # def _get_figure_class() -> type:
-    #     """Return the class of the underlying figure."""
-    #     from ..module import get_plotly_constr
-    #     return get_plotly_constr(go.FigureWidget)
-
     def reset_axes(self):
         """Reset the axes of the FigureWidgetResampler.
 
