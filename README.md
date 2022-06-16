@@ -47,12 +47,54 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 ## Usage
 
 To **add dynamic resampling** to your plotly Figure
-* using a web application with *Dash* callbacks, you should;
-  1. wrap the plotly Figure with `FigureResampler`
-  2. call `.show_dash()` on the Figure
-* within a *jupyter* environment and *without creating a web application*, you should:
+  <details>
+  <summary>within a <b><i>jupyter</i> environment without creating a <i>web application</i></b></summary>
+  <br>
+  
   1. wrap the plotly Figure with `FigureWidgetResampler`
   2. output the `FigureWidgetResampler` instance in a cell
+    
+  **example code**:
+  ```python
+  import plotly.graph_objects as go; import numpy as np
+  from plotly_resampler import FigureResampler, FigureWidgetResampler
+
+  x = np.arange(1_000_000)
+  noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
+  # OPTION 1 - FigureWidgetResampler: dynamic aggregation via `FigureWidget.layout.on_change`
+  fig = FigureWidgetResampler(go.Figure())
+  fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
+
+  fig
+  ```
+    
+  </details>
+  <details>
+    <summary>using a <b><i>web-application</i> with <a href="https://github.com/plotly/dash">dash</a></b> callbacks</summary>
+  <br>
+  
+  1. wrap the plotly Figure with `FigureResampler`
+  2. call `.show_dash()` on the `Figure`
+    
+  **example code**:
+  ```python
+  import plotly.graph_objects as go; import numpy as np
+  from plotly_resampler import FigureResampler, FigureWidgetResampler
+
+  x = np.arange(1_000_000)
+  noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
+  # OPTION 2 - FigureResampler: dynamic aggregation via a Dash web-app
+  fig = FigureResampler(go.Figure())
+  fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
+
+  fig.show_dash(mode='inline')
+  ```
+    
+  </details>
+
+---
 
 > **Note**:  
 > Any plotly Figure can be wrapped with `FigureResampler` and `FigureWidgetResampler`! 🎉  
@@ -61,31 +103,6 @@ To **add dynamic resampling** to your plotly Figure
 > **Tip** 💡:  
 > For significant faster initial loading of the Figure, we advise to wrap the constructor of the plotly Figure and add the trace data as `hf_x` and `hf_y`
 
-### Minimal example
-
-```python
-import plotly.graph_objects as go; import numpy as np
-from plotly_resampler import FigureResampler, FigureWidgetResampler
-
-x = np.arange(1_000_000)
-noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
-
-# OPTION 1 - FigureResampler: dynamic aggregation via a Dash web-app
-fig = FigureResampler(go.Figure())
-fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
-
-fig.show_dash(mode='inline')
-```
-
-#### FigureWidgetResampler: dynamic aggregation via `FigureWidget.layout.on_change`
-```python
-... 
-# OPTION 2 - FigureWidgetResampler: dynamic aggregation via `FigureWidget.layout.on_change`
-fig = FigureWidgetResampler(go.Figure())
-fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=noisy_sin)
-
-fig
-```
 
 ### Features
 
@@ -111,7 +128,7 @@ fig
 
 ## Future work 🔨
 
-* Support `.add_traces()` (currently only `.add_trace` is supported)
+- [x] Support `.add_traces()` (currently only `.add_trace` is supported)
 
 <br>
 
