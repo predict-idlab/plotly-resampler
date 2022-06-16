@@ -27,3 +27,11 @@ FigureWidgetResampler
     :undoc-members:
     :show-inheritance:
 
+^^^^^^^^^^^^^^^^^
+utility functions
+^^^^^^^^^^^^^^^^^
+
+.. automodule:: plotly_resampler.figure_resampler.utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
