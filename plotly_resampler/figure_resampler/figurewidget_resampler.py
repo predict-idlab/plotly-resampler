@@ -10,13 +10,13 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-import re
 from typing import Tuple
 
 import plotly.graph_objects as go
+from plotly.basedatatypes import BaseFigure
 
-from .figure_resampler import AbstractFigureAggregator
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from .figure_resampler_interface import AbstractFigureAggregator
 
 
 class _FigureWidgetResamplerM(type(AbstractFigureAggregator), type(go.FigureWidget)):
@@ -40,7 +40,7 @@ class FigureWidgetResampler(
 
     def __init__(
         self,
-        figure: go.FigureWidget | go.Figure = None,
+        figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
@@ -51,14 +51,21 @@ class FigureWidgetResampler(
         show_mean_aggregation_size: bool = True,
         verbose: bool = False,
     ):
-        if figure is None:
-            figure = go.FigureWidget()
+        # Parse the figure input before calling `super`
+        f = self._get_figure_class(go.FigureWidget)()
+        f._data_validator.set_uid = False
 
-        if not isinstance(figure, go.FigureWidget):
-            figure = go.FigureWidget(figure)
+        if isinstance(figure, BaseFigure):  # go.Figure or go.FigureWidget or AbstractFigureAggregator
+            # A base figure object, we first copy the layout and grid ref
+            f.layout = figure.layout
+            f._grid_ref = figure._grid_ref
+            f.add_traces(figure.data)
+        elif isinstance(figure, (dict, list)):
+            # A single trace dict or a list of traces
+            f.add_traces(figure)
 
         super().__init__(
-            figure,
+            f,
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
@@ -67,19 +74,27 @@ class FigureWidgetResampler(
             verbose,
         )
 
+        if isinstance(figure, AbstractFigureAggregator):
+            # Copy the `_hf_data` if the previous figure was an AbstractFigureAggregator
+            # And adjust the default max_n_samples and
+            self._hf_data.update(
+                self._copy_hf_data(figure._hf_data, adjust_default_values=True)
+            )
+
+            # Note: This hack ensures that the this figure object initially uses
+            # data of the whole view. More concretely; we create a dict
+            # serialization figure and adjust the hf-traces to the whole view
+            # with the check-update method (by passing no range / filter args)
+            with self.batch_update():
+                graph_dict: dict = self._get_current_graph()
+                update_indices = self._check_update_figure_dict(graph_dict)
+                for idx in update_indices:
+                    self.data[idx].update(graph_dict["data"][idx])
+
         self._prev_layout = None  # Contains the previous xaxis layout configuration
 
         # used for logging purposes to save a history of layout changes
         self._relayout_hist = []
-
-        # A list of al xaxis and yaxis string names
-        # e.g., "xaxis", "xaxis2", "xaxis3", .... for _xaxis_list
-        self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
-        self._yaxis_list = self._re_matches(re.compile("yaxis\d*"), self._layout.keys())
-        # edge case: an empty `go.Figure()` does not yet contain axes keys
-        if not len(self._xaxis_list):
-            self._xaxis_list = ["xaxis"]
-            self._yaxis_list = ["yaxis"]
 
         # Assign the the update-methods to the corresponding classes
         showspike_keys = [f"{xaxis}.showspikes" for xaxis in self._xaxis_list]
