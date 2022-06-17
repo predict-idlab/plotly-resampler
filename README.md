@@ -45,7 +45,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 ## Usage
 
 **Add dynamic aggregation** to your plotly Figure _(unfold your fitting use case)_
-* Automatically _(minimal code overhead)_:
+* 🤖 <b>Automatically</b> _(minimal code overhead)_:
   <details><summary>Use the <code>register_plotly_resampler</code> function</summary>
     <br>
 
@@ -78,7 +78,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
   </details>
 
-* Manually _(higher data aggregation configurability, more speedup possibilities)_:
+* 👷 <b>Manually</b> _(higher data aggregation configurability, more speedup possibilities)_:
   <details>
     <summary>Within a <b><i>jupyter</i></b> environment without creating a <i>web application</i></summary>
     <br>
@@ -159,7 +159,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 * When running the code on a server, you should forward the port of the `FigureResampler.show_dash()` method to your local machine.<br>
   **Note** that you can add dynamic aggregation to plotly figures with the `FigureWidgetResampler` wrapper without needing to forward a port!
 * In general, when using downsampling one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.
-  The <b><a style="color:orange">[R]</a></b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not. Additionally, the `~<range>` suffix represent the mean aggregation bin size in terms of the sequence index.
+  The <b style="color:orange">[R]</b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not. Additionally, the `~<range>` suffix represent the mean aggregation bin size in terms of the sequence index.
 * The plotly **autoscale** event (triggered by the autoscale button or a double-click within the graph), **does not reset the axes but autoscales the current graph-view** of plotly-resampler figures. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the `reset_axis` button.  If you want to give feedback and discuss this further with the developers, see issue [#49](https://github.com/predict-idlab/plotly-resampler/issues/49).
 
 <!-- ## Cite
