@@ -21,40 +21,79 @@ Install via `pip <https://pypi.org/project/plotly-resampler>`_:
 How to use 📈
 -------------
 
-Dynamic resampling callbacks are realized with either:
+Dynamic resampling callbacks are realized:
 
-* `Dash <https://github.com/plotly/dash>`_ callbacks, when a ``go.Figure`` object is wrapped with dynamic aggregation functionality.
+* **Automatically** (low code overhead):
+
+  * using the :func:`register_plotly_resampler <plotly_resampler.registering.register_plotly_resampler>` function 
+
+    **To add dynamic resampling using a FigureWidget, you should**:
+      1. Import and call the :func:`register_plotly_resampler <plotly_resampler.registering.register_plotly_resampler>` method
+      2. Just use your regular graph construction code
+
+    Once this method is called, it will automatically convert all new defined plotly 
+    graph objects  into a :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` or :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>` object.
+    The ``mode`` parameter of this method allows to define which type of the aforementioned resampling objects is used.
+
+* **Manually** (data aggregation configurability, graph construction speedups):
+
+  * `Dash <https://github.com/plotly/dash>`_ callbacks, when a ``go.Figure`` object is wrapped with dynamic aggregation functionality.
+
+    .. note::
+
+        This is especially useful when working with **dash functionality** or when you do **not want to solely operate in jupyter environments**. 
+
+    **To add dynamic resampling, you should**:
+      1. wrap the plotly Figure with :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>`
+      2. call :func:`.show_dash() <plotly_resampler.figure_resampler.FigureResampler.show_dash>` on the Figure
+
+  * `FigureWidget.layout.on_change <https://plotly.com/python-api-reference/generated/plotly.html?highlight=on_change#plotly.basedatatypes.BasePlotlyType.on_change>`_ , when a ``go.FigureWidget`` is used within a ``.ipynb`` environment.
+
+    .. note::
+
+        This is especially useful when developing in ``jupyter`` environments and when **you cannot open/forward a network-port**. 
+
+
+    **To add dynamic resampling using a FigureWidget, you should**:
+      1. wrap your plotly Figure (can be a ``go.Figure``) with :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`
+      2. output the ```FigureWidgetResampler`` instance in a cell
+
+  .. tip::
+
+    For **significant faster initial loading** of the Figure, we advise to wrap the constructor of the plotly Figure with either :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` or :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>` and add the trace data as ``hf_x`` and ``hf_y``
 
   .. note::
 
-      This is especially useful when working with **dash functionality** or when you do **not want to solely operate in jupyter environments**.
-
-  To **add dynamic resampling**, you should:
-    1. wrap the plotly Figure with :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>`
-    2. call :func:`.show_dash() <plotly_resampler.figure_resampler.FigureResampler.show_dash>` on the Figure
-
-* `FigureWidget.layout.on_change <https://plotly.com/python-api-reference/generated/plotly.html?highlight=on_change#plotly.basedatatypes.BasePlotlyType.on_change>`_ , when a ``go.FigureWidget`` is used within a ``.ipynb`` environment.
-
-  .. note::
-
-      This is especially useful when developing in ``jupyter`` environments and when **you cannot open/forward a network-port**.
-
-
-  To **add dynamic resampling** using a **FigureWidget**, you should:
-    1. wrap your plotly Figure (can be a ``go.Figure``) with :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`
-    2. output the ```FigureWidgetResampler`` instance in a cell
-
-.. tip::
-
-  For **significant faster initial loading** of the Figure, we advise to wrap the constructor of the plotly Figure with either :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>` or :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>` and add the trace data as ``hf_x`` and ``hf_y``
-
-.. note::
-
-  Any plotly Figure can be wrapped with dynamic aggregation functionality! 🎉 :raw-html:`<br>`
-  But, (obviously) only the scatter traces will be resampled.
+    Any plotly Figure can be wrapped with dynamic aggregation functionality! 🎉 :raw-html:`<br>`
+    But, (obviously) only the scatter traces will be resampled.
 
 Working examples ✅
 -------------------
+register_plotly_resampler
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: py
+
+    import plotly.graph_objects as go; import numpy as np
+    from plotly_resampler import register_plotly_resampler
+
+    # Call the register function once and all Figures/FigureWidgets will be wrapped
+    # according to the register_plotly_resampler its `mode` argument
+    register_plotly_resampler(mode='auto')
+
+    x = np.arange(1_000_000)
+    noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
+
+    # when working in an IPython environment, this will automatically be a 
+    # FigureWidgetResampler else, this will be an FigureResampler
+    f = go.Figure()
+    f.add_trace({"y": noisy_sin + 2, "name": "yp2"})
+    f
+
+
+FigureResampler
+^^^^^^^^^^^^^^^
 
 .. code:: py
 
@@ -69,6 +108,8 @@ Working examples ✅
 
     fig.show_dash(mode='inline')
 
+FigureWidget
+^^^^^^^^^^^^
 The gif below demonstrates the example usage of of :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`, where ``JupyterLab`` is used as environment and the ``FigureWidgetResampler`` instance it's output is redirected into a new view. Also note how you are able to dynamically add traces!
 
 .. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif

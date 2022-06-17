@@ -1,0 +1,35 @@
+plotly\_resampler.figure\_resampler.utils
+=========================================
+
+.. automodule:: plotly_resampler.figure_resampler.utils
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      is_figure
+      is_figurewidget
+      is_fr
+      is_fwr
+      round_number_str
+      round_td_str
+      timedelta_to_str
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

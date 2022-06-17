@@ -7,8 +7,8 @@
 
 
 
-Integration with a dash app 🤝
-==============================
+Dash integration 🤝
+===================
 
 This documentation page describes how you can integrate ``plotly-resampler`` in a `dash <https://dash.plotly.com/>`_ application.
 

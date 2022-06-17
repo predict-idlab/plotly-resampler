@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>API 📖 &#8212; plotly-resampler &#34;0.6.4.2&#34; documentation</title>
+    <title>(un)wrapping plotly figures &#8212; plotly-resampler &#34;0.6.4.2&#34; documentation</title>
 <script>
   document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
   document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
@@ -36,8 +36,6 @@
     <link rel="shortcut icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="plotly_resampler.figure_resampler" href="_autosummary/plotly_resampler.figure_resampler.html" />
-    <link rel="prev" title="Dash integration 🤝" href="dash_app_integration.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="docsearch:language" content="en">
   </head>
@@ -93,8 +91,8 @@
  </a>
 </li>
 
-<li class="toctree-l1 current active nav-item">
- <a class="current reference internal nav-link" href="#">
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="api_reference.html">
   API 📖
  </a>
 </li>
@@ -172,25 +170,51 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="api">
-<h1>API 📖<a class="headerlink" href="#api" title="Permalink to this headline">#</a></h1>
-<table class="autosummary longtable table autosummary">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="_autosummary/plotly_resampler.figure_resampler.html#module-plotly_resampler.figure_resampler" title="plotly_resampler.figure_resampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler</span></code></a></p></td>
-<td><p>Module withholding wrappers for the plotly <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code> and <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code> class which allows bookkeeping and back-end based resampling of high-frequency sequential data.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="_autosummary/plotly_resampler.aggregation.html#module-plotly_resampler.aggregation" title="plotly_resampler.aggregation"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.aggregation</span></code></a></p></td>
-<td><p>Compatible implementation for various downsample methods and open interface to other downsample methods.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="registering.html#module-plotly_resampler.registering" title="plotly_resampler.registering"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plotly_resampler.registering</span></code></a></p></td>
-<td><p>Register plotly-resampler to (un)wrap plotly-graph-objects.</p></td>
-</tr>
-</tbody>
-</table>
+  <section id="module-plotly_resampler.registering">
+<span id="un-wrapping-plotly-figures"></span><h1>(un)wrapping plotly figures<a class="headerlink" href="#module-plotly_resampler.registering" title="Permalink to this headline">#</a></h1>
+<p>Register plotly-resampler to (un)wrap plotly-graph-objects.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="plotly_resampler.registering.register_plotly_resampler">
+<span class="sig-prename descclassname"><span class="pre">plotly_resampler.registering.</span></span><span class="sig-name descname"><span class="pre">register_plotly_resampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'auto'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">aggregator_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/registering.html#register_plotly_resampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.registering.register_plotly_resampler" title="Permalink to this definition">#</a></dt>
+<dd><p>Register plotly-resampler to plotly.graph_objects.</p>
+<p>This function results in the use of plotly-resampler under the hood.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We advise to use mode= <code class="docutils literal notranslate"><span class="pre">widget</span></code> when working in an IPython based environment
+as this will just behave as a <code class="docutils literal notranslate"><span class="pre">go.FigureWidget</span></code>, but with dynamic aggregation.
+When using mode= <code class="docutils literal notranslate"><span class="pre">auto</span></code> or <code class="docutils literal notranslate"><span class="pre">figure</span></code>; most figures will be wrapped as
+<a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler" title="plotly_resampler.figure_resampler.FigureResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureResampler</span></code></a>,
+on which
+<a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">show_dash</span></code></a>
+needs to be called.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mode</strong> (<em>str</em><em>, </em><em>optional</em>) – The mode of the plotly-resampler.
+Possible values are: ‘auto’, ‘figure’, ‘widget’, None.
+If ‘auto’ is used, the mode is determined based on the environment; if it is in
+an ipython environment, the mode is ‘widget’, otherwise it is ‘figure’.
+If ‘figure’ is used, all plotly figures are wrapped as FigureResampler objects.
+If ‘widget’ is used, all plotly figure widgets are wrapped as
+FigureWidgetResampler objects (we advise to use this mode in ipython environment
+with a kernel).
+If None is used, wrapping is done as expected (go.Figure -&gt; FigureResampler,
+go.FigureWidget -&gt; FigureWidgetResampler).</p></li>
+<li><p><strong>aggregator_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – The keyword arguments to pass to the plotly-resampler decorator its constructor.
+See more details in <code class="xref py py-class docutils literal notranslate"><span class="pre">FigureResampler</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plotly_resampler.registering.unregister_plotly_resampler">
+<span class="sig-prename descclassname"><span class="pre">plotly_resampler.registering.</span></span><span class="sig-name descname"><span class="pre">unregister_plotly_resampler</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/registering.html#unregister_plotly_resampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.registering.unregister_plotly_resampler" title="Permalink to this definition">#</a></dt>
+<dd><p>Unregister plotly-resampler from plotly.graph_objects.</p>
+</dd></dl>
+
 </section>
 
 
@@ -201,20 +225,6 @@
               <footer class="bd-footer-article">
                   <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-  <a class='left-prev' id="prev-link" href="dash_app_integration.html" title="previous page">
-      <i class="fas fa-angle-left"></i>
-      <div class="prev-next-info">
-          <p class="prev-next-subtitle">previous</p>
-          <p class="prev-next-title">Dash integration 🤝</p>
-      </div>
-  </a>
-  <a class='right-next' id="next-link" href="_autosummary/plotly_resampler.figure_resampler.html" title="next page">
-  <div class="prev-next-info">
-      <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">plotly_resampler.figure_resampler</p>
-  </div>
-  <i class="fas fa-angle-right"></i>
-  </a>
 </div>
               </footer>
               

@@ -1,0 +1,30 @@
+plotly\_resampler.registering
+=============================
+
+.. automodule:: plotly_resampler.registering
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      register_plotly_resampler
+      unregister_plotly_resampler
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

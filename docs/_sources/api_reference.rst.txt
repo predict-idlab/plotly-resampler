@@ -1,5 +1,5 @@
-API reference 📖
-================
+API 📖
+======
 
 .. autosummary::
    :toctree: _autosummary
@@ -10,3 +10,6 @@ API reference 📖
 
    .. _aggregation
    plotly_resampler.aggregation
+
+   .. _registering
+   plotly_resampler.registering

@@ -1,17 +1,21 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; plotly-resampler &#34;0.6.4.2&#34; documentation</title>
-    
-  <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
-<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
 
-    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
   <link rel="stylesheet"
     href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
   <link rel="preload" as="font" type="font/woff2" crossorigin
@@ -20,9 +24,9 @@
     href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    
+
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
@@ -31,34 +35,41 @@
     <link rel="shortcut icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="docsearch:language" content="None">
-    
-
-    <!-- Google Analytics -->
-    
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="en">
   </head>
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
-    
-    <div class="container-fluid" id="banner"></div>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
 
     
-    <nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="container-xl">
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
 
   <div id="navbar-start">
     
     
+  
 
-<a class="navbar-brand" href="index.html">
-  <img src="_static/logo.png" class="logo" alt="logo">
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+    <img src="_static/logo.png" class="logo__image only-light" alt="Logo image">
+    <img src="_static/logo.png" class="logo__image only-dark" alt="Logo image">
+  
+  
 </a>
-
-
     
   </div>
 
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
+    <span class="fas fa-bars"></span>
   </button>
 
   
@@ -75,13 +86,13 @@
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="dash_app_integration.html">
-  Integration with a dash app 🤝
+  Dash integration 🤝
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="api_reference.html">
-  API reference 📖
+  API 📖
  </a>
 </li>
 
@@ -94,6 +105,14 @@
     <div id="navbar-end">
       
       <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
         <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
         <li class="nav-item">
           <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
@@ -102,46 +121,39 @@
       </ul>
       </div>
       
+      <div class="navbar-end-item">
+        <form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+      </div>
+      
     </div>
   </div>
 </div>
     </nav>
     
 
-    <div class="container-xl">
-      <div class="row">
-          
-            
-            <!-- Only show if we have sidebars configured, else just a small margin  -->
-            <div class="col-12 col-md-3 bd-sidebar">
-              <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
-    
-  </div>
-</nav>
-              </div>
-              <div class="sidebar-end-items">
-              </div>
-            </div>
-            
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
           
 
+<div class="sidebar-primary col-12 col-md-1 col-xl-2 bd-sidebar no-sidebar"></div>
+
+
           
-          <div class="d-none d-xl-block col-xl-2 bd-toc">
-            
-          </div>
-          
+
+
+<div class="bd-sidebar-secondary d-none d-md-block col-md-2 bd-toc">
+  
+</div>
+
 
           
           
-            
-          
-          <main class="col-12 col-md-9 col-xl-7 py-md-5 pl-md-5 pr-md-4 bd-content" role="main">
+          <div class="bd-content col-12 col-md-9 col-xl-8">
               
-              <div>
+              <article class="bd-article" role="main">
                 
 
 <h1 id="index">Index</h1>
@@ -152,11 +164,14 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#H"><strong>H</strong></a>
+ | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
+ | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
  
 </div>
 <h2 id="A">A</h2>
@@ -169,6 +184,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">add_trace() (plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator method)</a>
+</li>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces">add_traces() (plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator method)</a>
 </li>
       <li><a href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator.aggregate">aggregate() (plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator method)</a>
 </li>
@@ -217,6 +234,22 @@
   </ul></td>
 </tr></table>
 
+<h2 id="I">I</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.is_figure">is_figure() (in module plotly_resampler.figure_resampler.utils)</a>
+</li>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.is_figurewidget">is_figurewidget() (in module plotly_resampler.figure_resampler.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.is_fr">is_fr() (in module plotly_resampler.figure_resampler.utils)</a>
+</li>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.is_fwr">is_fwr() (in module plotly_resampler.figure_resampler.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -249,6 +282,10 @@
         <li><a href="_autosummary/plotly_resampler.figure_resampler.figure_resampler_interface.html#module-plotly_resampler.figure_resampler.figure_resampler_interface">plotly_resampler.figure_resampler.figure_resampler_interface</a>
 </li>
         <li><a href="_autosummary/plotly_resampler.figure_resampler.figurewidget_resampler.html#module-plotly_resampler.figure_resampler.figurewidget_resampler">plotly_resampler.figure_resampler.figurewidget_resampler</a>
+</li>
+        <li><a href="_autosummary/plotly_resampler.figure_resampler.utils.html#module-plotly_resampler.figure_resampler.utils">plotly_resampler.figure_resampler.utils</a>, <a href="figure_resampler.html#module-plotly_resampler.figure_resampler.utils">[1]</a>
+</li>
+        <li><a href="_autosummary/plotly_resampler.registering.html#module-plotly_resampler.registering">plotly_resampler.registering</a>, <a href="registering.html#module-plotly_resampler.registering">[1]</a>
 </li>
       </ul></li>
   </ul></td>
@@ -285,8 +322,6 @@
         <li><a href="_autosummary/plotly_resampler.figure_resampler.html#module-plotly_resampler.figure_resampler">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     plotly_resampler.figure_resampler.figure_resampler
 
@@ -294,6 +329,8 @@
         <li><a href="_autosummary/plotly_resampler.figure_resampler.figure_resampler.html#module-plotly_resampler.figure_resampler.figure_resampler">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     plotly_resampler.figure_resampler.figure_resampler_interface
 
@@ -308,12 +345,28 @@
         <li><a href="_autosummary/plotly_resampler.figure_resampler.figurewidget_resampler.html#module-plotly_resampler.figure_resampler.figurewidget_resampler">module</a>
 </li>
       </ul></li>
+      <li>
+    plotly_resampler.figure_resampler.utils
+
+      <ul>
+        <li><a href="_autosummary/plotly_resampler.figure_resampler.utils.html#module-plotly_resampler.figure_resampler.utils">module</a>, <a href="figure_resampler.html#module-plotly_resampler.figure_resampler.utils">[1]</a>
+</li>
+      </ul></li>
+      <li>
+    plotly_resampler.registering
+
+      <ul>
+        <li><a href="_autosummary/plotly_resampler.registering.html#module-plotly_resampler.registering">module</a>, <a href="registering.html#module-plotly_resampler.registering">[1]</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="registering.html#plotly_resampler.registering.register_plotly_resampler">register_plotly_resampler() (in module plotly_resampler.registering)</a>
+</li>
       <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback">register_update_graph_callback() (plotly_resampler.figure_resampler.FigureResampler method)</a>
 </li>
       <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data">reload_data() (plotly_resampler.figure_resampler.FigureWidgetResampler method)</a>
@@ -323,6 +376,10 @@
       <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.replace">replace() (plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator method)</a>
 </li>
       <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes">reset_axes() (plotly_resampler.figure_resampler.FigureWidgetResampler method)</a>
+</li>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.round_number_str">round_number_str() (in module plotly_resampler.figure_resampler.utils)</a>
+</li>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.round_td_str">round_td_str() (in module plotly_resampler.figure_resampler.utils)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -339,39 +396,59 @@
   </ul></td>
 </tr></table>
 
+<h2 id="T">T</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="figure_resampler.html#plotly_resampler.figure_resampler.utils.timedelta_to_str">timedelta_to_str() (in module plotly_resampler.figure_resampler.utils)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="registering.html#plotly_resampler.registering.unregister_plotly_resampler">unregister_plotly_resampler() (in module plotly_resampler.registering)</a>
+</li>
+  </ul></td>
+</tr></table>
 
 
-              </div>
+
+              </article>
               
+
               
-              <!-- Previous / next buttons -->
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
 <div class='prev-next-area'>
 </div>
+              </footer>
               
-          </main>
+          </div>
           
-
       </div>
     </div>
+
+  
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
-<footer class="footer mt-5 mt-md-0">
-  <div class="container">
-    
-    <div class="footer-item">
-      <p class="copyright">
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    <p class="copyright">
     &copy; Copyright 2022, Jonas Van Der Donckt.<br>
 </p>
-    </div>
-    
-    <div class="footer-item">
-      <p class="sphinx-version">
+  </div>
+  
+  <div class="footer-item">
+    <p class="sphinx-version">
 Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
 </p>
-    </div>
-    
   </div>
+  
+</div>
 </footer>
   </body>
 </html>

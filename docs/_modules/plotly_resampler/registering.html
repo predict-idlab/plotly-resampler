@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>plotly_resampler.registering &#8212; plotly-resampler &#34;0.6.4.2&#34; documentation</title>
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/icon.png"/>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="../../index.html">
+  
+  
+  
+  
+    <img src="../../_static/logo.png" class="logo__image only-light" alt="Logo image">
+    <img src="../../_static/logo.png" class="logo__image only-dark" alt="Logo image">
+  
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../getting_started.html">
+  Getting started 🚀
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../dash_app_integration.html">
+  Dash integration 🤝
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../api_reference.html">
+  API 📖
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+      </ul>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<!-- Only show if we have sidebars configured, else just a small margin  -->
+<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
+  <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
+  <div class="bd-toc-item active">
+    
+  </div>
+</nav>
+  </div>
+  <div class="sidebar-end-items">
+  </div>
+</div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-7">
+              
+              <article class="bd-article" role="main">
+                
+  <h1>Source code for plotly_resampler.registering</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Register plotly-resampler to (un)wrap plotly-graph-objects.&quot;&quot;&quot;</span>
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Jeroen Van Der Donckt, Jonas Van Der Donckt, Emiel Deprost&quot;</span>
+
+<span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span><span class="p">,</span> <span class="n">FigureWidgetResampler</span>
+<span class="kn">from</span> <span class="nn">plotly_resampler.figure_resampler.figure_resampler_interface</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AbstractFigureAggregator</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="kn">import</span> <span class="nn">plotly</span>
+
+<span class="n">WRAPPED_PREFIX</span> <span class="o">=</span> <span class="s2">&quot;[Plotly-Resampler]__&quot;</span>
+<span class="n">PLOTLY_MODULES</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">plotly</span><span class="o">.</span><span class="n">graph_objs</span><span class="p">,</span>
+    <span class="n">plotly</span><span class="o">.</span><span class="n">graph_objects</span><span class="p">,</span>
+<span class="p">]</span>  <span class="c1"># wait for this PR https://github.com/plotly/plotly.py/pull/3779</span>
+<span class="n">PLOTLY_CONSTRUCTOR_WRAPPER</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Figure&quot;</span><span class="p">:</span> <span class="n">FigureResampler</span><span class="p">,</span>
+    <span class="s2">&quot;FigureWidget&quot;</span><span class="p">:</span> <span class="n">FigureWidgetResampler</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span> <span class="nf">_already_wrapped</span><span class="p">(</span><span class="n">constr</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">constr</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">WRAPPED_PREFIX</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_get_plotly_constr</span><span class="p">(</span><span class="n">constr</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return the constructor of the underlying plotly graph object and thus omit the</span>
+<span class="sd">    possibly wrapped :class:`AbstractFigureAggregator &lt;plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator&gt;`</span>
+<span class="sd">    instance.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    constr : callable</span>
+<span class="sd">        The constructor of a instantiatedplotly-object.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    callable</span>
+<span class="sd">        The constructor of a ``go.FigureWidget`` or a ``go.Figure``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">_already_wrapped</span><span class="p">(</span><span class="n">constr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">constr</span><span class="o">.</span><span class="n">__wrapped__</span>  <span class="c1"># get the original constructor</span>
+    <span class="k">return</span> <span class="n">constr</span>
+
+
+<span class="c1">### Registering the wrappers</span>
+
+
+<span class="k">def</span> <span class="nf">_is_ipython_env</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Check if we are in an IPython environment (with a kernel).&quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">from</span> <span class="nn">IPython</span> <span class="kn">import</span> <span class="n">get_ipython</span>
+
+        <span class="k">return</span> <span class="s2">&quot;IPKernelApp&quot;</span> <span class="ow">in</span> <span class="n">get_ipython</span><span class="p">()</span><span class="o">.</span><span class="n">config</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<span class="k">def</span> <span class="nf">_register_wrapper</span><span class="p">(</span>
+    <span class="n">module</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+    <span class="n">constr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">pr_class</span><span class="p">:</span> <span class="n">AbstractFigureAggregator</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">aggregator_kwargs</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="n">constr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">constr_name</span><span class="p">)</span>
+    <span class="n">constr</span> <span class="o">=</span> <span class="n">_get_plotly_constr</span><span class="p">(</span><span class="n">constr</span><span class="p">)</span>  <span class="c1"># get the original plotly constructor</span>
+
+    <span class="c1"># print(f&quot;Wrapping {constr_name} with {pr_class}&quot;)</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">constr</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">wrapped_constr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># print(f&quot;Executing constructor wrapper for {constr_name}&quot;, constr)</span>
+        <span class="k">return</span> <span class="n">pr_class</span><span class="p">(</span><span class="n">constr</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">),</span> <span class="o">**</span><span class="n">aggregator_kwargs</span><span class="p">)</span>
+
+    <span class="n">wrapped_constr</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">=</span> <span class="n">WRAPPED_PREFIX</span> <span class="o">+</span> <span class="n">constr_name</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">constr_name</span><span class="p">,</span> <span class="n">wrapped_constr</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="register_plotly_resampler"><a class="viewcode-back" href="../../registering.html#plotly_resampler.registering.register_plotly_resampler">[docs]</a><span class="k">def</span> <span class="nf">register_plotly_resampler</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">aggregator_kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Register plotly-resampler to plotly.graph_objects.</span>
+
+<span class="sd">    This function results in the use of plotly-resampler under the hood.</span>
+
+<span class="sd">    .. Note::</span>
+<span class="sd">        We advise to use mode= ``widget`` when working in an IPython based environment</span>
+<span class="sd">        as this will just behave as a ``go.FigureWidget``, but with dynamic aggregation.</span>
+<span class="sd">        When using mode= ``auto`` or ``figure``; most figures will be wrapped as</span>
+<span class="sd">        :class:`FigureResampler &lt;plotly_resampler.figure_resampler.FigureResampler&gt;`,</span>
+<span class="sd">        on which</span>
+<span class="sd">        :func:`show_dash &lt;plotly_resampler.figure_resampler.FigureResampler.show_dash&gt;`</span>
+<span class="sd">        needs to be called.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mode : str, optional</span>
+<span class="sd">        The mode of the plotly-resampler.</span>
+<span class="sd">        Possible values are: &#39;auto&#39;, &#39;figure&#39;, &#39;widget&#39;, None.</span>
+<span class="sd">        If &#39;auto&#39; is used, the mode is determined based on the environment; if it is in</span>
+<span class="sd">        an ipython environment, the mode is &#39;widget&#39;, otherwise it is &#39;figure&#39;.</span>
+<span class="sd">        If &#39;figure&#39; is used, all plotly figures are wrapped as FigureResampler objects.</span>
+<span class="sd">        If &#39;widget&#39; is used, all plotly figure widgets are wrapped as</span>
+<span class="sd">        FigureWidgetResampler objects (we advise to use this mode in ipython environment</span>
+<span class="sd">        with a kernel).</span>
+<span class="sd">        If None is used, wrapping is done as expected (go.Figure -&gt; FigureResampler,</span>
+<span class="sd">        go.FigureWidget -&gt; FigureWidgetResampler).</span>
+<span class="sd">    aggregator_kwargs : dict, optional</span>
+<span class="sd">        The keyword arguments to pass to the plotly-resampler decorator its constructor.</span>
+<span class="sd">        See more details in :class:`FigureResampler &lt;FigureResampler&gt;` and</span>
+<span class="sd">        :class:`FigureWidgetResampler &lt;FigureWidgetResampler&gt;`.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">constr_name</span><span class="p">,</span> <span class="n">pr_class</span> <span class="ow">in</span> <span class="n">PLOTLY_CONSTRUCTOR_WRAPPER</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;auto&quot;</span> <span class="ow">and</span> <span class="n">_is_ipython_env</span><span class="p">())</span> <span class="ow">or</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;widget&quot;</span><span class="p">:</span>
+            <span class="n">pr_class</span> <span class="o">=</span> <span class="n">FigureWidgetResampler</span>
+        <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;figure&quot;</span><span class="p">:</span>
+            <span class="n">pr_class</span> <span class="o">=</span> <span class="n">FigureResampler</span>
+        <span class="c1"># else: default mode -&gt; wrap according to PLOTLY_CONSTRUCTOR_WRAPPER</span>
+
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">PLOTLY_MODULES</span><span class="p">:</span>
+            <span class="n">_register_wrapper</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">constr_name</span><span class="p">,</span> <span class="n">pr_class</span><span class="p">,</span> <span class="o">**</span><span class="n">aggregator_kwargs</span><span class="p">)</span></div>
+
+
+<span class="c1">### Unregistering the wrappers</span>
+
+
+<span class="k">def</span> <span class="nf">_unregister_wrapper</span><span class="p">(</span><span class="n">module</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span> <span class="n">constr_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">constr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">constr_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_already_wrapped</span><span class="p">(</span><span class="n">constr</span><span class="p">):</span>
+        <span class="n">constr</span> <span class="o">=</span> <span class="n">constr</span><span class="o">.</span><span class="n">__wrapped__</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">constr_name</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="unregister_plotly_resampler"><a class="viewcode-back" href="../../registering.html#plotly_resampler.registering.unregister_plotly_resampler">[docs]</a><span class="k">def</span> <span class="nf">unregister_plotly_resampler</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Unregister plotly-resampler from plotly.graph_objects.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">constr</span> <span class="ow">in</span> <span class="n">PLOTLY_CONSTRUCTOR_WRAPPER</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">PLOTLY_MODULES</span><span class="p">:</span>
+            <span class="n">_unregister_wrapper</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span></div>
+</pre></div>
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    <p class="copyright">
+    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+  </div>
+  
+</div>
+</footer>
+  </body>
+</html>
