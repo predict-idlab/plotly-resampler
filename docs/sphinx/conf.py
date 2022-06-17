@@ -13,7 +13,8 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath("../plotly_resampler"))
+sys.path.append(os.path.abspath("../../"))
+sys.path.append(os.path.abspath("../../plotly_resampler"))
 
 
 # -- Project information -----------------------------------------------------
@@ -44,7 +45,7 @@ extensions = [
     "sphinx.ext.autosummary",
     "sphinx_autodoc_typehints",
     "sphinx.ext.todo",
-    'sphinx.ext.autosectionlabel',
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.viewcode",
     # 'sphinx.ext.githubpages',
 ]
@@ -88,6 +89,7 @@ autosummary_generate = True
 html_theme = "pydata_sphinx_theme"
 html_logo = "_static/logo.png"
 html_favicon = "_static/icon.png"
+language = "en"
 
 html_theme_options = {
     # "show_nav_level": 2,
@@ -104,12 +106,22 @@ html_theme_options = {
             "type": "fontawesome",  # Default is fontawesome
         }
     ],
+    "pygment_light_style": "tango",  # tango
+    "pygment_dark_style": "native",
+    "navbar_end": [
+        "theme-switcher.html",
+        "navbar-icon-links.html",
+        "search-field.html",
+    ],
 }
 
 html_sidebars = {
-    'figure_resampler*': [],
-    'aggregation*': []
+    "figure_resampler*": [],
+    "aggregation*": [],
+    "_autosummary*": [],
+    "*": [],
 }
+# html_sidebars = {"figure_resampler*": [], "aggregation*": []}
 
 
 # Add any paths that contain custom static files (such as style sheets) here,
