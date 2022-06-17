@@ -29,9 +29,8 @@ def registering_cleanup():
 @pytest.fixture
 def driver():
     from seleniumwire import webdriver
-    from webdriver_manager.chrome import ChromeDriverManager
+    from webdriver_manager.chrome import ChromeDriverManager, ChromeType
     from selenium.webdriver.chrome.options import Options
-    from webdriver_manager.utils import ChromeType
 
     options = Options()
     if not TESTING_LOCAL:
