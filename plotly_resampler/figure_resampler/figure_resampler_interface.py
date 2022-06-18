@@ -994,6 +994,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             .. seealso::
                 `Figure.add_traces <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces>`_ docs.
 
+        Returns
+        -------
+        BaseFigure
+            The Figure on which ``add_traces`` was called on; i.e. self.
+
         """
         # note: Plotly its add_traces also a allows non list-like input e.g. a scatter
         # object; the code below is an exact copy of their internally applied parsing
@@ -1053,7 +1058,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             assert trace is not None
             data[i] = trace
 
-        super(self._figure_class, self).add_traces(data, **traces_kwargs)
+        return super(self._figure_class, self).add_traces(data, **traces_kwargs)
 
     def _clear_figure(self):
         """Clear the current figure object it's data and layout."""

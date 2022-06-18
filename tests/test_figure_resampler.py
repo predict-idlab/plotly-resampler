@@ -841,6 +841,19 @@ def test_fr_list_scatter_add_traces(float_series):
     assert len(fr_fig.data) == 5
 
 
+def test_fr_add_scatter():
+    # Checks whether the add_scatter method works as expected
+    # .add_scatter calls `add_traces` under the hood
+    f_orig = go.Figure().add_scatter(y=np.arange(2_000))
+    f_pr = FigureResampler().add_scatter(y=np.arange(2_000))
+
+    assert len(f_orig.data) == 1
+    assert (len(f_pr.data) == 1) & (len(f_pr.hf_data) == 1)
+    assert len(f_orig.data[0].y) == 2_000
+    assert len(f_pr.data[0]["y"]) == 1_000
+    assert np.all(f_orig.data[0].y == f_pr.hf_data[0]["y"])
+
+
 def test_fr_copy_hf_data(float_series):
     fr_fig = FigureResampler(default_n_shown_samples=2000)
     traces: List[dict] = [
