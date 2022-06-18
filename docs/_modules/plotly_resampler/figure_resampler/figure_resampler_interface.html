@@ -1165,6 +1165,11 @@
 <span class="sd">            .. seealso::</span>
 <span class="sd">                `Figure.add_traces &lt;https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces&gt;`_ docs.</span>
 
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        BaseFigure</span>
+<span class="sd">            The Figure on which ``add_traces`` was called on; i.e. self.</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># note: Plotly its add_traces also a allows non list-like input e.g. a scatter</span>
         <span class="c1"># object; the code below is an exact copy of their internally applied parsing</span>
@@ -1224,7 +1229,7 @@
             <span class="k">assert</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">trace</span>
 
-        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">traces_kwargs</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">traces_kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_clear_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Clear the current figure object it&#39;s data and layout.&quot;&quot;&quot;</span>
