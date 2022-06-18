@@ -1724,3 +1724,15 @@ def test_fwr_list_scatter_add_traces(float_series):
     fr_fig.add_traces(go.Scatter({'y': float_series[:1000], 'name': "s_agg"}), max_n_samples=999)
     assert len(fr_fig.hf_data) == 4
     assert len(fr_fig.data) == 5
+
+def test_fwr_add_scatter():
+    # Checks whether the add_scatter method works as expected
+    # .add_scatter calls `add_traces` under the hood
+    fw_orig = go.FigureWidget().add_scatter(y=np.arange(2_000))
+    fw_pr = FigureWidgetResampler().add_scatter(y=np.arange(2_000))
+
+    assert len(fw_orig.data) == 1
+    assert (len(fw_pr.data) == 1) & (len(fw_pr.hf_data) == 1)
+    assert len(fw_orig.data[0].y) == 2_000
+    assert len(fw_pr.data[0]["y"]) == 1_000
+    assert np.all(fw_orig.data[0].y == fw_pr.hf_data[0]["y"])
