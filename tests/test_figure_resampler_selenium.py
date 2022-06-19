@@ -311,7 +311,7 @@ def test_gsr_gui(driver, gsr_figure):
                 "xaxis2.range[0]",
                 "xaxis2.range[1]",
             ],
-            n_updated_traces=7,
+            n_updated_traces=5,
         )
 
         # A toggle operation
@@ -335,7 +335,7 @@ def test_gsr_gui(driver, gsr_figure):
                 "xaxis.showspikes",
                 "xaxis2.showspikes",
             ],
-            n_updated_traces=7,
+            n_updated_traces=5,
         )
 
         # y remains the same - zoom horizontally
