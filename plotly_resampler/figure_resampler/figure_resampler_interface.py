@@ -435,7 +435,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         .. Note::
             This method will always return a plotly constructor, even when the given
-            `constr` is decorated (after executing the ``register_plotly_resampler`` 
+            `constr` is decorated (after executing the ``register_plotly_resampler``
             function).
 
         Parameters
