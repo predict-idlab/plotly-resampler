@@ -407,6 +407,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 #      and do not have the anchor property (hence the DICT.get() method)
                 # * x_axis_filter_short not in [x_anchor or xaxis matches] for
                 #   NON first rows
+                # * trace is not visible
                 if (
                     xaxis_filter_short == "x"
                     and (
@@ -416,6 +417,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 ) or (
                     xaxis_filter_short != "x"
                     and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
+                ) or (
+                    trace.get('visible') == 'legendonly'
                 ):
                     continue
 
