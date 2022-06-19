@@ -10,6 +10,8 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
+import sys
+import socket
 import warnings
 from typing import Tuple
 
@@ -159,6 +161,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._app = app
         self._host = kwargs.get("host", "127.0.0.1")
         self._port = kwargs.get("port", "8050")
+
+        # check if self._port is already in use
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex(('localhost', int(self._port))) == 0:
+                error_message = "Address already in use\n" \
+                    f"Port {self._port} is in use by another program. " \
+                    "Either identify and stop that program, or start the server with a different port."
+                print(error_message)
+                sys.exit(1)
 
         app.run_server(mode=mode, **kwargs)
 
