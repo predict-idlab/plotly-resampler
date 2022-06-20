@@ -39,6 +39,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             "",
         ),
         show_mean_aggregation_size: bool = True,
+        convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
     ):
         # Parse the figure input before calling `super`
@@ -67,6 +68,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             default_downsampler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
+            convert_traces_kwargs,
             verbose,
         )
 

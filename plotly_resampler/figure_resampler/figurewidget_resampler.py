@@ -49,6 +49,7 @@ class FigureWidgetResampler(
             "",
         ),
         show_mean_aggregation_size: bool = True,
+        convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
     ):
         # Parse the figure input before calling `super`
@@ -71,6 +72,7 @@ class FigureWidgetResampler(
             default_downsampler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
+            convert_traces_kwargs,
             verbose,
         )
 
