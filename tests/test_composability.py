@@ -1,3 +1,4 @@
+from random import sample
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler, FigureWidgetResampler
@@ -33,6 +34,60 @@ if True:
         for trace in fr_f.data:
             assert trace.uid not in fr_f._hf_data
             assert len(trace["y"]) == 10_000
+
+    def test_fr_fwr_f_scatter_convert_traces_kwargs(
+        float_series, bool_series, cat_series
+    ):
+        base_fig = make_subplots(
+            rows=2,
+            cols=2,
+            specs=[[{}, {}], [{"colspan": 2}, None]],
+        )
+        base_fig.add_trace(go.Scatter(y=cat_series), row=1, col=1)
+        base_fig.add_trace(dict(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        fwr = FigureWidgetResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fwr.hf_data) == 0
+
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fwr.hf_data) == 3
+
+        n_sample_list = [1010, 1020, 1030]
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fwr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fwr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
+
+        # FigureResampler as wrapped class
+        fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr.hf_data) == 0
+
+        fr = FigureResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fr.hf_data) == 3
+
+        fr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
 
     def test_fwr_f_scatter_agg(float_series, bool_series, cat_series):
         base_fig = make_subplots(
@@ -210,6 +265,62 @@ if True:
         for trace in fr_fw.data:
             assert trace.uid not in fr_fw._hf_data
             assert len(trace["y"]) == 10_000
+
+    def test_fr_fwr_fw_scatter_convert_traces_kwargs(
+        float_series, bool_series, cat_series
+    ):
+        base_fig = go.FigureWidget(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            )
+        )
+        base_fig.add_trace(go.Scatter(y=cat_series), row=1, col=1)
+        base_fig.add_trace(dict(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        fwr = FigureWidgetResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fwr.hf_data) == 0
+
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fwr.hf_data) == 3
+
+        n_sample_list = [1010, 1020, 1030]
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fwr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fwr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
+
+        # FigureResampler as wrapped class
+        fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr.hf_data) == 0
+
+        fr = FigureResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fr.hf_data) == 3
+
+        fr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
 
     def test_fwr_fw_scatter_agg(float_series, bool_series, cat_series):
         base_fig = go.FigureWidget(
@@ -402,6 +513,63 @@ if True:
         assert len(fr_fr.hf_data) == 3
         for trace in fr_fr.data:
             assert len(trace["y"]) == 10_000
+
+    def test_fr_fwr_fr_scatter_convert_traces_kwargs(
+        float_series, bool_series, cat_series
+    ):
+        base_fig = FigureResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=10_000,
+        )
+        base_fig.add_trace(go.Scatter(y=cat_series), row=1, col=1)
+        base_fig.add_trace(dict(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        fwr = FigureWidgetResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fwr.hf_data) == 0
+
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fwr.hf_data) == 3
+
+        n_sample_list = [1010, 1020, 1030]
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fwr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fwr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
+
+        # FigureResampler as wrapped class
+        fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr.hf_data) == 0
+
+        fr = FigureResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fr.hf_data) == 3
+
+        fr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
 
     def test_fr_fr_scatter_no_agg_agg(float_series, bool_series, cat_series):
         # This initial figure object does not contain any aggregated data as
@@ -779,6 +947,63 @@ if True:
         assert len(fr_fw.hf_data) == 3
         for trace in fr_fw.data:
             assert len(trace["y"]) == 10_000
+
+    def test_fr_fwr_fwr_scatter_convert_traces_kwargs(
+        float_series, bool_series, cat_series
+    ):
+        base_fig = FigureWidgetResampler(
+            make_subplots(
+                rows=2,
+                cols=2,
+                specs=[[{}, {}], [{"colspan": 2}, None]],
+            ),
+            default_n_shown_samples=10_000,
+        )
+        base_fig.add_trace(go.Scatter(y=cat_series), row=1, col=1)
+        base_fig.add_trace(dict(y=bool_series), row=1, col=2)
+        base_fig.add_trace(go.Scattergl(y=float_series), row=2, col=1)
+
+        fwr = FigureWidgetResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fwr.hf_data) == 0
+
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fwr.hf_data) == 3
+
+        n_sample_list = [1010, 1020, 1030]
+        fwr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fwr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fwr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
+
+        # FigureResampler as wrapped class
+        fr = FigureResampler(base_fig, default_n_shown_samples=10_000)
+        assert len(fr.hf_data) == 0
+
+        fr = FigureResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(limit_to_views=True),
+        )
+        assert len(fr.hf_data) == 3
+
+        fr = FigureWidgetResampler(
+            base_fig,
+            default_n_shown_samples=10_000,
+            convert_traces_kwargs=dict(max_n_samples=n_sample_list),
+        )
+        assert len(fr.hf_data) == 3
+        for i, n_samples in enumerate(n_sample_list):
+            assert len(fr.data[i]["y"]) == n_samples
+            assert len(fwr.hf_data[i]["y"]) == 10_000
 
     def test_fr_fwr_scatter_no_agg_agg(float_series, bool_series, cat_series):
         # This inital figure object does not contain any aggregated data as

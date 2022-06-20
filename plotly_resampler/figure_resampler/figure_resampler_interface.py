@@ -48,6 +48,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "",
         ),
         show_mean_aggregation_size: bool = True,
+        convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
     ):
         """Instantiate a resampling data mirror.
@@ -82,6 +83,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         show_mean_aggregation_size: bool, optional
             Whether the mean aggregation bin size will be added as a suffix to the trace
             its legend-name, by default True.
+        convert_traces_kwargs: dict, optional
+            A dict of kwargs that will be passed to the :func:`add_traces` method and
+            will be used to convert the existing traces. \n
+            .. note::
+                This argument is only used when the passed ``figure`` contains data and
+                ``convert_existing_traces`` is set to True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
 
@@ -109,9 +116,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             f_._grid_ref = figure._grid_ref
             super().__init__(f_)
 
+            if convert_traces_kwargs is None:
+                convert_traces_kwargs = {}
+
             # make sure that the UIDs of these traces do not get adjusted
             self._data_validator.set_uid = False
-            self.add_traces(figure.data)
+            self.add_traces(figure.data, **convert_traces_kwargs)
         else:
             super().__init__(figure)
             self._data_validator.set_uid = False
@@ -432,7 +442,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         .. Note::
             This method will always return a plotly constructor, even when the given
-            `constr` is decorated (after executing the ``register_plotly_resampler`` 
+            `constr` is decorated (after executing the ``register_plotly_resampler``
             function).
 
         Parameters
@@ -952,7 +962,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         .. note::
             Make sure to look at the :func:`add_trace` function for more info about
-            **speed optimization**, and dealing with not ``high-frequency`` data, but 
+            **speed optimization**, and dealing with not ``high-frequency`` data, but
             still want to resample / limit the data to the front-end view.
 
         Parameters
