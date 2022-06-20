@@ -164,7 +164,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # check if self._port is already in use
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            if s.connect_ex(('localhost', int(self._port))) == 0:
+            if s.connect_ex((self._host, int(self._port))) == 0:
                 error_message = "Address already in use\n" \
                     f"Port {self._port} is in use by another program. " \
                     "Either identify and stop that program, or start the server with a different port."
