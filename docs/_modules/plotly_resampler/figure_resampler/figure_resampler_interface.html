@@ -219,6 +219,7 @@
             <span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="p">),</span>
         <span class="n">show_mean_aggregation_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+        <span class="n">convert_traces_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Instantiate a resampling data mirror.</span>
@@ -253,6 +254,12 @@
 <span class="sd">        show_mean_aggregation_size: bool, optional</span>
 <span class="sd">            Whether the mean aggregation bin size will be added as a suffix to the trace</span>
 <span class="sd">            its legend-name, by default True.</span>
+<span class="sd">        convert_traces_kwargs: dict, optional</span>
+<span class="sd">            A dict of kwargs that will be passed to the :func:`add_traces` method and</span>
+<span class="sd">            will be used to convert the existing traces. \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This argument is only used when the passed ``figure`` contains data and</span>
+<span class="sd">                ``convert_existing_traces`` is set to True.</span>
 <span class="sd">        verbose: bool, optional</span>
 <span class="sd">            Whether some verbose messages will be printed or not, by default False.</span>
 
@@ -280,9 +287,12 @@
             <span class="n">f_</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_ref</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">f_</span><span class="p">)</span>
 
+            <span class="k">if</span> <span class="n">convert_traces_kwargs</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">convert_traces_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+
             <span class="c1"># make sure that the UIDs of these traces do not get adjusted</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data_validator</span><span class="o">.</span><span class="n">set_uid</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">convert_traces_kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_data_validator</span><span class="o">.</span><span class="n">set_uid</span> <span class="o">=</span> <span class="kc">False</span>
@@ -603,7 +613,7 @@
 
 <span class="sd">        .. Note::</span>
 <span class="sd">            This method will always return a plotly constructor, even when the given</span>
-<span class="sd">            `constr` is decorated (after executing the ``register_plotly_resampler`` </span>
+<span class="sd">            `constr` is decorated (after executing the ``register_plotly_resampler``</span>
 <span class="sd">            function).</span>
 
 <span class="sd">        Parameters</span>
@@ -1123,7 +1133,7 @@
 
 <span class="sd">        .. note::</span>
 <span class="sd">            Make sure to look at the :func:`add_trace` function for more info about</span>
-<span class="sd">            **speed optimization**, and dealing with not ``high-frequency`` data, but </span>
+<span class="sd">            **speed optimization**, and dealing with not ``high-frequency`` data, but</span>
 <span class="sd">            still want to resample / limit the data to the front-end view.</span>
 
 <span class="sd">        Parameters</span>
