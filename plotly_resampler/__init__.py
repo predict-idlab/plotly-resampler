@@ -6,7 +6,7 @@ from .registering import register_plotly_resampler, unregister_plotly_resampler
 
 __docformat__ = "numpy"
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
-__version__ = "0.7.0"
+__version__ = "0.7.2"
 
 __all__ = [
     "__version__",
