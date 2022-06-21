@@ -162,12 +162,20 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
   The <b style="color:orange">[R]</b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not. Additionally, the `~<range>` suffix represent the mean aggregation bin size in terms of the sequence index.
 * The plotly **autoscale** event (triggered by the autoscale button or a double-click within the graph), **does not reset the axes but autoscales the current graph-view** of plotly-resampler figures. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the `reset_axis` button.  If you want to give feedback and discuss this further with the developers, see issue [#49](https://github.com/predict-idlab/plotly-resampler/issues/49).
 
-<!-- ## Cite
+## Cite
+
+Paper (preprint): https://arxiv.org/abs/2206.08703
 
 ```latex
-{
+@misc{https://doi.org/10.48550/arxiv.2206.08703,
+  author = {Van Der Donckt, Jonas and Van Der Donckt, Jeroen and Deprost, Emiel and Van Hoecke, Sofie},
+  title = {Plotly-Resampler: Effective Visual Analytics for Large Time Series},
+  year = {2022},
+  doi = {10.48550/ARXIV.2206.08703},
+  url = {https://arxiv.org/abs/2206.08703},
+  publisher = {arXiv},
 }
-``` -->
+```
 
 ## Future work 🔨
 
