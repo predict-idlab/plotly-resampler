@@ -168,8 +168,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 error_message = "Address already in use\n" \
                     f"Port {self._port} is in use by another program. " \
                     "Either identify and stop that program, or start the server with a different port."
-                print(error_message)
-                sys.exit(1)
+                raise socket.error(error_message)
 
         app.run_server(mode=mode, **kwargs)
 
