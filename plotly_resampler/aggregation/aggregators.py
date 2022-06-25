@@ -11,11 +11,11 @@ __author__ = "Jonas Van Der Donckt"
 
 import math
 
-import lttbc
 import numpy as np
 import pandas as pd
 
 from ..aggregation.aggregation_interface import AbstractSeriesAggregator
+from .algorithms import lttbcv2
 
 
 class LTTB(AbstractSeriesAggregator):
@@ -73,42 +73,15 @@ class LTTB(AbstractSeriesAggregator):
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        # if we have categorical data, LTTB will convert the categorical values into
-        # their numeric codes, i.e., the index position of the category array
         s_v = s.cat.codes.values if str(s.dtype) == "category" else s.values
-        s_i = s.index.values
+        index = lttbcv2.downsample_y_index(s_v, n_out)
 
-        if s_i.dtype.type == np.datetime64:
-            # lttbc does not support this datatype -> convert to int
-            # (where the time is represented in ns)
-            # REMARK:
-            #   -> additional logic is needed to mitigate rounding errors 
-            #   First, the start offset is subtracted, after which the input series
-            #   is set in the already requested format, i.e. np.float64
-
-            # NOTE -> Rounding errors can still persist, but this approach is already
-            #         significantly less prone to it than the previos implementation.
-            s_i0 = s_i[0].astype(np.int64)
-            idx, data = lttbc.downsample(
-                (s_i.astype(np.int64) - s_i0).astype(np.float64), s_v, n_out
-            )
-
-            # add the start-offset and convert back to datetime
-            idx = pd.to_datetime(
-                idx.astype(np.int64) + s_i0, unit="ns", utc=True
-            ).tz_convert(s.index.tz)
-        else:
-            idx, data = lttbc.downsample(s_i, s_v, n_out)
-            idx = idx.astype(s_i.dtype)
-
-        if str(s.dtype) == "category":
-            # reconvert the downsampled numeric codes to the category array
-            data = np.vectorize(s.dtype.categories.values.item)(data.astype(s_v.dtype))
-        else:
-            # default case, use the series it's dtype as return type
-            data = data.astype(s.dtype)
-
-        return pd.Series(index=idx, data=data, name=str(s.name), copy=False)
+        return pd.Series(
+            index=s.index[index],
+            data=s.values[index],
+            name=str(s.name),
+            copy=False,
+        )
 
 
 class MinMaxOverlapAggregator(AbstractSeriesAggregator):
@@ -166,14 +139,14 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-            s.iloc[: block_size * offset.shape[0]]
-            .values.reshape(-1, block_size)
+            s.values[: block_size * offset.shape[0]]
+            .reshape(-1, block_size)
             .argmin(axis=1)
             + offset
         )
         argmax = (
-            s.iloc[argmax_offset : block_size * offset.shape[0] + argmax_offset]
-            .values.reshape(-1, block_size)
+            s.values[argmax_offset : block_size * offset.shape[0] + argmax_offset]
+            .reshape(-1, block_size)
             .argmax(axis=1)
             + offset
             + argmax_offset
@@ -231,14 +204,14 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-            s.iloc[: block_size * offset.shape[0]]
-            .values.reshape(-1, block_size)
+            s.values[: block_size * offset.shape[0]]
+            .reshape(-1, block_size)
             .argmin(axis=1)
             + offset
         )
         argmax = (
-            s.iloc[: block_size * offset.shape[0]]
-            .values.reshape(-1, block_size)
+            s.values[: block_size * offset.shape[0]]
+            .reshape(-1, block_size)
             .argmax(axis=1)
             + offset
         )
@@ -297,7 +270,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        if s.shape[0] > n_out * 1_000:
+        if s.shape[0] > n_out * 2_000:
             s = self.minmax._aggregate(s, n_out * 50)
         return self.lttb._aggregate(s, n_out)
 
