@@ -74,7 +74,11 @@ class LTTB(AbstractSeriesAggregator):
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         s_v = s.cat.codes.values if str(s.dtype) == "category" else s.values
-        index = lttbcv2.downsample_y_index(s_v, n_out)
+
+        s_i = s.index.values
+        s_i = s_i.astype(np.int64) if s_i.dtype.type == np.datetime64 else s_i
+
+        index = lttbcv2.downsample_return_index(s_i, s_v, n_out)
 
         return pd.Series(
             index=s.index[index],
