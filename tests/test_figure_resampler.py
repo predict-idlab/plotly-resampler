@@ -872,3 +872,13 @@ def test_fr_copy_hf_data(float_series):
     assert len(fr_fig.hf_data[0]["y"]) == 10_000
     assert len(fr_fig.hf_data[1]["x"]) == 10_000
     assert len(fr_fig.hf_data[1]["y"]) == 10_000
+
+
+def test_fr_object_hf_data(float_series):
+    float_series_o = float_series.astype(object)
+
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=float_series_o)
+    assert float_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "float64"

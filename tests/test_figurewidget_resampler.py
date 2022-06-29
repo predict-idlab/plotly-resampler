@@ -1736,3 +1736,13 @@ def test_fwr_add_scatter():
     assert len(fw_orig.data[0].y) == 2_000
     assert len(fw_pr.data[0]["y"]) == 1_000
     assert np.all(fw_orig.data[0].y == fw_pr.hf_data[0]["y"])
+
+
+def test_fwr_object_hf_data(float_series):
+    float_series_o = float_series.astype(object)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace({"name": "s0"}, hf_y=float_series_o)
+    assert float_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]['y'].dtype == 'float64'
