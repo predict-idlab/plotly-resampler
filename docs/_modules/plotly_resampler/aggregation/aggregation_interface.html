@@ -323,10 +323,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_supports_dtype</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
 
-        <span class="c1"># convert the bool values to uint8 (as we will display them on a y-axis)</span>
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;bool&quot;</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">n_out</span><span class="p">:</span>
             <span class="c1"># More samples that n_out -&gt; perform data aggregation</span>
             <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span><span class="o">=</span><span class="n">n_out</span><span class="p">)</span>

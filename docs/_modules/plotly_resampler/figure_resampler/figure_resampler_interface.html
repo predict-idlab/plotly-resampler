@@ -628,6 +628,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">..registering</span> <span class="kn">import</span> <span class="n">_get_plotly_constr</span>  <span class="c1"># To avoid ImportError</span>
+
         <span class="k">return</span> <span class="n">_get_plotly_constr</span><span class="p">(</span><span class="n">constr</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
@@ -850,7 +851,14 @@
             <span class="c1"># transform it to type string as such it will be sent as categorical data</span>
             <span class="c1"># to the downsampling algorithm</span>
             <span class="k">if</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">:</span>
-                <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
+                <span class="c1"># But first, we try to parse to a numeric dtype (as this is the</span>
+                <span class="c1"># behavior that plotly supports)</span>
+                <span class="c1"># Note that a bool array of type object will remain a bool array (and </span>
+                <span class="c1"># not will be transformed to an array of ints (0, 1))</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">hf_y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
 
             <span class="c1"># orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;uint8&quot;</span><span class="p">,</span> <span class="s2">&quot;uint16&quot;</span><span class="p">]:</span>
@@ -1268,10 +1276,7 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hf_data_cp</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">uid</span><span class="p">:</span> <span class="p">{</span>
-                <span class="n">k</span><span class="p">:</span> <span class="n">hf_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
-                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">hf_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-            <span class="p">}</span>
+            <span class="n">uid</span><span class="p">:</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">hf_dict</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">hf_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())}</span>
             <span class="k">for</span> <span class="n">uid</span><span class="p">,</span> <span class="n">hf_dict</span> <span class="ow">in</span> <span class="n">hf_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
         <span class="p">}</span>
 
