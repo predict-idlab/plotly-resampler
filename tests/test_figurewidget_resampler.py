@@ -1773,3 +1773,26 @@ def test_fwr_object_bool_data(bool_series):
     assert fig.hf_data[0]["y"].dtype == "bool"
     # plotly internally ocnverts this to object
     assert fig.data[0]["y"].dtype == "object"
+
+
+def test_fwr_object_binary_data():
+    binary_series = np.array([0, 1]*20)  # as this is << max_n_samples -> limit_to_view
+
+    # First try with the original non-object binary series
+    fig = FigureWidgetResampler()
+    fig.add_trace({"name": "s0"}, hf_y=binary_series, limit_to_view=True)
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "int64"
+    assert fig.data[0]["y"].dtype == "int64"
+    assert np.all(fig.data[0]["y"] == binary_series)
+
+    # Now try with the object binary series
+    binary_series_o = binary_series.astype(object)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace({"name": "s0"}, hf_y=binary_series_o, limit_to_view=True)
+    assert binary_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "int64"
+    assert fig.data[0]["y"].dtype == "int64"
+    assert np.all(fig.data[0]["y"] == binary_series)
