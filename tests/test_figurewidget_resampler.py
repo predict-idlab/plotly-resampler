@@ -1596,7 +1596,7 @@ def test_fwr_from_list_dict(float_series):
     assert fr_fig.data[1].uid in fr_fig._hf_data
 
     # redo the exercise with a new low-freq trace
-    base_fig.append({'y': float_series[:1000], 'name': "s_no_agg"})
+    base_fig.append({"y": float_series[:1000], "name": "s_no_agg"})
     fr_fig = FigureWidgetResampler(base_fig, default_n_shown_samples=1000)
     assert len(fr_fig.hf_data) == 2
     assert len(fr_fig.data) == 3
@@ -1626,17 +1626,17 @@ def test_fwr_list_dict_add_trace(float_series):
     assert fr_fig.data[1].uid in fr_fig._hf_data
 
     # redo the exercise with a new low-freq trace
-    fr_fig.add_trace({'y': float_series[:1000], 'name': "s_no_agg"})
+    fr_fig.add_trace({"y": float_series[:1000], "name": "s_no_agg"})
     assert len(fr_fig.hf_data) == 2
     assert len(fr_fig.data) == 3
 
     # add low-freq trace but set limit_to_view to True
-    fr_fig.add_trace({'y': float_series[:100], 'name': "s_agg"}, limit_to_view=True)
+    fr_fig.add_trace({"y": float_series[:100], "name": "s_agg"}, limit_to_view=True)
     assert len(fr_fig.hf_data) == 3
     assert len(fr_fig.data) == 4
 
     # add a low-freq trace but adjust max_n_samples
-    lf_series = {'y': float_series[:1000], 'name': "s_agg"}
+    lf_series = {"y": float_series[:1000], "name": "s_agg"}
     # plotly its default behavior raises a ValueError when a list or tuple is passed
     # to add_trace
     with pytest.raises(ValueError):
@@ -1672,18 +1672,18 @@ def test_fwr_list_dict_add_traces(float_series):
 
     # redo the exercise with a new low-freq trace
     # plotly also allows a dict or a scatter object as input
-    fr_fig.add_traces({'y': float_series[:1000], 'name': "s_no_agg"})
+    fr_fig.add_traces({"y": float_series[:1000], "name": "s_no_agg"})
     assert len(fr_fig.hf_data) == 2
     assert len(fr_fig.data) == 3
 
     # add low-freq trace but set limit_to_view to True
-    fr_fig.add_traces([{'y': float_series[:100], 'name': "s_agg"}], limit_to_views=True)
+    fr_fig.add_traces([{"y": float_series[:100], "name": "s_agg"}], limit_to_views=True)
     assert len(fr_fig.hf_data) == 3
     assert len(fr_fig.data) == 4
 
     # add a low-freq trace but adjust max_n_samples
     # note that we use tuple as input
-    fr_fig.add_traces(({'y': float_series[:1000], 'name': "s_agg"}, ), max_n_samples=999)
+    fr_fig.add_traces(({"y": float_series[:1000], "name": "s_agg"},), max_n_samples=999)
     assert len(fr_fig.hf_data) == 4
     assert len(fr_fig.data) == 5
 
@@ -1710,7 +1710,7 @@ def test_fwr_list_scatter_add_traces(float_series):
     assert fr_fig.data[1].uid in fr_fig._hf_data
 
     # redo the exercise with a new low-freq trace
-    fr_fig.add_traces([go.Scattergl({'y': float_series[:1000], 'name': "s_no_agg"})])
+    fr_fig.add_traces([go.Scattergl({"y": float_series[:1000], "name": "s_no_agg"})])
     assert len(fr_fig.hf_data) == 2
     assert len(fr_fig.data) == 3
 
@@ -1721,9 +1721,12 @@ def test_fwr_list_scatter_add_traces(float_series):
     assert len(fr_fig.data) == 4
 
     # add a low-freq trace but adjust max_n_samples
-    fr_fig.add_traces(go.Scatter({'y': float_series[:1000], 'name': "s_agg"}), max_n_samples=999)
+    fr_fig.add_traces(
+        go.Scatter({"y": float_series[:1000], "name": "s_agg"}), max_n_samples=999
+    )
     assert len(fr_fig.hf_data) == 4
     assert len(fr_fig.data) == 5
+
 
 def test_fwr_add_scatter():
     # Checks whether the add_scatter method works as expected
@@ -1738,11 +1741,35 @@ def test_fwr_add_scatter():
     assert np.all(fw_orig.data[0].y == fw_pr.hf_data[0]["y"])
 
 
-def test_fwr_object_hf_data(float_series):
+def test_fwr_object_hf_data(
+    float_series,
+):
     float_series_o = float_series.astype(object)
 
     fig = FigureWidgetResampler()
     fig.add_trace({"name": "s0"}, hf_y=float_series_o)
     assert float_series_o.dtype == object
     assert len(fig.hf_data) == 1
-    assert fig.hf_data[0]['y'].dtype == 'float64'
+    assert fig.hf_data[0]["y"].dtype == "float64"
+    assert fig.data[0]["y"].dtype == "float64"
+
+
+def test_fwr_object_bool_data(bool_series):
+    # First try with the original non-object bool series
+    fig = FigureWidgetResampler()
+    fig.add_trace({"name": "s0"}, hf_y=bool_series)
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "bool"
+    # plotly internally ocnverts this to object
+    assert fig.data[0]["y"].dtype == "object"
+
+    # Now try with the object bool series
+    bool_series_o = bool_series.astype(object)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace({"name": "s0"}, hf_y=bool_series_o)
+    assert bool_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "bool"
+    # plotly internally ocnverts this to object
+    assert fig.data[0]["y"].dtype == "object"

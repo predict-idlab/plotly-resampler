@@ -457,6 +457,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         """
         from ..registering import _get_plotly_constr  # To avoid ImportError
+
         return _get_plotly_constr(constr)
 
     @staticmethod
@@ -681,8 +682,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hf_y.dtype == "object":
                 # But first, we try to parse to a numeric dtype (as this is the
                 # behavior that plotly supports)
+                # Note that a bool array of type object will remain a bool array (and 
+                # not will be transformed to an array of ints (0, 1))
                 try:
-                    hf_y = hf_y.astype("float64")
+                    hf_y = pd.to_numeric(hf_y, errors="raise")
                 except:
                     hf_y = hf_y.astype("str")
 
@@ -1102,10 +1105,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         """
         hf_data_cp = {
-            uid: {
-                k: hf_dict[k]
-                for k in set(hf_dict.keys())
-            }
+            uid: {k: hf_dict[k] for k in set(hf_dict.keys())}
             for uid, hf_dict in hf_data.items()
         }
 

@@ -882,3 +882,25 @@ def test_fr_object_hf_data(float_series):
     assert float_series_o.dtype == object
     assert len(fig.hf_data) == 1
     assert fig.hf_data[0]["y"].dtype == "float64"
+    assert fig.data[0]["y"].dtype == "float64"
+
+
+def test_fwr_object_bool_data(bool_series):
+    # First try with the original non-object bool series
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=bool_series)
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "bool"
+    # plotly internally ocnverts this to object
+    assert fig.data[0]["y"].dtype == "object"
+
+    # Now try with the object bool series
+    bool_series_o = bool_series.astype(object)
+
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=bool_series_o)
+    assert bool_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "bool"
+    # plotly internally ocnverts this to object
+    assert fig.data[0]["y"].dtype == "object"
