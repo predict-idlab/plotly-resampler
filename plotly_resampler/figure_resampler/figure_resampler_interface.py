@@ -679,7 +679,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
             if hf_y.dtype == "object":
-                hf_y = hf_y.astype("str")
+                # But first, we try to parse to a numeric dtype (as this is the
+                # behavior that plotly supports)
+                try:
+                    hf_y = hf_y.astype("float64")
+                except:
+                    hf_y = hf_y.astype("str")
 
             # orjson encoding doesn't like to encode with uint8 & uint16 dtype
             if str(hf_y.dtype) in ["uint8", "uint16"]:
