@@ -872,3 +872,58 @@ def test_fr_copy_hf_data(float_series):
     assert len(fr_fig.hf_data[0]["y"]) == 10_000
     assert len(fr_fig.hf_data[1]["x"]) == 10_000
     assert len(fr_fig.hf_data[1]["y"]) == 10_000
+
+
+def test_fr_object_hf_data(float_series):
+    float_series_o = float_series.astype(object)
+
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=float_series_o)
+    assert float_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "float64"
+    assert fig.data[0]["y"].dtype == "float64"
+
+
+def test_fr_object_bool_data(bool_series):
+    # First try with the original non-object bool series
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=bool_series)
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "bool"
+    # plotly internally ocnverts this to object
+    assert fig.data[0]["y"].dtype == "object"
+
+    # Now try with the object bool series
+    bool_series_o = bool_series.astype(object)
+
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=bool_series_o)
+    assert bool_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "bool"
+    # plotly internally converts this to object
+    assert fig.data[0]["y"].dtype == "object"
+
+
+def test_fr_object_binary_data():
+    binary_series = np.array([0, 1]*20)  # as this is << max_n_samples -> limit_to_view
+
+    # First try with the original non-object binary series
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=binary_series, limit_to_view=True)
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "int64"
+    assert fig.data[0]["y"].dtype == "int64"
+    assert np.all(fig.data[0]["y"] == binary_series)
+
+    # Now try with the object binary series
+    binary_series_o = binary_series.astype(object)
+
+    fig = FigureResampler()
+    fig.add_trace({"name": "s0"}, hf_y=binary_series_o, limit_to_view=True)
+    assert binary_series_o.dtype == object
+    assert len(fig.hf_data) == 1
+    assert fig.hf_data[0]["y"].dtype == "int64"
+    assert fig.data[0]["y"].dtype == "int64"
+    assert np.all(fig.data[0]["y"] == binary_series)
