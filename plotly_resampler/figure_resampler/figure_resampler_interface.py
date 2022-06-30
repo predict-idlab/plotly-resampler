@@ -113,6 +113,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # call __init__ with the correct layout and set the `_grid_ref` of the
             # to-be-converted figure
             f_ = self._figure_class(layout=figure.layout)
+            f_._grid_str = figure._grid_str
             f_._grid_ref = figure._grid_ref
             super().__init__(f_)
 

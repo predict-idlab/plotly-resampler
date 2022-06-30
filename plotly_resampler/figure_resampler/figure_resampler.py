@@ -55,8 +55,18 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             if isinstance(figure, BaseFigure):  # go.FigureWidget or AbstractFigureAggregator
                 # A base figure object, we first copy the layout and grid ref
                 f.layout = figure.layout
+                f._grid_str = figure._grid_str
                 f._grid_ref = figure._grid_ref
                 f.add_traces(figure.data)
+            elif isinstance(figure, dict) and (
+                "data" in figure or "layout" in figure # or "frames" in figure  # TODO
+            ):
+                # A dict with data, layout or frames
+                f.layout = figure.get("layout")
+                f._grid_str = figure.get("_grid_str")
+                f._grid_ref = figure.get("_grid_ref")
+                f.add_traces(figure.get("data"))
+                # f.add_frames(figure.get("frames")) TODO
             elif isinstance(figure, (dict, list)):
                 # A single trace dict or a list of traces
                 f.add_traces(figure)
