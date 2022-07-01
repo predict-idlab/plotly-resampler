@@ -3,13 +3,14 @@
 
 from typing import Union
 
+import os
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, register_plotly_resampler, unregister_plotly_resampler
+from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, unregister_plotly_resampler
 
 # hyperparameters
 _nb_samples = 10_000
@@ -24,6 +25,18 @@ def registering_cleanup():
     unregister_plotly_resampler()
     yield
     unregister_plotly_resampler()
+
+
+def _remove_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+@pytest.fixture
+def pickle_figure():
+    FIG_PATH = "fig.pkl"
+    _remove_file(FIG_PATH)
+    yield FIG_PATH
+    _remove_file(FIG_PATH)
 
 
 @pytest.fixture
