@@ -42,9 +42,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
     ):
+        # `pr_props`` is a variable to store properties of a plotly-resampler figure
+        # This variable will only be set when loading a pickled plotly-resampler figure
+        pr_props = None
+
         # Parse the figure input before calling `super`
-        if is_figure(figure) and not is_fr(figure):  # go.Figure
-            # Base case, the figure does not need to be adjusted
+        if is_figure(figure) and not is_fr(figure):  
+            # A go.Figure
+            # => base case: the figure does not need to be adjusted
             f = figure
         else:
             # Create a new figure object and make sure that the trace uid will not get
@@ -52,8 +57,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             f = self._get_figure_class(go.Figure)()
             f._data_validator.set_uid = False
 
-            if isinstance(figure, BaseFigure):  # go.FigureWidget or AbstractFigureAggregator
-                # A base figure object, we first copy the layout and grid ref
+            if isinstance(figure, BaseFigure):
+                # A base figure object, can be; 
+                # - a go.FigureWidget
+                # - a plotly-resampler figure: subclass of AbstractFigureAggregator
+                # => we first copy the layout, grid_str and grid ref
                 f.layout = figure.layout
                 f._grid_str = figure._grid_str
                 f._grid_ref = figure._grid_ref
@@ -61,11 +69,17 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             elif isinstance(figure, dict) and (
                 "data" in figure or "layout" in figure # or "frames" in figure  # TODO
             ):
-                # A dict with data, layout or frames
+                # A figure as a dict, can be;
+                # - a plotly figure as a dict (after calling `fig.to_dict()`)
+                # - a pickled (plotly-resampler) figure (after loading a pickled figure)
+                # => we first copy the layout, grid_str and grid ref
                 f.layout = figure.get("layout")
                 f._grid_str = figure.get("_grid_str")
                 f._grid_ref = figure.get("_grid_ref")
                 f.add_traces(figure.get("data"))
+                # `pr_props`will be not None when loading a pickled plotly-resampler figure
+                pr_props = figure.get("pr_props") 
+
                 # f.add_frames(figure.get("frames")) TODO
             elif isinstance(figure, (dict, list)):
                 # A single trace dict or a list of traces
@@ -80,6 +94,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             show_mean_aggregation_size,
             convert_traces_kwargs,
             verbose,
+            pr_props=pr_props,
         )
 
         if isinstance(figure, AbstractFigureAggregator):

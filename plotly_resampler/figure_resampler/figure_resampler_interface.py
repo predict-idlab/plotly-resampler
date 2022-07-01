@@ -50,6 +50,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
+        pr_props: dict | None = None,
     ):
         """Instantiate a resampling data mirror.
 
@@ -91,6 +92,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 ``convert_existing_traces`` is set to True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
+        pr_props: dict, optional
+            A dict of properties that will be overwrite the above arguments.
+            This is useful when the figure is created from a pickled object, allowing
+            the PR figure to be created with the same properties as the pickled object.
+            .. note::
+                Users should not use this argument, as it is used internally by the
+                subclasses of this abstract class.
 
         """
         self._hf_data: Dict[str, dict] = {}
@@ -102,6 +110,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self._prefix, self._suffix = resampled_trace_prefix_suffix
 
         self._global_downsampler = default_downsampler
+
+        # Overwrite the passed properties with the property dict values
+        # (this is the case when the PR figure is created from a pickled object)
+        if pr_props is not None:
+            for k, v in pr_props.items():
+                setattr(self, k, v)
 
         # Given figure should always be a BaseFigure that is not wrapped by
         # a plotly-resampler class
@@ -683,7 +697,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hf_y.dtype == "object":
                 # But first, we try to parse to a numeric dtype (as this is the
                 # behavior that plotly supports)
-                # Note that a bool array of type object will remain a bool array (and 
+                # Note that a bool array of type object will remain a bool array (and
                 # not will be transformed to an array of ints (0, 1))
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
@@ -1257,3 +1271,32 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if m is not None:
                 matches.append(m.string)
         return sorted(matches)
+
+    ## Magic methods (to use plotly.py words :grin:)
+    def __reduce__(self):
+        """Overwrite the reduce method (which is used to support deep copying and
+        pickling).
+
+        Note
+        ----
+        We do not overwrite the `to_dict` method, as this is used to send the figure
+        to the frontend (and thus should not capture the plotly-resampler properties).
+        """
+        _, props = super().__reduce__()
+        assert len(props) == 1  # I don't know why this would be > 1
+        props = props[0]
+
+        # Add the plotly-resampler properties
+        props["pr_props"] = {}
+        pr_keys = [
+            "_hf_data",
+            "_global_n_shown_samples",
+            "_print_verbose",
+            "_show_mean_aggregation_size",
+            "_prefix",
+            "_suffix",
+            "_global_downsampler",
+        ]
+        for k in pr_keys:
+            props["pr_props"][k] = getattr(self, k)
+        return (self.__class__, (props,))  # (props,) to comply with plotly magic
