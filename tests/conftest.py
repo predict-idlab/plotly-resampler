@@ -45,6 +45,9 @@ def driver():
     from webdriver_manager.chrome import ChromeDriverManager, ChromeType
     from selenium.webdriver.chrome.options import Options
 
+    import time
+    time.sleep(1)
+    
     options = Options()
     if not TESTING_LOCAL:
         if headless:
@@ -157,7 +160,7 @@ def example_figure() -> FigureResampler:
                 name=f"room {i+1}",
             ),
             hf_x=df_data_pc.index,
-            hf_y=df_data_pc[c],
+            hf_y=df_data_pc[c].astype(np.float32),
             row=2,
             col=1,
             downsampler=LTTB(interleave_gaps=True),
@@ -229,7 +232,7 @@ def example_figure_fig() -> go.Figure:
             go.Scattergl(
                 name=f"room {i+1}",
                 x=df_data_pc.index,
-                y=df_data_pc[c],
+                y=df_data_pc[c].astype(np.float32),
             ),
             row=2,
             col=1,
