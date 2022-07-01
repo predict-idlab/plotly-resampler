@@ -9,8 +9,9 @@ Selenium wrapper class withholding methods for testing the plolty-figureResample
 
 from __future__ import annotations
 
-__author__ = "Jonas Van Der Donckt"
+__author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 
+import sys
 import json
 import time
 from datetime import datetime, timedelta
@@ -25,8 +26,20 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
+def not_on_linux():
+    """Return True if the current platform is not Linux.
+    
+    Note: this will be used to add more waiting time to windows & mac os tests as 
+    - on these OS's serialization of the figure is necessary (to start the dash app in a 
+      multiprocessing.Process)
+      https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+    - on linux, the browser (i.e., sending & getting requests) goes a lot faster
+    """
+    return not sys.platform.startswith("linux")
+
+
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
-# and credate a parameterized driver.get method
+# and create a parameterized driver.get method
 
 
 class RequestParser:
@@ -173,12 +186,14 @@ class FigureResamplerGUITests:
         time.sleep(1)
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
+        if not_on_linux(): time.sleep(7)  # bcs serialization of multiprocessing
 
     def clear_requests(self, sleep_time_s=1):
         time.sleep(1)
         del self.driver.requests
 
     def get_requests(self, delete: bool = True):
+        if not_on_linux(): time.sleep(2)  # bcs slower browser 
         requests = self.driver.requests
         if delete:
             self.clear_requests()
