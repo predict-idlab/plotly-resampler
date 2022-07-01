@@ -187,7 +187,7 @@ class FigureResamplerGUITests:
         del self.driver.requests
 
     def get_requests(self, delete: bool = True):
-        if not_on_linux(): time.sleep(5)  # wait for the page to load on windows / mac
+        if not_on_linux(): time.sleep(2)  # wait for the page to load on windows / mac
         requests = self.driver.requests
         if delete:
             self.clear_requests()
