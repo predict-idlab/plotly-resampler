@@ -122,7 +122,6 @@ class RequestParser:
             The expected amount of traces which will be updated.
 
         """
-        if not_on_linux(): time.sleep(5)
         # First, filter the requests to only retain the relevant ones
         requests = RequestParser.filter_callback_requests(fr.get_requests())
 
@@ -188,6 +187,7 @@ class FigureResamplerGUITests:
         del self.driver.requests
 
     def get_requests(self, delete: bool = True):
+        if not_on_linux(): time.sleep(5)  # wait for the page to load on windows / mac
         requests = self.driver.requests
         if delete:
             self.clear_requests()
