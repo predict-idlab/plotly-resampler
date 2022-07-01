@@ -9,10 +9,11 @@ Selenium wrapper class withholding methods for testing the plolty-figureResample
 
 from __future__ import annotations
 
-__author__ = "Jonas Van Der Donckt"
+__author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 
 import json
 import time
+import sys
 from datetime import datetime, timedelta
 from typing import List, Union
 
@@ -27,6 +28,12 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
 # and credate a parameterized driver.get method
+
+
+
+def not_on_linux():
+    """Return True if the current platform is not Linux."""
+    return not sys.platform.startswith("linux")
 
 
 class RequestParser:
@@ -115,6 +122,7 @@ class RequestParser:
             The expected amount of traces which will be updated.
 
         """
+        if not_on_linux(): time.sleep(5)
         # First, filter the requests to only retain the relevant ones
         requests = RequestParser.filter_callback_requests(fr.get_requests())
 
@@ -173,6 +181,7 @@ class FigureResamplerGUITests:
         time.sleep(1)
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
+        if not_on_linux(): time.sleep(7)
 
     def clear_requests(self, sleep_time_s=1):
         time.sleep(1)

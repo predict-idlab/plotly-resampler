@@ -21,7 +21,7 @@ def test_multiple_tz(driver, multiple_tz_figure):
         fr = FigureResamplerGUITests(driver, port=port)
         time.sleep(1)
         fr.go_to_page()
-        time.sleep(7) 
+        time.sleep(2)
 
         # First, apply some box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
