@@ -2,6 +2,7 @@ import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
 import pickle
+import copy
 
 from plotly_resampler import FigureResampler, FigureWidgetResampler
 from plotly_resampler.registering import (
@@ -13,6 +14,8 @@ from plotly_resampler.registering import (
 from .conftest import registering_cleanup, pickle_figure
 from inspect import isfunction
 
+
+#### PICKLING
 
 ## Test basic pickling
 
@@ -224,5 +227,332 @@ def test_pickle_figurewidget_resampler_registered(registering_cleanup, pickle_fi
         assert len(trace.y) == 50
         assert f"trace--{i}" in trace.name
         hf_trace = fig_pickle.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+
+#### (DEEP)COPY
+
+## Test basic (deep)copy
+
+def test_copy_and_deepcopy_figure_resampler():
+    nb_traces = 3
+    nb_samples = 3_243
+
+    fig = FigureResampler(default_n_shown_samples=50)
+    for i in range(nb_traces):
+        fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+
+    fig_copy = copy.copy(fig)
+
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    fig_copy = copy.deepcopy(fig)
+
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+ 
+
+def test_copy_and_deepcopy_figurewidget_resampler():
+    nb_traces = 3
+    nb_samples = 3_243
+
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    for i in range(nb_traces):
+        fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+
+    fig_copy = copy.copy(fig)
+
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    fig_copy = copy.deepcopy(fig)
+
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+ 
+ ## Test basic (deep)copy with PR registered
+
+def test_copy_figure_resampler_registered():
+    nb_traces = 3
+    nb_samples = 4_069
+
+    register_plotly_resampler(mode="figure", default_n_shown_samples=50)
+    
+    fig = go.Figure()
+    for i in range(nb_traces):
+        fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+    assert isinstance(fig, FigureResampler)
+    assert not isinstance(fig, FigureWidgetResampler)
+
+    # Copy with PR registered
+    fig_copy = copy.copy(fig)
+    assert isinstance(go.Figure(), FigureResampler)
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR registered as FigureWidgetResampler (& other nb default samples)
+    register_plotly_resampler(mode="widget", default_n_shown_samples=75)
+    assert isinstance(go.Figure(), FigureWidgetResampler)
+    assert not isinstance(go.Figure(), FigureResampler)
+    fig_copy = copy.copy(fig)
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR NOT registered
+    unregister_plotly_resampler()
+    assert not isinstance(go.Figure(), FigureWidgetResampler)
+    assert not isinstance(go.Figure(), FigureResampler)
+    fig_copy = copy.copy(fig)
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+
+def test_deepcopy_figure_resampler_registered():
+    nb_traces = 4
+    nb_samples = 3_169
+
+    register_plotly_resampler(mode="figure", default_n_shown_samples=50)
+    
+    fig = go.Figure()
+    for i in range(nb_traces):
+        fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+    assert isinstance(fig, FigureResampler)
+    assert not isinstance(fig, FigureWidgetResampler)
+
+    # Copy with PR registered
+    fig_copy = copy.deepcopy(fig)
+    assert isinstance(go.Figure(), FigureResampler)
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR registered as FigureWidgetResampler (& other nb default samples)
+    register_plotly_resampler(mode="widget", default_n_shown_samples=75)
+    assert isinstance(go.Figure(), FigureWidgetResampler)
+    assert not isinstance(go.Figure(), FigureResampler)
+    fig_copy = copy.deepcopy(fig)
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR NOT registered
+    unregister_plotly_resampler()
+    assert not isinstance(go.Figure(), FigureWidgetResampler)
+    assert not isinstance(go.Figure(), FigureResampler)
+    fig_copy = copy.deepcopy(fig)
+    assert isinstance(fig_copy, FigureResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+
+def test_copy_figurewidget_resampler_registered():
+    nb_traces = 5
+    nb_samples = 3_012
+
+    register_plotly_resampler(mode="widget", default_n_shown_samples=50)
+    
+    fig = go.Figure()
+    for i in range(nb_traces):
+        fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+    assert isinstance(fig, FigureWidgetResampler)
+    assert not isinstance(fig, FigureResampler)
+
+    # Copy with PR registered
+    fig_copy = copy.copy(fig)
+    assert isinstance(go.Figure(), FigureWidgetResampler)
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR registered as FigureResampler (& other nb default samples)
+    register_plotly_resampler(mode="figure", default_n_shown_samples=75)
+    assert isinstance(go.Figure(), FigureResampler)
+    assert not isinstance(go.Figure(), FigureWidgetResampler)
+    fig_copy = copy.copy(fig)
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR NOT registered
+    unregister_plotly_resampler()
+    assert not isinstance(go.Figure(), FigureWidgetResampler)
+    assert not isinstance(go.Figure(), FigureResampler)
+    fig_copy = copy.copy(fig)
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+
+def test_deepcopy_figurewidget_resampler_registered():
+    nb_traces = 5
+    nb_samples = 3_012
+
+    register_plotly_resampler(mode="widget", default_n_shown_samples=50)
+    
+    fig = go.Figure()
+    for i in range(nb_traces):
+        fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+    assert isinstance(fig, FigureWidgetResampler)
+    assert not isinstance(fig, FigureResampler)
+
+    # Copy with PR registered
+    fig_copy = copy.deepcopy(fig)
+    assert isinstance(go.Figure(), FigureWidgetResampler)
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR registered as FigureResampler (& other nb default samples)
+    register_plotly_resampler(mode="figure", default_n_shown_samples=75)
+    assert isinstance(go.Figure(), FigureResampler)
+    assert not isinstance(go.Figure(), FigureWidgetResampler)
+    fig_copy = copy.deepcopy(fig)
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
+        assert len(hf_trace["y"]) == nb_samples
+        assert np.all(hf_trace["y"] == np.arange(nb_samples))
+
+    # Copy with PR NOT registered
+    unregister_plotly_resampler()
+    assert not isinstance(go.Figure(), FigureWidgetResampler)
+    assert not isinstance(go.Figure(), FigureResampler)
+    fig_copy = copy.deepcopy(fig)
+    assert isinstance(fig_copy, FigureWidgetResampler)
+    assert len(fig_copy.data) == nb_traces
+    assert len(fig_copy.hf_data) == nb_traces
+    for i in range(nb_traces):
+        trace = fig_copy.data[i]
+        assert isinstance(trace, go.Scattergl)
+        assert len(trace.y) == 50
+        assert f"trace--{i}" in trace.name
+        hf_trace = fig_copy.hf_data[i]
         assert len(hf_trace["y"]) == nb_samples
         assert np.all(hf_trace["y"] == np.arange(nb_samples))
