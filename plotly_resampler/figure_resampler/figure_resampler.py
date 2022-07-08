@@ -175,14 +175,16 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # 2. Run the app
         if (
-            self.layout.height is not None
-            and mode == "inline"
+            mode == "inline"
             and "height" not in kwargs
         ):
-            # If figure height is specified -> re-use is for inline dash app height
-            kwargs["height"] = self.layout.height + 18
+            # If app height is not specified -> re-use figure height for inline dash app
+            #  Note: default layout height is 450 (whereas default app height is 650) 
+            #  See: https://plotly.com/python/reference/layout/#layout-height
+            fig_height = self.layout.height if self.layout.height is not None else 450
+            kwargs["height"] = fig_height + 18
 
-        # store the app information, so it can be killed
+        # Store the app information, so it can be killed
         self._app = app
         self._host = kwargs.get("host", "127.0.0.1")
         self._port = kwargs.get("port", "8050")
