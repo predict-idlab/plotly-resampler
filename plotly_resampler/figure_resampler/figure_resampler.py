@@ -240,3 +240,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             dash.dependencies.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
         )(self.construct_update_data)
+
+    def _ipython_display_(self):
+        return self.show_dash(mode="inline")
