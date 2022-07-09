@@ -1,3 +1,4 @@
+from hashlib import sha1
 import plotly.graph_objects as go
 import plotly.express as px
 import numpy as np
@@ -23,14 +24,16 @@ def test_pickle_figure_resampler(pickle_figure):
     nb_traces = 3
     nb_samples = 5_007
 
-    fig = FigureResampler(default_n_shown_samples=50)
+    fig = FigureResampler(default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+    assert fig._show_dash_kwargs["port"] == 8051
 
     pickle.dump(fig, open(pickle_figure, "wb"))
     fig_pickle = pickle.load(open(pickle_figure, "rb"))
 
     assert isinstance(fig_pickle, FigureResampler)
+    assert fig_pickle._show_dash_kwargs["port"] == 8051
     assert len(fig_pickle.data) == nb_traces
     assert len(fig_pickle.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -73,13 +76,14 @@ def test_pickle_figure_resampler_registered(registering_cleanup, pickle_figure):
     nb_traces = 4
     nb_samples = 5_043
 
-    register_plotly_resampler(mode="figure", default_n_shown_samples=50)
+    register_plotly_resampler(mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
     
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
     assert isinstance(fig, FigureResampler)
     assert not isinstance(fig, FigureWidgetResampler)
+    assert fig._show_dash_kwargs["port"] == 8051
 
     pickle.dump(fig, open(pickle_figure, "wb"))
 
@@ -87,6 +91,7 @@ def test_pickle_figure_resampler_registered(registering_cleanup, pickle_figure):
     assert isinstance(go.Figure(), FigureResampler)
     fig_pickle = pickle.load(open(pickle_figure, "rb"))
     assert isinstance(fig_pickle, FigureResampler)
+    assert fig_pickle._show_dash_kwargs["port"] == 8051
     assert len(fig_pickle.data) == nb_traces
     assert len(fig_pickle.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -104,6 +109,7 @@ def test_pickle_figure_resampler_registered(registering_cleanup, pickle_figure):
     assert not isinstance(go.Figure(), FigureResampler)
     fig_pickle = pickle.load(open(pickle_figure, "rb"))
     assert isinstance(fig_pickle, FigureResampler)
+    assert fig_pickle._show_dash_kwargs["port"] == 8051
     assert len(fig_pickle.data) == nb_traces
     assert len(fig_pickle.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -121,6 +127,7 @@ def test_pickle_figure_resampler_registered(registering_cleanup, pickle_figure):
     assert not isinstance(go.Figure(), FigureResampler)
     fig_pickle = pickle.load(open(pickle_figure, "rb"))
     assert isinstance(fig_pickle, FigureResampler)
+    assert fig_pickle._show_dash_kwargs["port"] == 8051
     assert len(fig_pickle.data) == nb_traces
     assert len(fig_pickle.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -138,6 +145,7 @@ def test_pickle_figure_resampler_registered(registering_cleanup, pickle_figure):
     pickle.dump(fig, open(pickle_figure, "wb"))
     fig_pickle = pickle.load(open(pickle_figure, "rb"))
     assert isinstance(fig_pickle, FigureResampler)
+    assert fig_pickle._show_dash_kwargs["port"] == 8051
     assert len(fig_pickle.data) == nb_traces
     assert len(fig_pickle.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -239,13 +247,15 @@ def test_copy_and_deepcopy_figure_resampler():
     nb_traces = 3
     nb_samples = 3_243
 
-    fig = FigureResampler(default_n_shown_samples=50)
+    fig = FigureResampler(default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
+    assert fig._show_dash_kwargs["port"] == 8051
 
     fig_copy = copy.copy(fig)
 
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -260,6 +270,7 @@ def test_copy_and_deepcopy_figure_resampler():
     fig_copy = copy.deepcopy(fig)
 
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -314,18 +325,20 @@ def test_copy_figure_resampler_registered():
     nb_traces = 3
     nb_samples = 4_069
 
-    register_plotly_resampler(mode="figure", default_n_shown_samples=50)
+    register_plotly_resampler(mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
     
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
     assert isinstance(fig, FigureResampler)
     assert not isinstance(fig, FigureWidgetResampler)
+    assert fig._show_dash_kwargs["port"] == 8051
 
     # Copy with PR registered
     fig_copy = copy.copy(fig)
     assert isinstance(go.Figure(), FigureResampler)
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -343,6 +356,7 @@ def test_copy_figure_resampler_registered():
     assert not isinstance(go.Figure(), FigureResampler)
     fig_copy = copy.copy(fig)
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -360,6 +374,7 @@ def test_copy_figure_resampler_registered():
     assert not isinstance(go.Figure(), FigureResampler)
     fig_copy = copy.copy(fig)
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -376,18 +391,20 @@ def test_deepcopy_figure_resampler_registered():
     nb_traces = 4
     nb_samples = 3_169
 
-    register_plotly_resampler(mode="figure", default_n_shown_samples=50)
+    register_plotly_resampler(mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
     
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
     assert isinstance(fig, FigureResampler)
     assert not isinstance(fig, FigureWidgetResampler)
+    assert fig._show_dash_kwargs["port"] == 8051
 
     # Copy with PR registered
     fig_copy = copy.deepcopy(fig)
     assert isinstance(go.Figure(), FigureResampler)
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -405,6 +422,7 @@ def test_deepcopy_figure_resampler_registered():
     assert not isinstance(go.Figure(), FigureResampler)
     fig_copy = copy.deepcopy(fig)
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):
@@ -422,6 +440,7 @@ def test_deepcopy_figure_resampler_registered():
     assert not isinstance(go.Figure(), FigureResampler)
     fig_copy = copy.deepcopy(fig)
     assert isinstance(fig_copy, FigureResampler)
+    assert fig_copy._show_dash_kwargs["port"] == 8051
     assert len(fig_copy.data) == nb_traces
     assert len(fig_copy.hf_data) == nb_traces
     for i in range(nb_traces):

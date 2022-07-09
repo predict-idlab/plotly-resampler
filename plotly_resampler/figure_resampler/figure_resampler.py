@@ -11,7 +11,7 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import warnings
-from typing import Tuple
+from typing import Tuple, List
 
 import dash
 import plotly.graph_objects as go
@@ -41,6 +41,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
+        show_dash_kwargs: dict | None = None,
     ):
         # `pr_props`` is a variable to store properties of a plotly-resampler figure
         # This variable will only be set when loading a pickled plotly-resampler figure
@@ -84,6 +85,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             elif isinstance(figure, (dict, list)):
                 # A single trace dict or a list of traces
                 f.add_traces(figure)
+
+        self._show_dash_kwargs = show_dash_kwargs if show_dash_kwargs is not None else {}
 
         super().__init__(
             f,
@@ -155,6 +158,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
             Additional app.run_server() kwargs. e.g.: port
+            Note that these kwargs take precedence over the ones passed to the
+            constructor via the ``show_dash_kwargs`` argument.
 
         """
         graph_properties = {} if graph_properties is None else graph_properties
@@ -183,6 +188,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             #  See: https://plotly.com/python/reference/layout/#layout-height
             fig_height = self.layout.height if self.layout.height is not None else 450
             kwargs["height"] = fig_height + 18
+
+        # kwargs take precedence over the show_dash_kwargs
+        kwargs = {**self._show_dash_kwargs, **kwargs}
 
         # Store the app information, so it can be killed
         self._app = app
@@ -241,5 +249,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             prevent_initial_call=True,
         )(self.construct_update_data)
 
+    def _get_pr_props_keys(self) -> List[str]:
+        # Add the additional plotly-resampler properties of this class
+        return super()._get_pr_props_keys() + ["_show_dash_kwargs"]
+
     def _ipython_display_(self):
-        return self.show_dash(mode="inline")
+        # To display the figure inline as a dash app
+        self.show_dash(mode="inline")
