@@ -76,8 +76,10 @@ def test_pickle_figure_resampler_registered(registering_cleanup, pickle_figure):
     nb_traces = 4
     nb_samples = 5_043
 
-    register_plotly_resampler(mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
-    
+    register_plotly_resampler(
+        mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051)
+    )
+
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
@@ -163,7 +165,7 @@ def test_pickle_figurewidget_resampler_registered(registering_cleanup, pickle_fi
     nb_samples = 3_643
 
     register_plotly_resampler(mode="widget", default_n_shown_samples=50)
-    
+
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
@@ -281,7 +283,7 @@ def test_copy_and_deepcopy_figure_resampler():
         hf_trace = fig_copy.hf_data[i]
         assert len(hf_trace["y"]) == nb_samples
         assert np.all(hf_trace["y"] == np.arange(nb_samples))
- 
+
 
 def test_copy_and_deepcopy_figurewidget_resampler():
     nb_traces = 3
@@ -318,15 +320,18 @@ def test_copy_and_deepcopy_figurewidget_resampler():
         hf_trace = fig_copy.hf_data[i]
         assert len(hf_trace["y"]) == nb_samples
         assert np.all(hf_trace["y"] == np.arange(nb_samples))
- 
- ## Test basic (deep)copy with PR registered
+
+
+## Test basic (deep)copy with PR registered
 
 def test_copy_figure_resampler_registered():
     nb_traces = 3
     nb_samples = 4_069
 
-    register_plotly_resampler(mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
-    
+    register_plotly_resampler(
+        mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051)
+    )
+
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
@@ -391,8 +396,10 @@ def test_deepcopy_figure_resampler_registered():
     nb_traces = 4
     nb_samples = 3_169
 
-    register_plotly_resampler(mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051))
-    
+    register_plotly_resampler(
+        mode="figure", default_n_shown_samples=50, show_dash_kwargs=dict(port=8051)
+    )
+
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
@@ -458,7 +465,7 @@ def test_copy_figurewidget_resampler_registered():
     nb_samples = 3_012
 
     register_plotly_resampler(mode="widget", default_n_shown_samples=50)
-    
+
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
@@ -520,7 +527,7 @@ def test_deepcopy_figurewidget_resampler_registered():
     nb_samples = 3_012
 
     register_plotly_resampler(mode="widget", default_n_shown_samples=50)
-    
+
     fig = go.Figure()
     for i in range(nb_traces):
         fig.add_trace(go.Scattergl(name=f"trace--{i}"), hf_y=np.arange(nb_samples))
