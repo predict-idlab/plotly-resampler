@@ -1819,6 +1819,8 @@ def test_fwr_object_binary_data():
 
 
 def test_fwr_copy_grid():
+    # Checks whether _grid_ref and _grid_str are correctly maintained
+
     f = make_subplots(rows=2, cols=1)
     f.add_scatter(y=np.arange(2_000), row=1, col=1)
     f.add_scatter(y=np.arange(2_000), row=2, col=1)
@@ -1826,47 +1828,64 @@ def test_fwr_copy_grid():
     ## go.Figure
     assert isinstance(f, go.Figure)
     assert f._grid_ref is not None
+    assert f._grid_str is not None
     fwr = FigureWidgetResampler(f)
     assert fwr._grid_ref is not None
     assert fwr._grid_ref == f._grid_ref
+    assert fwr._grid_str is not None
+    assert fwr._grid_str == f._grid_str
     
     ## go.FigureWidget
     fw = go.FigureWidget(f)
     assert fw._grid_ref is not None
+    assert fw._grid_str is not None
     assert isinstance(fw, go.FigureWidget)
     fwr = FigureWidgetResampler(fw)
     assert fwr._grid_ref is not None
     assert fwr._grid_ref == fw._grid_ref
+    assert fwr._grid_str is not None
+    assert fwr._grid_str == fw._grid_str
 
     ## FigureWidgetResampler
     fwr_ = FigureWidgetResampler(f)
     assert fwr_._grid_ref is not None
+    assert fwr_._grid_str is not None
     assert isinstance(fwr_, FigureWidgetResampler)
     fwr = FigureWidgetResampler(fwr_)
     assert fwr._grid_ref is not None
     assert fwr._grid_ref == fwr_._grid_ref
+    assert fwr._grid_str is not None
+    assert fwr._grid_str == fwr_._grid_str
 
     ## FigureResampler
     from plotly_resampler import FigureResampler
     fr = FigureResampler(f)
     assert fr._grid_ref is not None
+    assert fr._grid_str is not None
     assert isinstance(fr, FigureResampler)
     fwr = FigureWidgetResampler(fr)
     assert fwr._grid_ref is not None
     assert fwr._grid_ref == fr._grid_ref
+    assert fwr._grid_str is not None
+    assert fwr._grid_str == fr._grid_str
 
-    ## dict (with no _grid_ref)
+    ## dict (with no _grid_ref & no _grid_str)
     f_dict = f.to_dict()
     assert isinstance(f_dict, dict)
     assert f_dict.get("_grid_ref") is None
+    assert f_dict.get("_grid_str") is None
     fwr = FigureWidgetResampler(f_dict)
     assert fwr._grid_ref is f_dict.get("_grid_ref")  # both are None
+    assert fwr._grid_str is f_dict.get("_grid_str")  # both are None
 
-    ## dict (with _grid_ref)
+    ## dict (with _grid_ref & _grid_str)
     f_dict = f.to_dict()
     f_dict["_grid_ref"] = f._grid_ref
+    f_dict["_grid_str"] = f._grid_str
     assert isinstance(f_dict, dict)
     assert f_dict.get("_grid_ref") is not None
     fwr = FigureWidgetResampler(f_dict)
     assert fwr._grid_ref is not None
     assert fwr._grid_ref == f_dict.get("_grid_ref")
+    assert fwr._grid_str is not None
+    assert fwr._grid_str == f_dict.get("_grid_str")
