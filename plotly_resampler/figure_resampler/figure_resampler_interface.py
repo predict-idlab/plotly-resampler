@@ -50,7 +50,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
-        pr_props: dict | None = None,
     ):
         """Instantiate a resampling data mirror.
 

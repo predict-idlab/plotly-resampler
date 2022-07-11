@@ -43,8 +43,53 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         verbose: bool = False,
         show_dash_kwargs: dict | None = None,
     ):
+        """Initialize a dynamic aggregation data mirror using a dash web app.
+
+        Parameters
+        ----------
+        figure: BaseFigure
+            The figure that will be decorated. Can be either an empty figure
+            (e.g., ``go.Figure()``, ``make_subplots()``, ``go.FigureWidget``) or an
+            existing figure.
+        convert_existing_traces: bool
+            A bool indicating whether the high-frequency traces of the passed ``figure``
+            should be resampled, by default True. Hence, when set to False, the
+            high-frequency traces of the passed ``figure`` will not be resampled.
+        default_n_shown_samples: int, optional
+            The default number of samples that will be shown for each trace,
+            by default 1000.\n
+            .. note::
+                * This can be overridden within the :func:`add_trace` method.
+                * If a trace withholds fewer datapoints than this parameter,
+                  the data will *not* be aggregated.
+        default_downsampler: AbstractSeriesDownsampler
+            An instance which implements the AbstractSeriesDownsampler interface and
+            will be used as default downsampler, by default ``EfficientLTTB`` with
+            _interleave_gaps_ set to True. \n
+            .. note:: This can be overridden within the :func:`add_trace` method.
+        resampled_trace_prefix_suffix: str, optional
+            A tuple which contains the ``prefix`` and ``suffix``, respectively, which
+            will be added to the trace its legend-name when a resampled version of the
+            trace is shown. By default a bold, orange ``[R]`` is shown as prefix
+            (no suffix is shown).
+        show_mean_aggregation_size: bool, optional
+            Whether the mean aggregation bin size will be added as a suffix to the trace
+            its legend-name, by default True.
+        convert_traces_kwargs: dict, optional
+            A dict of kwargs that will be passed to the :func:`add_traces` method and
+            will be used to convert the existing traces. \n
+            .. note::
+                This argument is only used when the passed ``figure`` contains data and
+                ``convert_existing_traces`` is set to True.
+        verbose: bool, optional
+            Whether some verbose messages will be printed or not, by default False.
+        show_dash_kwargs: dict, optional
+            A dict that will be used as default kwargs for the :func:`show_dash` method. 
+            Note that the passed kwargs will be take precedence over these defaults.
+
+        """
         # Parse the figure input before calling `super`
-        if is_figure(figure) and not is_fr(figure):  
+        if is_figure(figure) and not is_fr(figure):
             # A go.Figure
             # => base case: the figure does not need to be adjusted
             f = figure
@@ -55,7 +100,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             f._data_validator.set_uid = False
 
             if isinstance(figure, BaseFigure):
-                # A base figure object, can be; 
+                # A base figure object, can be;
                 # - a go.FigureWidget
                 # - a plotly-resampler figure: subclass of AbstractFigureAggregator
                 # => we first copy the layout, grid_str and grid ref
@@ -75,7 +120,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 f._grid_ref = figure.get("_grid_ref")
                 f.add_traces(figure.get("data"))
                 # `pr_props` is not None when loading a pickled plotly-resampler figure
-                f._pr_props = figure.get("pr_props") 
+                f._pr_props = figure.get("pr_props")
                 # `f._pr_props`` is an attribute to store properties of a
                 # plotly-resampler figure. This attribute is only used to pass
                 # information to the super() constructor. Once the super constructor is
@@ -156,8 +201,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             ``config`` parameter for this property in this method.
             See more https://dash.plotly.com/dash-core-components/graph
         **kwargs: dict
-            Additional app.run_server() kwargs. e.g.: port
-            Note that these kwargs take precedence over the ones passed to the
+            Additional app.run_server() kwargs. e.g.: port, ...
+            Also note that these kwargs take precedence over the ones passed to the
             constructor via the ``show_dash_kwargs`` argument.
 
         """
@@ -183,7 +228,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             and "height" not in kwargs
         ):
             # If app height is not specified -> re-use figure height for inline dash app
-            #  Note: default layout height is 450 (whereas default app height is 650) 
+            #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height
             fig_height = self.layout.height if self.layout.height is not None else 450
             kwargs["height"] = fig_height + 18

@@ -56,8 +56,8 @@ class FigureWidgetResampler(
         f = self._get_figure_class(go.FigureWidget)()
         f._data_validator.set_uid = False
 
-        if isinstance(figure, BaseFigure):  
-            # A base figure object, can be; 
+        if isinstance(figure, BaseFigure):
+            # A base figure object, can be;
             # - a base plotly figure: go.Figure or go.FigureWidget
             # - a plotly-resampler figure: subclass of AbstractFigureAggregator
             # => we first copy the layout, grid_str and grid ref
@@ -76,7 +76,7 @@ class FigureWidgetResampler(
             f._grid_ref = figure.get("_grid_ref")
             f.add_traces(figure.get("data"))
             # `pr_props` is not None when loading a pickled plotly-resampler figure
-            f._pr_props = figure.get("pr_props") 
+            f._pr_props = figure.get("pr_props")
             # `f._pr_props`` is an attribute to store properties of a plotly-resampler
             # figure. This attribute is only used to pass information to the super()
             # constructor. Once the super constructor is called, the attribute is
