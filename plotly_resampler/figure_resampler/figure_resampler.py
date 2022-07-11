@@ -43,10 +43,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         verbose: bool = False,
         show_dash_kwargs: dict | None = None,
     ):
-        # `pr_props`` is a variable to store properties of a plotly-resampler figure
-        # This variable will only be set when loading a pickled plotly-resampler figure
-        pr_props = None
-
         # Parse the figure input before calling `super`
         if is_figure(figure) and not is_fr(figure):  
             # A go.Figure
@@ -78,8 +74,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 f._grid_str = figure.get("_grid_str")
                 f._grid_ref = figure.get("_grid_ref")
                 f.add_traces(figure.get("data"))
-                # `pr_props`will be not None when loading a pickled plotly-resampler figure
-                pr_props = figure.get("pr_props") 
+                # `pr_props` is not None when loading a pickled plotly-resampler figure
+                f._pr_props = figure.get("pr_props") 
+                # `f._pr_props`` is an attribute to store properties of a
+                # plotly-resampler figure. This attribute is only used to pass
+                # information to the super() constructor. Once the super constructor is
+                # called, the attribute is removed.
 
                 # f.add_frames(figure.get("frames")) TODO
             elif isinstance(figure, (dict, list)):
@@ -97,7 +97,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             show_mean_aggregation_size,
             convert_traces_kwargs,
             verbose,
-            pr_props=pr_props,
         )
 
         if isinstance(figure, AbstractFigureAggregator):
