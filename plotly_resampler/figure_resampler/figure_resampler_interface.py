@@ -92,13 +92,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 ``convert_existing_traces`` is set to True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
-        pr_props: dict, optional
-            A dict of properties that will be overwrite the above arguments.
-            This is useful when the figure is created from a pickled object, allowing
-            the PR figure to be created with the same properties as the pickled object.
-            .. note::
-                Users should not use this argument, as it is used internally by the
-                subclasses of this abstract class.
 
         """
         self._hf_data: Dict[str, dict] = {}
@@ -111,17 +104,21 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         self._global_downsampler = default_downsampler
 
-        # Overwrite the passed properties with the property dict values
-        # (this is the case when the PR figure is created from a pickled object)
-        if pr_props is not None:
-            for k, v in pr_props.items():
-                setattr(self, k, v)
-
         # Given figure should always be a BaseFigure that is not wrapped by
         # a plotly-resampler class
         assert isinstance(figure, BaseFigure)
         assert not issubclass(type(figure), AbstractFigureAggregator)
         self._figure_class = figure.__class__
+
+        # Overwrite the passed arguments with the property dict values
+        # (this is the case when the PR figure is created from a pickled object)
+        if hasattr(figure, "_pr_props"):
+            pr_props = figure._pr_props  # a dict of PR properties
+            if pr_props is not None:
+                # Overwrite the default arguments with the serialized properties
+                for k, v in pr_props.items():
+                    setattr(self, k, v)
+            delattr(figure, "_pr_props")  # should not be stored anymore
 
         if convert_existing_traces:
             # call __init__ with the correct layout and set the `_grid_ref` of the
