@@ -1273,6 +1273,25 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return sorted(matches)
 
     ## Magic methods (to use plotly.py words :grin:)
+
+    def _get_pr_props_keys(self) -> List[str]:
+        """Returns the keys (i.e., the names) of the plotly-resampler properties.
+
+        Note
+        ----
+        This method is used to serialize the object in the `__reduce__` method.
+
+        """
+        return [
+            "_hf_data",
+            "_global_n_shown_samples",
+            "_print_verbose",
+            "_show_mean_aggregation_size",
+            "_prefix",
+            "_suffix",
+            "_global_downsampler",
+        ]
+
     def __reduce__(self):
         """Overwrite the reduce method (which is used to support deep copying and
         pickling).
@@ -1288,15 +1307,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # Add the plotly-resampler properties
         props["pr_props"] = {}
-        pr_keys = [
-            "_hf_data",
-            "_global_n_shown_samples",
-            "_print_verbose",
-            "_show_mean_aggregation_size",
-            "_prefix",
-            "_suffix",
-            "_global_downsampler",
-        ]
-        for k in pr_keys:
+        for k in self._get_pr_props_keys():
             props["pr_props"][k] = getattr(self, k)
         return (self.__class__, (props,))  # (props,) to comply with plotly magic

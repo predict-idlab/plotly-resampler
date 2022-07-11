@@ -127,9 +127,12 @@ def test_registering_plotly_express_and_kwargs(registering_cleanup):
     assert len(fig.data) == 1
     assert len(fig.data[0].y) == 500
 
-    register_plotly_resampler(default_n_shown_samples=50)
+    register_plotly_resampler(
+        default_n_shown_samples=50, show_dash_kwargs=dict(mode="inline", port=8051)
+    )
     fig = px.scatter(y=np.arange(500))
     assert isinstance(fig, FigureResampler)
+    assert fig._show_dash_kwargs == dict(mode="inline", port=8051)
     assert len(fig.data) == 1
     assert len(fig.data[0].y) == 50
     assert len(fig.hf_data) == 1
@@ -138,6 +141,7 @@ def test_registering_plotly_express_and_kwargs(registering_cleanup):
     register_plotly_resampler()
     fig = px.scatter(y=np.arange(5000))
     assert isinstance(fig, FigureResampler)
+    assert fig._show_dash_kwargs == dict()
     assert len(fig.data) == 1
     assert len(fig.data[0].y) == 1000
     assert len(fig.hf_data) == 1
@@ -201,4 +205,3 @@ def test_compasibility_when_registered(registering_cleanup):
             assert len(f.data[0].y) == 1000
             assert len(f.hf_data) == 1
             assert len(f.hf_data[0]["y"]) == 1005
-    
