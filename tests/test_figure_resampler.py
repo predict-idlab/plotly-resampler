@@ -648,7 +648,7 @@ def test_fr_add_empty_trace():
     assert len(fig.hf_data[0]["y"]) == 0
 
 
-def test_fr_from_dict():
+def test_fr_from_trace_dict():
     y = np.array([1] * 10_000)
     base_fig = {
         "type": "scatter",
@@ -656,6 +656,24 @@ def test_fr_from_dict():
     }
 
     fr_fig = FigureResampler(base_fig, default_n_shown_samples=1000)
+    assert len(fr_fig.hf_data) == 1
+    assert (fr_fig.hf_data[0]["y"] == y).all()
+    assert len(fr_fig.data) == 1
+    assert len(fr_fig.data[0]["x"]) == 1_000
+    assert (fr_fig.data[0]["x"][0] >= 0) & (fr_fig.data[0]["x"][-1] < 10_000)
+    assert (fr_fig.data[0]["y"] == [1] * 1_000).all()
+
+    # assert that all the uuids of data and hf_data match
+    # this is a proxy for assuring that the dynamic aggregation should work
+    assert fr_fig.data[0].uid in fr_fig._hf_data
+
+
+def test_fr_from_figure_dict():
+    y = np.array([1] * 10_000)
+    base_fig = go.Figure()
+    base_fig.add_trace(go.Scatter(y=y))
+
+    fr_fig = FigureResampler(base_fig.to_dict(), default_n_shown_samples=1000)
     assert len(fr_fig.hf_data) == 1
     assert (fr_fig.hf_data[0]["y"] == y).all()
     assert len(fr_fig.data) == 1
@@ -907,14 +925,14 @@ def test_fr_object_bool_data(bool_series):
 
 
 def test_fr_object_binary_data():
-    binary_series = np.array([0, 1]*20)  # as this is << max_n_samples -> limit_to_view
+    binary_series = np.array([0, 1]*20, dtype="int32")  # as this is << max_n_samples -> limit_to_view
 
     # First try with the original non-object binary series
     fig = FigureResampler()
     fig.add_trace({"name": "s0"}, hf_y=binary_series, limit_to_view=True)
     assert len(fig.hf_data) == 1
-    assert fig.hf_data[0]["y"].dtype == "int64"
-    assert fig.data[0]["y"].dtype == "int64"
+    assert fig.hf_data[0]["y"].dtype == "int32"
+    assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
 
     # Now try with the object binary series
@@ -924,6 +942,80 @@ def test_fr_object_binary_data():
     fig.add_trace({"name": "s0"}, hf_y=binary_series_o, limit_to_view=True)
     assert binary_series_o.dtype == object
     assert len(fig.hf_data) == 1
-    assert fig.hf_data[0]["y"].dtype == "int64"
-    assert fig.data[0]["y"].dtype == "int64"
+    assert (fig.hf_data[0]["y"].dtype == "int32") or (fig.hf_data[0]["y"].dtype == "int64")
+    assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
+
+
+def test_fr_copy_grid():
+    # Checks whether _grid_ref and _grid_str are correctly maintained
+
+    f = make_subplots(rows=2, cols=1)
+    f.add_scatter(y=np.arange(2_000), row=1, col=1)
+    f.add_scatter(y=np.arange(2_000), row=2, col=1)
+
+    ## go.Figure
+    assert isinstance(f, go.Figure)
+    assert f._grid_ref is not None
+    assert f._grid_str is not None
+    fr = FigureResampler(f)
+    assert fr._grid_ref is not None
+    assert fr._grid_ref == f._grid_ref
+    assert fr._grid_str is not None
+    assert fr._grid_str == f._grid_str
+    
+    ## go.FigureWidget
+    fw = go.FigureWidget(f)
+    assert fw._grid_ref is not None
+    assert fw._grid_str is not None
+    assert isinstance(fw, go.FigureWidget)
+    fr = FigureResampler(fw)
+    assert fr._grid_ref is not None
+    assert fr._grid_ref == fw._grid_ref
+    assert fr._grid_str is not None
+    assert fr._grid_str == fw._grid_str
+
+    ## FigureResampler
+    fr_ = FigureResampler(f)
+    assert fr_._grid_ref is not None
+    assert fr_._grid_str is not None
+    assert isinstance(fr_, FigureResampler)
+    fr = FigureResampler(fr_)
+    assert fr._grid_ref is not None
+    assert fr._grid_ref == fr_._grid_ref
+    assert fr._grid_str is not None
+    assert fr._grid_str == fr_._grid_str
+
+    ## FigureWidgetResampler
+    from plotly_resampler import FigureWidgetResampler
+    fwr = FigureWidgetResampler(f)
+    assert fwr._grid_ref is not None
+    assert fwr._grid_str is not None
+    assert isinstance(fwr, FigureWidgetResampler)
+    fr = FigureResampler(fwr)
+    assert fr._grid_ref is not None
+    assert fr._grid_ref == fwr._grid_ref
+    assert fr._grid_str is not None
+    assert fr._grid_str == fwr._grid_str
+
+    ## dict (with no _grid_ref & no _grid_str)
+    f_dict = f.to_dict()
+    assert isinstance(f_dict, dict)
+    assert f_dict.get("_grid_ref") is None
+    assert f_dict.get("_grid_str") is None
+    fr = FigureResampler(f_dict)
+    assert fr._grid_ref is f_dict.get("_grid_ref")  # both are None
+    assert fr._grid_str is f_dict.get("_grid_str")  # both are None
+
+    ## dict (with _grid_ref & _grid_str)
+    f_dict = f.to_dict()
+    f_dict["_grid_ref"] = f._grid_ref
+    f_dict["_grid_str"] = f._grid_str
+    assert isinstance(f_dict, dict)
+    assert f_dict.get("_grid_ref") is not None
+    assert f_dict.get("_grid_str") is not None
+    fr = FigureResampler(f_dict)
+    assert fr._grid_ref is not None
+    assert fr._grid_ref == f_dict.get("_grid_ref")
+    assert fr._grid_str is not None
+    assert fr._grid_str == f_dict.get("_grid_str")

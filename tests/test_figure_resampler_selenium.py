@@ -19,6 +19,8 @@ def test_multiple_tz(driver, multiple_tz_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # First, apply some box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
@@ -89,6 +91,8 @@ def test_basic_example_gui(driver, example_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # First, apply some box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
@@ -196,6 +200,8 @@ def test_basic_example_gui_existing(driver, example_figure_fig):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # First, apply some box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
@@ -294,6 +300,8 @@ def test_gsr_gui(driver, gsr_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # box based zooms
         fr.drag_and_zoom("xy", x0=0.25, x1=0.5, y0=0.25, y1=0.5)
@@ -394,6 +402,8 @@ def test_cat_gui(driver, cat_series_box_hist_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # First, apply some horizontal based zooms
         fr.drag_and_zoom("xy", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
@@ -466,6 +476,8 @@ def test_shared_hover_gui(driver, shared_hover_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # First, apply some horizontal based zooms
         fr.drag_and_zoom("x3y", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
@@ -539,6 +551,8 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
     try:
         time.sleep(1)
         fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
 
         # First, apply some horizontal based zooms
         fr.drag_and_zoom("xy", x0=0.1, x1=0.5, y0=0.5, y1=0.5)

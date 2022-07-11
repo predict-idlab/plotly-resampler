@@ -3,13 +3,14 @@
 
 from typing import Union
 
+import os
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, register_plotly_resampler, unregister_plotly_resampler
+from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, unregister_plotly_resampler
 
 # hyperparameters
 _nb_samples = 10_000
@@ -26,12 +27,27 @@ def registering_cleanup():
     unregister_plotly_resampler()
 
 
+def _remove_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+@pytest.fixture
+def pickle_figure():
+    FIG_PATH = "fig.pkl"
+    _remove_file(FIG_PATH)
+    yield FIG_PATH
+    _remove_file(FIG_PATH)
+
+
 @pytest.fixture
 def driver():
     from seleniumwire import webdriver
     from webdriver_manager.chrome import ChromeDriverManager, ChromeType
     from selenium.webdriver.chrome.options import Options
 
+    import time
+    time.sleep(1)
+    
     options = Options()
     if not TESTING_LOCAL:
         if headless:
@@ -144,7 +160,7 @@ def example_figure() -> FigureResampler:
                 name=f"room {i+1}",
             ),
             hf_x=df_data_pc.index,
-            hf_y=df_data_pc[c],
+            hf_y=df_data_pc[c].astype(np.float32),
             row=2,
             col=1,
             downsampler=LTTB(interleave_gaps=True),
@@ -216,7 +232,7 @@ def example_figure_fig() -> go.Figure:
             go.Scattergl(
                 name=f"room {i+1}",
                 x=df_data_pc.index,
-                y=df_data_pc[c],
+                y=df_data_pc[c].astype(np.float32),
             ),
             row=2,
             col=1,

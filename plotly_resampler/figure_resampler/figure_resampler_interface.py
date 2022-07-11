@@ -109,10 +109,21 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         assert not issubclass(type(figure), AbstractFigureAggregator)
         self._figure_class = figure.__class__
 
+        # Overwrite the passed arguments with the property dict values
+        # (this is the case when the PR figure is created from a pickled object)
+        if hasattr(figure, "_pr_props"):
+            pr_props = figure._pr_props  # a dict of PR properties
+            if pr_props is not None:
+                # Overwrite the default arguments with the serialized properties
+                for k, v in pr_props.items():
+                    setattr(self, k, v)
+            delattr(figure, "_pr_props")  # should not be stored anymore
+
         if convert_existing_traces:
             # call __init__ with the correct layout and set the `_grid_ref` of the
             # to-be-converted figure
             f_ = self._figure_class(layout=figure.layout)
+            f_._grid_str = figure._grid_str
             f_._grid_ref = figure._grid_ref
             super().__init__(f_)
 
@@ -682,7 +693,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hf_y.dtype == "object":
                 # But first, we try to parse to a numeric dtype (as this is the
                 # behavior that plotly supports)
-                # Note that a bool array of type object will remain a bool array (and 
+                # Note that a bool array of type object will remain a bool array (and
                 # not will be transformed to an array of ints (0, 1))
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
@@ -1256,3 +1267,42 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if m is not None:
                 matches.append(m.string)
         return sorted(matches)
+
+    ## Magic methods (to use plotly.py words :grin:)
+
+    def _get_pr_props_keys(self) -> List[str]:
+        """Returns the keys (i.e., the names) of the plotly-resampler properties.
+
+        Note
+        ----
+        This method is used to serialize the object in the `__reduce__` method.
+
+        """
+        return [
+            "_hf_data",
+            "_global_n_shown_samples",
+            "_print_verbose",
+            "_show_mean_aggregation_size",
+            "_prefix",
+            "_suffix",
+            "_global_downsampler",
+        ]
+
+    def __reduce__(self):
+        """Overwrite the reduce method (which is used to support deep copying and
+        pickling).
+
+        Note
+        ----
+        We do not overwrite the `to_dict` method, as this is used to send the figure
+        to the frontend (and thus should not capture the plotly-resampler properties).
+        """
+        _, props = super().__reduce__()
+        assert len(props) == 1  # I don't know why this would be > 1
+        props = props[0]
+
+        # Add the plotly-resampler properties
+        props["pr_props"] = {}
+        for k in self._get_pr_props_keys():
+            props["pr_props"][k] = getattr(self, k)
+        return (self.__class__, (props,))  # (props,) to comply with plotly magic

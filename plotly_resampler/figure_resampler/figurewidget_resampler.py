@@ -56,11 +56,33 @@ class FigureWidgetResampler(
         f = self._get_figure_class(go.FigureWidget)()
         f._data_validator.set_uid = False
 
-        if isinstance(figure, BaseFigure):  # go.Figure or go.FigureWidget or AbstractFigureAggregator
-            # A base figure object, we first copy the layout and grid ref
+        if isinstance(figure, BaseFigure):
+            # A base figure object, can be;
+            # - a base plotly figure: go.Figure or go.FigureWidget
+            # - a plotly-resampler figure: subclass of AbstractFigureAggregator
+            # => we first copy the layout, grid_str and grid ref
             f.layout = figure.layout
+            f._grid_str = figure._grid_str
             f._grid_ref = figure._grid_ref
             f.add_traces(figure.data)
+        elif isinstance(figure, dict) and (
+            "data" in figure or "layout" in figure # or "frames" in figure  # TODO
+        ):
+            # A figure as a dict, can be;
+            # - a plotly figure as a dict (after calling `fig.to_dict()`)
+            # - a pickled (plotly-resampler) figure (after loading a pickled figure)
+            f.layout = figure.get("layout")
+            f._grid_str = figure.get("_grid_str")
+            f._grid_ref = figure.get("_grid_ref")
+            f.add_traces(figure.get("data"))
+            # `pr_props` is not None when loading a pickled plotly-resampler figure
+            f._pr_props = figure.get("pr_props")
+            # `f._pr_props`` is an attribute to store properties of a plotly-resampler
+            # figure. This attribute is only used to pass information to the super()
+            # constructor. Once the super constructor is called, the attribute is
+            # removed.
+
+            # f.add_frames(figure.get("frames")) TODO
         elif isinstance(figure, (dict, list)):
             # A single trace dict or a list of traces
             f.add_traces(figure)
