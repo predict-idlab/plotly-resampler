@@ -227,11 +227,33 @@
         <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_figure_class</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">FigureWidget</span><span class="p">)()</span>
         <span class="n">f</span><span class="o">.</span><span class="n">_data_validator</span><span class="o">.</span><span class="n">set_uid</span> <span class="o">=</span> <span class="kc">False</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="n">BaseFigure</span><span class="p">):</span>  <span class="c1"># go.Figure or go.FigureWidget or AbstractFigureAggregator</span>
-            <span class="c1"># A base figure object, we first copy the layout and grid ref</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="n">BaseFigure</span><span class="p">):</span>
+            <span class="c1"># A base figure object, can be;</span>
+            <span class="c1"># - a base plotly figure: go.Figure or go.FigureWidget</span>
+            <span class="c1"># - a plotly-resampler figure: subclass of AbstractFigureAggregator</span>
+            <span class="c1"># =&gt; we first copy the layout, grid_str and grid ref</span>
             <span class="n">f</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">layout</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">_grid_str</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_str</span>
             <span class="n">f</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_ref</span>
             <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="s2">&quot;data&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="ow">or</span> <span class="s2">&quot;layout&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="c1"># or &quot;frames&quot; in figure  # TODO</span>
+        <span class="p">):</span>
+            <span class="c1"># A figure as a dict, can be;</span>
+            <span class="c1"># - a plotly figure as a dict (after calling `fig.to_dict()`)</span>
+            <span class="c1"># - a pickled (plotly-resampler) figure (after loading a pickled figure)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;layout&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">_grid_str</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_grid_str&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_grid_ref&quot;</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">))</span>
+            <span class="c1"># `pr_props` is not None when loading a pickled plotly-resampler figure</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">_pr_props</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pr_props&quot;</span><span class="p">)</span>
+            <span class="c1"># `f._pr_props`` is an attribute to store properties of a plotly-resampler</span>
+            <span class="c1"># figure. This attribute is only used to pass information to the super()</span>
+            <span class="c1"># constructor. Once the super constructor is called, the attribute is</span>
+            <span class="c1"># removed.</span>
+
+            <span class="c1"># f.add_frames(figure.get(&quot;frames&quot;)) TODO</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
             <span class="c1"># A single trace dict or a list of traces</span>
             <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span>

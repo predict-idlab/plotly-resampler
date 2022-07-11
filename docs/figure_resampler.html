@@ -510,10 +510,10 @@ in each dict.</p>
 <h1>FigureResampler<a class="headerlink" href="#figureresampler" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_dash_kwargs=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figure.Figure</span></code></p>
 <p>Data aggregation functionality for <code class="docutils literal notranslate"><span class="pre">go.Figures</span></code>.</p>
-<p>Instantiate a resampling data mirror.</p>
+<p>Initialize a dynamic aggregation data mirror using a dash web app.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -557,6 +557,8 @@ will be used to convert the existing traces.</p>
 </div>
 </p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether some verbose messages will be printed or not, by default False.</p></li>
+<li><p><strong>show_dash_kwargs</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dict that will be used as default kwargs for the <a class="reference internal" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="plotly_resampler.figure_resampler.FigureResampler.show_dash"><code class="xref py py-func docutils literal notranslate"><span class="pre">show_dash()</span></code></a> method.
+Note that the passed kwargs will be take precedence over these defaults.</p></li>
 </ul>
 </dd>
 </dl>
@@ -592,7 +594,9 @@ e.g.: {“style”: {“width”: “50%”}}
 Note: “config” is not allowed as key in this dict, as there is a distinct
 <code class="docutils literal notranslate"><span class="pre">config</span></code> parameter for this property in this method.
 See more <a class="reference external" href="https://dash.plotly.com/dash-core-components/graph">https://dash.plotly.com/dash-core-components/graph</a></p></li>
-<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional app.run_server() kwargs. e.g.: port</p></li>
+<li><p><strong>**kwargs</strong> (<em>dict</em>) – Additional app.run_server() kwargs. e.g.: port, …
+Also note that these kwargs take precedence over the ones passed to the
+constructor via the <code class="docutils literal notranslate"><span class="pre">show_dash_kwargs</span></code> argument.</p></li>
 </ul>
 </dd>
 </dl>

@@ -182,7 +182,7 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost&quot;</span>
 
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
 
 <span class="kn">import</span> <span class="nn">dash</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
@@ -212,10 +212,57 @@
         <span class="n">show_mean_aggregation_size</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">convert_traces_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">show_dash_kwargs</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize a dynamic aggregation data mirror using a dash web app.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        figure: BaseFigure</span>
+<span class="sd">            The figure that will be decorated. Can be either an empty figure</span>
+<span class="sd">            (e.g., ``go.Figure()``, ``make_subplots()``, ``go.FigureWidget``) or an</span>
+<span class="sd">            existing figure.</span>
+<span class="sd">        convert_existing_traces: bool</span>
+<span class="sd">            A bool indicating whether the high-frequency traces of the passed ``figure``</span>
+<span class="sd">            should be resampled, by default True. Hence, when set to False, the</span>
+<span class="sd">            high-frequency traces of the passed ``figure`` will not be resampled.</span>
+<span class="sd">        default_n_shown_samples: int, optional</span>
+<span class="sd">            The default number of samples that will be shown for each trace,</span>
+<span class="sd">            by default 1000.\n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                * This can be overridden within the :func:`add_trace` method.</span>
+<span class="sd">                * If a trace withholds fewer datapoints than this parameter,</span>
+<span class="sd">                  the data will *not* be aggregated.</span>
+<span class="sd">        default_downsampler: AbstractSeriesDownsampler</span>
+<span class="sd">            An instance which implements the AbstractSeriesDownsampler interface and</span>
+<span class="sd">            will be used as default downsampler, by default ``EfficientLTTB`` with</span>
+<span class="sd">            _interleave_gaps_ set to True. \n</span>
+<span class="sd">            .. note:: This can be overridden within the :func:`add_trace` method.</span>
+<span class="sd">        resampled_trace_prefix_suffix: str, optional</span>
+<span class="sd">            A tuple which contains the ``prefix`` and ``suffix``, respectively, which</span>
+<span class="sd">            will be added to the trace its legend-name when a resampled version of the</span>
+<span class="sd">            trace is shown. By default a bold, orange ``[R]`` is shown as prefix</span>
+<span class="sd">            (no suffix is shown).</span>
+<span class="sd">        show_mean_aggregation_size: bool, optional</span>
+<span class="sd">            Whether the mean aggregation bin size will be added as a suffix to the trace</span>
+<span class="sd">            its legend-name, by default True.</span>
+<span class="sd">        convert_traces_kwargs: dict, optional</span>
+<span class="sd">            A dict of kwargs that will be passed to the :func:`add_traces` method and</span>
+<span class="sd">            will be used to convert the existing traces. \n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                This argument is only used when the passed ``figure`` contains data and</span>
+<span class="sd">                ``convert_existing_traces`` is set to True.</span>
+<span class="sd">        verbose: bool, optional</span>
+<span class="sd">            Whether some verbose messages will be printed or not, by default False.</span>
+<span class="sd">        show_dash_kwargs: dict, optional</span>
+<span class="sd">            A dict that will be used as default kwargs for the :func:`show_dash` method. </span>
+<span class="sd">            Note that the passed kwargs will be take precedence over these defaults.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Parse the figure input before calling `super`</span>
-        <span class="k">if</span> <span class="n">is_figure</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_fr</span><span class="p">(</span><span class="n">figure</span><span class="p">):</span>  <span class="c1"># go.Figure</span>
-            <span class="c1"># Base case, the figure does not need to be adjusted</span>
+        <span class="k">if</span> <span class="n">is_figure</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">is_fr</span><span class="p">(</span><span class="n">figure</span><span class="p">):</span>
+            <span class="c1"># A go.Figure</span>
+            <span class="c1"># =&gt; base case: the figure does not need to be adjusted</span>
             <span class="n">f</span> <span class="o">=</span> <span class="n">figure</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Create a new figure object and make sure that the trace uid will not get</span>
@@ -223,14 +270,39 @@
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_figure_class</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">)()</span>
             <span class="n">f</span><span class="o">.</span><span class="n">_data_validator</span><span class="o">.</span><span class="n">set_uid</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="n">BaseFigure</span><span class="p">):</span>  <span class="c1"># go.FigureWidget or AbstractFigureAggregator</span>
-                <span class="c1"># A base figure object, we first copy the layout and grid ref</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="n">BaseFigure</span><span class="p">):</span>
+                <span class="c1"># A base figure object, can be;</span>
+                <span class="c1"># - a go.FigureWidget</span>
+                <span class="c1"># - a plotly-resampler figure: subclass of AbstractFigureAggregator</span>
+                <span class="c1"># =&gt; we first copy the layout, grid_str and grid ref</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">layout</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">_grid_str</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_str</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_ref</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="s2">&quot;data&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="ow">or</span> <span class="s2">&quot;layout&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="c1"># or &quot;frames&quot; in figure  # TODO</span>
+            <span class="p">):</span>
+                <span class="c1"># A figure as a dict, can be;</span>
+                <span class="c1"># - a plotly figure as a dict (after calling `fig.to_dict()`)</span>
+                <span class="c1"># - a pickled (plotly-resampler) figure (after loading a pickled figure)</span>
+                <span class="c1"># =&gt; we first copy the layout, grid_str and grid ref</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;layout&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">_grid_str</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_grid_str&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;_grid_ref&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data&quot;</span><span class="p">))</span>
+                <span class="c1"># `pr_props` is not None when loading a pickled plotly-resampler figure</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">_pr_props</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pr_props&quot;</span><span class="p">)</span>
+                <span class="c1"># `f._pr_props`` is an attribute to store properties of a</span>
+                <span class="c1"># plotly-resampler figure. This attribute is only used to pass</span>
+                <span class="c1"># information to the super() constructor. Once the super constructor is</span>
+                <span class="c1"># called, the attribute is removed.</span>
+
+                <span class="c1"># f.add_frames(figure.get(&quot;frames&quot;)) TODO</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">list</span><span class="p">)):</span>
                 <span class="c1"># A single trace dict or a list of traces</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_dash_kwargs</span> <span class="o">=</span> <span class="n">show_dash_kwargs</span> <span class="k">if</span> <span class="n">show_dash_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">f</span><span class="p">,</span>
@@ -300,7 +372,9 @@
 <span class="sd">            ``config`` parameter for this property in this method.</span>
 <span class="sd">            See more https://dash.plotly.com/dash-core-components/graph</span>
 <span class="sd">        **kwargs: dict</span>
-<span class="sd">            Additional app.run_server() kwargs. e.g.: port</span>
+<span class="sd">            Additional app.run_server() kwargs. e.g.: port, ...</span>
+<span class="sd">            Also note that these kwargs take precedence over the ones passed to the</span>
+<span class="sd">            constructor via the ``show_dash_kwargs`` argument.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">graph_properties</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">graph_properties</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">graph_properties</span>
@@ -321,14 +395,19 @@
 
         <span class="c1"># 2. Run the app</span>
         <span class="k">if</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="ow">and</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline&quot;</span>
+            <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline&quot;</span>
             <span class="ow">and</span> <span class="s2">&quot;height&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span>
         <span class="p">):</span>
-            <span class="c1"># If figure height is specified -&gt; re-use is for inline dash app height</span>
-            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span> <span class="o">+</span> <span class="mi">18</span>
+            <span class="c1"># If app height is not specified -&gt; re-use figure height for inline dash app</span>
+            <span class="c1">#  Note: default layout height is 450 (whereas default app height is 650)</span>
+            <span class="c1">#  See: https://plotly.com/python/reference/layout/#layout-height</span>
+            <span class="n">fig_height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">450</span>
+            <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;height&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fig_height</span> <span class="o">+</span> <span class="mi">18</span>
 
-        <span class="c1"># store the app information, so it can be killed</span>
+        <span class="c1"># kwargs take precedence over the show_dash_kwargs</span>
+        <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_show_dash_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">}</span>
+
+        <span class="c1"># Store the app information, so it can be killed</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_app</span> <span class="o">=</span> <span class="n">app</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_host</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;host&quot;</span><span class="p">,</span> <span class="s2">&quot;127.0.0.1&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_port</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;port&quot;</span><span class="p">,</span> <span class="s2">&quot;8050&quot;</span><span class="p">)</span>
@@ -383,7 +462,15 @@
             <span class="n">dash</span><span class="o">.</span><span class="n">dependencies</span><span class="o">.</span><span class="n">Output</span><span class="p">(</span><span class="n">trace_updater_id</span><span class="p">,</span> <span class="s2">&quot;updateData&quot;</span><span class="p">),</span>
             <span class="n">dash</span><span class="o">.</span><span class="n">dependencies</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">graph_id</span><span class="p">,</span> <span class="s2">&quot;relayoutData&quot;</span><span class="p">),</span>
             <span class="n">prevent_initial_call</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">construct_update_data</span><span class="p">)</span></div></div>
+        <span class="p">)(</span><span class="bp">self</span><span class="o">.</span><span class="n">construct_update_data</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_pr_props_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="c1"># Add the additional plotly-resampler properties of this class</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_get_pr_props_keys</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;_show_dash_kwargs&quot;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_ipython_display_</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># To display the figure inline as a dash app</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_dash</span><span class="p">(</span><span class="n">mode</span><span class="o">=</span><span class="s2">&quot;inline&quot;</span><span class="p">)</span></div>
 </pre></div>
 
               </article>

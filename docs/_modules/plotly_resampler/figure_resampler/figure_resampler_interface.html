@@ -280,10 +280,21 @@
         <span class="k">assert</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">figure</span><span class="p">),</span> <span class="n">AbstractFigureAggregator</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="vm">__class__</span>
 
+        <span class="c1"># Overwrite the passed arguments with the property dict values</span>
+        <span class="c1"># (this is the case when the PR figure is created from a pickled object)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="s2">&quot;_pr_props&quot;</span><span class="p">):</span>
+            <span class="n">pr_props</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_pr_props</span>  <span class="c1"># a dict of PR properties</span>
+            <span class="k">if</span> <span class="n">pr_props</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># Overwrite the default arguments with the serialized properties</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">pr_props</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+            <span class="nb">delattr</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="s2">&quot;_pr_props&quot;</span><span class="p">)</span>  <span class="c1"># should not be stored anymore</span>
+
         <span class="k">if</span> <span class="n">convert_existing_traces</span><span class="p">:</span>
             <span class="c1"># call __init__ with the correct layout and set the `_grid_ref` of the</span>
             <span class="c1"># to-be-converted figure</span>
             <span class="n">f_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">figure</span><span class="o">.</span><span class="n">layout</span><span class="p">)</span>
+            <span class="n">f_</span><span class="o">.</span><span class="n">_grid_str</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_str</span>
             <span class="n">f_</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_ref</span>
             <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">f_</span><span class="p">)</span>
 
@@ -853,7 +864,7 @@
             <span class="k">if</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">:</span>
                 <span class="c1"># But first, we try to parse to a numeric dtype (as this is the</span>
                 <span class="c1"># behavior that plotly supports)</span>
-                <span class="c1"># Note that a bool array of type object will remain a bool array (and </span>
+                <span class="c1"># Note that a bool array of type object will remain a bool array (and</span>
                 <span class="c1"># not will be transformed to an array of ints (0, 1))</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">hf_y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
@@ -1426,7 +1437,46 @@
             <span class="n">m</span> <span class="o">=</span> <span class="n">regex</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">m</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">matches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
+
+    <span class="c1">## Magic methods (to use plotly.py words :grin:)</span>
+
+    <span class="k">def</span> <span class="nf">_get_pr_props_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;Returns the keys (i.e., the names) of the plotly-resampler properties.</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        This method is used to serialize the object in the `__reduce__` method.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s2">&quot;_hf_data&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_global_n_shown_samples&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_print_verbose&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_show_mean_aggregation_size&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_prefix&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_suffix&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_global_downsampler&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Overwrite the reduce method (which is used to support deep copying and</span>
+<span class="sd">        pickling).</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        We do not overwrite the `to_dict` method, as this is used to send the figure</span>
+<span class="sd">        to the frontend (and thus should not capture the plotly-resampler properties).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">props</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__reduce__</span><span class="p">()</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">props</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>  <span class="c1"># I don&#39;t know why this would be &gt; 1</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="n">props</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Add the plotly-resampler properties</span>
+        <span class="n">props</span><span class="p">[</span><span class="s2">&quot;pr_props&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pr_props_keys</span><span class="p">():</span>
+            <span class="n">props</span><span class="p">[</span><span class="s2">&quot;pr_props&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="p">(</span><span class="n">props</span><span class="p">,))</span>  <span class="c1"># (props,) to comply with plotly magic</span></div>
 </pre></div>
 
               </article>
