@@ -95,7 +95,7 @@ class AbstractSeriesAggregator(ABC):
             df_gap_idx = s.index.values[s_idx_diff > 3 * med_diff]
             if len(df_gap_idx):
                 df_res_gap = pd.Series(
-                    index=df_gap_idx, data=None, name=s.name, copy=False
+                    index=df_gap_idx, data=None, name=s.name, copy=False, dtype=s.dtype
                 )
 
                 if isinstance(df_res_gap.index, pd.DatetimeIndex):
