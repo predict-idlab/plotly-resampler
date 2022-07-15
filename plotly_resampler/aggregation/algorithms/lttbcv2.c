@@ -5,6 +5,8 @@
 #include <numpy/npy_math.h>
 #include <math.h>
 
+// This code is adapted from https://github.com/dgoeries/lttbc
+// Most credits are due to https://github.com/dgoeries
 
 // method below assumes the x-delta's are equidistant
 static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
@@ -15,7 +17,7 @@ static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
     if (!PyArg_ParseTuple(args, "OOi", &x_obj, &y_obj, &threshold))
         return NULL;
 
-    if ((!PyArray_Check(x_obj) && !PyList_Check(y_obj))) {
+    if ((!PyArray_Check(x_obj) && !PyList_Check(x_obj)) || (!PyArray_Check(y_obj) && !PyList_Check(y_obj))) {
         PyErr_SetString(PyExc_TypeError, "Function requires x and y input to be of type list or ndarray ...");
         goto fail;
     }
@@ -29,7 +31,7 @@ static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
     }
 
     if (PyArray_NDIM(x_array) != 1 || PyArray_NDIM(y_array) != 1) {;
-        PyErr_SetString(PyExc_ValueError, "Y must have a single dimension ...");
+        PyErr_SetString(PyExc_ValueError, "Both x and y must have a single dimension ...");
         goto fail;
     }
 
