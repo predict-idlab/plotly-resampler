@@ -1855,7 +1855,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1,<3.11"
-content-hash = "7afd3983a097476349d6aabfaec3cf00d1608b62ba68a46bac2b3802bf3af636"
+content-hash = "ba58b87cd6434d5973701a3dc0886e2d1400a9c2fce92a3c48e87915480ad14d"
 
 [metadata.files]
 alabaster = [
@@ -2157,10 +2157,6 @@ cryptography = [
 dash = [
     {file = "dash-2.5.1-py3-none-any.whl", hash = "sha256:1b9110bcde7559a8405095901d4f7cfcfd18054b0c9758ec8562b3977824fbfe"},
     {file = "dash-2.5.1.tar.gz", hash = "sha256:343c802006abcaf71aadd8c3f55737ea7c72116e62fff465e980f9f1f304f1ee"},
-]
-dash-bootstrap-components = [
-    {file = "dash-bootstrap-components-1.2.0.tar.gz", hash = "sha256:4f95470952ecb9a0f2dbef34be2969353c5c16925817d48da50db51ade80f50f"},
-    {file = "dash_bootstrap_components-1.2.0-py3-none-any.whl", hash = "sha256:d7fd69cb2b1e86f9cc4bcee4036302e5d534d0bf102d331b29392a3c355d776a"},
 ]
 dash-core-components = [
     {file = "dash_core_components-2.0.0.tar.gz", hash = "sha256:c6733874af975e552f95a1398a16c2ee7df14ce43fa60bb3718a3c6e0b63ffee"},

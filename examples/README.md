@@ -1,7 +1,12 @@
 # plotly-resampler examples
 
-This directory withholds several examples, highlighting the applicability of
+This directory withholds several examples, highlighting the applicability of 
 plotly-resampler for various use cases.
+
+To succesfully run these examples, make sure that you've installed all the requirements by running:
+```bash
+pip install -r requirements.txt
+```
 
 
 ## Prerequisites
