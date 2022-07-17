@@ -1,7 +1,12 @@
 # plotly-resampler examples
 
-This directory withholds several examples, indicating the applicability of
-plotly-resampler in various use cases.
+This directory withholds several examples, highlighting the applicability of 
+plotly-resampler for various use cases.
+
+To succesfully run these examples, make sure that you've installed all the requirements by running:
+```bash
+pip install -r requirements.txt
+```
 
 ## 0. basic example
 
@@ -24,7 +29,7 @@ which `plotly-resampler` is integrated
 |------------------------------------------------------------------| --- |
 | [minimal example (*global variable*)](dash_apps/dash_app_minimal_global.py) | *bad practice*: minimal example in which a global `FigureResampler` variable is used |
 | [minimal example (*server side caching*)](dash_apps/dash_app_minimal_cache.py) | *good practice*: minimal example in which we perform server side caching of the `FigureResampler` variable |
-| [file visualization](dash_apps/dash_app.py)                      | load and visualize multiple `.parquet` files with plotly-resampler |
+| [file visualization](dash_apps/dash_app_folder.py)                      | load and visualize multiple `.parquet` files with plotly-resampler |
 | [dynamic sine generator](dash_apps/construct_dynamic_figures.py) | expeonential sine generator which uses [pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) to remove and construct plotly-resampler graphs dynamically |
 | [dynamic static graph](dash_apps/dash_app_coarse_fine.py)        | Visualization dashboard in which a dynamic (i.e., plotly-resampler graph) and static graph (i.e., go.Figure) are shown (made for [this issue](https://github.com/predict-idlab/plotly-resampler/issues/56)). Relayout events on the coarse graph update the dynamic graph.
 

@@ -8,11 +8,10 @@ parquet files, which are visualized using FigureResampler after clicking on a bu
 __author__ = "Jonas Van Der Donckt"
 
 from pathlib import Path
-from typing import List, Union
+from typing import List
 
 import dash
 import dash_bootstrap_components as dbc
-import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, State, dcc, html
 
@@ -21,11 +20,11 @@ from dash_extensions.enrich import (
     ServersideOutput,
     ServersideOutputTransform,
 )
-from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
 
-from callback_helpers import multiple_folder_file_selector
+from utils.callback_helpers import multiple_folder_file_selector, get_selector_states
+from utils.graph_construction import visualize_multiple_files
 
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(
@@ -39,9 +38,7 @@ name_folder_list = [
     {
         # the key-string below is the title which will be shown in the dash app
         "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
-        "other folder": {
-            "folder": Path(__file__).parent.parent.joinpath("data")
-        },
+        "other folder": {"folder": Path(__file__).parent.parent.joinpath("data")},
     },
     # NOTE: A new item om this level creates a new file-selector card.
     # { "PC data": { "folder": Path("/home/jonas/data/wesad/empatica/") } }
@@ -93,52 +90,9 @@ app.layout = serve_layout()
 
 
 # ------------------------------------ DASH logic -------------------------------------
-# --------- graph construction logic + callback ---------
-def plot_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampler:
-    """Code to create the visualizations.
-
-    Parameters
-    ----------
-    file_list: List[Union[str, Path]]
-
-    Returns
-    -------
-    FigureResampler
-        Returns a view of the existing, global FigureResampler object.
-
-    """
-    fig = FigureResampler(make_subplots(rows=len(file_list), shared_xaxes=False))
-    fig.update_layout(height=min(900, 350 * len(file_list)))
-
-    for i, f in enumerate(file_list, 1):
-        df = pd.read_parquet(f)  # should be replaced by more generic data loading code
-        if "timestamp" in df.columns:
-            df = df.set_index("timestamp")
-
-        for c in df.columns[::-1]:
-            print(df[c].dtype)
-            fig.add_trace(go.Scattergl(name=c), hf_x=df.index, hf_y=df[c], row=i, col=1)
-    return fig
-
-
-# Note: the list sum-operations flattens the list
-selector_states = list(
-    sum(
-        [
-            (
-                State(f"folder-selector{i}", "value"),
-                State(f"file-selector{i}", "value"),
-            )
-            for i in range(1, len(name_folder_list) + 1)
-        ],
-        (),
-    )
-)
-
-
 @app.callback(
     [Output("graph-id", "figure"), ServersideOutput("store", "data")],
-    [Input("plot-button", "n_clicks"), *selector_states],
+    [Input("plot-button", "n_clicks"), *get_selector_states(len(name_folder_list))],
     prevent_initial_call=True,
 )
 def plot_graph(n_clicks, *folder_list):
@@ -154,7 +108,7 @@ def plot_graph(n_clicks, *folder_list):
     ctx = dash.callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         if len(file_list):
-            fig: FigureResampler = plot_multiple_files(file_list)
+            fig: FigureResampler = visualize_multiple_files(file_list)
             return fig, fig
     else:
         raise dash.exceptions.PreventUpdate()

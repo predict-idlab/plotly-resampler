@@ -1,20 +1,32 @@
 [tool.poetry]
 name = "plotly-resampler"  # Do not forget to update the __init__.py __version__ variable
-version = "0.7.2.2"
+version = "0.8.0rc1"
 description = "Visualizing large time series with plotly"
 authors = ["Jonas Van Der Donckt", "Jeroen Van Der Donckt", "Emiel Deprost"]
 readme = "README.md"
 repository = "https://github.com/predict-idlab/plotly-resampler"
 documentation = "https://predict-idlab.github.io/plotly-resampler"
 keywords = ["time-series", "visualization", "resampling", "plotly", "plotly-dash"]
-build = "build.py"
+packages = [
+    { include = "plotly_resampler" }
+]
+include = [
+    # C extensions must be included in the wheel distributions
+    {path = "plotly_resampler/aggregation/algorithms/*.so", format = "wheel"},
+    {path = "plotly_resampler/aggregation/algorithms/*.pyd", format = "wheel"}
+]
+
+[tool.poetry.build]
+generate-setup-file = false
+script = "build.py"
+
 
 [tool.poetry.dependencies]
 python = "^3.7.1,<3.11"
 jupyter-dash = ">=0.4.2"
 plotly = "^5.6.0"
 dash = "^2.2.0"
-orjson = "^3.6.8"  # faster json serialization
+orjson = {version = "^3.7.7", optional = true}
 pandas = "^1.3.5"
 trace-updater = ">=0.0.8"
 numpy = ">=1.21.0"
@@ -23,14 +35,12 @@ numpy = ">=1.21.0"
 jupyterlab = "^3.3.0"
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
-black = "^22.3.0"
+black = "^22.6.0"
 selenium = "4.2.0"
 pytest-selenium = "^2.0.1"
 webdriver-manager = "^3.5.2"
-pyarrow = "^6.0.1"
 selenium-wire = "^4.5.6"
-pyfunctional = "^1.4.3"
-dash-bootstrap-components = "^1.0.3"
+pyarrow = "^8.0.0"
 Sphinx = "^4.4.0"
 pydata-sphinx-theme = "^0.9.0"
 sphinx-autodoc-typehints = "^1.17.0"
@@ -39,5 +49,5 @@ memory-profiler = "^0.60.0"
 line-profiler = "^3.5.1"
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "setuptools"]
-build-backend = ["poetry.core.masonry.api", "setuptools.build_meta"]
+requires = "poetry-core>=1.1.0"
+build-backend = "poetry.core.masonry.api"
