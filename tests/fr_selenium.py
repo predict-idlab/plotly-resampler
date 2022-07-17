@@ -186,10 +186,10 @@ class FigureResamplerGUITests:
         time.sleep(1)
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
-        if not_on_linux(): time.sleep(7)  # bcs serialization of multiprocessing
+        if not_on_linux(): time.sleep(10)  # bcs serialization of multiprocessing
 
     def clear_requests(self, sleep_time_s=1):
-        time.sleep(1)
+        time.sleep(sleep_time_s)
         del self.driver.requests
 
     def get_requests(self, delete: bool = True):
