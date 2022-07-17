@@ -1,7 +1,7 @@
-"""Minimal dash app example.
+"""Dash file parquet visualization app example.
 
-In this usecase, we have dropdowns which allows the end-user to select files, which are
-visualized using FigureResampler after clicking on a button.
+In this use case, we have dropdowns which allows the end-user to select multiple
+parquet files, which are visualized using FigureResampler after clicking on a button.
 
 """
 
@@ -14,31 +14,34 @@ import dash
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.graph_objects as go
-import trace_updater
 from dash import Input, Output, State, dcc, html
 
+from dash_extensions.enrich import (
+    DashProxy,
+    ServersideOutput,
+    ServersideOutputTransform,
+)
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler
+from trace_updater import TraceUpdater
 
 from callback_helpers import multiple_folder_file_selector
 
+# --------------------------------------Globals ---------------------------------------
+app = DashProxy(
+    __name__,
+    external_stylesheets=[dbc.themes.LUX],
+    transforms=[ServersideOutputTransform()],
+)
 
-# Globals
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
-fig: FigureResampler = FigureResampler()
-# NOTE, this reference to a FigureResampler is essential to preserve throughout the 
-# whole dash app! If your dash apps want to create a new go.Figure(), you should not 
-# construct a new FigureResampler object, but replace the figure of this FigureResampler 
-# object by using the FigureResampler.replace() method.
-# Example: see the plot_multiple_files function in this file.
-
-
-# ------------------------------- File selection logic -------------------------------
+# --------- File selection configurations ---------
 name_folder_list = [
     {
         # the key-string below is the title which will be shown in the dash app
-        "dash example data": {"folder": Path("../data")},
-        "other name same folder": {"folder": Path("../data")},
+        "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
+        "other folder": {
+            "folder": Path(__file__).parent.parent.joinpath("data")
+        },
     },
     # NOTE: A new item om this level creates a new file-selector card.
     # { "PC data": { "folder": Path("/home/jonas/data/wesad/empatica/") } }
@@ -47,8 +50,7 @@ name_folder_list = [
 ]
 
 
-# ------------------------------------ DASH logic -------------------------------------
-# First we construct the app layout
+# --------- DASH layout logic ---------
 def serve_layout() -> dbc.Container:
     """Constructs the app's layout.
 
@@ -69,15 +71,13 @@ def serve_layout() -> dbc.Container:
                 [
                     # Add file selection layout (+ assign callbacks)
                     dbc.Col(multiple_folder_file_selector(app, name_folder_list), md=2),
-                    # Add the graph and the trace updater component
+                    # Add the graph, the dcc.Store (for serialization) and the
+                    # TraceUpdater (for efficient data updating) components
                     dbc.Col(
                         [
                             dcc.Graph(id="graph-id", figure=go.Figure()),
-                            trace_updater.TraceUpdater(
-                                id="trace-updater",
-                                gdID="graph-id",
-                                sequentialUpdate=False,
-                            ),
+                            dcc.Loading(dcc.Store(id="store")),
+                            TraceUpdater(id="trace-updater", gdID="graph-id"),
                         ],
                         md=10,
                     ),
@@ -92,13 +92,8 @@ def serve_layout() -> dbc.Container:
 app.layout = serve_layout()
 
 
-# Register the graph update callbacks to the layout
-fig.register_update_graph_callback(
-    app=app, graph_id="graph-id", trace_updater_id="trace-updater"
-)
-
-
-# ------------------------------ Visualization logic ---------------------------------
+# ------------------------------------ DASH logic -------------------------------------
+# --------- graph construction logic + callback ---------
 def plot_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampler:
     """Code to create the visualizations.
 
@@ -112,13 +107,7 @@ def plot_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampler:
         Returns a view of the existing, global FigureResampler object.
 
     """
-    global fig
-
-    # NOTE, we do not construct a new FigureResampler object, but replace the figure of 
-    # the figureResampler object. Otherwise the coupled callbacks would be lost and it
-    # is not (straightforward) to construct dynamic callbacks in dash.
-
-    fig.replace(make_subplots(rows=len(file_list), shared_xaxes=False))
+    fig = FigureResampler(make_subplots(rows=len(file_list), shared_xaxes=False))
     fig.update_layout(height=min(900, 350 * len(file_list)))
 
     for i, f in enumerate(file_list, 1):
@@ -126,7 +115,8 @@ def plot_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampler:
         if "timestamp" in df.columns:
             df = df.set_index("timestamp")
 
-        for c in df.columns:
+        for c in df.columns[::-1]:
+            print(df[c].dtype)
             fig.add_trace(go.Scattergl(name=c), hf_x=df.index, hf_y=df[c], row=i, col=1)
     return fig
 
@@ -147,14 +137,11 @@ selector_states = list(
 
 
 @app.callback(
-    Output("graph-id", "figure"),
+    [Output("graph-id", "figure"), ServersideOutput("store", "data")],
     [Input("plot-button", "n_clicks"), *selector_states],
     prevent_initial_call=True,
 )
-def plot_graph(
-    n_clicks,
-    *folder_list,
-):
+def plot_graph(n_clicks, *folder_list):
     it = iter(folder_list)
     file_list: List[Path] = []
     for folder, files in zip(it, it):
@@ -167,10 +154,23 @@ def plot_graph(
     ctx = dash.callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         if len(file_list):
-            return plot_multiple_files(file_list)
+            fig: FigureResampler = plot_multiple_files(file_list)
+            return fig, fig
     else:
         raise dash.exceptions.PreventUpdate()
 
+
+# --------- Figure update callback ---------
+@app.callback(
+    Output("trace-updater", "updateData"),
+    Input("graph-id", "relayoutData"),
+    State("store", "data"),  # The server side cached FigureResampler per session
+    prevent_initial_call=True,
+)
+def update_fig(relayoutdata, fig):
+    if fig is None:
+        raise dash.exceptions.PreventUpdate()
+    return fig.construct_update_data(relayoutdata)
 
 
 # --------------------------------- Running the app ---------------------------------

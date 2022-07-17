@@ -20,11 +20,13 @@ Additionally, this notebook highlights how to use the `FigureWidget` its on-clic
 The [dash_apps](dash_apps/) folder contains example dash apps in
 which `plotly-resampler` is integrated
 
-| app-name | description |
-| --- | --- |
-| [file visualization](dash_apps/dash_app.py) | load and visualize multiple `.parquet` files with plotly-resampler |
+| app-name                                                         | description |
+|------------------------------------------------------------------| --- |
+| [minimal example (*global variable*)](dash_apps/dash_app_minimal_global.py) | *bad practice*: minimal example in which a global `FigureResampler` variable is used |
+| [minimal example (*server side caching*)](dash_apps/dash_app_minimal_cache.py) | *good practice*: minimal example in which we perform server side caching of the `FigureResampler` variable |
+| [file visualization](dash_apps/dash_app.py)                      | load and visualize multiple `.parquet` files with plotly-resampler |
 | [dynamic sine generator](dash_apps/construct_dynamic_figures.py) | expeonential sine generator which uses [pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) to remove and construct plotly-resampler graphs dynamically |
-| [dynamic static graph](dash_apps/dash_app_coarse_fine.py) | Visualization dashboard in which a dynamic (i.e., plotly-resampler graph) and static graph (i.e., go.Figure) are shown (made for [this issue](https://github.com/predict-idlab/plotly-resampler/issues/56)). Relayout events on the coarse graph update the dynamic graph.
+| [dynamic static graph](dash_apps/dash_app_coarse_fine.py)        | Visualization dashboard in which a dynamic (i.e., plotly-resampler graph) and static graph (i.e., go.Figure) are shown (made for [this issue](https://github.com/predict-idlab/plotly-resampler/issues/56)). Relayout events on the coarse graph update the dynamic graph.
 
 ## 2. Other apps
 

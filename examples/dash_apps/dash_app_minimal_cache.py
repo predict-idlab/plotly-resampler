@@ -1,0 +1,88 @@
+"""Minimal dash app example.
+
+Click on a button, and see a plotly-resampler graph of a noisy sinusoid.
+No dynamic graph construction / pattern matching callbacks are needed.
+
+This example uses the dash-extensions its ServersideOutput functionality to cache
+the FigureResampler per user/session on the server side. This way, no global figure
+variable is used and shows the best practice of using plotly-resampler Figures within
+dash-apps.
+
+"""
+
+import dash
+import dash_bootstrap_components as dbc
+import numpy as np
+import plotly.graph_objects as go
+from dash import Input, Output, State, dcc, html
+from dash_extensions.enrich import (
+    DashProxy,
+    ServersideOutput,
+    ServersideOutputTransform,
+)
+from plotly_resampler import FigureResampler
+from trace_updater import TraceUpdater
+
+# Data that will be used for the plotly-resampler figures
+_n = 1_000_000
+x = np.arange(_n)
+noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
+
+# --------------------------------------Globals ---------------------------------------
+app = DashProxy(
+    __name__,
+    external_stylesheets=[dbc.themes.LUX],
+    transforms=[ServersideOutputTransform()],
+)
+
+app.layout = html.Div(
+    [
+        dbc.Container(html.H1("plotly-resamper + dash-extensions"),
+                      style={"textAlign": "center"}),
+        html.Button("plot chart", id="plot-button", n_clicks=0),
+        html.Hr(),
+
+        # The graph and it's needed components to serialize and update efficiently
+        # Note: we also add a dcc.Store component, which will be used to link the
+        #       server side cached FigureResampler object
+        dcc.Graph(id="graph-id"),
+        dcc.Loading(dcc.Store(id="store")),
+        TraceUpdater(id="trace-updater", gdID="graph-id"),
+    ]
+)
+
+
+# ------------------------------------ DASH logic -------------------------------------
+# The callback used to construct and store the FigureResampler on the serverside
+@app.callback(
+    [Output("graph-id", "figure"), ServersideOutput("store", "data")],
+    Input("plot-button", "n_clicks"),
+    prevent_initial_call=True,
+    memoize=True,
+)
+def plot_graph(n_clicks):
+    ctx = dash.callback_context
+    if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
+        fig: FigureResampler = FigureResampler(go.Figure())
+        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * .9999995 ** x)
+        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002 ** x)
+        return fig, fig
+    else:
+        raise dash.exceptions.PreventUpdate()
+
+
+@app.callback(
+    Output("trace-updater", "updateData"),
+    Input("graph-id", "relayoutData"),
+    State("store", "data"),  # The server side cached FigureResampler per session
+    prevent_initial_call=True,
+)
+def update_fig(relayoutdata, fig):
+    if fig is None:
+        raise dash.exceptions.PreventUpdate()
+    return fig.construct_update_data(relayoutdata)
+
+
+# --------------------------------- Running the app ---------------------------------
+if __name__ == "__main__":
+    app.run_server(debug=True, port=9023)
