@@ -182,11 +182,11 @@
 
 <span class="kn">import</span> <span class="nn">math</span>
 
-<span class="kn">import</span> <span class="nn">lttbc</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">..aggregation.aggregation_interface</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span>
+<span class="kn">from</span> <span class="nn">.algorithms</span> <span class="kn">import</span> <span class="n">lttbcv2</span>
 
 
 <div class="viewcode-block" id="LTTB"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB">[docs]</a><span class="k">class</span> <span class="nc">LTTB</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
@@ -244,42 +244,19 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-        <span class="c1"># if we have categorical data, LTTB will convert the categorical values into</span>
-        <span class="c1"># their numeric codes, i.e., the index position of the category array</span>
         <span class="n">s_v</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">cat</span><span class="o">.</span><span class="n">codes</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;category&quot;</span> <span class="k">else</span> <span class="n">s</span><span class="o">.</span><span class="n">values</span>
+
         <span class="n">s_i</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">s_i</span> <span class="o">=</span> <span class="n">s_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="k">if</span> <span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span> <span class="k">else</span> <span class="n">s_i</span>
 
-        <span class="k">if</span> <span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">:</span>
-            <span class="c1"># lttbc does not support this datatype -&gt; convert to int</span>
-            <span class="c1"># (where the time is represented in ns)</span>
-            <span class="c1"># REMARK:</span>
-            <span class="c1">#   -&gt; additional logic is needed to mitigate rounding errors </span>
-            <span class="c1">#   First, the start offset is subtracted, after which the input series</span>
-            <span class="c1">#   is set in the already requested format, i.e. np.float64</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">lttbcv2</span><span class="o">.</span><span class="n">downsample_return_index</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
 
-            <span class="c1"># NOTE -&gt; Rounding errors can still persist, but this approach is already</span>
-            <span class="c1">#         significantly less prone to it than the previos implementation.</span>
-            <span class="n">s_i0</span> <span class="o">=</span> <span class="n">s_i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-            <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span>
-                <span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">-</span> <span class="n">s_i0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span>
-            <span class="p">)</span>
-
-            <span class="c1"># add the start-offset and convert back to datetime</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span>
-                <span class="n">idx</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="o">+</span> <span class="n">s_i0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">True</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">tz_convert</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">idx</span><span class="p">,</span> <span class="n">data</span> <span class="o">=</span> <span class="n">lttbc</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
-            <span class="n">idx</span> <span class="o">=</span> <span class="n">idx</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;category&quot;</span><span class="p">:</span>
-            <span class="c1"># reconvert the downsampled numeric codes to the category array</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">categories</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">item</span><span class="p">)(</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s_v</span><span class="o">.</span><span class="n">dtype</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># default case, use the series it&#39;s dtype as return type</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+            <span class="n">index</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
+            <span class="n">name</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="MinMaxOverlapAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator">[docs]</a><span class="k">class</span> <span class="nc">MinMaxOverlapAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
@@ -337,14 +314,14 @@
         <span class="c1"># Calculate the argmin &amp; argmax on the reshaped view of `s` &amp;</span>
         <span class="c1"># add the corresponding offset</span>
         <span class="n">argmin</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
         <span class="p">)</span>
         <span class="n">argmax</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">argmax_offset</span> <span class="p">:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">argmax_offset</span><span class="p">]</span>
-            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">argmax_offset</span> <span class="p">:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">argmax_offset</span><span class="p">]</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
             <span class="o">+</span> <span class="n">argmax_offset</span>
@@ -402,14 +379,14 @@
         <span class="c1"># Calculate the argmin &amp; argmax on the reshaped view of `s` &amp;</span>
         <span class="c1"># add the corresponding offset</span>
         <span class="n">argmin</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
         <span class="p">)</span>
         <span class="n">argmax</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">s</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
-            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">values</span><span class="p">[:</span> <span class="n">block_size</span> <span class="o">*</span> <span class="n">offset</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">block_size</span><span class="p">)</span>
             <span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
             <span class="o">+</span> <span class="n">offset</span>
         <span class="p">)</span>
@@ -468,7 +445,7 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">1_000</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">2_000</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minmax</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span></div>
 
