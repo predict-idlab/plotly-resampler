@@ -1,8 +1,8 @@
 .. role:: raw-html(raw)
    :format: html
 
-Getting started 🚀
-==================
+Get started 🚀
+==============
 
 ``plotly-resampler`` serves two main **modules**:
 
@@ -162,7 +162,7 @@ Working example ⬇️:
 .. tip::
 
     The ``FigureWidgetResampler`` graph will not be automatically redrawn after 
-    adjusting the fig its `hf_data` property,. The redrawning can be triggered by 
+    adjusting the fig its `hf_data` property,. The redrawing can be triggered by
     manually calling either:
 
     * :func:`FigureWidgetResampler.reload_data <plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data>`, which keeps the current-graph range.

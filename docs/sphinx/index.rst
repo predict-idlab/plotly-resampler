@@ -40,8 +40,8 @@ As shown in the demo above, ``plotly-resampler`` maintains its interactiveness o
 
    getting_started
    dash_app_integration
-
    api_reference
+   FAQ
 
 
 
