@@ -31,6 +31,7 @@ orjson = {version = "^3.7.7", optional = true}
 pandas = "^1.3.5"
 trace-updater = ">=0.0.8"
 numpy = ">=1.21.0"
+Flask-Cors = "^3.0.10"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

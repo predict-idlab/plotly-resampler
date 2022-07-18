@@ -7,15 +7,18 @@ Creates a web-application and uses ``dash`` callbacks to enable dynamic resampli
 """
 
 from __future__ import annotations
+from crypt import methods
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import warnings
 from typing import Tuple, List
 
+import uuid
 import dash
 import plotly.graph_objects as go
 from dash import Dash
+from flask_cors import cross_origin
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
@@ -23,6 +26,116 @@ from trace_updater import TraceUpdater
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
+
+
+class JupyterDashCustomOutput(JupyterDash):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self._uid = str(uuid.uuid4())  # A new unique id for each app
+        
+        # Mimmick the _alive_{token} endpoint but with cors
+        @self.server.route(f'/_is_alive_{self._uid}', methods=['GET'])
+        @cross_origin(origin=['*'], allow_headers=['Content-Type'])
+        def broadcast_alive():
+            return "Alive"
+
+    def _display_inline_output(self, dashboard_url, width, height):
+        # TODO: width en height gebruiken
+        # TODO: text displayen in de output  :check:
+        # TODO: check if in case of crash wel error gelogged wordt
+        import base64
+        from IPython.display import display
+        
+        # Get the image from the dashboard and encode it as base64
+        fig = self.layout.children[0].figure
+        fig_base64 = base64.b64encode(fig.to_image("png")).decode("utf8")
+
+        uid = self._uid
+
+        print("width: " + str(width))
+        print("height: " + str(height))
+
+        display(
+            {
+                "text/html": 
+                f"""
+                <div id='PR_div__{uid}' class='container'></div>
+                <script type='text/javascript'>
+                """ + 
+                """
+
+                function setOutput(timeout) {
+                    """ +
+                    # Variables should be in local scope (in the closure)
+                    f"""
+                    var pr_div = document.getElementById('PR_div__{uid}');
+                    var url = '{dashboard_url}';
+                    var pr_img_src = 'data:image/png;base64, {fig_base64}';
+                    var is_alive_suffix = '_is_alive_{uid}';
+                    """ +
+                    """
+
+                    if (pr_div.firstChild) return  // return if already loaded
+
+                    const controller = new AbortController();
+                    const signal = controller.signal;
+
+                    return fetch(url + is_alive_suffix, {signal: signal})
+                        .then(response => response.text())
+                        .then(data => 
+                            {
+                                if (data == "Alive") {
+                                    console.log("Server is alive");
+                                    iframeOutput(pr_div, url);
+                                } else {
+                                    // I think this case will never occur because of CORS
+                                    console.log("Server is dead");
+                                    imageOutput(pr_div, pr_img_src);
+                                }
+                                }
+                        )
+                        .catch(error => {
+                            console.log("Server is unreachable");
+                            imageOutput(pr_div, pr_img_src);
+                        })
+                }
+                
+                setOutput(500);
+                
+                function imageOutput(element, pr_img_src) {
+                    console.log('Setting image');
+
+                    var pr_text = document.createElement("p");
+                    pr_text.setAttribute("style", 'color:red');
+                    pr_text.innerHTML = 'Server unreachable - using image instead';
+                    element.appendChild(pr_text);
+
+                    var pr_img = document.createElement("img");
+                    pr_img.setAttribute("src", pr_img_src)
+                    element.appendChild(pr_img);
+                }
+                
+                function iframeOutput(element, url) {
+                    console.log('Setting iframe');
+                    var pr_iframe = document.createElement("iframe");
+                    pr_iframe.setAttribute("src", url);
+                    pr_iframe.setAttribute("width", '100%');
+                    pr_iframe.setAttribute("height", '468px');
+                    pr_iframe.setAttribute("frameborder", '0');
+                    element.appendChild(pr_iframe);
+                }
+                </script>
+                """
+            }, raw=True, clear=True, display_id=uid,
+        )
+
+    def _display_in_jupyter(self, dashboard_url, port, mode, width, height):
+        if mode == "inline":
+            self._display_inline_output(dashboard_url, width, height)            
+        else:
+            super()._display_in_jupyter(dashboard_url, port, mode, width, height)
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
@@ -209,7 +322,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties.keys()  # There is a param for config
         # 1. Construct the Dash app layout
-        app = JupyterDash("local_app")
+        app = JupyterDashCustomOutput("local_app")
         app.layout = dash.html.Div(
             [
                 dash.dcc.Graph(
