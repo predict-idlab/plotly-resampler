@@ -31,7 +31,7 @@ app = DashProxy(__name__, transforms=[ServersideOutputTransform()])
 
 app.layout = html.Div(
     [
-        html.H1("plotly-resamper + dash-extensions", style={"textAlign": "center"}),
+        html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
         # The graph and it's needed components to serialize and update efficiently

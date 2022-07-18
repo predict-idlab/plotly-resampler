@@ -138,7 +138,7 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
             dcc.Graph(id={"type": "dynamic-graph", "index": uid}, figure=go.Figure()),
             dcc.Loading(dcc.Store(id={"type": "store", "index": uid})),
             TraceUpdater(id={"type": "dynamic-updater", "index": uid}, gdID=f"{uid}"),
-            # This dcc.(nterval components makes sure that the `construct_display_graph`
+            # This dcc.Interval components makes sure that the `construct_display_graph`
             # callback is fired once after these components are added to the session
             # its front-end
             dcc.Interval(

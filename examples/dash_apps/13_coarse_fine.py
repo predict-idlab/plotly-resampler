@@ -13,13 +13,11 @@ TODO: add an rectangle on the coarse graph
 
 __author__ = "Jonas Van Der Donckt"
 
-import re
 import dash
 import dash_bootstrap_components as dbc
-import pandas as pd
 import plotly.graph_objects as go
 from pathlib import Path
-from typing import List, Union
+from typing import List
 from dash import Input, Output, State, dcc, html
 
 from dash_extensions.enrich import (

@@ -8,7 +8,7 @@ The main difference between this example and the dash_app_minimal_cache.py is th
 we want to cache using a dcc.Store that is not yet available on the client side. As a
 result we split up our logic into two callbacks: (1) the callback used to construct the
 necessary components and send them to the client-side, and (2) the callback used to
-construce the actual plotly-resampler graph and cache it on the server side. These
+construct the actual plotly-resampler graph and cache it on the server side. These
 two callbacks are chained together using the dcc.Interval component.
 
 """
@@ -63,7 +63,7 @@ def add_graph_div(n_clicks: int, div_children: list[html.Div]):
             dcc.Graph(id={"type": "dynamic-graph", "index": uid}, figure=go.Figure()),
             dcc.Loading(dcc.Store(id={"type": "store", "index": uid})),
             TraceUpdater(id={"type": "dynamic-updater", "index": uid}, gdID=f"{uid}"),
-            # This dcc.(nterval components makes sure that the `construct_display_graph`
+            # This dcc.Interval components makes sure that the `construct_display_graph`
             # callback is fired once after these components are added to the session
             # its front-end
             dcc.Interval(
