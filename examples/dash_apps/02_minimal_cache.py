@@ -11,7 +11,6 @@ dash-apps.
 """
 
 import dash
-import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.graph_objects as go
 from dash import Input, Output, State, dcc, html
@@ -24,24 +23,17 @@ from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
 
 # Data that will be used for the plotly-resampler figures
-_n = 1_000_000
-x = np.arange(_n)
+x = np.arange(2_000_000)
 noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 
 # --------------------------------------Globals ---------------------------------------
-app = DashProxy(
-    __name__,
-    external_stylesheets=[dbc.themes.LUX],
-    transforms=[ServersideOutputTransform()],
-)
+app = DashProxy(__name__, transforms=[ServersideOutputTransform()])
 
 app.layout = html.Div(
     [
-        dbc.Container(html.H1("plotly-resamper + dash-extensions"),
-                      style={"textAlign": "center"}),
+        html.H1("plotly-resamper + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-
         # The graph and it's needed components to serialize and update efficiently
         # Note: we also add a dcc.Store component, which will be used to link the
         #       server side cached FigureResampler object
@@ -64,8 +56,11 @@ def plot_graph(n_clicks):
     ctx = dash.callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         fig: FigureResampler = FigureResampler(go.Figure())
-        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * .9999995 ** x)
-        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002 ** x)
+
+        # Figure construction logic
+        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * 0.9999995**x)
+        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002**x)
+
         return fig, fig
     else:
         raise dash.exceptions.PreventUpdate()
@@ -76,6 +71,7 @@ def plot_graph(n_clicks):
     Input("graph-id", "relayoutData"),
     State("store", "data"),  # The server side cached FigureResampler per session
     prevent_initial_call=True,
+    memoize=True,
 )
 def update_fig(relayoutdata, fig):
     if fig is None:

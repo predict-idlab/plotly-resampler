@@ -14,7 +14,6 @@ source: https://dash.plotly.com/sharing-data-between-callbacks:
 """
 
 import dash
-import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.graph_objects as go
 from dash import Input, Output, dcc, html
@@ -23,24 +22,21 @@ from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
 
 # Data that will be used for the plotly-resampler figures
-_n = 1_000_000
-x = np.arange(_n)
+x = np.arange(2_000_000)
 noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 
 
 # --------------------------------------Globals ---------------------------------------
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+app = dash.Dash(__name__)
 fig: FigureResampler = FigureResampler()
 # NOTE: in this example, this reference to a FigureResampler is essential to preserve
-# throughout the whole dash app! If your dash apps want to create a new go.Figure(),
+# throughout the whole dash app! If your dash app want to create a new go.Figure(),
 # you should not construct a new FigureResampler object, but replace the figure of this
 # FigureResampler object by using the FigureResampler.replace() method.
 
 app.layout = html.Div(
     [
-        dbc.Container(
-            html.H1("plotly-resampler global variable"), style={"textAlign": "center"}
-        ),
+        html.H1("plotly-resampler global variable", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
 

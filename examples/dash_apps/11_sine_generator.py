@@ -1,24 +1,43 @@
-from typing import Dict
+"""Dash runtime sine generator app example.
+
+In this example, users can configure parameters of a sine wave and then generate the
+sine-wave graph at runtime using the create-new-graph button. There is also an option
+to remove the graph.
+
+This app uses server side caching of the FigureResampler object. As it uses the same
+concepts of the 03_minimal_cache_dynamic.py example, the runtime graph construction
+callback is again split up into two callbacks: (1) the callback used to construct the
+necessary components and send them to the front-end and (2) the callback used to
+construct the plotly-resampler figure and cache it on the server side.
+
+"""
+
 from uuid import uuid4
 
 import numpy as np
 import plotly.graph_objects as go
-
 import dash
 import dash_bootstrap_components as dbc
-from dash import Dash, dcc, html, Input, Output, State, MATCH
-from dash.exceptions import PreventUpdate
-
-from trace_updater import TraceUpdater
+from dash import MATCH, Input, Output, State, dcc, html
+from dash_extensions.enrich import (
+    DashProxy,
+    ServersideOutput,
+    ServersideOutputTransform,
+    Trigger,
+    TriggerTransform,
+)
 from plotly_resampler import FigureResampler
+from trace_updater import TraceUpdater
 
-# The global variables
-graph_dict: Dict[str, FigureResampler] = {}
-app = Dash(
-    __name__, suppress_callback_exceptions=True, external_stylesheets=[dbc.themes.LUX]
+# --------------------------------------Globals ---------------------------------------
+app = DashProxy(
+    __name__,
+    suppress_callback_exceptions=True,
+    external_stylesheets=[dbc.themes.LUX],
+    transforms=[ServersideOutputTransform(), TriggerTransform()],
 )
 
-# ---------------------------- Construct the app layout ----------------------------
+# -------- Construct the app layout --------
 app.layout = html.Div(
     [
         html.Div(html.H1("Exponential sine generator"), style={"textAlign": "center"}),
@@ -81,7 +100,9 @@ app.layout = html.Div(
 )
 
 
-# -------------------------------- Callbacks ---------------------------------------
+# ------------------------------------ DASH logic -------------------------------------
+# This method adds the needed components to the front-end, but does not yet contain the
+# figureResampler graph construction logic.
 @app.callback(
     Output("graph-container", "children"),
     Input("add-graph-btn", "n_clicks"),
@@ -93,34 +114,60 @@ app.layout = html.Div(
     ],
     prevent_initial_call=True,
 )
-def add_or_remove_graph(add_graph, remove_graph, n, exp, gc):
+def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
     if (add_graph is None or n is None or exp is None) and (remove_graph is None):
-        raise PreventUpdate()
+        raise dash.exceptions.PreventUpdate()
 
     # Transform the graph data to a figure
-    gc = [] if gc is None else gc  # list of existing Graphs and their TraceUpdaters
-    if len(gc):
-        _gc = []
-        for i in range(len(gc) // 2):
-            _gc.append(dcc.Graph(**gc[i * 2]["props"]))
-            _gc.append(
-                TraceUpdater(**{k: gc[i * 2 + 1]["props"][k] for k in ["id", "gdID"]})
-            )
-        gc = _gc
+    gc_children = [] if gc_children is None else gc_children
 
     # Check if we need to remove a graph
     clicked_btns = [p["prop_id"] for p in dash.callback_context.triggered]
     if any("remove-graph" in btn_name for btn_name in clicked_btns):
-        if not len(gc):
-            raise PreventUpdate()
-
-        graph_dict.pop(gc[-1].__getattribute__("gdID"))
-        return [*gc[:-2]]
+        if not len(gc_children):
+            raise dash.exceptions.PreventUpdate()
+        return gc_children[:-1]
 
     # No graph needs to be removed -> create a new graph
+    uid = str(uuid4())
+    new_child = html.Div(
+        children=[
+            # The graph and it's needed components to serialize and update efficiently
+            # Note: we also add a dcc.Store component, which will be used to link the
+            #       server side cached FigureResampler object
+            dcc.Graph(id={"type": "dynamic-graph", "index": uid}, figure=go.Figure()),
+            dcc.Loading(dcc.Store(id={"type": "store", "index": uid})),
+            TraceUpdater(id={"type": "dynamic-updater", "index": uid}, gdID=f"{uid}"),
+            # This dcc.(nterval components makes sure that the `construct_display_graph`
+            # callback is fired once after these components are added to the session
+            # its front-end
+            dcc.Interval(
+                id={"type": "interval", "index": uid}, max_intervals=1, interval=1
+            ),
+        ],
+    )
+    gc_children.append(new_child)
+    return gc_children
+
+
+# This method constructs the figureResampler graph and caches it on the server side
+@app.callback(
+    ServersideOutput({"type": "store", "index": MATCH}, "data"),
+    Output({"type": "dynamic-graph", "index": MATCH}, "figure"),
+    State("nbr-datapoints", "value"),
+    State("expansion-factor", "value"),
+    State("add-graph-btn", "n_clicks"),
+    Trigger({"type": "interval", "index": MATCH}, "n_intervals"),
+    prevent_initial_call=True,
+)
+def construct_display_graph(n, exp, n_added_graphs) -> FigureResampler:
+    # Figure construction logic based on state variables
     x = np.arange(n)
-    expansion_scaling = exp ** x
-    y = np.sin(x / 10) * expansion_scaling + np.random.randn(n) / 10 * expansion_scaling
+    expansion_scaling = exp**x
+    y = (
+        np.sin(x / 200) * expansion_scaling
+        + np.random.randn(n) / 10 * expansion_scaling
+    )
 
     fr = FigureResampler(go.Figure(), verbose=True)
     fr.add_trace(go.Scattergl(name="sin"), hf_x=x, hf_y=y)
@@ -129,33 +176,26 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc):
         showlegend=True,
         legend=dict(orientation="h", y=1.12, xanchor="right", x=1),
         template="plotly_white",
-        title=f"graph {len(graph_dict) + 1} - n={n:,} pow={exp}",
+        title=f"graph {n_added_graphs} - n={n:,} pow={exp}",
         title_x=0.5,
     )
 
-    # Create a uuid for the graph and add it to the global graph dict,
-    uid = str(uuid4())
-    graph_dict[uid] = fr
-
-    # Add the graph to the existing output
-    return [
-        *gc,  # the existing Graphs and their TraceUpdaters
-        dcc.Graph(figure=fr, id={"type": "dynamic-graph", "index": uid}),
-        TraceUpdater(id={"type": "dynamic-updater", "index": uid}, gdID=uid),
-    ]
+    return fr, fr
 
 
-# The generic resampling callback
-# see: https://dash.plotly.com/pattern-matching-callbacks for more info
 @app.callback(
     Output({"type": "dynamic-updater", "index": MATCH}, "updateData"),
     Input({"type": "dynamic-graph", "index": MATCH}, "relayoutData"),
-    State({"type": "dynamic-graph", "index": MATCH}, "id"),
+    State({"type": "store", "index": MATCH}, "data"),
     prevent_initial_call=True,
+    memoize=True,
 )
-def update_figure(relayoutdata: dict, graph_id_dict: dict):
-    return graph_dict.get(graph_id_dict["index"]).construct_update_data(relayoutdata)
+def update_fig(relayoutdata: dict, fig: FigureResampler):
+    if fig is not None:
+        return fig.construct_update_data(relayoutdata)
+    raise dash.exceptions.PreventUpdate()
 
 
+# --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":
     app.run_server(debug=True)

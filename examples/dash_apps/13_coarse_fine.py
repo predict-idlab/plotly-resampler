@@ -37,6 +37,7 @@ from utils.graph_construction import visualize_multiple_files
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(
     __name__,
+    suppress_callback_exceptions=True,
     external_stylesheets=[dbc.themes.LUX],
     transforms=[ServersideOutputTransform()],
 )
