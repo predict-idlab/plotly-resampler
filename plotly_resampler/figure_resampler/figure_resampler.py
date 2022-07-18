@@ -7,7 +7,6 @@ Creates a web-application and uses ``dash`` callbacks to enable dynamic resampli
 """
 
 from __future__ import annotations
-from crypt import methods
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
