@@ -4,6 +4,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
 import pytest
+import time
 import numpy as np
 import pandas as pd
 import multiprocessing
@@ -603,7 +604,6 @@ def test_stop_server_inline():
     fr.stop_server()
     proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline"))
     proc.start()
-    import time
 
     time.sleep(3)
     fr.stop_server()
@@ -622,7 +622,6 @@ def test_stop_server_inline_persistent():
     fr.stop_server()
     proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline_persistent"))
     proc.start()
-    import time
 
     time.sleep(3)
     fr.stop_server()
@@ -658,8 +657,10 @@ def test_manual_jupyterdashpersistentinline():
         ]
     )
 
-    # call the method
+    # call the method (as it would normally be called)
     app._display_in_jupyter(f"", port="", mode="inline", width='100%', height=500)
+    # call with a different mode (as it normally never would be called)
+    app._display_in_jupyter(f"", port="", mode="external", width='100%', height=500)
 
 
 def test_stop_server_external():
@@ -672,7 +673,6 @@ def test_stop_server_external():
     fr.stop_server()
     proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="external"))
     proc.start()
-    import time
 
     time.sleep(3)
     fr.stop_server()
