@@ -355,10 +355,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             constructor via the ``show_dash_kwargs`` argument.
 
         """
+        available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
+        assert mode is None or mode in available_modes, (
+            f"mode must be one of {available_modes}"
+        )
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties.keys()  # There is a param for config
         # 1. Construct the Dash app layout
-        if mode is "inline_persistent":
+        if mode == "inline_persistent":
             # Inline persistent mode: we display a static image of the figure when the
             # app is not reachable
             # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
