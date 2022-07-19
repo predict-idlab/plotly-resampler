@@ -610,6 +610,25 @@ def test_stop_server_inline():
     proc.terminate()
 
 
+def test_stop_server_inline_persistent():
+    # mostly written to test the check_update_figure_dict whether the inline + height
+    # line option triggers
+    fr = FigureResampler(go.Figure())
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    fr.update_layout(height=900)
+    fr.stop_server()
+    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline_persistent"))
+    proc.start()
+    import time
+
+    time.sleep(3)
+    fr.stop_server()
+    proc.terminate()
+
+
 def test_stop_server_external():
     fr = FigureResampler(go.Figure())
     n = 100_000
