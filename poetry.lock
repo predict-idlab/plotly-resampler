@@ -848,10 +848,10 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
 
 [[package]]
 name = "kaleido"
-version = "0.2.1.post1"
+version = "0.2.1"
 description = "Static image export for web-based visualization libraries with zero dependencies"
 category = "main"
-optional = true
+optional = false
 python-versions = "*"
 
 [[package]]
@@ -2078,7 +2078,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1,<3.11"
-content-hash = "4f8d2b27f5e4301e59f3ab07b8f3a9acda5f2de39c87a2d29c7acaa0f7ee0042"
+content-hash = "c0d858e8fa34c2c6ce573ba9e9776c3a086f7e89339e702193e9352dc95726f1"
 
 [metadata.files]
 alabaster = [
