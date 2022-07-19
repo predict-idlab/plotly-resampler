@@ -114,6 +114,17 @@ The gif below demonstrates the example usage of of :class:`FigureWidgetResampler
 
 .. image:: https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif
 
+
+.. raw:: html
+
+    <br><br>
+
+
+Furthermore, plotly figurewidget allows to conveniently add callbacks to for example click events. This allows to create a high-frequency time series annotation app in a couple of lines; a shown in the gif below and `this notebook <https://github.com/predict-idlab/plotly-resampler/blob/main/examples/figurewidget_example.ipynb>`_.
+
+
+.. image:: _static/annotate_twitter.gif
+
 Important considerations & tips 🚨
 ----------------------------------
 

@@ -66,3 +66,67 @@ For more information on how to use the trace-updater component together with the
    </div>
    </details>
    <br>
+      <details>
+   <summary>
+      <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+
+`Datashader <https://datashader.org/getting_started/Introduction.html>`_ is a highly scalable `open-source <https://github.com/holoviz/datashader>`_ library for analyzing and visualizing large datasets. More specifically, datashader *“rasterizes”* or *“aggregates”* datasets into regular grids that can be analyzed further or viewed as **images**. 
+
+
+**The main differences are**:
+
+Datashader is able deal with various kinds of data (e.g., location related data, point clouds, ...), and plotly-resampler is more tailored towards time-series data visualizations. 
+Furthermore, datashader outputs a **rasterized image/array** encompassing all traces their data, whereas plotly-resampler outputs an **aggregated series** per trace. Thus, datashader is more suited for analyzing data where you do not want to pin-out a certain series/trace.
+
+In our opinion, datashader truly shines (for the time series use case) when:
+
+* you want a global, overlaying view of all your traces
+* you want to visualize a large number of time series in a single plot (many traces)
+* there is a lot of noise on your high-frequency data and want to uncover the underlying pattern
+* you want to render all data points in your visualization
+
+In our opinion, plotly-resampler shines when:
+
+* you need the capabilities to interact with the traces (e.g., hovering, toggling traces, hovertext pet trace)
+* you want to use a less complex (but more restricted) visualization interface (as opposed to holoviews), i.e., plotly
+* you want to make existing plotly time-series figures more scalable and efficient
+* to build scalable Dash apps for time-series data visualization
+
+Furthermore combined with holoviews, datashader can also be employed in an interactive manner, see the example below.
+
+.. code:: python
+
+   from holoviews.operation.datashader import datashade
+   import datashader as ds
+   import holoviews as hv
+   import numpy as np
+   import pandas as pd
+   import panel as pn
+
+   hv.extension("bokeh")
+   pn.extension(comms='ipywidgets')
+
+   # Create the dummy dataframe
+   n = 1_000_000
+   x = np.arange(n)
+   noisy_sine = (np.sin(x / 3_000) + (np.random.randn(n) / 10)) * x / 5_000
+   df = pd.DataFrame(
+      {"ns": noisy_sine, "ns_abs": np.abs(noisy_sine),}
+   )
+
+   # Visualize interactively with datashader
+   opts = hv.opts.RGB(width=800, height=400)
+   ndoverlay = hv.NdOverlay({c:hv.Curve((df.index, df[c])) for c in df.columns})
+   datashade(ndoverlay, cnorm='linear', aggregator=ds.count(), line_width=3).opts(opts)
+
+.. image:: _static/datashader.png
+
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
