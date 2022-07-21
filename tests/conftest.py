@@ -16,7 +16,7 @@ from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, unregister_pl
 _nb_samples = 10_000
 data_dir = "examples/data/"
 headless = True
-TESTING_LOCAL = True  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
+TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
 
 
 @pytest.fixture
