@@ -1495,7 +1495,6 @@ def test_fwr_time_based_data_ms():
 
 
 def test_fwr_time_based_data_s():
-    return # TODO: enable this test once #84 is merged
     # See: https://github.com/predict-idlab/plotly-resampler/issues/93
     n = 100_000
     fig = FigureWidgetResampler(

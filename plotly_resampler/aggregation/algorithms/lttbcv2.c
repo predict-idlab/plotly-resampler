@@ -6,9 +6,10 @@
 #include <math.h>
 
 // This code is adapted from https://github.com/dgoeries/lttbc
-// Most credits are due to https://github.com/dgoeries
+// and implement the LTTB algorithm, intially described by Svein Steinarsson here
+//  https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf
 
-// method below assumes the x-delta's are equidistant
+// This method only returns the index positions of the selected points.
 static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
     int threshold;
     PyObject *x_obj = NULL, *y_obj = NULL;

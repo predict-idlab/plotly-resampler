@@ -1,0 +1,132 @@
+.. role:: raw-html(raw)
+   :format: html
+
+.. |br| raw:: html
+
+   <br>
+
+
+FAQ ❓
+======
+
+.. raw:: html
+
+   <details>
+   <summary>
+      <a><b>What does the orange <b style="color:orange">~ time|number </b> suffix in legend name indicate?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+
+This tilde suffix is only shown when the data is aggregated and represents the *mean aggregation bin size* which is the mean index-range difference between two consecutive aggregated samples.
+
+ * for *time-indexed data*: the mean time-range which is span between 2 consecutive samples.
+ * for *numeric-indexed data*: the mean numeric range which is span between 2 consecutive samples.
+
+When the index is a range-index; the *mean aggregation bin size* represents the *mean* downsample ratio; i.e., the mean number of samples that are aggregated into one sample.
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
+   <details>
+   <summary>
+      <a><b>What is the difference between plotly-resampler figures and plain plotly figures?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+plotly-resampler can be thought of as wrapper around plain plotly figures which adds line-chart visualization scalability by dynamically aggregating the data of the figures w.r.t. the front-end view. plotly-resampler thus adds dynamic aggregation functionality to plain plotly figures.
+
+**important to know**:
+
+* ``show`` *always* returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.
+* To have dynamic aggregation:
+
+  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback
+  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation.
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
+   <details>
+   <summary>
+      <a><b>What does <code><a href="https://github.com/predict-idlab/trace-updater" target="_blank">TraceUpdater</a></code> do?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+The ``TraceUpdater`` class is a custom dash component that aids ``dcc.Graph`` components to efficiently sent and update (in our case aggregated) data to the front-end.
+
+For more information on how to use the trace-updater component together with the ``FigureResampler``, see our dash app `examples <https://github.com/predict-idlab/plotly-resampler/tree/main/examples>`_` and look at the `trace-updater <https://github.com/predict-idlab/trace-updater/blob/master/trace_updater/TraceUpdater.py>`_ its documentation.
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
+      <details>
+   <summary>
+      <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+
+`Datashader <https://datashader.org/getting_started/Introduction.html>`_ is a highly scalable `open-source <https://github.com/holoviz/datashader>`_ library for analyzing and visualizing large datasets. More specifically, datashader *“rasterizes”* or *“aggregates”* datasets into regular grids that can be analyzed further or viewed as **images**. 
+
+
+**The main differences are**:
+
+Datashader is able deal with various kinds of data (e.g., location related data, point clouds, ...), and plotly-resampler is more tailored towards time-series data visualizations. 
+Furthermore, datashader outputs a **rasterized image/array** encompassing all traces their data, whereas plotly-resampler outputs an **aggregated series** per trace. Thus, datashader is more suited for analyzing data where you do not want to pin-out a certain series/trace.
+
+In our opinion, datashader truly shines (for the time series use case) when:
+
+* you want a global, overlaying view of all your traces
+* you want to visualize a large number of time series in a single plot (many traces)
+* there is a lot of noise on your high-frequency data and want to uncover the underlying pattern
+* you want to render all data points in your visualization
+
+In our opinion, plotly-resampler shines when:
+
+* you need the capabilities to interact with the traces (e.g., hovering, toggling traces, hovertext pet trace)
+* you want to use a less complex (but more restricted) visualization interface (as opposed to holoviews), i.e., plotly
+* you want to make existing plotly time-series figures more scalable and efficient
+* to build scalable Dash apps for time-series data visualization
+
+Furthermore combined with holoviews, datashader can also be employed in an interactive manner, see the example below.
+
+.. code:: python
+
+   from holoviews.operation.datashader import datashade
+   import datashader as ds
+   import holoviews as hv
+   import numpy as np
+   import pandas as pd
+   import panel as pn
+
+   hv.extension("bokeh")
+   pn.extension(comms='ipywidgets')
+
+   # Create the dummy dataframe
+   n = 1_000_000
+   x = np.arange(n)
+   noisy_sine = (np.sin(x / 3_000) + (np.random.randn(n) / 10)) * x / 5_000
+   df = pd.DataFrame(
+      {"ns": noisy_sine, "ns_abs": np.abs(noisy_sine),}
+   )
+
+   # Visualize interactively with datashader
+   opts = hv.opts.RGB(width=800, height=400)
+   ndoverlay = hv.NdOverlay({c:hv.Curve((df.index, df[c])) for c in df.columns})
+   datashade(ndoverlay, cnorm='linear', aggregator=ds.count(), line_width=3).opts(opts)
+
+.. image:: _static/datashader.png
+
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
