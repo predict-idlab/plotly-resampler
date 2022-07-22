@@ -44,11 +44,14 @@ def driver():
     from seleniumwire import webdriver
     from webdriver_manager.chrome import ChromeDriverManager, ChromeType
     from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
     import time
     time.sleep(1)
     
     options = Options()
+    d = DesiredCapabilities.CHROME
+    d['goog:loggingPrefs'] = {'browser': 'ALL'}
     if not TESTING_LOCAL:
         if headless:
             options.add_argument("--headless")
@@ -56,12 +59,14 @@ def driver():
         driver = webdriver.Chrome(
             ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
             options=options,
+            desired_capabilities=d,
         )
     else:
         options.add_argument("--remote-debugging-port=9222")
         driver = webdriver.Chrome(
             options=options,
-            # executable_path="/home/jonas/git/gIDLaB/plotly-dynamic-resampling/chromedriver",
+            # executable_path="/home/jeroen/chromedriver",
+            desired_capabilities=d,
         )
         # driver = webdriver.Firefox(executable_path='/home/jonas/git/gIDLaB/plotly-dynamic-resampling/geckodriver')
     return driver

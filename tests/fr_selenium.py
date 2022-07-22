@@ -14,7 +14,6 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 import sys
 import json
 import time
-from datetime import datetime, timedelta
 from typing import List, Union
 
 from seleniumwire import webdriver
@@ -186,7 +185,14 @@ class FigureResamplerGUITests:
         time.sleep(1)
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
-        if not_on_linux(): time.sleep(10)  # bcs serialization of multiprocessing
+        if not_on_linux(): time.sleep(7)  # bcs serialization of multiprocessing
+        max_nb_tries = 3
+        for _ in range(max_nb_tries):
+            try:
+                self.driver.find_element_by_id("resample-figure")
+                break
+            except:
+                time.sleep(5)
 
     def clear_requests(self, sleep_time_s=1):
         time.sleep(sleep_time_s)

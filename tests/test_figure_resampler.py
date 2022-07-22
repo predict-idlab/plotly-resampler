@@ -4,6 +4,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
 import pytest
+import time
 import numpy as np
 import pandas as pd
 import multiprocessing
@@ -603,11 +604,63 @@ def test_stop_server_inline():
     fr.stop_server()
     proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline"))
     proc.start()
-    import time
 
     time.sleep(3)
     fr.stop_server()
     proc.terminate()
+
+
+def test_stop_server_inline_persistent():
+    # mostly written to test the check_update_figure_dict whether the inline + height
+    # line option triggers
+    fr = FigureResampler(go.Figure())
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    fr.update_layout(height=900)
+    fr.stop_server()
+    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline_persistent"))
+    proc.start()
+
+    time.sleep(3)
+    fr.stop_server()
+    proc.terminate()
+
+
+def test_manual_jupyterdashpersistentinline():
+    # Manually call the JupyterDashPersistentInline its method
+    # This requires some gimmicky stuff to mimmick the behaviour of a jupyter notebook.
+
+    fr = FigureResampler(go.Figure())
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+    fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+
+    # no need to start the app (we just need the FigureResampler object)
+
+    from plotly_resampler.figure_resampler.figure_resampler import JupyterDashPersistentInlineOutput
+    import dash
+    app = JupyterDashPersistentInlineOutput("manual_app")
+    assert hasattr(app, "_uid")
+
+    # Mimmick what happens in the .show_dash method
+    # note: this is necessary because the figure gets accessed in the J
+    # JupyterDashPersistentInline its _display_inline_output method (to create the img)
+    app.layout = dash.html.Div(
+        [
+            dash.dcc.Graph(
+                id="resample-figure", figure=fr
+            ),
+            # no need to add traceupdater for this dummy app
+        ]
+    )
+
+    # call the method (as it would normally be called)
+    app._display_in_jupyter(f"", port="", mode="inline", width='100%', height=500)
+    # call with a different mode (as it normally never would be called)
+    app._display_in_jupyter(f"", port="", mode="external", width='100%', height=500)
 
 
 def test_stop_server_external():
@@ -620,7 +673,6 @@ def test_stop_server_external():
     fr.stop_server()
     proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="external"))
     proc.start()
-    import time
 
     time.sleep(3)
     fr.stop_server()
