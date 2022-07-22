@@ -65,7 +65,7 @@ def driver():
         options.add_argument("--remote-debugging-port=9222")
         driver = webdriver.Chrome(
             options=options,
-            executable_path="/home/jeroen/chromedriver",
+            # executable_path="/home/jeroen/chromedriver",
             desired_capabilities=d,
         )
         # driver = webdriver.Firefox(executable_path='/home/jonas/git/gIDLaB/plotly-dynamic-resampling/geckodriver')
