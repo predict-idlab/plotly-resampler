@@ -69,7 +69,13 @@ def test_multiple_tz(driver, multiple_tz_figure):
         assert len(autoscale_requests) == 1
         assert autoscale_requests[0].response.status_code == 204
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
@@ -174,7 +180,13 @@ def test_basic_example_gui(driver, example_figure):
             n_updated_traces=5,
         )
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
@@ -282,7 +294,13 @@ def test_basic_example_gui_existing(driver, example_figure_fig):
             n_updated_traces=5,
         )
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
@@ -386,7 +404,13 @@ def test_gsr_gui(driver, gsr_figure):
         fr.reset_axes()
         time.sleep(0.2)
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
@@ -461,7 +485,13 @@ def test_cat_gui(driver, cat_series_box_hist_figure):
             n_updated_traces=1,
         )
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
@@ -537,7 +567,13 @@ def test_shared_hover_gui(driver, shared_hover_figure):
         assert len(autoscale_requests) == 1
         assert autoscale_requests[0].response.status_code == 204
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
@@ -610,7 +646,13 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
         assert len(autoscale_requests) == 1
         assert autoscale_requests[0].response.status_code == 204
 
-        assert driver.get_log("browser") == []  # Check no errors in the browser
+        if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
+            for entry in driver.get_log("browser"):
+                print(entry)
+                if not entry["level"] == "INFO":
+                    # Only WebGL warnings are allowed
+                    assert entry["level"] == "warning"
+                    assert entry["message"].contains("WebGL")
     except Exception as e:
         raise e
     finally:
