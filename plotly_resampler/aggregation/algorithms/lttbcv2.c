@@ -53,6 +53,7 @@ static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
 
     // Access the data in the NDArray!
     double *y = (double*)PyArray_DATA(y_array);
+    double *x = (double*)PyArray_DATA(x_array);
 
     // Create an empty output array with shape and dim for the output!
     npy_intp dims[1];
@@ -77,8 +78,7 @@ static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
     Py_ssize_t i;
     for (i = 0; i < threshold - 2; ++i) {
         // Calculate point average for next bucket (containing c)
-        double avg_x = threshold;
-        double avg_y = 0;
+        double avg_x = 0, avg_y = 0;
         Py_ssize_t avg_range_start = (Py_ssize_t)(floor((i + 1)* every) + 1);
         Py_ssize_t avg_range_end = (Py_ssize_t)(floor((i + 2) * every) + 1);
         if (avg_range_end >= data_length){
@@ -88,9 +88,10 @@ static PyObject* downsample_return_index(PyObject *self, PyObject *args) {
 
         for (;avg_range_start < avg_range_end; avg_range_start++){
             avg_y += y[avg_range_start];
+            avg_x += x[avg_range_start];
         }
         avg_y /= avg_range_length;
-        avg_x = avg_range_start + every / 2;
+        avg_x /= avg_range_length;
 
         // Get the range for this bucket
         Py_ssize_t range_offs = (Py_ssize_t)(floor((i + 0) * every) + 1);
