@@ -22,8 +22,8 @@ extensions = []
 if with_extensions:
     extensions = [
         Extension(
-            name="plotly_resampler.aggregation.algorithms.lttbcv2",
-            sources=["plotly_resampler/aggregation/algorithms/lttbcv2.c"],
+            name="plotly_resampler.aggregation.algorithms.lttbc",
+            sources=["plotly_resampler/aggregation/algorithms/lttbc.c"],
             define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
             include_dirs=[np.get_include(), get_script_path()],
         ),
