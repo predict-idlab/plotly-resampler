@@ -29,30 +29,34 @@ from .utils import is_figure, is_fr
 
 
 class JupyterDashPersistentInlineOutput(JupyterDash):
-    """ Extension of the JupyterDash class to support the custom inline output.
+    """ Extension of the JupyterDash class to support the custom inline output for
+    ``FigureResampler`` figures.
 
     Specifically we embed a div in the notebook to display the figure inline.
-    - In this div the figure is shown as an iframe when the server (of the dash app)
-      is alive.
-    - In this div the figure is shown as an image when the server (of the dash app)
-      is dead.
+
+     - In this div the figure is shown as an iframe when the server (of the dash app)
+       is alive.
+     - In this div the figure is shown as an image when the server (of the dash app)
+       is dead.
 
     As the HTML & javascript code is embedded in the notebook output, which is loaded
     each time you open the notebook, the figure is always displayed (either as iframe
     or just an image).
     Hence, this extension enables to maintain always an output in the notebook.
 
-    Note: this subclass is only used when the mode is set to `"inline_persistent"` in
-    the `FigureResampler.show_dash` method. However, the mode should be passed as 
-    `"inline"` since this subclass overwrites the inline behavior.
+    .. Note::
+        This subclass is only used when the mode is set to ``"inline_persistent"`` in
+        the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` 
+        method. However, the mode should be passed as ``"inline"`` since this subclass
+        overwrites the inline behavior.
     """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self._uid = str(uuid.uuid4())  # A new unique id for each app
-        
-        # Mimmick the _alive_{token} endpoint but with cors
+
+        # Mimic the _alive_{token} endpoint but with cors
         @self.server.route(f'/_is_alive_{self._uid}', methods=['GET'])
         @cross_origin(origin=['*'], allow_headers=['Content-Type'])
         def broadcast_alive():
@@ -60,14 +64,14 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
 
     def _display_inline_output(self, dashboard_url, width, height):
         """Display the dash app persistent inline in the notebook.
-        
+
         The figure is displayed as an iframe in the notebook if the server is reachable,
         otherwise as an image.
         """
-        # TODO: check if in case of crash wel error gelogged wordt
+        # TODO: check whether an error gets logged in case of crash
         # TODO: add option to opt out of this
         from IPython.display import display
-        
+
         # Get the image from the dashboard and encode it as base64
         fig = self.layout.children[0].figure  # is stored there in the show_dash method
         fig_base64 = base64.b64encode(fig.to_image("png")).decode("utf8")
@@ -81,11 +85,11 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         # The html (& javascript) code to display the app / figure
         display(
             {
-                "text/html": 
+                "text/html":
                 f"""
                 <div id='PR_div__{uid}'></div>
                 <script type='text/javascript'>
-                """ + 
+                """ +
                 """
 
                 function setOutput(timeout) {
@@ -106,7 +110,7 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
 
                     return fetch(url + is_alive_suffix, {method: 'GET', signal: signal})
                         .then(response => response.text())
-                        .then(data => 
+                        .then(data =>
                             {
                                 if (data == "Alive") {
                                     console.log("Server is alive");
@@ -123,9 +127,9 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                             imageOutput(pr_div, pr_img_src);
                         })
                 }
-                
+
                 setOutput(350);
-                
+
                 function imageOutput(element, pr_img_src) {
                     console.log('Setting image');
                     var pr_img = document.createElement("img");
@@ -139,7 +143,7 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                     """
                     element.appendChild(pr_img);
                 }
-                
+
                 function iframeOutput(element, url) {
                     console.log('Setting iframe');
                     var pr_iframe = document.createElement("iframe");
@@ -160,11 +164,11 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         )
 
     def _display_in_jupyter(self, dashboard_url, port, mode, width, height):
-        """Override the display method to display to retain some output when displaying
-        inline in jupyter.
+        """Override the display method to retain some output when displaying inline
+        in jupyter.
         """
         if mode == "inline":
-            self._display_inline_output(dashboard_url, width, height)            
+            self._display_inline_output(dashboard_url, width, height)
         else:
             super()._display_in_jupyter(dashboard_url, port, mode, width, height)
 
@@ -228,7 +232,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
         show_dash_kwargs: dict, optional
-            A dict that will be used as default kwargs for the :func:`show_dash` method. 
+            A dict that will be used as default kwargs for the :func:`show_dash` method.
             Note that the passed kwargs will be take precedence over these defaults.
 
         """
@@ -331,7 +335,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
               * ``"inline_persistent"``: The app will be displayed inline in the
                 notebook output cell in an iframe, if the app is not reachable a static
                 image of the figure is shown. Hence this is a persistent version of the
-                ``"inline"`` mode, allowing users to see a static figure in other 
+                ``"inline"`` mode, allowing users to see a static figure in other
                 environments, browsers, etc.
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
