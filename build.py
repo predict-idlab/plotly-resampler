@@ -18,6 +18,7 @@ with_extensions = True
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
 
+
 extensions = []
 if with_extensions:
     extensions = [
@@ -44,15 +45,26 @@ class ExtBuilder(build_ext):
         try:
             build_ext.run(self)
         except (DistutilsPlatformError, FileNotFoundError) as e:
-            print("   Unable to build the C extensions.")
-            raise e
+            print(
+                "   Unable to build the C extensions, will use the slower python "
+                "fallback for LTTB"
+            )
+            pass
 
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
-        except (CCompilerError, DistutilsExecError, DistutilsPlatformError, ValueError) as e:
-            print('   Unable to build the "{}" C extension, '.format(ext.name))
-            raise e
+        except (
+            CCompilerError,
+            DistutilsExecError,
+            DistutilsPlatformError,
+            ValueError,
+        ) as e:
+            print(
+                '   Unable to build the "{}" C extension; '.format(ext.name)
+                + "will use the slower python fallback."
+            )
+            print(e)
 
 
 def build(setup_kwargs):
