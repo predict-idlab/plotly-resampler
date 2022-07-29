@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotly-resampler"  # Do not forget to update the __init__.py __version__ variable
-version = "0.8.0rc5"
+version = "0.8.0rc8"
 description = "Visualizing large time series with plotly"
 authors = ["Jonas Van Der Donckt", "Jeroen Van Der Donckt", "Emiel Deprost"]
 readme = "README.md"
@@ -30,7 +30,7 @@ dash = "^2.2.0"
 orjson = {version = "^3.7.7", optional = true}
 pandas = "^1.3.5"
 trace-updater = ">=0.0.8"
-numpy = ">=1.21.0"
+numpy = ">=1.14"
 Flask-Cors = "^3.0.10"
 
 [tool.poetry.dev-dependencies]
@@ -51,5 +51,6 @@ line-profiler = "^3.5.1"
 kaleido = "0.2.1"
 
 [build-system]
-requires = ["poetry-core>=1.1.0a6",  "numpy"]
+# https://github.com/scipy/oldest-supported-numpy
+requires = ["oldest-supported-numpy", "poetry-core>=1.1.0a6"]
 build-backend = "poetry.core.masonry.api"
