@@ -1838,14 +1838,6 @@ python-versions = ">=3.7.0"
 h11 = ">=0.9.0,<1"
 
 [[package]]
-name = "yep"
-version = "0.4"
-description = "A module for profiling compiled extensions"
-category = "dev"
-optional = false
-python-versions = "*"
-
-[[package]]
 name = "zipp"
 version = "3.8.0"
 description = "Backport of pathlib-compatible object wrapper for zip files"
@@ -1874,7 +1866,7 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1,<3.11"
-content-hash = "617c058b68325cc069ebcfc7dfe07d121c3a08074c3b61de6be943582eb24f05"
+content-hash = "5888ae343ddeb60827c221df99e4426949467ce760b771e6eb89c3ebe0327a5b"
 
 [metadata.files]
 alabaster = [
@@ -3054,9 +3046,6 @@ widgetsnbextension = [
 wsproto = [
     {file = "wsproto-1.1.0-py3-none-any.whl", hash = "sha256:2218cb57952d90b9fca325c0dcfb08c3bda93e8fd8070b0a17f048e2e47a521b"},
     {file = "wsproto-1.1.0.tar.gz", hash = "sha256:a2e56bfd5c7cd83c1369d83b5feccd6d37798b74872866e62616e0ecf111bda8"},
-]
-yep = [
-    {file = "yep-0.4.tar.gz", hash = "sha256:41eac9625335b41657bcaf87083edf9e1a95178ea3c7ad3dd6d6ff5e2fe7ceea"},
 ]
 zipp = [
     {file = "zipp-3.8.0-py3-none-any.whl", hash = "sha256:c4f6e5bbf48e74f7a38e7cc5b0480ff42b0ae5178957d564d18932525d5cf099"},
