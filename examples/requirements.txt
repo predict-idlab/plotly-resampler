@@ -5,3 +5,4 @@ ipywidgets>=7.7.0
 memory-profiler>=0.60.0
 line-profiler>=3.5.1
 pyarrow>=6.0.0
+kaleido>=0.2.1
