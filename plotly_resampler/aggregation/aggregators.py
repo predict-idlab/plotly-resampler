@@ -282,8 +282,15 @@ class EfficientLTTB(AbstractSeriesAggregator):
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        if s.shape[0] > n_out * 2_000:
-            s = self.minmax._aggregate(s, n_out * 50)
+        size_threshold = 10_000_000
+        ratio_threshold = 100
+
+        # TODO -> test this with a move of the .so file
+        if LTTB_core.__name__ == 'LTTB_core_py':
+            size_threshold = 1_000_000
+
+        if s.shape[0] > size_threshold and s.shape[0] / n_out > ratio_threshold:
+            s = self.minmax._aggregate(s, n_out * 30)
         return self.lttb._aggregate(s, n_out)
 
 
