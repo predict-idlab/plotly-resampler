@@ -16,10 +16,7 @@ include = [
     {path = "plotly_resampler/aggregation/algorithms/*.so", format = "wheel"},
     {path = "plotly_resampler/aggregation/algorithms/*.pyd", format = "wheel"}
 ]
-
-[tool.poetry.build]
-generate-setup-file = false
-script = "build.py"
+build="build.py"
 
 
 [tool.poetry.dependencies]
@@ -50,7 +47,29 @@ memory-profiler = "^0.60.0"
 line-profiler = "^3.5.1"
 kaleido = "0.2.1"
 
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
 [build-system]
-# https://github.com/scipy/oldest-supported-numpy
-requires = ["oldest-supported-numpy", "poetry-core>=1.1.0a6"]
+requires = [
+    "setuptools'",
+    "poetry-core>=1.1.0a6",
+    "wheel",
+    # https://github.com/scipy/oldest-supported-numpy
+    "oldest-supported-numpy; python_version>='3.7'",
+]
 build-backend = "poetry.core.masonry.api"
