@@ -34,7 +34,7 @@ class LTTB_core_py:
         ).argmax()
 
     @staticmethod
-    def downsample(x: np.ndarray, y: np.ndarray, n_out) -> np.mdarray:
+    def downsample(x: np.ndarray, y: np.ndarray, n_out) -> np.ndarray:
         """Downsample the data using the LTTB algorithm (python implementation).
 
         Parameters
