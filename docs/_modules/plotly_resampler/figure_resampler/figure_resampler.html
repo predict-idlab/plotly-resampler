@@ -184,9 +184,12 @@
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span>
 
+<span class="kn">import</span> <span class="nn">uuid</span>
+<span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">dash</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">dash</span> <span class="kn">import</span> <span class="n">Dash</span>
+<span class="kn">from</span> <span class="nn">flask_cors</span> <span class="kn">import</span> <span class="n">cross_origin</span>
 <span class="kn">from</span> <span class="nn">jupyter_dash</span> <span class="kn">import</span> <span class="n">JupyterDash</span>
 <span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseFigure</span>
 <span class="kn">from</span> <span class="nn">trace_updater</span> <span class="kn">import</span> <span class="n">TraceUpdater</span>
@@ -194,6 +197,159 @@
 <span class="kn">from</span> <span class="nn">..aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">EfficientLTTB</span>
 <span class="kn">from</span> <span class="nn">.figure_resampler_interface</span> <span class="kn">import</span> <span class="n">AbstractFigureAggregator</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">is_figure</span><span class="p">,</span> <span class="n">is_fr</span>
+
+
+<span class="k">class</span> <span class="nc">JupyterDashPersistentInlineOutput</span><span class="p">(</span><span class="n">JupyterDash</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Extension of the JupyterDash class to support the custom inline output for</span>
+<span class="sd">    ``FigureResampler`` figures.</span>
+
+<span class="sd">    Specifically we embed a div in the notebook to display the figure inline.</span>
+
+<span class="sd">     - In this div the figure is shown as an iframe when the server (of the dash app)</span>
+<span class="sd">       is alive.</span>
+<span class="sd">     - In this div the figure is shown as an image when the server (of the dash app)</span>
+<span class="sd">       is dead.</span>
+
+<span class="sd">    As the HTML &amp; javascript code is embedded in the notebook output, which is loaded</span>
+<span class="sd">    each time you open the notebook, the figure is always displayed (either as iframe</span>
+<span class="sd">    or just an image).</span>
+<span class="sd">    Hence, this extension enables to maintain always an output in the notebook.</span>
+
+<span class="sd">    .. Note::</span>
+<span class="sd">        This subclass is only used when the mode is set to ``&quot;inline_persistent&quot;`` in</span>
+<span class="sd">        the :func:`FigureResampler.show_dash &lt;plotly_resampler.figure_resampler.FigureResampler.show_dash&gt;`</span>
+<span class="sd">        method. However, the mode should be passed as ``&quot;inline&quot;`` since this subclass</span>
+<span class="sd">        overwrites the inline behavior.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_uid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>  <span class="c1"># A new unique id for each app</span>
+
+        <span class="c1"># Mimic the _alive_{token} endpoint but with cors</span>
+        <span class="nd">@self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/_is_alive_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_uid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+        <span class="nd">@cross_origin</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span> <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">])</span>
+        <span class="k">def</span> <span class="nf">broadcast_alive</span><span class="p">():</span>
+            <span class="k">return</span> <span class="s2">&quot;Alive&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_display_inline_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dashboard_url</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Display the dash app persistent inline in the notebook.</span>
+
+<span class="sd">        The figure is displayed as an iframe in the notebook if the server is reachable,</span>
+<span class="sd">        otherwise as an image.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># TODO: check whether an error gets logged in case of crash</span>
+        <span class="c1"># TODO: add option to opt out of this</span>
+        <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
+
+        <span class="c1"># Get the image from the dashboard and encode it as base64</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">figure</span>  <span class="c1"># is stored there in the show_dash method</span>
+        <span class="n">f_width</span> <span class="o">=</span> <span class="mi">1000</span> <span class="k">if</span> <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">width</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">width</span>
+        <span class="n">fig_base64</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">to_image</span><span class="p">(</span><span class="nb">format</span><span class="o">=</span><span class="s2">&quot;png&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">f_width</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">height</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf8&quot;</span><span class="p">)</span>
+
+        <span class="c1"># The unique id of this app</span>
+        <span class="c1"># This id is used to couple the output in the notebook with this app</span>
+        <span class="c1"># A fetch request is performed to the _is_alive_{uid} endpoint to check if the</span>
+        <span class="c1"># app is still alive.</span>
+        <span class="n">uid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_uid</span>
+
+        <span class="c1"># The html (&amp; javascript) code to display the app / figure</span>
+        <span class="n">display</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;text/html&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                &lt;div id=&#39;PR_div__</span><span class="si">{</span><span class="n">uid</span><span class="si">}</span><span class="s2">&#39;&gt;&lt;/div&gt;</span>
+<span class="s2">                &lt;script type=&#39;text/javascript&#39;&gt;</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2">                function setOutput(timeout) {</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="o">+</span>
+                <span class="c1"># Variables should be in local scope (in the closure)</span>
+                <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    var pr_div = document.getElementById(&#39;PR_div__</span><span class="si">{</span><span class="n">uid</span><span class="si">}</span><span class="s2">&#39;);</span>
+<span class="s2">                    var url = &#39;</span><span class="si">{</span><span class="n">dashboard_url</span><span class="si">}</span><span class="s2">&#39;;</span>
+<span class="s2">                    var pr_img_src = &#39;data:image/png;base64, </span><span class="si">{</span><span class="n">fig_base64</span><span class="si">}</span><span class="s2">&#39;;</span>
+<span class="s2">                    var is_alive_suffix = &#39;_is_alive_</span><span class="si">{</span><span class="n">uid</span><span class="si">}</span><span class="s2">&#39;;</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2">                    if (pr_div.firstChild) return  // return if already loaded</span>
+
+<span class="s2">                    const controller = new AbortController();</span>
+<span class="s2">                    const signal = controller.signal;</span>
+
+<span class="s2">                    return fetch(url + is_alive_suffix, {method: &#39;GET&#39;, signal: signal})</span>
+<span class="s2">                        .then(response =&gt; response.text())</span>
+<span class="s2">                        .then(data =&gt;</span>
+<span class="s2">                            {</span>
+<span class="s2">                                if (data == &quot;Alive&quot;) {</span>
+<span class="s2">                                    console.log(&quot;Server is alive&quot;);</span>
+<span class="s2">                                    iframeOutput(pr_div, url);</span>
+<span class="s2">                                } else {</span>
+<span class="s2">                                    // I think this case will never occur because of CORS</span>
+<span class="s2">                                    console.log(&quot;Server is dead&quot;);</span>
+<span class="s2">                                    imageOutput(pr_div, pr_img_src);</span>
+<span class="s2">                                }</span>
+<span class="s2">                            }</span>
+<span class="s2">                        )</span>
+<span class="s2">                        .catch(error =&gt; {</span>
+<span class="s2">                            console.log(&quot;Server is unreachable&quot;);</span>
+<span class="s2">                            imageOutput(pr_div, pr_img_src);</span>
+<span class="s2">                        })</span>
+<span class="s2">                }</span>
+
+<span class="s2">                setOutput(350);</span>
+
+<span class="s2">                function imageOutput(element, pr_img_src) {</span>
+<span class="s2">                    console.log(&#39;Setting image&#39;);</span>
+<span class="s2">                    var pr_img = document.createElement(&quot;img&quot;);</span>
+<span class="s2">                    pr_img.setAttribute(&quot;src&quot;, pr_img_src)</span>
+<span class="s2">                    pr_img.setAttribute(&quot;alt&quot;, &#39;Server unreachable - using image instead&#39;);</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    pr_img.setAttribute(&quot;max-width&quot;, &#39;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2">&#39;);</span>
+<span class="s2">                    pr_img.setAttribute(&quot;max-height&quot;, &#39;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">&#39;);</span>
+<span class="s2">                    pr_img.setAttribute(&quot;width&quot;, &#39;auto&#39;);</span>
+<span class="s2">                    pr_img.setAttribute(&quot;height&quot;, &#39;auto&#39;);</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    element.appendChild(pr_img);</span>
+<span class="s2">                }</span>
+
+<span class="s2">                function iframeOutput(element, url) {</span>
+<span class="s2">                    console.log(&#39;Setting iframe&#39;);</span>
+<span class="s2">                    var pr_iframe = document.createElement(&quot;iframe&quot;);</span>
+<span class="s2">                    pr_iframe.setAttribute(&quot;src&quot;, url);</span>
+<span class="s2">                    pr_iframe.setAttribute(&quot;frameborder&quot;, &#39;0&#39;);</span>
+<span class="s2">                    pr_iframe.setAttribute(&quot;allowfullscreen&quot;, &#39;&#39;);</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    pr_iframe.setAttribute(&quot;width&quot;, &#39;</span><span class="si">{</span><span class="n">width</span><span class="si">}</span><span class="s2">&#39;);</span>
+<span class="s2">                    pr_iframe.setAttribute(&quot;height&quot;, &#39;</span><span class="si">{</span><span class="n">height</span><span class="si">}</span><span class="s2">&#39;);</span>
+<span class="s2">                    &quot;&quot;&quot;</span>
+                <span class="o">+</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    element.appendChild(pr_iframe);</span>
+<span class="s2">                }</span>
+<span class="s2">                &lt;/script&gt;</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+            <span class="p">},</span>
+            <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">clear</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">display_id</span><span class="o">=</span><span class="n">uid</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_display_in_jupyter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dashboard_url</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Override the display method to retain some output when displaying inline</span>
+<span class="sd">        in jupyter.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline&quot;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_display_inline_output</span><span class="p">(</span><span class="n">dashboard_url</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_display_in_jupyter</span><span class="p">(</span><span class="n">dashboard_url</span><span class="p">,</span> <span class="n">port</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="FigureResampler"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.FigureResampler">[docs]</a><span class="k">class</span> <span class="nc">FigureResampler</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">):</span>
@@ -255,7 +411,7 @@
 <span class="sd">        verbose: bool, optional</span>
 <span class="sd">            Whether some verbose messages will be printed or not, by default False.</span>
 <span class="sd">        show_dash_kwargs: dict, optional</span>
-<span class="sd">            A dict that will be used as default kwargs for the :func:`show_dash` method. </span>
+<span class="sd">            A dict that will be used as default kwargs for the :func:`show_dash` method.</span>
 <span class="sd">            Note that the passed kwargs will be take precedence over these defaults.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -280,7 +436,7 @@
                 <span class="n">f</span><span class="o">.</span><span class="n">_grid_ref</span> <span class="o">=</span> <span class="n">figure</span><span class="o">.</span><span class="n">_grid_ref</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">figure</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
-                <span class="s2">&quot;data&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="ow">or</span> <span class="s2">&quot;layout&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="c1"># or &quot;frames&quot; in figure  # TODO</span>
+                <span class="s2">&quot;data&quot;</span> <span class="ow">in</span> <span class="n">figure</span> <span class="ow">or</span> <span class="s2">&quot;layout&quot;</span> <span class="ow">in</span> <span class="n">figure</span>  <span class="c1"># or &quot;frames&quot; in figure  # TODO</span>
             <span class="p">):</span>
                 <span class="c1"># A figure as a dict, can be;</span>
                 <span class="c1"># - a plotly figure as a dict (after calling `fig.to_dict()`)</span>
@@ -302,7 +458,9 @@
                 <span class="c1"># A single trace dict or a list of traces</span>
                 <span class="n">f</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">figure</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_show_dash_kwargs</span> <span class="o">=</span> <span class="n">show_dash_kwargs</span> <span class="k">if</span> <span class="n">show_dash_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_dash_kwargs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">show_dash_kwargs</span> <span class="k">if</span> <span class="n">show_dash_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+        <span class="p">)</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
             <span class="n">f</span><span class="p">,</span>
@@ -355,6 +513,15 @@
 <span class="sd">                web browser.</span>
 <span class="sd">              * ``&quot;inline&quot;``: The app will be displayed inline in the notebook output</span>
 <span class="sd">                cell in an iframe.</span>
+<span class="sd">              * ``&quot;inline_persistent&quot;``: The app will be displayed inline in the</span>
+<span class="sd">                notebook output cell in an iframe, if the app is not reachable a static</span>
+<span class="sd">                image of the figure is shown. Hence this is a persistent version of the</span>
+<span class="sd">                ``&quot;inline&quot;`` mode, allowing users to see a static figure in other</span>
+<span class="sd">                environments, browsers, etc.</span>
+
+<span class="sd">                .. note::</span>
+<span class="sd">                    This mode requires the ``kaleido`` package.</span>
+
 <span class="sd">              * ``&quot;jupyterlab&quot;``: The app will be displayed in a dedicated tab in the</span>
 <span class="sd">                JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``</span>
 <span class="sd">                extension.</span>
@@ -377,10 +544,21 @@
 <span class="sd">            constructor via the ``show_dash_kwargs`` argument.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">available_modes</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;external&quot;</span><span class="p">,</span> <span class="s2">&quot;inline&quot;</span><span class="p">,</span> <span class="s2">&quot;inline_persistent&quot;</span><span class="p">,</span> <span class="s2">&quot;jupyterlab&quot;</span><span class="p">]</span>
+        <span class="k">assert</span> <span class="p">(</span>
+            <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">mode</span> <span class="ow">in</span> <span class="n">available_modes</span>
+        <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;mode must be one of </span><span class="si">{</span><span class="n">available_modes</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">graph_properties</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">graph_properties</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">graph_properties</span>
         <span class="k">assert</span> <span class="s2">&quot;config&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">graph_properties</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c1"># There is a param for config</span>
         <span class="c1"># 1. Construct the Dash app layout</span>
-        <span class="n">app</span> <span class="o">=</span> <span class="n">JupyterDash</span><span class="p">(</span><span class="s2">&quot;local_app&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline_persistent&quot;</span><span class="p">:</span>
+            <span class="c1"># Inline persistent mode: we display a static image of the figure when the</span>
+            <span class="c1"># app is not reachable</span>
+            <span class="c1"># Note: this is the &quot;inline&quot; behavior of JupyterDashInlinePersistentOutput</span>
+            <span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;inline&quot;</span>
+            <span class="n">app</span> <span class="o">=</span> <span class="n">JupyterDashPersistentInlineOutput</span><span class="p">(</span><span class="s2">&quot;local_app&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">app</span> <span class="o">=</span> <span class="n">JupyterDash</span><span class="p">(</span><span class="s2">&quot;local_app&quot;</span><span class="p">)</span>
         <span class="n">app</span><span class="o">.</span><span class="n">layout</span> <span class="o">=</span> <span class="n">dash</span><span class="o">.</span><span class="n">html</span><span class="o">.</span><span class="n">Div</span><span class="p">(</span>
             <span class="p">[</span>
                 <span class="n">dash</span><span class="o">.</span><span class="n">dcc</span><span class="o">.</span><span class="n">Graph</span><span class="p">(</span>
@@ -394,10 +572,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">register_update_graph_callback</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;resample-figure&quot;</span><span class="p">,</span> <span class="s2">&quot;trace-updater&quot;</span><span class="p">)</span>
 
         <span class="c1"># 2. Run the app</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline&quot;</span>
-            <span class="ow">and</span> <span class="s2">&quot;height&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span>
-        <span class="p">):</span>
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline&quot;</span> <span class="ow">and</span> <span class="s2">&quot;height&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="c1"># If app height is not specified -&gt; re-use figure height for inline dash app</span>
             <span class="c1">#  Note: default layout height is 450 (whereas default app height is 650)</span>
             <span class="c1">#  See: https://plotly.com/python/reference/layout/#layout-height</span>

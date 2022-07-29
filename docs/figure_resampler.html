@@ -577,6 +577,16 @@ output cell. Clicking this URL will open the app in the default
 web browser.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;inline&quot;</span></code>: The app will be displayed inline in the notebook output
 cell in an iframe.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;inline_persistent&quot;</span></code>: The app will be displayed inline in the
+notebook output cell in an iframe, if the app is not reachable a static
+image of the figure is shown. Hence this is a persistent version of the
+<code class="docutils literal notranslate"><span class="pre">&quot;inline&quot;</span></code> mode, allowing users to see a static figure in other
+environments, browsers, etc.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This mode requires the <code class="docutils literal notranslate"><span class="pre">kaleido</span></code> package.</p>
+</div>
+</li>
 <li><p><code class="docutils literal notranslate"><span class="pre">&quot;jupyterlab&quot;</span></code>: The app will be displayed in a dedicated tab in the
 JupyterLab interface. Requires JupyterLab and the <code class="docutils literal notranslate"><span class="pre">jupyterlab-dash</span></code>
 extension.</p></li>

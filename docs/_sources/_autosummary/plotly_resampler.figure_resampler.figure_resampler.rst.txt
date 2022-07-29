@@ -18,6 +18,7 @@ plotly\_resampler.figure\_resampler.figure\_resampler
    .. autosummary::
    
       FigureResampler
+      JupyterDashPersistentInlineOutput
    
    
 
