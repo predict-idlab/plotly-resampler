@@ -3,7 +3,7 @@
 This directory withholds several examples, highlighting the applicability of 
 plotly-resampler for various use cases.
 
-To succesfully run these examples, make sure that you've installed all the requirements by running:
+To successfully run these examples, make sure that you've installed all the requirements by running:
 ```bash
 pip install -r requirements.txt
 ```
@@ -21,6 +21,12 @@ pip install -r requirements.txt
 
 The [basic example notebook](basic_example.ipynb) covers most use-cases in which plotly resampler will be employed. It is the ideal hands-on starting point for data-scientists who want to use
 plotly-resampler in their day-to-day jupyter environments.
+
+Additionally, this notebook also shows some more advanced functionalities, such as:
+* Retaining (a static) plotly-resampler figure in your notebook
+* Adjusting trace data of plotly-resampler figures at runtime
+* The flexibility of configuring different aggregation-algorithms and number of shown samples per trace
+
 
 ### 1.2 Figurewidget example
 
