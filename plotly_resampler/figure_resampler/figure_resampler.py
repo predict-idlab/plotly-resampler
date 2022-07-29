@@ -347,6 +347,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 image of the figure is shown. Hence this is a persistent version of the
                 ``"inline"`` mode, allowing users to see a static figure in other
                 environments, browsers, etc.
+
+                .. note::
+                    This mode requires the ``kaleido`` package.
+
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
                 extension.
