@@ -29,7 +29,7 @@ from .utils import is_figure, is_fr
 
 
 class JupyterDashPersistentInlineOutput(JupyterDash):
-    """ Extension of the JupyterDash class to support the custom inline output for
+    """Extension of the JupyterDash class to support the custom inline output for
     ``FigureResampler`` figures.
 
     Specifically we embed a div in the notebook to display the figure inline.
@@ -46,7 +46,7 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
 
     .. Note::
         This subclass is only used when the mode is set to ``"inline_persistent"`` in
-        the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>` 
+        the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>`
         method. However, the mode should be passed as ``"inline"`` since this subclass
         overwrites the inline behavior.
     """
@@ -57,8 +57,8 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         self._uid = str(uuid.uuid4())  # A new unique id for each app
 
         # Mimic the _alive_{token} endpoint but with cors
-        @self.server.route(f'/_is_alive_{self._uid}', methods=['GET'])
-        @cross_origin(origin=['*'], allow_headers=['Content-Type'])
+        @self.server.route(f"/_is_alive_{self._uid}", methods=["GET"])
+        @cross_origin(origin=["*"], allow_headers=["Content-Type"])
         def broadcast_alive():
             return "Alive"
 
@@ -74,7 +74,10 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
 
         # Get the image from the dashboard and encode it as base64
         fig = self.layout.children[0].figure  # is stored there in the show_dash method
-        fig_base64 = base64.b64encode(fig.to_image("png")).decode("utf8")
+        f_width = 1000 if fig.layout.width is None else fig.layout.width
+        fig_base64 = base64.b64encode(
+            fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
+        ).decode("utf8")
 
         # The unique id of this app
         # This id is used to couple the output in the notebook with this app
@@ -85,23 +88,23 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         # The html (& javascript) code to display the app / figure
         display(
             {
-                "text/html":
-                f"""
+                "text/html": f"""
                 <div id='PR_div__{uid}'></div>
                 <script type='text/javascript'>
-                """ +
                 """
+                + """
 
                 function setOutput(timeout) {
-                    """ +
-                    # Variables should be in local scope (in the closure)
-                    f"""
+                    """
+                +
+                # Variables should be in local scope (in the closure)
+                f"""
                     var pr_div = document.getElementById('PR_div__{uid}');
                     var url = '{dashboard_url}';
                     var pr_img_src = 'data:image/png;base64, {fig_base64}';
                     var is_alive_suffix = '_is_alive_{uid}';
-                    """ +
                     """
+                + """
 
                     if (pr_div.firstChild) return  // return if already loaded
 
@@ -135,12 +138,14 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                     var pr_img = document.createElement("img");
                     pr_img.setAttribute("src", pr_img_src)
                     pr_img.setAttribute("alt", 'Server unreachable - using image instead');
-                    """ +
-                    f"""
-                    pr_img.setAttribute("width", '{width}');
-                    pr_img.setAttribute("height", '{height}');
-                    """ +
                     """
+                + f"""
+                    pr_img.setAttribute("max-width", '{width}');
+                    pr_img.setAttribute("max-height", '{height}');
+                    pr_img.setAttribute("width", 'auto');
+                    pr_img.setAttribute("height", 'auto');
+                    """
+                + """
                     element.appendChild(pr_img);
                 }
 
@@ -150,17 +155,20 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                     pr_iframe.setAttribute("src", url);
                     pr_iframe.setAttribute("frameborder", '0');
                     pr_iframe.setAttribute("allowfullscreen", '');
-                    """ +
-                    f"""
+                    """
+                + f"""
                     pr_iframe.setAttribute("width", '{width}');
                     pr_iframe.setAttribute("height", '{height}');
-                    """ +
                     """
+                + """
                     element.appendChild(pr_iframe);
                 }
                 </script>
                 """
-            }, raw=True, clear=True, display_id=uid,
+            },
+            raw=True,
+            clear=True,
+            display_id=uid,
         )
 
     def _display_in_jupyter(self, dashboard_url, port, mode, width, height):
@@ -257,7 +265,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 f._grid_ref = figure._grid_ref
                 f.add_traces(figure.data)
             elif isinstance(figure, dict) and (
-                "data" in figure or "layout" in figure # or "frames" in figure  # TODO
+                "data" in figure or "layout" in figure  # or "frames" in figure  # TODO
             ):
                 # A figure as a dict, can be;
                 # - a plotly figure as a dict (after calling `fig.to_dict()`)
@@ -279,7 +287,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 # A single trace dict or a list of traces
                 f.add_traces(figure)
 
-        self._show_dash_kwargs = show_dash_kwargs if show_dash_kwargs is not None else {}
+        self._show_dash_kwargs = (
+            show_dash_kwargs if show_dash_kwargs is not None else {}
+        )
 
         super().__init__(
             f,
@@ -360,9 +370,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         """
         available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
-        assert mode is None or mode in available_modes, (
-            f"mode must be one of {available_modes}"
-        )
+        assert (
+            mode is None or mode in available_modes
+        ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties.keys()  # There is a param for config
         # 1. Construct the Dash app layout
@@ -387,10 +397,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self.register_update_graph_callback(app, "resample-figure", "trace-updater")
 
         # 2. Run the app
-        if (
-            mode == "inline"
-            and "height" not in kwargs
-        ):
+        if mode == "inline" and "height" not in kwargs:
             # If app height is not specified -> re-use figure height for inline dash app
             #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height
