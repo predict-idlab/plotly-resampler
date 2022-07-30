@@ -21,7 +21,7 @@ try:
     from .algorithms.lttb_c import LTTB_core_c as LTTB_core
 except:
     import warnings
-    warnings.warn("Could not import lttbcv2; will use a (slower) python alternative.")
+    warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
     from .algorithms.lttb_py import LTTB_core_py as LTTB_core
 
 

@@ -1,7 +1,7 @@
 #define PY_SSIZE_T_CLEAN
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <Python.h> // pull the python API into the current namespace
-// #include <stdio.h> // pull in the printf function
+// #include <stdio.h>  // pull in the printf function
 #include <numpy/arrayobject.h>
 #include <numpy/npy_math.h>
 #include <math.h>
@@ -109,6 +109,11 @@ static PyObject *downsample_int_double(PyObject *self, PyObject *args)
         double point_a_y = y[a];
         double point_a_x = x[a];
 
+        // if (i >= n_out - 3)
+        // {
+        //     printf("prev_x = %f prev_y = %f \t range_off = %ld  range_to = %ld \t avg_x = %f  avg_y = %f\n", point_a_x, point_a_y, range_offs, range_to, avg_x, avg_y);
+        // }
+
         double max_area = -1.0;
         for (; range_offs < range_to; range_offs++)
         {
@@ -151,7 +156,7 @@ fail:
 }
 
 // This method only returns the index positions of the selected points.
-// almost everything can be sucessfully parsed to this so this will be 
+// almost everything can be sucessfully parsed to this so this will be
 // our fallback method
 static PyObject *downsample_double_double(PyObject *self, PyObject *args)
 {
@@ -199,7 +204,7 @@ static PyObject *downsample_double_double(PyObject *self, PyObject *args)
 
     // Access the data in the NDArray!
     double *y = (double *)PyArray_DATA(y_array);
-    long long *x = (long long *)PyArray_DATA(x_array);
+    double *x = (double *)PyArray_DATA(x_array);
 
     // Create an empty output array with shape and dim for the output!
     npy_intp dims[1];
@@ -290,7 +295,6 @@ fail:
     Py_XDECREF(y_array);
     return NULL;
 }
-
 
 // This method only returns the index positions of the selected points.
 // x = np.int64; y = np.float32
@@ -432,7 +436,6 @@ fail:
     return NULL;
 }
 
-
 // This method only returns the index positions of the selected points.
 // x = np.int64; y = np.int64
 static PyObject *downsample_int_int(PyObject *self, PyObject *args)
@@ -572,7 +575,6 @@ fail:
     Py_XDECREF(y_array);
     return NULL;
 }
-
 
 // ------------------ Boilderplate code  ------------------
 // Method definition object

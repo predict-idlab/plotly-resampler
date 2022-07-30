@@ -2,6 +2,7 @@
 
 import numpy as np
 
+
 class LTTB_core_py:
     @staticmethod
     def _argmax_area(prev_x, prev_y, avg_next_x, avg_next_y, x_bucket, y_bucket) -> int:
@@ -53,7 +54,10 @@ class LTTB_core_py:
         """
         # Bucket size. Leave room for start and end data points
         block_size = (y.shape[0] - 2) / (n_out - 2)
-        offset = np.arange(start=1, stop=y.shape[0] - 1, step=block_size, dtype="int64")
+        # Note this'astype' cast must take place after array creation (and not with the
+        # aranage() its dtype argument) or it will cast the `block_size` step to an int
+        # before the arange array creation
+        offset = np.arange(start=1, stop=y.shape[0], step=block_size).astype(np.int64)
 
         # Construct the output array
         sampled_x = np.empty(n_out, dtype="int64")
@@ -61,7 +65,7 @@ class LTTB_core_py:
         sampled_x[-1] = x.shape[0] - 1
 
         a = 0
-        for i in range(n_out - 4):
+        for i in range(n_out - 3):
             a = (
                 LTTB_core_py._argmax_area(
                     prev_x=x[a],
@@ -76,33 +80,16 @@ class LTTB_core_py:
             sampled_x[i + 1] = a
 
         # ------------ EDGE CASE ------------
-        # The last part of the data is not a complete bucket
-
-        # edge case 1; penultimate bucket 
-        #  calculate the mean of the last bucket
-        a = (
-            LTTB_core_py._argmax_area(
-                prev_x=x[a],
-                prev_y=y[a],
-                avg_next_x=np.mean(x[offset[-1] :]),
-                avg_next_y=y[offset[-1] :].mean(),
-                x_bucket=x[offset[-2] : offset[-1]],
-                y_bucket=x[offset[-2] : offset[-1]],
-            )
-            + offset[-2]
-        )
-        sampled_x[-3] = a
-
-        # edge case; the last part of the data
+        # next-average of last bucket = last point
         sampled_x[-2] = (
             LTTB_core_py._argmax_area(
                 prev_x=x[a],
                 prev_y=y[a],
-                avg_next_x=x[-1],
+                avg_next_x=x[-1],  # last point
                 avg_next_y=y[-1],
-                x_bucket=x[offset[-1] :],
-                y_bucket=y[offset[-1] :],
+                x_bucket=x[offset[-2] : offset[-1]],
+                y_bucket=y[offset[-2] : offset[-1]],
             )
-            + offset[-1]
+            + offset[-2]
         )
         return sampled_x
