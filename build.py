@@ -49,15 +49,15 @@ class ExtBuilder(build_ext):
                 "   Unable to build the C extensions, will use the slower python "
                 "fallback for LTTB"
             )
-            pass
+            print(e)
 
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
         except (
+            DistutilsPlatformError,
             CCompilerError,
             DistutilsExecError,
-            DistutilsPlatformError,
             ValueError,
         ) as e:
             print(
