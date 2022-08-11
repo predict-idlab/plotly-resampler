@@ -102,7 +102,7 @@ app.layout = html.Div(
 
 # ------------------------------------ DASH logic -------------------------------------
 # This method adds the needed components to the front-end, but does not yet contain the
-# figureResampler graph construction logic.
+# FigureResampler graph construction logic.
 @app.callback(
     Output("graph-container", "children"),
     Input("add-graph-btn", "n_clicks"),
@@ -132,7 +132,7 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
     uid = str(uuid4())
     new_child = html.Div(
         children=[
-            # The graph and it's needed components to serialize and update efficiently
+            # The graph and its needed components to serialize and update efficiently
             # Note: we also add a dcc.Store component, which will be used to link the
             #       server side cached FigureResampler object
             dcc.Graph(id={"type": "dynamic-graph", "index": uid}, figure=go.Figure()),
@@ -150,7 +150,7 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
     return gc_children
 
 
-# This method constructs the figureResampler graph and caches it on the server side
+# This method constructs the FigureResampler graph and caches it on the server side
 @app.callback(
     ServersideOutput({"type": "store", "index": MATCH}, "data"),
     Output({"type": "dynamic-graph", "index": MATCH}, "figure"),
@@ -198,4 +198,4 @@ def update_fig(relayoutdata: dict, fig: FigureResampler):
 
 # --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=9023)

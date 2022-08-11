@@ -6,6 +6,7 @@ __author__ = "Jonas Van Der Donckt"
 from pathlib import Path
 from typing import Dict, List
 
+import itertools
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from functional import seq
@@ -119,14 +120,13 @@ def get_selector_states(n: int) -> List[State]:
     """
     # Note: the list sum-operations flattens the list
     return list(
-        sum(
+        itertools.chain.from_iterable(
             [
                 (
                     State(f"folder-selector{i}", "value"),
                     State(f"file-selector{i}", "value"),
                 )
                 for i in range(1, n + 1)
-            ],
-            (),
+            ]
         )
     )

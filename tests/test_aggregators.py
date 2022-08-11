@@ -654,6 +654,7 @@ def test_lttb_bindings():
     y_double = np.sin(x_int / 300) + np.random.randn(n)
     y_float = y_double.astype("float32")
     y_int = (100 * y_double).astype("int64")
+    y_bool = (x_int % 2).astype("bool")
 
     for n_out in np.random.randint(500, 2000, size=3):
         sampled_x_c = LTTB_core_c.downsample(x_int, y_double, n_out)
@@ -666,6 +667,10 @@ def test_lttb_bindings():
 
         sampled_x_c = LTTB_core_c.downsample(x_int, y_int, n_out)
         sampled_x_py = LTTB_core_py.downsample(x_int, y_int, n_out)
+        assert all(sampled_x_c == sampled_x_py)
+
+        sampled_x_c = LTTB_core_c.downsample(x_int, y_bool, n_out)
+        sampled_x_py = LTTB_core_py.downsample(x_int, y_bool, n_out)
         assert all(sampled_x_c == sampled_x_py)
 
         sampled_x_c = LTTB_core_c.downsample(x_double, y_double, n_out)

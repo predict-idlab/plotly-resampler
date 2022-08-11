@@ -56,7 +56,7 @@ Dynamic resampling callbacks are realized:
 
     **To add dynamic resampling using a FigureWidget, you should**:
       1. wrap your plotly Figure (can be a ``go.Figure``) with :class:`FigureWidgetResampler <plotly_resampler.figure_resampler.FigureWidgetResampler>`
-      2. output the ```FigureWidgetResampler`` instance in a cell
+      2. output the ``FigureWidgetResampler`` instance in a cell
 
   .. tip::
 
@@ -120,7 +120,7 @@ The gif below demonstrates the example usage of of :class:`FigureWidgetResampler
     <br><br>
 
 
-Furthermore, plotly figurewidget allows to conveniently add callbacks to for example click events. This allows to create a high-frequency time series annotation app in a couple of lines; a shown in the gif below and `this notebook <https://github.com/predict-idlab/plotly-resampler/blob/main/examples/figurewidget_example.ipynb>`_.
+Furthermore, plotly's ``FigureWidget`` allows to conveniently add callbacks to for example click events. This allows creating a high-frequency time series annotation app in a couple of lines; as shown in the gif below and in `this notebook <https://github.com/predict-idlab/plotly-resampler/blob/main/examples/figurewidget_example.ipynb>`_.
 
 
 .. image:: _static/annotate_twitter.gif

@@ -20,8 +20,8 @@ FAQ ❓
 
 This tilde suffix is only shown when the data is aggregated and represents the *mean aggregation bin size* which is the mean index-range difference between two consecutive aggregated samples.
 
- * for *time-indexed data*: the mean time-range which is span between 2 consecutive samples.
- * for *numeric-indexed data*: the mean numeric range which is span between 2 consecutive samples.
+ * for *time-indexed data*: the mean time-range between 2 consecutive (sampled) samples.
+ * for *numeric-indexed data*: the mean numeric range between 2 consecutive (sampled) samples.
 
 When the index is a range-index; the *mean aggregation bin size* represents the *mean* downsample ratio; i.e., the mean number of samples that are aggregated into one sample.
 
@@ -44,7 +44,7 @@ plotly-resampler can be thought of as wrapper around plain plotly figures which 
 * To have dynamic aggregation:
 
   * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback
-  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation.
+  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running IPython kernel).
 
 .. raw:: html
 
@@ -57,7 +57,7 @@ plotly-resampler can be thought of as wrapper around plain plotly figures which 
    </summary>
    <div style="margin-left:1em">
 
-The ``TraceUpdater`` class is a custom dash component that aids ``dcc.Graph`` components to efficiently sent and update (in our case aggregated) data to the front-end.
+The ``TraceUpdater`` class is a custom dash component that aids ``dcc.Graph`` components to efficiently send and update (in our case aggregated) data to the front-end.
 
 For more information on how to use the trace-updater component together with the ``FigureResampler``, see our dash app `examples <https://github.com/predict-idlab/plotly-resampler/tree/main/examples>`_` and look at the `trace-updater <https://github.com/predict-idlab/trace-updater/blob/master/trace_updater/TraceUpdater.py>`_ its documentation.
 
@@ -78,19 +78,19 @@ For more information on how to use the trace-updater component together with the
 
 **The main differences are**:
 
-Datashader is able deal with various kinds of data (e.g., location related data, point clouds, ...), and plotly-resampler is more tailored towards time-series data visualizations. 
+Datashader can deal with various kinds of data (e.g., location related data, point clouds), whereas plotly-resampler is more tailored towards time-series data visualizations. 
 Furthermore, datashader outputs a **rasterized image/array** encompassing all traces their data, whereas plotly-resampler outputs an **aggregated series** per trace. Thus, datashader is more suited for analyzing data where you do not want to pin-out a certain series/trace.
 
 In our opinion, datashader truly shines (for the time series use case) when:
 
 * you want a global, overlaying view of all your traces
 * you want to visualize a large number of time series in a single plot (many traces)
-* there is a lot of noise on your high-frequency data and want to uncover the underlying pattern
+* there is a lot of noise on your high-frequency data and you want to uncover the underlying pattern
 * you want to render all data points in your visualization
 
 In our opinion, plotly-resampler shines when:
 
-* you need the capabilities to interact with the traces (e.g., hovering, toggling traces, hovertext pet trace)
+* you need the capabilities to interact with the traces (e.g., hovering, toggling traces, hovertext per trace)
 * you want to use a less complex (but more restricted) visualization interface (as opposed to holoviews), i.e., plotly
 * you want to make existing plotly time-series figures more scalable and efficient
 * to build scalable Dash apps for time-series data visualization

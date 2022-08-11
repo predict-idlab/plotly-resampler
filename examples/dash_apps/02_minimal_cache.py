@@ -1,12 +1,11 @@
 """Minimal dash app example.
 
-Click on a button, and see a plotly-resampler graph of a noisy sinusoid.
+Click on a button, and see a plotly-resampler graph of two noisy sinusoids.
 No dynamic graph construction / pattern matching callbacks are needed.
 
 This example uses the dash-extensions its ServersideOutput functionality to cache
 the FigureResampler per user/session on the server side. This way, no global figure
-variable is used and shows the best practice of using plotly-resampler Figures within
-dash-apps.
+variable is used and shows the best practice of using plotly-resampler within dash-apps.
 
 """
 
@@ -34,7 +33,7 @@ app.layout = html.Div(
         html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-        # The graph and it's needed components to serialize and update efficiently
+        # The graph and its needed components to serialize and update efficiently
         # Note: we also add a dcc.Store component, which will be used to link the
         #       server side cached FigureResampler object
         dcc.Graph(id="graph-id"),

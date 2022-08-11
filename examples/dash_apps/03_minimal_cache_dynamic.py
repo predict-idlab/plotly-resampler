@@ -1,19 +1,20 @@
 """Minimal dynamic dash app example.
 
-Click on a button, and draw a new plotly-resampler graph of a noisy sinusoid.
+Click on a button, and draw a new plotly-resampler graph of two noisy sinusoids.
 This example uses pattern-matching callbacks to update dynamically constructed graphs.
 The plotly-resampler graphs themselves are cached on the server side.
 
-The main difference between this example and the dash_app_minimal_cache.py is that here,
-we want to cache using a dcc.Store that is not yet available on the client side. As a
-result we split up our logic into two callbacks: (1) the callback used to construct the
-necessary components and send them to the client-side, and (2) the callback used to
-construct the actual plotly-resampler graph and cache it on the server side. These
-two callbacks are chained together using the dcc.Interval component.
+The main difference between this example and 02_minimal_cache.py is that here, we want
+to cache using a dcc.Store that is not yet available on the client side. As a result we
+split up our logic into two callbacks: (1) the callback used to construct the necessary
+components and send them to the client-side, and (2) the callback used to construct the
+actual plotly-resampler graph and cache it on the server side. These two callbacks are
+chained together using the dcc.Interval component.
 
 """
 
 from uuid import uuid4
+from typing import List
 
 import numpy as np
 import plotly.graph_objects as go
@@ -46,18 +47,18 @@ app.layout = html.Div(
 
 # ------------------------------------ DASH logic -------------------------------------
 # This method adds the needed components to the front-end, but does not yet contain the
-# figureResampler graph construction logic.
+# FigureResampler graph construction logic.
 @app.callback(
     Output("container", "children"),
     Input("add-chart", "n_clicks"),
     State("container", "children"),
     prevent_initial_call=True,
 )
-def add_graph_div(n_clicks: int, div_children: list[html.Div]):
+def add_graph_div(n_clicks: int, div_children: List[html.Div]):
     uid = str(uuid4())
     new_child = html.Div(
         children=[
-            # The graph and it's needed components to serialize and update efficiently
+            # The graph and its needed components to serialize and update efficiently
             # Note: we also add a dcc.Store component, which will be used to link the
             #       server side cached FigureResampler object
             dcc.Graph(id={"type": "dynamic-graph", "index": uid}, figure=go.Figure()),
@@ -75,7 +76,7 @@ def add_graph_div(n_clicks: int, div_children: list[html.Div]):
     return div_children
 
 
-# This method constructs the figureResampler graph and caches it on the server side
+# This method constructs the FigureResampler graph and caches it on the server side
 @app.callback(
     ServersideOutput({"type": "store", "index": MATCH}, "data"),
     Output({"type": "dynamic-graph", "index": MATCH}, "figure"),

@@ -26,11 +26,10 @@ def visualize_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampl
     fig.update_layout(height=min(900, 350 * len(file_list)))
 
     for i, f in enumerate(file_list, 1):
-        df = pd.read_parquet(f)  # should be replaced by more generic data loading code
+        df = pd.read_parquet(f)  # TODO: replace with more generic data loading code
         if "timestamp" in df.columns:
             df = df.set_index("timestamp")
 
         for c in df.columns[::-1]:
-            print(df[c].dtype)
             fig.add_trace(go.Scattergl(name=c), hf_x=df.index, hf_y=df[c], row=i, col=1)
     return fig

@@ -171,9 +171,12 @@ def construct_plot_graph(n_clicks, *folder_list):
     prevent_initial_call=True,
 )
 def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
+    if fr_fig is None:  # When the figure does not exist -> do nothing
+        return dash.no_update
+
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0].get("prop_id", "").split(".")[0]
-
+    
     if trigger_id == "plotly-resampler-graph":
         return fr_fig.construct_update_data(fine_grained_relayout)
     elif trigger_id == "coarse-graph":

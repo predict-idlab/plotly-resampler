@@ -1,6 +1,6 @@
 """Minimal dash app example.
 
-Click on a button, and see a plotly-resampler graph of a noisy sinusoid.
+Click on a button, and see a plotly-resampler graph of two noisy sinusoids.
 No dynamic graph construction / pattern matching callbacks are needed.
 
 This example uses a global FigureResampler object, which is considered a bad practice.
@@ -30,7 +30,7 @@ noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 app = dash.Dash(__name__)
 fig: FigureResampler = FigureResampler()
 # NOTE: in this example, this reference to a FigureResampler is essential to preserve
-# throughout the whole dash app! If your dash app want to create a new go.Figure(),
+# throughout the whole dash app! If your dash app wants to create a new go.Figure(),
 # you should not construct a new FigureResampler object, but replace the figure of this
 # FigureResampler object by using the FigureResampler.replace() method.
 

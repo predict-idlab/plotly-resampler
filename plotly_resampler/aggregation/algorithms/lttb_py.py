@@ -54,7 +54,7 @@ class LTTB_core_py:
         """
         # Bucket size. Leave room for start and end data points
         block_size = (y.shape[0] - 2) / (n_out - 2)
-        # Note this'astype' cast must take place after array creation (and not with the
+        # Note this 'astype' cast must take place after array creation (and not with the
         # aranage() its dtype argument) or it will cast the `block_size` step to an int
         # before the arange array creation
         offset = np.arange(start=1, stop=y.shape[0], step=block_size).astype(np.int64)
@@ -63,6 +63,10 @@ class LTTB_core_py:
         sampled_x = np.empty(n_out, dtype="int64")
         sampled_x[0] = 0
         sampled_x[-1] = x.shape[0] - 1
+
+        # Convert y to int if it is boolean
+        if y.dtype == np.bool:
+            y = y.astype(np.int8)
 
         a = 0
         for i in range(n_out - 3):
