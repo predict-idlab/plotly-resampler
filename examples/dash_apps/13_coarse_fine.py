@@ -176,7 +176,7 @@ def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
 
     ctx = dash.callback_context
     trigger_id = ctx.triggered[0].get("prop_id", "").split(".")[0]
-    
+
     if trigger_id == "plotly-resampler-graph":
         return fr_fig.construct_update_data(fine_grained_relayout)
     elif trigger_id == "coarse-graph":

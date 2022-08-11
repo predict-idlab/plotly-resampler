@@ -13,7 +13,7 @@ pip install -r requirements.txt
 ## 1. Example notebooks
 ### 1.1 basic examples
 
-The [basic example notebook](basic_example.ipynb) covers most use-cases in which plotly resampler will be employed. It servers as an ideal starting point for data-scientists who want to use plotly-resampler in their day-to-day jupyter environments.
+The [basic example notebook](basic_example.ipynb) covers most use-cases in which plotly resampler will be employed. It serves as an ideal starting point for data-scientists who want to use plotly-resampler in their day-to-day jupyter environments.
 
 Additionally, this notebook also shows some more advanced functionalities, such as:
 * Retaining (a static) plotly-resampler figure in your notebook

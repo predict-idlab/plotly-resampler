@@ -118,7 +118,6 @@ def get_selector_states(n: int) -> List[State]:
         The number of folder selectors
 
     """
-    # Note: the list sum-operations flattens the list
     return list(
         itertools.chain.from_iterable(
             [
