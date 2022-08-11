@@ -29,4 +29,5 @@ plotly\_resampler.aggregation
 
    plotly_resampler.aggregation.aggregation_interface
    plotly_resampler.aggregation.aggregators
+   plotly_resampler.aggregation.algorithms
 

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>plotly_resampler.aggregation.aggregators &#8212; plotly-resampler &#34;0.7.2.2&#34; documentation</title>
+    <title>plotly_resampler.aggregation.aggregators &#8212; plotly-resampler &#34;0.8.0rc11&#34; documentation</title>
 <script>
   document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
   document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
@@ -80,19 +80,25 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../getting_started.html">
-  Getting started 🚀
+  Get started 🚀
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../dash_app_integration.html">
-  Dash integration 🤝
+  Dash apps 🤝
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="../../../api_reference.html">
   API 📖
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="../../../FAQ.html">
+  FAQ ❓
  </a>
 </li>
 
@@ -186,7 +192,14 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 
 <span class="kn">from</span> <span class="nn">..aggregation.aggregation_interface</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span>
-<span class="kn">from</span> <span class="nn">.algorithms</span> <span class="kn">import</span> <span class="n">lttbcv2</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># The efficient c version of the LTTB algorithm</span>
+    <span class="kn">from</span> <span class="nn">.algorithms.lttb_c</span> <span class="kn">import</span> <span class="n">LTTB_core_c</span> <span class="k">as</span> <span class="n">LTTB_core</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">warnings</span>
+    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Could not import lttbc; will use a (slower) python alternative.&quot;</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">.algorithms.lttb_py</span> <span class="kn">import</span> <span class="n">LTTB_core_py</span> <span class="k">as</span> <span class="n">LTTB_core</span>
 
 
 <div class="viewcode-block" id="LTTB"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB">[docs]</a><span class="k">class</span> <span class="nc">LTTB</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
@@ -249,7 +262,8 @@
         <span class="n">s_i</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span>
         <span class="n">s_i</span> <span class="o">=</span> <span class="n">s_i</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span> <span class="k">if</span> <span class="n">s_i</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span> <span class="k">else</span> <span class="n">s_i</span>
 
-        <span class="n">index</span> <span class="o">=</span> <span class="n">lttbcv2</span><span class="o">.</span><span class="n">downsample_return_index</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
+        <span class="c1"># Use the Core interface to perform the downsampling</span>
+        <span class="n">index</span> <span class="o">=</span> <span class="n">LTTB_core</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span><span class="n">s_i</span><span class="p">,</span> <span class="n">s_v</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
             <span class="n">index</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">index</span><span class="p">],</span>
@@ -445,8 +459,15 @@
         <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">2_000</span><span class="p">:</span>
-            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minmax</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="n">size_threshold</span> <span class="o">=</span> <span class="mi">10_000_000</span>
+        <span class="n">ratio_threshold</span> <span class="o">=</span> <span class="mi">100</span>
+
+        <span class="c1"># TODO -&gt; test this with a move of the .so file</span>
+        <span class="k">if</span> <span class="n">LTTB_core</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;LTTB_core_py&#39;</span><span class="p">:</span>
+            <span class="n">size_threshold</span> <span class="o">=</span> <span class="mi">1_000_000</span>
+
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">size_threshold</span> <span class="ow">and</span> <span class="n">s</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_out</span> <span class="o">&gt;</span> <span class="n">ratio_threshold</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">minmax</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span> <span class="o">*</span> <span class="mi">30</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span><span class="o">.</span><span class="n">_aggregate</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n_out</span><span class="p">)</span></div>
 
 

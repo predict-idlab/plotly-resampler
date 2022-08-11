@@ -1,0 +1,29 @@
+plotly\_resampler.aggregation.algorithms.lttb\_py
+=================================================
+
+.. automodule:: plotly_resampler.aggregation.algorithms.lttb_py
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      LTTB_core_py
+   
+   
+
+   
+   
+   
+
+
+

@@ -1,0 +1,32 @@
+plotly\_resampler.aggregation.algorithms.lttbc
+==============================================
+
+.. automodule:: plotly_resampler.aggregation.algorithms.lttbc
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      downsample_double_double
+      downsample_int_double
+      downsample_int_float
+      downsample_int_int
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

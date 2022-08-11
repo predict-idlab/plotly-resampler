@@ -1,0 +1,33 @@
+plotly\_resampler.aggregation.algorithms
+========================================
+
+.. automodule:: plotly_resampler.aggregation.algorithms
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
+.. rubric:: Modules
+
+.. autosummary::
+   :toctree:
+   :recursive:
+
+   plotly_resampler.aggregation.algorithms.lttb_c
+   plotly_resampler.aggregation.algorithms.lttb_py
+   plotly_resampler.aggregation.algorithms.lttbc
+

@@ -7,8 +7,8 @@
 
 
 
-Dash integration 🤝
-===================
+Dash apps 🤝
+============
 
 This documentation page describes how you can integrate ``plotly-resampler`` in a `dash <https://dash.plotly.com/>`_ application.
 
@@ -48,15 +48,18 @@ When you add a :class:`FigureResampler <plotly_resampler.figure_resampler.Figure
     fig.register_update_graph_callback(app, "graph-id", "trace-updater")
 
 
+.. warning::
+
+    The above example serves as an illustration, but uses a *global variable* to store the ``FigureResampler`` instance; this is not a good practice.
+    Ideally you should cache the ``FigureResampler`` per session on the server side.
+    In our `examples folder <https://github.com/predict-idlab/plotly-resampler/tree/main/examples>`_, we provide several dash app examples where we perform server side caching of such figures.
+
+
 .. tip::
 
     You can make the resampling faster by ensuring the
     `TraceUpdater <https://github.com/predict-idlab/trace-updater>`_ its
     ``sequentialUpdate`` argument is set to ``False``.
-
-
-* `This TraceUpdater-example <https://github.com/predict-idlab/trace-updater/blob/master/usage.py>`_ serves as a minimal working example.
-
 
 Limitations
 -----------

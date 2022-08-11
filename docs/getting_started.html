@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Getting started 🚀 &#8212; plotly-resampler &#34;0.7.2.2&#34; documentation</title>
+    <title>Get started 🚀 &#8212; plotly-resampler &#34;0.8.0rc11&#34; documentation</title>
 <script>
   document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
   document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
@@ -36,7 +36,7 @@
     <link rel="shortcut icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Dash integration 🤝" href="dash_app_integration.html" />
+    <link rel="next" title="Dash apps 🤝" href="dash_app_integration.html" />
     <link rel="prev" title="Welcome to plotly-resampler’s documentation!" href="index.html" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="docsearch:language" content="en">
@@ -83,19 +83,25 @@
         <ul id="navbar-main-elements" class="navbar-nav">
     <li class="toctree-l1 current active nav-item">
  <a class="current reference internal nav-link" href="#">
-  Getting started 🚀
+  Get started 🚀
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="dash_app_integration.html">
-  Dash integration 🤝
+  Dash apps 🤝
  </a>
 </li>
 
 <li class="toctree-l1 nav-item">
  <a class="reference internal nav-link" href="api_reference.html">
   API 📖
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="FAQ.html">
+  FAQ ❓
  </a>
 </li>
 
@@ -233,8 +239,8 @@
               
               <article class="bd-article" role="main">
                 
-  <section id="getting-started">
-<h1>Getting started 🚀<a class="headerlink" href="#getting-started" title="Permalink to this headline">#</a></h1>
+  <section id="get-started">
+<h1>Get started 🚀<a class="headerlink" href="#get-started" title="Permalink to this headline">#</a></h1>
 <p><code class="docutils literal notranslate"><span class="pre">plotly-resampler</span></code> serves two main <strong>modules</strong>:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="_autosummary/plotly_resampler.figure_resampler.html#module-plotly_resampler.figure_resampler" title="plotly_resampler.figure_resampler"><code class="xref py py-mod docutils literal notranslate"><span class="pre">figure_resampler</span></code></a>: a wrapper for <em>plotly.graph_objects Figures</em>,  coupling the dynamic resampling functionality to the <em>Figure</em>.</p></li>
@@ -290,7 +296,7 @@ The <code class="docutils literal notranslate"><span class="pre">mode</span></co
 <dl class="simple">
 <dt><strong>To add dynamic resampling using a FigureWidget, you should</strong>:</dt><dd><ol class="arabic simple">
 <li><p>wrap your plotly Figure (can be a <code class="docutils literal notranslate"><span class="pre">go.Figure</span></code>) with <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler" title="plotly_resampler.figure_resampler.FigureWidgetResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code></a></p></li>
-<li><p>output the <code class="docutils literal notranslate"><span class="pre">`FigureWidgetResampler</span></code> instance in a cell</p></li>
+<li><p>output the <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> instance in a cell</p></li>
 </ol>
 </dd>
 </dl>
@@ -350,6 +356,8 @@ But, (obviously) only the scatter traces will be resampled.</p>
 <h3>FigureWidget<a class="headerlink" href="#figurewidget" title="Permalink to this headline">#</a></h3>
 <p>The gif below demonstrates the example usage of of <a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler" title="plotly_resampler.figure_resampler.FigureWidgetResampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code></a>, where <code class="docutils literal notranslate"><span class="pre">JupyterLab</span></code> is used as environment and the <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> instance it’s output is redirected into a new view. Also note how you are able to dynamically add traces!</p>
 <img alt="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif" src="https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/figurewidget.gif" />
+<br><br><p>Furthermore, plotly’s <code class="docutils literal notranslate"><span class="pre">FigureWidget</span></code> allows to conveniently add callbacks to for example click events. This allows creating a high-frequency time series annotation app in a couple of lines; as shown in the gif below and in <a class="reference external" href="https://github.com/predict-idlab/plotly-resampler/blob/main/examples/figurewidget_example.ipynb">this notebook</a>.</p>
+<img alt="_images/annotate_twitter.gif" src="_images/annotate_twitter.gif" />
 </section>
 </section>
 <section id="important-considerations-tips">
@@ -393,7 +401,7 @@ the corresponding trace with the  <a class="reference internal" href="figure_res
 <div class="admonition tip">
 <p class="admonition-title">Tip</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> graph will not be automatically redrawn after
-adjusting the fig its <cite>hf_data</cite> property,. The redrawning can be triggered by
+adjusting the fig its <cite>hf_data</cite> property,. The redrawing can be triggered by
 manually calling either:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="figure_resampler.html#plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data" title="plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">FigureWidgetResampler.reload_data</span></code></a>, which keeps the current-graph range.</p></li>
@@ -454,7 +462,7 @@ manually calling either:</p>
   <a class='right-next' id="next-link" href="dash_app_integration.html" title="next page">
   <div class="prev-next-info">
       <p class="prev-next-subtitle">next</p>
-      <p class="prev-next-title">Dash integration 🤝</p>
+      <p class="prev-next-title">Dash apps 🤝</p>
   </div>
   <i class="fas fa-angle-right"></i>
   </a>

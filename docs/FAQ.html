@@ -1,0 +1,347 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>FAQ ❓ &#8212; plotly-resampler &#34;0.8.0rc11&#34; documentation</title>
+<script>
+  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
+</script>
+
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+
+
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/icon.png"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="plotly_resampler.registering" href="_autosummary/plotly_resampler.registering.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="docsearch:language" content="en">
+  </head>
+  
+  
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
+    <div class="bd-header-announcement container-fluid" id="banner">
+      
+
+    </div>
+
+    
+    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
+
+  <div id="navbar-start">
+    
+    
+  
+
+
+<a class="navbar-brand logo" href="index.html">
+  
+  
+  
+  
+    <img src="_static/logo.png" class="logo__image only-light" alt="Logo image">
+    <img src="_static/logo.png" class="logo__image only-dark" alt="Logo image">
+  
+  
+</a>
+    
+  </div>
+
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="fas fa-bars"></span>
+  </button>
+
+  
+  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
+    <div id="navbar-center" class="mr-auto">
+      
+      <div class="navbar-center-item">
+        <ul id="navbar-main-elements" class="navbar-nav">
+    <li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="getting_started.html">
+  Get started 🚀
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="dash_app_integration.html">
+  Dash apps 🤝
+ </a>
+</li>
+
+<li class="toctree-l1 nav-item">
+ <a class="reference internal nav-link" href="api_reference.html">
+  API 📖
+ </a>
+</li>
+
+<li class="toctree-l1 current active nav-item">
+ <a class="current reference internal nav-link" href="#">
+  FAQ ❓
+ </a>
+</li>
+
+    
+</ul>
+      </div>
+      
+    </div>
+
+    <div id="navbar-end">
+      
+      <div class="navbar-end-item">
+        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
+    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
+    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
+    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
+</span>
+      </div>
+      
+      <div class="navbar-end-item">
+        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+        <li class="nav-item">
+          <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+      </ul>
+      </div>
+      
+      <div class="navbar-end-item">
+        <form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
+</form>
+      </div>
+      
+    </div>
+  </div>
+</div>
+    </nav>
+    
+
+    <div class="bd-container container-xl">
+      <div class="bd-container__inner row">
+          
+
+<div class="sidebar-primary col-12 col-md-1 col-xl-2 bd-sidebar no-sidebar"></div>
+
+
+          
+
+
+<div class="bd-sidebar-secondary d-none d-md-block col-md-2 bd-toc">
+  
+    
+    <div class="toc-item">
+      
+
+<nav id="bd-toc-nav">
+    
+</nav>
+    </div>
+    
+    <div class="toc-item">
+      
+    </div>
+    
+  
+</div>
+
+
+          
+          
+          <div class="bd-content col-12 col-md-9 col-xl-8">
+              
+              <article class="bd-article" role="main">
+                
+  <section id="faq">
+<h1>FAQ ❓<a class="headerlink" href="#faq" title="Permalink to this headline">#</a></h1>
+<details>
+<summary>
+   <a><b>What does the orange <b style="color:orange">~ time|number </b> suffix in legend name indicate?</b></a>
+</summary>
+<div style="margin-left:1em"><p>This tilde suffix is only shown when the data is aggregated and represents the <em>mean aggregation bin size</em> which is the mean index-range difference between two consecutive aggregated samples.</p>
+<blockquote>
+<div><ul class="simple">
+<li><p>for <em>time-indexed data</em>: the mean time-range between 2 consecutive (sampled) samples.</p></li>
+<li><p>for <em>numeric-indexed data</em>: the mean numeric range between 2 consecutive (sampled) samples.</p></li>
+</ul>
+</div></blockquote>
+<p>When the index is a range-index; the <em>mean aggregation bin size</em> represents the <em>mean</em> downsample ratio; i.e., the mean number of samples that are aggregated into one sample.</p>
+</div>
+</details>
+<br>
+<details>
+<summary>
+   <a><b>What is the difference between plotly-resampler figures and plain plotly figures?</b></a>
+</summary>
+<div style="margin-left:1em"><p>plotly-resampler can be thought of as wrapper around plain plotly figures which adds line-chart visualization scalability by dynamically aggregating the data of the figures w.r.t. the front-end view. plotly-resampler thus adds dynamic aggregation functionality to plain plotly figures.</p>
+<p><strong>important to know</strong>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">show</span></code> <em>always</em> returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.</p></li>
+<li><p>To have dynamic aggregation:</p>
+<ul>
+<li><p>with <code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code>, you need to call <code class="docutils literal notranslate"><span class="pre">show_dash</span></code> (or output the object in a cell via <code class="docutils literal notranslate"><span class="pre">IPython.display</span></code>) -&gt; which spawns a dash-web app, and the dynamic aggregation is realized with dash callback</p></li>
+<li><p>with <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code>, you need to use <code class="docutils literal notranslate"><span class="pre">IPython.display</span></code> on the object, which uses widget-events to realize dynamic aggregation (via the running IPython kernel).</p></li>
+</ul>
+</li>
+</ul>
+</div>
+</details>
+<br>
+<details>
+<summary>
+   <a><b>What does <code><a href="https://github.com/predict-idlab/trace-updater" target="_blank">TraceUpdater</a></code> do?</b></a>
+</summary>
+<div style="margin-left:1em"><p>The <code class="docutils literal notranslate"><span class="pre">TraceUpdater</span></code> class is a custom dash component that aids <code class="docutils literal notranslate"><span class="pre">dcc.Graph</span></code> components to efficiently send and update (in our case aggregated) data to the front-end.</p>
+<p>For more information on how to use the trace-updater component together with the <code class="docutils literal notranslate"><span class="pre">FigureResampler</span></code>, see our dash app <cite>examples &lt;https://github.com/predict-idlab/plotly-resampler/tree/main/examples&gt;`_</cite> and look at the <a class="reference external" href="https://github.com/predict-idlab/trace-updater/blob/master/trace_updater/TraceUpdater.py">trace-updater</a> its documentation.</p>
+</div>
+</details>
+<br>
+   <details>
+<summary>
+   <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>
+</summary>
+<div style="margin-left:1em"><p><a class="reference external" href="https://datashader.org/getting_started/Introduction.html">Datashader</a> is a highly scalable <a class="reference external" href="https://github.com/holoviz/datashader">open-source</a> library for analyzing and visualizing large datasets. More specifically, datashader <em>“rasterizes”</em> or <em>“aggregates”</em> datasets into regular grids that can be analyzed further or viewed as <strong>images</strong>.</p>
+<p><strong>The main differences are</strong>:</p>
+<p>Datashader can deal with various kinds of data (e.g., location related data, point clouds), whereas plotly-resampler is more tailored towards time-series data visualizations.
+Furthermore, datashader outputs a <strong>rasterized image/array</strong> encompassing all traces their data, whereas plotly-resampler outputs an <strong>aggregated series</strong> per trace. Thus, datashader is more suited for analyzing data where you do not want to pin-out a certain series/trace.</p>
+<p>In our opinion, datashader truly shines (for the time series use case) when:</p>
+<ul class="simple">
+<li><p>you want a global, overlaying view of all your traces</p></li>
+<li><p>you want to visualize a large number of time series in a single plot (many traces)</p></li>
+<li><p>there is a lot of noise on your high-frequency data and you want to uncover the underlying pattern</p></li>
+<li><p>you want to render all data points in your visualization</p></li>
+</ul>
+<p>In our opinion, plotly-resampler shines when:</p>
+<ul class="simple">
+<li><p>you need the capabilities to interact with the traces (e.g., hovering, toggling traces, hovertext per trace)</p></li>
+<li><p>you want to use a less complex (but more restricted) visualization interface (as opposed to holoviews), i.e., plotly</p></li>
+<li><p>you want to make existing plotly time-series figures more scalable and efficient</p></li>
+<li><p>to build scalable Dash apps for time-series data visualization</p></li>
+</ul>
+<p>Furthermore combined with holoviews, datashader can also be employed in an interactive manner, see the example below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">holoviews.operation.datashader</span> <span class="kn">import</span> <span class="n">datashade</span>
+<span class="kn">import</span> <span class="nn">datashader</span> <span class="k">as</span> <span class="nn">ds</span>
+<span class="kn">import</span> <span class="nn">holoviews</span> <span class="k">as</span> <span class="nn">hv</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">panel</span> <span class="k">as</span> <span class="nn">pn</span>
+
+<span class="n">hv</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="s2">&quot;bokeh&quot;</span><span class="p">)</span>
+<span class="n">pn</span><span class="o">.</span><span class="n">extension</span><span class="p">(</span><span class="n">comms</span><span class="o">=</span><span class="s1">&#39;ipywidgets&#39;</span><span class="p">)</span>
+
+<span class="c1"># Create the dummy dataframe</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">1_000_000</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">noisy_sine</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="mi">3_000</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">))</span> <span class="o">*</span> <span class="n">x</span> <span class="o">/</span> <span class="mi">5_000</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+   <span class="p">{</span><span class="s2">&quot;ns&quot;</span><span class="p">:</span> <span class="n">noisy_sine</span><span class="p">,</span> <span class="s2">&quot;ns_abs&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">noisy_sine</span><span class="p">),}</span>
+<span class="p">)</span>
+
+<span class="c1"># Visualize interactively with datashader</span>
+<span class="n">opts</span> <span class="o">=</span> <span class="n">hv</span><span class="o">.</span><span class="n">opts</span><span class="o">.</span><span class="n">RGB</span><span class="p">(</span><span class="n">width</span><span class="o">=</span><span class="mi">800</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">ndoverlay</span> <span class="o">=</span> <span class="n">hv</span><span class="o">.</span><span class="n">NdOverlay</span><span class="p">({</span><span class="n">c</span><span class="p">:</span><span class="n">hv</span><span class="o">.</span><span class="n">Curve</span><span class="p">((</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="n">c</span><span class="p">]))</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">})</span>
+<span class="n">datashade</span><span class="p">(</span><span class="n">ndoverlay</span><span class="p">,</span> <span class="n">cnorm</span><span class="o">=</span><span class="s1">&#39;linear&#39;</span><span class="p">,</span> <span class="n">aggregator</span><span class="o">=</span><span class="n">ds</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="n">line_width</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">opts</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/datashader.png" src="_images/datashader.png" />
+</div>
+</details>
+<br>
+<details>
+<summary>
+   <a><b>I get errors such as:</b><br><ul><li>
+      <code>RuntimeError: module compiled against API version 0x10 but this version of numpy is 0xe</code></li>
+      <li><code>ImportError: numpy.core.multiarray failed to import</code></li>
+      </ul>
+   </a>
+</summary>
+<div style="margin-left:1em">
+
+Plotly-resampler uses compiled C code (which uses the NumPy C API) to speed up the LTTB data-aggregation algorithm. This C code gets compiled during the building stage of the package (which might be before you install the package).<br><br>
+If this C extension was build against a more recent NumPy version than your local version, you obtain a
+<a href="https://numpy.org/devdocs/user/troubleshooting-importerror.html#c-api-incompatibility"><i>NumPy C-API incompatibility</i></a>
+and the above error will be raised.<br><br>
+
+These above mentioned errors can thus be resolved by running<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<code>pip install --upgrade numpy</code><br>
+and reinstalling plotly-resampler afterwards.<br><br>
+
+For more information about compatibility and building upon NumPy, you can consult
+<a href="https://numpy.org/doc/stable/user/depending_on_numpy.html?highlight=compiled#for-downstream-package-authors">NumPy's docs for downstream package authors</a>.
+
+We aim to limit this issue as much as possible (by for example using <a href="https://github.com/scipy/oldest-supported-numpy">oldest-supported-numpy</a> in our build.py),
+but if you still experience issues, please open an issue on <a href="https://github.com/predict-idlab/plotly-resampler/issues">GitHub</a>.</div>
+</details>
+<br></section>
+
+
+              </article>
+              
+
+              
+              <footer class="bd-footer-article">
+                  <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+  <a class='left-prev' id="prev-link" href="_autosummary/plotly_resampler.registering.html" title="previous page">
+      <i class="fas fa-angle-left"></i>
+      <div class="prev-next-info">
+          <p class="prev-next-subtitle">previous</p>
+          <p class="prev-next-title">plotly_resampler.registering</p>
+      </div>
+  </a>
+</div>
+              </footer>
+              
+          </div>
+          
+      </div>
+    </div>
+
+  
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+
+<footer class="bd-footer"><div class="bd-footer__inner container">
+  
+  <div class="footer-item">
+    <p class="copyright">
+    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+</p>
+  </div>
+  
+  <div class="footer-item">
+    <p class="sphinx-version">
+Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
+</p>
+  </div>
+  
+</div>
+</footer>
+  </body>
+</html>
