@@ -4,7 +4,10 @@ import math
 import pandas as pd
 
 from plotly.basedatatypes import BaseFigure
-from plotly.basewidget import BaseFigureWidget
+try:
+    from plotly.basewidget import BaseFigureWidget
+except ImportError:
+    BaseFigureWidget = None
 
 from typing import Any
 

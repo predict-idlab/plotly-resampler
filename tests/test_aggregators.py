@@ -6,6 +6,8 @@ from plotly_resampler.aggregation import (
     MinMaxAggregator,
     EfficientLTTB,
 )
+from plotly_resampler.aggregation.algorithms.lttb_py import LTTB_core_py
+from plotly_resampler.aggregation.algorithms.lttb_c import LTTB_core_c
 import pandas as pd
 import numpy as np
 import pytest
@@ -640,3 +642,37 @@ def test_func_aggregator_invalid_input_data(cat_series):
         FuncAggregator(
             interleave_gaps=True, aggregation_func=treat_string_as_numeric_data
         ).aggregate(cat_series, n_out=n)
+
+
+# ------------------------------- LTTB_Bindings -------------------------------
+def test_lttb_bindings():
+    # Test whether both algorithms produce the same results with different types of 
+    # input data
+    n = np.random.randint(low=1_000_000, high=2_000_000)
+    x_int = np.arange(n, dtype="int64")
+    x_double = x_int.astype("float64")
+    y_double = np.sin(x_int / 300) + np.random.randn(n)
+    y_float = y_double.astype("float32")
+    y_int = (100 * y_double).astype("int64")
+    y_bool = (x_int % 250).astype("bool")
+
+    for n_out in np.random.randint(500, 2000, size=3):
+        sampled_x_c = LTTB_core_c.downsample(x_int, y_double, n_out)
+        sampled_x_py = LTTB_core_py.downsample(x_int, y_double, n_out)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+
+        sampled_x_c = LTTB_core_c.downsample(x_int, y_float, n_out)
+        sampled_x_py = LTTB_core_py.downsample(x_int, y_float, n_out)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+
+        sampled_x_c = LTTB_core_c.downsample(x_int, y_int, n_out)
+        sampled_x_py = LTTB_core_py.downsample(x_int, y_int, n_out)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+
+        sampled_x_c = LTTB_core_c.downsample(x_int, y_bool, n_out)
+        sampled_x_py = LTTB_core_py.downsample(x_int, y_bool, n_out)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+
+        sampled_x_c = LTTB_core_c.downsample(x_double, y_double, n_out)
+        sampled_x_py = LTTB_core_py.downsample(x_double, y_double, n_out)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995

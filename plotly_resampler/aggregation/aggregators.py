@@ -15,7 +15,14 @@ import numpy as np
 import pandas as pd
 
 from ..aggregation.aggregation_interface import AbstractSeriesAggregator
-from .algorithms import lttbcv2
+
+try:
+    # The efficient c version of the LTTB algorithm
+    from .algorithms.lttb_c import LTTB_core_c as LTTB_core
+except:
+    import warnings
+    warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
+    from .algorithms.lttb_py import LTTB_core_py as LTTB_core
 
 
 class LTTB(AbstractSeriesAggregator):
@@ -78,7 +85,8 @@ class LTTB(AbstractSeriesAggregator):
         s_i = s.index.values
         s_i = s_i.astype(np.int64) if s_i.dtype.type == np.datetime64 else s_i
 
-        index = lttbcv2.downsample_return_index(s_i, s_v, n_out)
+        # Use the Core interface to perform the downsampling
+        index = LTTB_core.downsample(s_i, s_v, n_out)
 
         return pd.Series(
             index=s.index[index],
@@ -274,8 +282,15 @@ class EfficientLTTB(AbstractSeriesAggregator):
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        if s.shape[0] > n_out * 2_000:
-            s = self.minmax._aggregate(s, n_out * 50)
+        size_threshold = 10_000_000
+        ratio_threshold = 100
+
+        # TODO -> test this with a move of the .so file
+        if LTTB_core.__name__ == 'LTTB_core_py':
+            size_threshold = 1_000_000
+
+        if s.shape[0] > size_threshold and s.shape[0] / n_out > ratio_threshold:
+            s = self.minmax._aggregate(s, n_out * 30)
         return self.lttb._aggregate(s, n_out)
 
 

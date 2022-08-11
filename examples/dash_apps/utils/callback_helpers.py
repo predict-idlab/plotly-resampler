@@ -6,8 +6,9 @@ __author__ = "Jonas Van Der Donckt"
 from pathlib import Path
 from typing import Dict, List
 
+import itertools
 import dash_bootstrap_components as dbc
-from dash import Input, Output, dcc, html
+from dash import Input, Output, State, dcc, html
 from functional import seq
 
 
@@ -20,8 +21,8 @@ def _update_file_widget(folder):
             set(
                 list(
                     seq(Path(folder).iterdir())
-                    .filter(lambda x: x.is_file() and x.name.endswith("parquet"))
-                    .map(lambda x: x.name)
+                        .filter(lambda x: x.is_file() and x.name.endswith("parquet"))
+                        .map(lambda x: x.name)
                 )
             )
         )
@@ -33,7 +34,6 @@ def _register_selection_callbacks(app, ids=None):
         ids = [""]
 
     for id in ids:
-
         app.callback(
             Output(f"file-selector{id}", "options"),
             [Input(f"folder-selector{id}", "value")],
@@ -41,7 +41,7 @@ def _register_selection_callbacks(app, ids=None):
 
 
 def multiple_folder_file_selector(
-    app, name_folders_list: List[Dict[str, dict]], multi=True
+        app, name_folders_list: List[Dict[str, dict]], multi=True
 ) -> dbc.Card:
     """Constructs a folder user date selector
 
@@ -107,3 +107,25 @@ def multiple_folder_file_selector(
 
     _register_selection_callbacks(app=app, ids=range(1, len(name_folders_list) + 1))
     return selector
+
+
+def get_selector_states(n: int) -> List[State]:
+    """Return a list of all the folder-file selector fields, which are used as State
+
+    Parameters
+    ----------
+    n: int
+        The number of folder selectors
+
+    """
+    return list(
+        itertools.chain.from_iterable(
+            [
+                (
+                    State(f"folder-selector{i}", "value"),
+                    State(f"file-selector{i}", "value"),
+                )
+                for i in range(1, n + 1)
+            ]
+        )
+    )

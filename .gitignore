@@ -1,6 +1,7 @@
 venv*
 .cache_datasets/
 *.DS_Store
+file_system_store/
 
 # Sphinx documentation
 *_build/

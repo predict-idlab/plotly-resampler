@@ -18,12 +18,13 @@ with_extensions = True
 def get_script_path():
     return os.path.dirname(os.path.realpath(sys.argv[0]))
 
+
 extensions = []
 if with_extensions:
     extensions = [
         Extension(
-            name="plotly_resampler.aggregation.algorithms.lttbcv2",
-            sources=["plotly_resampler/aggregation/algorithms/lttbcv2.c"],
+            name="plotly_resampler.aggregation.algorithms.lttbc",
+            sources=["plotly_resampler/aggregation/algorithms/lttbc.c"],
             define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
             include_dirs=[np.get_include(), get_script_path()],
         ),
@@ -44,15 +45,26 @@ class ExtBuilder(build_ext):
         try:
             build_ext.run(self)
         except (DistutilsPlatformError, FileNotFoundError) as e:
-            print("   Unable to build the C extensions.")
-            raise e
+            print(
+                "   Unable to build the C extensions, will use the slower python "
+                "fallback for LTTB"
+            )
+            print(e)
 
     def build_extension(self, ext):
         try:
             build_ext.build_extension(self, ext)
-        except (CCompilerError, DistutilsExecError, DistutilsPlatformError, ValueError) as e:
-            print('   Unable to build the "{}" C extension, '.format(ext.name))
-            raise e
+        except (
+            DistutilsPlatformError,
+            CCompilerError,
+            DistutilsExecError,
+            ValueError,
+        ) as e:
+            print(
+                '   Unable to build the "{}" C extension; '.format(ext.name)
+                + "will use the slower python fallback."
+            )
+            print(e)
 
 
 def build(setup_kwargs):
