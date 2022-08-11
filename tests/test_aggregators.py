@@ -659,20 +659,20 @@ def test_lttb_bindings():
     for n_out in np.random.randint(500, 2000, size=3):
         sampled_x_c = LTTB_core_c.downsample(x_int, y_double, n_out)
         sampled_x_py = LTTB_core_py.downsample(x_int, y_double, n_out)
-        assert all(sampled_x_c == sampled_x_py)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
 
         sampled_x_c = LTTB_core_c.downsample(x_int, y_float, n_out)
         sampled_x_py = LTTB_core_py.downsample(x_int, y_float, n_out)
-        assert all(sampled_x_c == sampled_x_py)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
 
         sampled_x_c = LTTB_core_c.downsample(x_int, y_int, n_out)
         sampled_x_py = LTTB_core_py.downsample(x_int, y_int, n_out)
-        assert all(sampled_x_c == sampled_x_py)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
 
         sampled_x_c = LTTB_core_c.downsample(x_int, y_bool, n_out)
         sampled_x_py = LTTB_core_py.downsample(x_int, y_bool, n_out)
-        assert all(sampled_x_c == sampled_x_py)
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
 
         sampled_x_c = LTTB_core_c.downsample(x_double, y_double, n_out)
         sampled_x_py = LTTB_core_py.downsample(x_double, y_double, n_out)
-        assert (sampled_x_c == sampled_x_py).sum() / n_out > 0.95
+        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
