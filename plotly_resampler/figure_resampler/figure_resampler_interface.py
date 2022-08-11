@@ -923,10 +923,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
         dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
 
-        n_samples = len(dc.x)
         # These traces will determine the autoscale RANGE!
         #   -> so also store when `limit_to_view` is set.
         if trace["type"].lower() in self._high_frequency_traces:
+            n_samples = len(dc.x)
             if n_samples > max_out_s or limit_to_view:
                 self._print(
                     f"\t[i] DOWNSAMPLE {trace['name']}\t{n_samples}->{max_out_s}"

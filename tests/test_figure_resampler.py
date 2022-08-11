@@ -173,6 +173,27 @@ def test_box_histogram(float_series):
     )
 
 
+def test_add_traces_from_other_figure():
+    labels = ["Investing", "Liquid", "Real Estate", "Retirement"]
+    values = [324643.4435821581, 112238.37140194925, 2710711.06, 604360.2864262027]
+
+    changes_section = FigureResampler(
+        make_subplots(
+            rows=1,
+            cols=2,
+            subplot_titles=("Asset Allocation", "Changes in last 12 hours"),
+            specs=[[{"type": "pie"}, {"type": "xy"}]],
+        )
+    )
+
+    # First create a pie chart Figure
+    pie_total = go.Figure(data=[go.Pie(labels=labels, values=values)])
+
+    # Add the pie chart traces to the changes_section figure
+    for trace in pie_total.data:
+        changes_section.add_trace(trace, row=1, col=1)
+
+
 def test_cat_box_histogram(float_series):
     # Create a categorical series, with mostly a's, but a few sparse b's and c's
     cats_list = np.array(list("aaaaaaaaaa" * 1000))
@@ -620,7 +641,9 @@ def test_stop_server_inline_persistent():
     fr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
     fr.update_layout(height=900)
     fr.stop_server()
-    proc = multiprocessing.Process(target=fr.show_dash, kwargs=dict(mode="inline_persistent"))
+    proc = multiprocessing.Process(
+        target=fr.show_dash, kwargs=dict(mode="inline_persistent")
+    )
     proc.start()
 
     time.sleep(3)
@@ -640,8 +663,11 @@ def test_manual_jupyterdashpersistentinline():
 
     # no need to start the app (we just need the FigureResampler object)
 
-    from plotly_resampler.figure_resampler.figure_resampler import JupyterDashPersistentInlineOutput
+    from plotly_resampler.figure_resampler.figure_resampler import (
+        JupyterDashPersistentInlineOutput,
+    )
     import dash
+
     app = JupyterDashPersistentInlineOutput("manual_app")
     assert hasattr(app, "_uid")
 
@@ -650,17 +676,15 @@ def test_manual_jupyterdashpersistentinline():
     # JupyterDashPersistentInline its _display_inline_output method (to create the img)
     app.layout = dash.html.Div(
         [
-            dash.dcc.Graph(
-                id="resample-figure", figure=fr
-            ),
+            dash.dcc.Graph(id="resample-figure", figure=fr),
             # no need to add traceupdater for this dummy app
         ]
     )
 
     # call the method (as it would normally be called)
-    app._display_in_jupyter(f"", port="", mode="inline", width='100%', height=500)
+    app._display_in_jupyter(f"", port="", mode="inline", width="100%", height=500)
     # call with a different mode (as it normally never would be called)
-    app._display_in_jupyter(f"", port="", mode="external", width='100%', height=500)
+    app._display_in_jupyter(f"", port="", mode="external", width="100%", height=500)
 
 
 def test_stop_server_external():
@@ -977,7 +1001,9 @@ def test_fr_object_bool_data(bool_series):
 
 
 def test_fr_object_binary_data():
-    binary_series = np.array([0, 1]*20, dtype="int32")  # as this is << max_n_samples -> limit_to_view
+    binary_series = np.array(
+        [0, 1] * 20, dtype="int32"
+    )  # as this is << max_n_samples -> limit_to_view
 
     # First try with the original non-object binary series
     fig = FigureResampler()
@@ -994,7 +1020,9 @@ def test_fr_object_binary_data():
     fig.add_trace({"name": "s0"}, hf_y=binary_series_o, limit_to_view=True)
     assert binary_series_o.dtype == object
     assert len(fig.hf_data) == 1
-    assert (fig.hf_data[0]["y"].dtype == "int32") or (fig.hf_data[0]["y"].dtype == "int64")
+    assert (fig.hf_data[0]["y"].dtype == "int32") or (
+        fig.hf_data[0]["y"].dtype == "int64"
+    )
     assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
 
@@ -1015,7 +1043,7 @@ def test_fr_copy_grid():
     assert fr._grid_ref == f._grid_ref
     assert fr._grid_str is not None
     assert fr._grid_str == f._grid_str
-    
+
     ## go.FigureWidget
     fw = go.FigureWidget(f)
     assert fw._grid_ref is not None
@@ -1040,6 +1068,7 @@ def test_fr_copy_grid():
 
     ## FigureWidgetResampler
     from plotly_resampler import FigureWidgetResampler
+
     fwr = FigureWidgetResampler(f)
     assert fwr._grid_ref is not None
     assert fwr._grid_str is not None
