@@ -209,6 +209,16 @@
 </ul>
 </li>
 </ul>
+<p><strong>other changes of plotly-resampler figures w.r.t. vanilla plotly</strong>:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><strong>double-clicking</strong> within a line-chart area <strong>does not Reset Axes</strong>, as it results in an “Autoscale” event. We decided to implement an Autoscale event as updating your y-range such that it shows all the data that is in your x-range</dt><dd><ul>
+<li><p><strong>Note</strong>: vanilla Plotly figures their Autoscale result in Reset Axes behavior, in our opinion this did not make a lot of sense. It is therefore that we have overriden this behavior in plotly-resampler.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
 </div>
 </details>
 <br>
