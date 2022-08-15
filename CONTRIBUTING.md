@@ -54,14 +54,14 @@ Make sure that this environment is activated when developing (e.g., installing d
 ### Installing & building the dependencies
 
 We use [poetry](https://python-poetry.org/) as dependency manager for this project. 
-- The dependencies for installation & development are writtin in the [pyproject.toml](pyproject.toml) file (which is quite similar to a requirements.txt file). 
-- To ensure that package versions are consistent with everyone who works on this project poertry uses a [poetry.lock](poetry.lock) file (read more [here](https://python-poetry.org/docs/basic-usage/#installing-with-poetrylock)).
+- The dependencies for installation & development are written in the [pyproject.toml](pyproject.toml) file (which is quite similar to a requirements.txt file). 
+- To ensure that package versions are consistent with everyone who works on this project poetry uses a [poetry.lock](poetry.lock) file (read more [here](https://python-poetry.org/docs/basic-usage/#installing-with-poetrylock)).
 
 To install the requirements
 ```sh
-pip install poetry  # install poetry
+pip install poetry  # install poetry (if you do use the venv option)
 poetry install  # install all the dependencies
-poetry run python build.py  # build the underlying C code
+poetry build  # build the underlying C code
 ```
 
 <details>
@@ -87,14 +87,23 @@ You can run the test with the following code:
 poetry run pytest --cov-report term-missing --cov=plotly-resampler tests
 ```
 
-To get the selenium tests working you should have google chrome installed.
+To get the selenium tests working you should have Google Chrome installed.
 
 If you want to visually follow the selenium tests;
 * change the `TESTING_LOCAL` variable in [tests/conftest.py](tests/conftest.py) to `True`
 
 ### Generating the docs
 
+When you've added or updated a feature; it is always a good practice to alter the 
+documentation and [changelog.md](CHANGELOG.md).
 
+The current listing below gives you the provided steps to regenerate the documentation.
+
+1. Make sure that your python env is active (e.g., by running `poetry shell`)
+2. Navigate to `sphinx/docs` and run from that directory:
+```bash
+sphinx-autogen -o _autosummary && make clean html
+```
 
 ## More details on Pull requests
 
