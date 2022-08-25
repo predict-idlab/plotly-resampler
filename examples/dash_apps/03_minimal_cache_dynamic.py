@@ -18,8 +18,7 @@ from typing import List
 
 import numpy as np
 import plotly.graph_objects as go
-import dash
-from dash import MATCH, Input, Output, State, dcc, html
+from dash import MATCH, Input, Output, State, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
@@ -106,7 +105,7 @@ def construct_display_graph(n_clicks) -> FigureResampler:
 def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is not None:
         return fig.construct_update_data(relayoutdata)
-    raise dash.exceptions.PreventUpdate()
+    return no_update
 
 
 # --------------------------------- Running the app ---------------------------------
