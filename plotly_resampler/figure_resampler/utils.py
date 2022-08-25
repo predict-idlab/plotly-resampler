@@ -7,7 +7,7 @@ from plotly.basedatatypes import BaseFigure
 try: # Fails when IPywidgets is not installed
     from plotly.basewidget import BaseFigureWidget
 except (ImportError, ModuleNotFoundError):
-    BaseFigureWidget = None
+    BaseFigureWidget = type(None)
 
 from typing import Any
 
