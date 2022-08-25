@@ -27,5 +27,5 @@ try:  # Enable ipywidgets on google colab!
         from google.colab import output
 
         output.enable_custom_widget_manager()
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     pass
