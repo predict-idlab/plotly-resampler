@@ -13,10 +13,9 @@ source: https://dash.plotly.com/sharing-data-between-callbacks:
 
 """
 
-import dash
 import numpy as np
 import plotly.graph_objects as go
-from dash import Input, Output, dcc, html
+from dash import Input, Output, dcc, html, Dash, no_update, callback_context
 
 from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
@@ -27,7 +26,7 @@ noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 
 
 # --------------------------------------Globals ---------------------------------------
-app = dash.Dash(__name__)
+app = Dash(__name__)
 fig: FigureResampler = FigureResampler()
 # NOTE: in this example, this reference to a FigureResampler is essential to preserve
 # throughout the whole dash app! If your dash app wants to create a new go.Figure(),
@@ -55,7 +54,7 @@ app.layout = html.Div(
     prevent_initial_call=True,
 )
 def plot_graph(n_clicks):
-    ctx = dash.callback_context
+    ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         # Note how the replace method is used here on the global figure object
         global fig
@@ -64,7 +63,7 @@ def plot_graph(n_clicks):
         fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002 ** x)
         return fig
     else:
-        raise dash.exceptions.PreventUpdate()
+        return no_update
 
 
 # Register the graph update callbacks to the layout
