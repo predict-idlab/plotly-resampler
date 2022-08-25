@@ -874,7 +874,7 @@
                 <span class="c1"># not will be transformed to an array of ints (0, 1))</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">hf_y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
+                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
 
             <span class="c1"># orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype</span>
