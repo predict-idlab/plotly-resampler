@@ -54,7 +54,7 @@ def _is_ipython_env():
         from IPython import get_ipython
 
         return "IPKernelApp" in get_ipython().config
-    except Exception:
+    except (ImportError, AttributeError):
         return False
 
 

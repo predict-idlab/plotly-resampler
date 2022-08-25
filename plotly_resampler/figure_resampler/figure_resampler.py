@@ -17,7 +17,6 @@ import uuid
 import base64
 import dash
 import plotly.graph_objects as go
-from dash import Dash
 from flask_cors import cross_origin
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
@@ -320,7 +319,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     self.data[idx].update(graph_dict["data"][idx])
 
         # The FigureResampler needs a dash app
-        self._app: JupyterDash | Dash | None = None
+        self._app: JupyterDash | dash.Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
 

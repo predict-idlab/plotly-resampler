@@ -19,7 +19,7 @@ from ..aggregation.aggregation_interface import AbstractSeriesAggregator
 try:
     # The efficient c version of the LTTB algorithm
     from .algorithms.lttb_c import LTTB_core_c as LTTB_core
-except:
+except (ImportError, ModuleNotFoundError):
     import warnings
     warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
     from .algorithms.lttb_py import LTTB_core_py as LTTB_core
