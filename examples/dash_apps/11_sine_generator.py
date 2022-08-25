@@ -16,9 +16,8 @@ from uuid import uuid4
 
 import numpy as np
 import plotly.graph_objects as go
-import dash
 import dash_bootstrap_components as dbc
-from dash import MATCH, Input, Output, State, dcc, html
+from dash import MATCH, Input, Output, State, dcc, html, no_update, callback_context
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
@@ -116,16 +115,16 @@ app.layout = html.Div(
 )
 def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
     if (add_graph is None or n is None or exp is None) and (remove_graph is None):
-        raise dash.exceptions.PreventUpdate()
+        return no_update
 
     # Transform the graph data to a figure
     gc_children = [] if gc_children is None else gc_children
 
     # Check if we need to remove a graph
-    clicked_btns = [p["prop_id"] for p in dash.callback_context.triggered]
+    clicked_btns = [p["prop_id"] for p in callback_context.triggered]
     if any("remove-graph" in btn_name for btn_name in clicked_btns):
         if not len(gc_children):
-            raise dash.exceptions.PreventUpdate()
+            return no_update
         return gc_children[:-1]
 
     # No graph needs to be removed -> create a new graph
@@ -193,7 +192,7 @@ def construct_display_graph(n, exp, n_added_graphs) -> FigureResampler:
 def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is not None:
         return fig.construct_update_data(relayoutdata)
-    raise dash.exceptions.PreventUpdate()
+    return no_update
 
 
 # --------------------------------- Running the app ---------------------------------

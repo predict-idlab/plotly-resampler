@@ -13,12 +13,11 @@ TODO: add an rectangle on the coarse graph
 
 __author__ = "Jonas Van Der Donckt"
 
-import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from pathlib import Path
 from typing import List
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, no_update, callback_context
 
 from dash_extensions.enrich import (
     DashProxy,
@@ -132,7 +131,7 @@ def construct_plot_graph(n_clicks, *folder_list):
             for file in files:
                 file_list.append((Path(folder).joinpath(file)))
 
-    ctx = dash.callback_context
+    ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         if len(file_list):
             # Create two graphs, a dynamic plotly-resampler graph and a coarse graph
@@ -159,7 +158,7 @@ def construct_plot_graph(n_clicks, *folder_list):
 
             return coarse_fig, dynamic_fig, dynamic_fig
     else:
-        raise dash.exceptions.PreventUpdate()
+        return no_update
 
 
 # Register the graph update callbacks to the layout
@@ -172,9 +171,9 @@ def construct_plot_graph(n_clicks, *folder_list):
 )
 def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
     if fr_fig is None:  # When the figure does not exist -> do nothing
-        return dash.no_update
+        return no_update
 
-    ctx = dash.callback_context
+    ctx = callback_context
     trigger_id = ctx.triggered[0].get("prop_id", "").split(".")[0]
 
     if trigger_id == "plotly-resampler-graph":
@@ -182,7 +181,7 @@ def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
     elif trigger_id == "coarse-graph":
         return fr_fig.construct_update_data(coarse_grained_relayout)
 
-    return dash.no_update
+    return no_update
 
 
 # --------------------------------- Running the app ---------------------------------

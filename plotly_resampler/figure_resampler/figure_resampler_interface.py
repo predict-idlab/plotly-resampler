@@ -697,7 +697,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # not will be transformed to an array of ints (0, 1))
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
-                except:
+                except ValueError:
                     hf_y = hf_y.astype("str")
 
             # orjson encoding doesn't like to encode with uint8 & uint16 dtype

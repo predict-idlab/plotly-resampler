@@ -10,10 +10,9 @@ __author__ = "Jonas Van Der Donckt"
 from pathlib import Path
 from typing import List
 
-import dash
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, no_update, callback_context
 
 from dash_extensions.enrich import (
     DashProxy,
@@ -105,13 +104,13 @@ def plot_graph(n_clicks, *folder_list):
             for file in files:
                 file_list.append((Path(folder).joinpath(file)))
 
-    ctx = dash.callback_context
+    ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         if len(file_list):
             fig: FigureResampler = visualize_multiple_files(file_list)
             return fig, fig
     else:
-        raise dash.exceptions.PreventUpdate()
+        return no_update
 
 
 # --------- Figure update callback ---------
@@ -123,7 +122,7 @@ def plot_graph(n_clicks, *folder_list):
 )
 def update_fig(relayoutdata, fig):
     if fig is None:
-        raise dash.exceptions.PreventUpdate()
+        return no_update
     return fig.construct_update_data(relayoutdata)
 
 

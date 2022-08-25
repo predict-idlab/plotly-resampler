@@ -4,10 +4,10 @@ import math
 import pandas as pd
 
 from plotly.basedatatypes import BaseFigure
-try:
+try: # Fails when IPywidgets is not installed
     from plotly.basewidget import BaseFigureWidget
-except ImportError:
-    BaseFigureWidget = None
+except (ImportError, ModuleNotFoundError):
+    BaseFigureWidget = type(None)
 
 from typing import Any
 
@@ -32,7 +32,6 @@ def is_figure(figure: Any) -> bool:
     bool
         True if the figure is a plotly go.Figure or a FigureResampler.
     """
-
     return isinstance(figure, BaseFigure) and (not isinstance(figure, BaseFigureWidget))
 
 

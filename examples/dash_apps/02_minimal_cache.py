@@ -9,10 +9,9 @@ variable is used and shows the best practice of using plotly-resampler within da
 
 """
 
-import dash
 import numpy as np
 import plotly.graph_objects as go
-from dash import Input, Output, State, dcc, html
+from dash import Input, Output, State, dcc, html, no_update, callback_context
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
@@ -52,7 +51,7 @@ app.layout = html.Div(
     memoize=True,
 )
 def plot_graph(n_clicks):
-    ctx = dash.callback_context
+    ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         fig: FigureResampler = FigureResampler(go.Figure())
 
@@ -62,7 +61,7 @@ def plot_graph(n_clicks):
 
         return fig, fig
     else:
-        raise dash.exceptions.PreventUpdate()
+        return no_update
 
 
 @app.callback(
@@ -74,7 +73,7 @@ def plot_graph(n_clicks):
 )
 def update_fig(relayoutdata, fig):
     if fig is None:
-        raise dash.exceptions.PreventUpdate()
+        return no_update
     return fig.construct_update_data(relayoutdata)
 
 
