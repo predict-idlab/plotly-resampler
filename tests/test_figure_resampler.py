@@ -1100,3 +1100,90 @@ def test_fr_copy_grid():
     assert fr._grid_ref == f_dict.get("_grid_ref")
     assert fr._grid_str is not None
     assert fr._grid_str == f_dict.get("_grid_str")
+
+
+# Testing HF marker_size and color arguments
+def test_hf_marker_size_hf_args():
+    # create dummy data
+    n = 100_000
+    y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
+
+    # construct the figure via hf kwargs
+    fr = FigureResampler()
+    fr.add_trace(
+        go.Scattergl(mode="markers"),
+        hf_y=y,
+        hf_marker_size=(3 + 20 * np.abs(y)).astype(int),
+        hf_marker_color=np.abs(y) / np.max(np.abs(y)),
+    )
+
+    # Perform asserts on the hf_data part of the figure
+    hf_trace = fr.hf_data[0]
+    assert "marker_size" in hf_trace
+    assert "marker_color" in hf_trace
+
+    assert len(hf_trace["marker_size"] == len(y))
+    assert len(hf_trace["marker_color"] == len(y))
+
+    # perform some asserts on the to-be constructed update data
+    update_trace = fr.construct_update_data(
+        {"xaxis.autorange": True, "xaxis.showspikes": True}
+    )[1]
+
+    assert all(
+        k in update_trace
+        for k in ["x", "y", "text", "hovertext", "name", "marker", "index"]
+    )
+
+    # check whether the marker size and marker color are available
+    assert all(k in update_trace["marker"] for k in ["size", "color"])
+    assert len(update_trace["marker"]["size"]) == len(update_trace["x"])
+    assert np.allclose(
+        update_trace["marker"]["color"],
+        (np.abs(update_trace["y"]) / np.max(np.abs(y))),
+        rtol=1e-3,
+    )
+
+
+def test_hf_marker_size_plotly_args():
+    # create dummy data
+    n = 100_000
+    y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
+
+    # construct the figure via hf kwargs
+    fr = FigureResampler()
+    fr.add_trace(
+        go.Scattergl(
+            mode="markers",
+            marker_size=(3 + 20 * np.abs(y)).astype(int),
+            marker_color=np.abs(y) / np.max(np.abs(y)),
+        ),
+        hf_y=y,
+    )
+
+    # Perform asserts on the hf_data part of the figure
+    hf_trace = fr.hf_data[0]
+    assert "marker_size" in hf_trace
+    assert "marker_color" in hf_trace
+
+    assert len(hf_trace["marker_size"] == len(y))
+    assert len(hf_trace["marker_color"] == len(y))
+
+    # perform some asserts on the to-be constructed update data
+    update_trace = fr.construct_update_data(
+        {"xaxis.autorange": True, "xaxis.showspikes": True}
+    )[1]
+
+    assert all(
+        k in update_trace
+        for k in ["x", "y", "text", "hovertext", "name", "marker", "index"]
+    )
+
+    # check whether the marker size and marker color are available
+    assert all(k in update_trace["marker"] for k in ["size", "color"])
+    assert len(update_trace["marker"]["size"]) == len(update_trace["x"])
+    assert np.allclose(
+        update_trace["marker"]["color"],
+        (np.abs(update_trace["y"]) / np.max(np.abs(y))),
+        rtol=1e-3
+    )
