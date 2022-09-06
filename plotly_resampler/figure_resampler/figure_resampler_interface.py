@@ -29,6 +29,10 @@ from .utils import round_td_str, round_number_str
 
 from abc import ABC
 
+# A high-frequency data container
+# NOTE: the attributes must all be valid trace dict attributes as the 
+# `_hf_data_container._asdict()` function is used in 
+# `AbstractFigureAggregator._construct_hf_data_dict`. 
 _hf_data_container = namedtuple(
     "DataContainer", ["x", "y", "text", "hovertext", "marker_size", "marker_color"]
 )
@@ -829,21 +833,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             default_downsampler = True
             downsampler = self._global_downsampler
 
-        # TODO -> can't we just store the DC here (might be less duplication of
-        #  code knowledge, because now, you need to know all the eligible hf_keys in
-        #  dc
         return {
             "max_n_samples": max_n_samples,
             "default_n_samples": default_n_samples,
-            "x": dc.x,
-            "y": dc.y,
             "axis_type": axis_type,
             "downsampler": downsampler,
             "default_downsampler": default_downsampler,
-            "text": dc.text,
-            "hovertext": dc.hovertext,
-            "marker_size": dc.marker_size,
-            "marker_color": dc.marker_color,
+            **dc._asdict()
         }
 
     def add_trace(
