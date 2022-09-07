@@ -31,7 +31,7 @@ jobs:
     - uses: nanasess/setup-chromedriver@master
 
     - name: Install poetry
-      uses: Gr1N/setup-poetry@v4
+      run: curl -sSL https://install.python-poetry.org | python3 -
     - name: Cache poetry
       id: cached-poetry-dependencies
       uses: actions/cache@v2
