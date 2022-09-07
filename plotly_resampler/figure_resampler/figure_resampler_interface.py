@@ -691,7 +691,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_x = pd.to_numeric(hf_x, errors="raise")
                 except:
                     try:
-                        hf_x = pd.to_datetime(hf_x, format="%Y-%m-%d %H:%M:%S.%f", errors="raise")                        
+                        hf_x = np.asarray(hf_x, dtype="datetime64[ns]")
                     except:
                         raise ValueError(
                             "plotly-resampler requires the x-data to be numeric or datetime-like!"
