@@ -686,6 +686,17 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
+            if hf_x.dtype == "object":
+                try:
+                    hf_x = pd.to_numeric(hf_x, errors="raise")
+                except:
+                    try:
+                        hf_x = pd.to_datetime(hf_x, format="%Y-%m-%d %H:%M:%S.%f", errors="raise")                        
+                    except:
+                        raise ValueError(
+                            "plotly-resampler requires the x-data to be numeric or datetime-like!"
+                        )
+
             # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we
             # transform it to type string as such it will be sent as categorical data

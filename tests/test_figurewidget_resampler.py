@@ -461,6 +461,46 @@ def test_2d_input_y():
         assert "1 dimensional" in e_info
 
 
+def test_hf_x_object_array():
+    y = np.random.randn(100)
+
+    ## Object array of datetime strings
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype("object")
+    assert x.dtype == "object"
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert fig.hf_data[0]["x"].dtype == "datetime64[ns]"
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert fig.hf_data[0]["x"].dtype == "datetime64[ns]"
+
+    ## Object array of ints
+    x = np.arange(100).astype("object")
+    assert x.dtype == "object"
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert fig.hf_data[0]["x"].dtype == "int64"
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert fig.hf_data[0]["x"].dtype == "int64"
+
+    ## Object array of strings
+    x = np.array(["x", "y"]*50).astype("object")
+    assert x.dtype == "object"
+    # Add in the scatter
+    with pytest.raises(ValueError):
+        fig = FigureWidgetResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    # Add as hf_x
+    with pytest.raises(ValueError):
+        fig = FigureWidgetResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+
+
 def test_time_tz_slicing():
     n = 5050
     dr = pd.Series(
