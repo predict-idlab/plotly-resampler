@@ -13,6 +13,7 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
+import warnings
 from copy import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
@@ -687,14 +688,28 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
             if hf_x.dtype == "object":
-                try:
-                    hf_x = pd.to_numeric(hf_x, errors="raise")
-                except:
+                if all(isinstance(x, str) for x in hf_x):
                     try:
-                        hf_x = np.asarray(hf_x, dtype="datetime64[ns]")
+                        # Try to parse to numeric
+                        hf_x = pd.to_numeric(hf_x, errors="raise")
                     except:
-                        raise ValueError(
-                            "plotly-resampler requires the x-data to be numeric or datetime-like!"
+                        try:
+                            # Try to parse to datetime
+                            hf_x = np.asarray([pd.Timestamp(x) for x in hf_x])
+                        except:
+                            raise ValueError(
+                                "plotly-resampler requires the x-data to be numeric or datetime-like"
+                            )
+                if all(isinstance(x, pd.Timestamp) for x in hf_x):
+                    if len(set(x.tz for x in hf_x)) > 1:
+                        # Remove the timezone data for plotting when multiple timezones
+                        warnings.warn(
+                            "x-data of multiple timezones / fixedoffsets is passed, "
+                            + "omitting the timezone data for plotting",
+                            UserWarning,
+                        )
+                        hf_x = np.asarray(
+                            list(map(lambda x: x.replace(tzinfo=None), hf_x))
                         )
 
             # If the categorical or string-like hf_y data is of type object (happens
