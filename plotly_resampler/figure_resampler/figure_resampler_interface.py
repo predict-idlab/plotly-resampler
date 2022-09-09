@@ -687,8 +687,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
-            if hf_x.dtype == "object":
-                if all(isinstance(x, str) for x in hf_x):
+            # Try to parse the hf_x data if it contains string values
+            if hf_x.dtype.type is np.str_ or hf_x.dtype == "object":
+                if len(hf_x) and isinstance(hf_x[0], str):
                     try:
                         # Try to parse to numeric
                         hf_x = pd.to_numeric(hf_x, errors="raise")
@@ -700,7 +701,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             raise ValueError(
                                 "plotly-resampler requires the x-data to be numeric or datetime-like"
                             )
-                if all(isinstance(x, pd.Timestamp) for x in hf_x):
+            # Check and update timezones of the hf_x data when there are multiple
+            # timezones in the data
+            if hf_x.dtype == "object":
+                if len(hf_x) and isinstance(hf_x[0], pd.Timestamp):
+                    # Assumes that all values in hf_x are pd.Timestamps
                     if len(set(x.tz for x in hf_x)) > 1:
                         # Remove the timezone data for plotting when multiple timezones
                         warnings.warn(

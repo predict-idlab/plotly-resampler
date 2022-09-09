@@ -397,6 +397,9 @@ def test_multiple_timezones():
         dr.tz_convert("Australia/Canberra"),
     ]
 
+    plain_plotly_fig = make_subplots(rows=len(cs), cols=1, shared_xaxes=True)
+    plain_plotly_fig.update_layout(height=min(300, 250 * len(cs)))
+
     fr_fig = FigureWidgetResampler(
         make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
         default_n_shown_samples=500,
@@ -406,13 +409,63 @@ def test_multiple_timezones():
     fr_fig.update_layout(height=min(300, 250 * len(cs)))
 
     for i, date_range in enumerate(cs, 1):
+        name = date_range.dtype.name.split(", ")[-1][:-1]
+        plain_plotly_fig.add_trace(
+            go.Scattergl(x=date_range, y=dr_v, name=name), row=i, col=1
+        )
         fr_fig.add_trace(
-            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            go.Scattergl(name=name),
             hf_x=date_range,
             hf_y=dr_v,
             row=i,
             col=1,
         )
+        # Assert that the time parsing is exactly the same
+        assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
+
+
+def multiple_timezones_in_single_x_index():
+    y = np.arange(20)
+    
+    index1 = pd.date_range('2018-01-01', periods=10, freq='H', tz="US/Eastern")
+    index2 = pd.date_range('2018-01-02', periods=10, freq='H', tz="Asia/Dubai")
+    index = index1.append(index2)
+
+    fig = go.Figure()
+    fig.add_trace(go.Scattergl(x=index, y=y))
+    full_fig = fig.full_figure_for_development(warn=False)
+    fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+    # Add as hf_x
+    fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+    fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+    # Add as hf_x as object array
+    fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+    fr_fig.add_trace(go.Scattergl(), hf_x=index.values, hf_y=y)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+    # Add as hf_x as object array
+    fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+    fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
+    full_fig = fig.full_figure_for_development(warn=False)
+    fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+
+    fig = go.Figure()
+    fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
+    full_fig = fig.full_figure_for_development(warn=False)
+    fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
 
 def test_proper_copy_of_wrapped_fig(float_series):
