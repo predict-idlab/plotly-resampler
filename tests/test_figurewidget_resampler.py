@@ -434,36 +434,48 @@ def multiple_timezones_in_single_x_index():
     fig = go.Figure()
     fig.add_trace(go.Scattergl(x=index, y=y))
     full_fig = fig.full_figure_for_development(warn=False)
-    fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+    with pytest.warns(UserWarning):
+        fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
     assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
     assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x
+    # Add as hf_x as index
     fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
-    fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
+    with pytest.warns(UserWarning):
+        fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
     assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
     assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x as object array
+    # Add as hf_x as object array of datetime values
     fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
-    fr_fig.add_trace(go.Scattergl(), hf_x=index.values, hf_y=y)
+    with pytest.warns(UserWarning):
+        fr_fig.add_trace(go.Scattergl(), hf_x=index.values.astype("object"), hf_y=y)
     assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
     assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x as object array
+    # Add as hf_x as string array
     fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
-    fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+    with pytest.warns(UserWarning):
+        fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+    # Add as hf_x as object array of strings
+    fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+    with pytest.warns(UserWarning):
+        fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str).astype("object"), hf_y=y)
     assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
     assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
     fig = go.Figure()
     fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
     full_fig = fig.full_figure_for_development(warn=False)
-    fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+    with pytest.warns(UserWarning):
+        fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
     assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
     assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
     fig = go.Figure()
     fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
     full_fig = fig.full_figure_for_development(warn=False)
-    fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+    with pytest.warns(UserWarning):
+        fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
     assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
     assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
@@ -550,7 +562,7 @@ def test_hf_x_object_array():
     assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
 
     ## Object array of ints
-    ### Should still be an object array where the values remain datetime objects
+    ### Should still be an object array where the values remain integers
     x = np.arange(100).astype("object")
     assert x.dtype == "object"
     assert isinstance(x[0], int)
@@ -590,71 +602,6 @@ def test_hf_x_object_array():
     with pytest.raises(ValueError):
         fig = FigureWidgetResampler(default_n_shown_samples=50)
         fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-
-
-def test_hf_x_object_array_different_tzs():
-    y = np.random.randn(100)
-
-    time_index = pd.date_range("2020-01-01", freq="s", tz="US/Eastern", periods=50)
-    time_index = time_index.append(pd.date_range("2020-01-02", freq="s", tz="Asia/Dubai", periods=50))
-
-    ## As index
-    x = time_index
-    assert isinstance(x, pd.Index)
-    # Add in the scatter
-    fig = FigureWidgetResampler(default_n_shown_samples=50)
-    with pytest.warns(UserWarning):
-        # Check if user warning is raised for omitting timezone
-        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
-    # Add as hf_x
-    fig = FigureWidgetResampler(default_n_shown_samples=50)
-    with pytest.warns(UserWarning):
-        # Check if user warning is raised for omitting timezone
-        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
-
-    ## As object array of datetime objects
-    x = time_index.values
-    assert isinstance(x, np.ndarray)
-    assert x.dtype == "object"
-    assert isinstance(x[0], pd.Timestamp)
-    # Add in the scatter
-    fig = FigureWidgetResampler(default_n_shown_samples=50)
-    with pytest.warns(UserWarning):
-        # Check if user warning is raised for omitting timezone
-        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
-    # Add as hf_x
-    fig = FigureWidgetResampler(default_n_shown_samples=50)
-    with pytest.warns(UserWarning):
-        # Check if user warning is raised for omitting timezone
-        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
-
-    ## As object array of strings
-    x = time_index.values.astype(str).astype("object")
-    assert isinstance(x, np.ndarray)
-    assert x.dtype == "object"
-    assert isinstance(x[0], str)
-    # Add in the scatter
-    fig = FigureWidgetResampler(default_n_shown_samples=50)
-    with pytest.warns(UserWarning):
-        # Check if user warning is raised for omitting timezone
-        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
-    # Add as hf_x
-    fig = FigureWidgetResampler(default_n_shown_samples=50)
-    with pytest.warns(UserWarning):
-        # Check if user warning is raised for omitting timezone
-        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
 
 
 def test_time_tz_slicing():
