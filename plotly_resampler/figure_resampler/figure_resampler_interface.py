@@ -9,6 +9,7 @@ Abstract ``AbstractFigureAggregator`` interface for the concrete *Resampler* cla
 """
 
 from __future__ import annotations
+from datetime import datetime
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
@@ -696,7 +697,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     except ValueError:
                         try:
                             # Try to parse to datetime
-                            hf_x = np.asarray([pd.Timestamp(x) for x in hf_x])
+                            # TODO -> this does not seem optimized at all 
+                            #      -> why don't we apply pd.to_datetime here?
+                            # hf_x = np.asarray([pd.Timestamp(x) for x in hf_x])
+                            hf_x = pd.to_datetime(hf_x)
                         except ValueError:
                             raise ValueError(
                                 "plotly-resampler requires the x-data to be numeric or datetime-like"
@@ -704,6 +708,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # Check and update timezones of the hf_x data when there are multiple
             # timezones in the data
             if hf_x.dtype == "object":
+                # Note: this fix speeds up the datetime object conversion
+                # TODO check with different timezones
+                if len(hf_x) and isinstance(hf_x[0], datetime):
+                    # print('datetime -> timestamp triggered')
+                    hf_x = pd.to_datetime(hf_x)
+                    # pass
                 if len(hf_x) and isinstance(hf_x[0], pd.Timestamp):
                     # Assumes that all values in hf_x are pd.Timestamps
                     if len(set(x.tz for x in hf_x)) > 1:
