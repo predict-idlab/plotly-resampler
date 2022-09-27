@@ -20,6 +20,7 @@ from uuid import uuid4
 from collections import namedtuple
 
 import dash
+import datetime
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -688,8 +689,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
             # Try to parse the hf_x data if it contains string values
-            if hf_x.dtype.type is np.str_ or hf_x.dtype == "object":
-                if len(hf_x) and isinstance(hf_x[0], str):
+            if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object") and isinstance(hf_x[0], str):
                     try:
                         # Try to parse to numeric
                         hf_x = pd.to_numeric(hf_x, errors="raise")
@@ -703,19 +703,22 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             )
             # Check and update timezones of the hf_x data when there are multiple
             # timezones in the data
-            if hf_x.dtype == "object":
-                if len(hf_x) and isinstance(hf_x[0], pd.Timestamp):
-                    # Assumes that all values in hf_x are pd.Timestamps
-                    if len(set(x.tz for x in hf_x)) > 1:
-                        # Remove the timezone data for plotting when multiple timezones
-                        warnings.warn(
-                            "x-data of multiple timezones / fixedoffsets is passed, "
-                            + "omitting the timezone data for plotting",
-                            UserWarning,
-                        )
-                        hf_x = np.asarray(
-                            list(map(lambda x: x.replace(tzinfo=None), hf_x))
-                        )
+            if len(hf_x) and hf_x.dtype == "object" and isinstance(hf_x[0], (pd.Timestamp, datetime.datetime)):
+                # Assumes that all values in hf_x are either pd.Timestamp or datetime.datetime
+                if any(
+                    x.tzinfo is not None and x.tzinfo != hf_x[0].tzinfo
+                    for x in hf_x[1:]
+                ):
+                    # Remove the timezone data for plotting when multiple timezones
+                    warnings.warn(
+                        "x-data of multiple timezones / fixedoffsets is passed, "
+                        + "omitting the timezone data for plotting\n"
+                        + "If you are dealing with daylight savings time we suggest converting to one and the same timezone.",
+                        UserWarning,
+                    )
+                    hf_x = np.asarray(
+                        list(map(lambda x: x.replace(tzinfo=None), hf_x))
+                    )
 
             # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we

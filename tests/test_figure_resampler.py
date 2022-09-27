@@ -5,6 +5,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import pytest
 import time
+import datetime
 import numpy as np
 import pandas as pd
 import multiprocessing
@@ -444,60 +445,66 @@ def test_multiple_timezones():
         assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
 
 
-def multiple_timezones_in_single_x_index():
+def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
+    # TODO: can be improved with pytest parametrize
     y = np.arange(20)
     
     index1 = pd.date_range('2018-01-01', periods=10, freq='H', tz="US/Eastern")
     index2 = pd.date_range('2018-01-02', periods=10, freq='H', tz="Asia/Dubai")
-    index = index1.append(index2)
+    index_timestamps = index1.append(index2)
+    assert all(isinstance(x, pd.Timestamp) for x in index_timestamps)
+    index_datetimes = pd.Index([x.to_pydatetime() for x in index_timestamps])
+    assert not any(isinstance(x, pd.Timestamp) for x in index_datetimes)
+    assert all(isinstance(x, datetime.datetime) for x in index_datetimes)
 
-    fig = go.Figure()
-    fig.add_trace(go.Scattergl(x=index, y=y))
-    full_fig = fig.full_figure_for_development(warn=False)
-    with pytest.warns(UserWarning):
-        fr_fig = FigureResampler(fig, default_n_shown_samples=10)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x as index
-    fr_fig = FigureResampler(default_n_shown_samples=10)
-    with pytest.warns(UserWarning):
-        fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x as object array of datetime values
-    fr_fig = FigureResampler(default_n_shown_samples=10)
-    with pytest.warns(UserWarning):
-        fr_fig.add_trace(go.Scattergl(), hf_x=index.values.astype("object"), hf_y=y)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x as string array
-    fr_fig = FigureResampler(default_n_shown_samples=10)
-    with pytest.warns(UserWarning):
-        fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
-    # Add as hf_x as object array of strings
-    fr_fig = FigureResampler(default_n_shown_samples=10)
-    with pytest.warns(UserWarning):
-        fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str).astype("object"), hf_y=y)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+    for index in [index_timestamps, index_datetimes]:
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index, y=y))
+        full_fig = fig.full_figure_for_development(warn=False)
+        with pytest.warns(UserWarning):
+            fr_fig = FigureResampler(fig, default_n_shown_samples=10)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+        # Add as hf_x as index
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.warns(UserWarning):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+        # Add as hf_x as object array of datetime values
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.warns(UserWarning):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.values.astype("object"), hf_y=y)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+        # Add as hf_x as string array
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.warns(UserWarning):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+        # Add as hf_x as object array of strings
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.warns(UserWarning):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str).astype("object"), hf_y=y)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
-    fig = go.Figure()
-    fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
-    full_fig = fig.full_figure_for_development(warn=False)
-    with pytest.warns(UserWarning):
-        fr_fig = FigureResampler(fig, default_n_shown_samples=10)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
+        full_fig = fig.full_figure_for_development(warn=False)
+        with pytest.warns(UserWarning):
+            fr_fig = FigureResampler(fig, default_n_shown_samples=10)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
-    fig = go.Figure()
-    fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
-    full_fig = fig.full_figure_for_development(warn=False)
-    with pytest.warns(UserWarning):
-        fr_fig = FigureResampler(fig, default_n_shown_samples=10)
-    assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
-    assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
+        full_fig = fig.full_figure_for_development(warn=False)
+        with pytest.warns(UserWarning):
+            fr_fig = FigureResampler(fig, default_n_shown_samples=10)
+        assert pd.Timestamp(full_fig.layout.xaxis.range[0]) == fr_fig.data[0].x[0]
+        assert pd.Timestamp(full_fig.layout.xaxis.range[1]) == fr_fig.data[0].x[-1]
 
 
 def test_proper_copy_of_wrapped_fig(float_series):
