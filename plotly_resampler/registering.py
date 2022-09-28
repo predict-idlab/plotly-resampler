@@ -33,7 +33,7 @@ def _get_plotly_constr(constr):
     Parameters
     ----------
     constr : callable
-        The constructor of a instantiatedplotly-object.
+        The constructor of a instantiated plotly-object.
 
     Returns
     -------
@@ -98,10 +98,10 @@ def register_plotly_resampler(mode="auto", **aggregator_kwargs):
         The mode of the plotly-resampler.
         Possible values are: 'auto', 'figure', 'widget', None.
         If 'auto' is used, the mode is determined based on the environment; if it is in
-        an ipython environment, the mode is 'widget', otherwise it is 'figure'.
+        an iPython environment, the mode is 'widget', otherwise it is 'figure'.
         If 'figure' is used, all plotly figures are wrapped as FigureResampler objects.
         If 'widget' is used, all plotly figure widgets are wrapped as
-        FigureWidgetResampler objects (we advise to use this mode in ipython environment
+        FigureWidgetResampler objects (we advise to use this mode in iPython environment
         with a kernel).
         If None is used, wrapping is done as expected (go.Figure -> FigureResampler,
         go.FigureWidget -> FigureWidgetResampler).

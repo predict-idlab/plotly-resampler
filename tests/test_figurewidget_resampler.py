@@ -536,52 +536,50 @@ def test_hf_x_object_array():
     y = np.random.randn(100)
 
     ## Object array of datetime
-    ### Should still be an object array where the values remain datetime objects
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
     x = pd.date_range("2020-01-01", freq="s", periods=100).astype("object")
     assert x.dtype == "object"
     assert isinstance(x[0], pd.Timestamp)
     # Add in the scatter
     fig = FigureWidgetResampler(default_n_shown_samples=50)
     fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
-    assert fig.hf_data[0]["x"].dtype == "object"
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
     assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
     # Add as hf_x
     fig = FigureWidgetResampler(default_n_shown_samples=50)
     fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-    assert fig.hf_data[0]["x"].dtype == "object"
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
     assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
 
     ## Object array of datetime strings
-    ### Should still be an object array where the values are datetime objects
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
     x = pd.date_range("2020-01-01", freq="s", periods=100).astype(str).astype("object")
     assert x.dtype == "object"
     assert isinstance(x[0], str)
     # Add in the scatter
     fig = FigureWidgetResampler(default_n_shown_samples=50)
     fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
-    assert fig.hf_data[0]["x"].dtype == "object"
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
     assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
     # Add as hf_x
     fig = FigureWidgetResampler(default_n_shown_samples=50)
     fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-    assert fig.hf_data[0]["x"].dtype == "object"
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
     assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
 
     ## Object array of ints
-    ### Should still be an object array where the values remain integers
+    ### Should be parsed to an int array (is more efficient than object array)
     x = np.arange(100).astype("object")
     assert x.dtype == "object"
     assert isinstance(x[0], int)
     # Add in the scatter
     fig = FigureWidgetResampler(default_n_shown_samples=50)
     fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], int)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
     # Add as hf_x
     fig = FigureWidgetResampler(default_n_shown_samples=50)
     fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-    assert fig.hf_data[0]["x"].dtype == "object"
-    assert isinstance(fig.hf_data[0]["x"][0], int)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
 
     ## Object array of ints as strings
     ### Should be an integer array where the values are int objects
