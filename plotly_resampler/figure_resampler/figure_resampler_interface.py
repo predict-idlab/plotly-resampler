@@ -149,7 +149,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Make sure to reset the layout its range
         self.update_layout(
             {
-                axis: {"autorange": True, "range": None}
+                axis: {"autorange": None, "range": None}
                 for axis in self._xaxis_list + self._yaxis_list
             }
         )
