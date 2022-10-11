@@ -17,7 +17,6 @@ import uuid
 import base64
 import dash
 import plotly.graph_objects as go
-from flask_cors import cross_origin
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
@@ -51,6 +50,8 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
     """
 
     def __init__(self, *args, **kwargs):
+        from flask_cors import cross_origin  # import here to allow optional dependency
+
         super().__init__(*args, **kwargs)
 
         self._uid = str(uuid.uuid4())  # A new unique id for each app
@@ -75,6 +76,7 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         fig = self.layout.children[0].figure  # is stored there in the show_dash method
         f_width = 1000 if fig.layout.width is None else fig.layout.width
         fig_base64 = base64.b64encode(
+            # fig.to_image uses kaleido to convert the figure to an image
             fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
         ).decode("utf8")
 
