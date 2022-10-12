@@ -1151,7 +1151,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
-    def construct_update_data(self, relayout_data: dict) -> List[dict]:
+    def construct_update_data(
+        self, 
+        relayout_data: dict
+    ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
         Attention
@@ -1242,7 +1245,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
         for range_change_axis in xy_matches:
             axis = range_change_axis.split(".")[0]
-            extra_layout_updates[f"{axis}.autorange"] = False
+            extra_layout_updates[f"{axis}.autorange"] = None
         layout_traces_list.append(extra_layout_updates)
 
         # 2. Create the additional trace data for the frond-end
@@ -1267,6 +1270,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if m is not None:
                 matches.append(m.string)
         return sorted(matches)
+
+    @staticmethod
+    def _is_no_update(update_data: Union[List[dict], dash.no_update]):
+        return update_data is dash.no_update
 
     ## Magic methods (to use plotly.py words :grin:)
 

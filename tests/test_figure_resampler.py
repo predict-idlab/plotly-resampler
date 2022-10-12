@@ -5,13 +5,17 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import pytest
 import time
+import multiprocessing
+
 import numpy as np
 import pandas as pd
-import multiprocessing
 import plotly.graph_objects as go
+
+from selenium.webdriver.common.by import By
+from typing import List
+
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
-from typing import List
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -1025,6 +1029,146 @@ def test_fr_object_binary_data():
     )
     assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
+
+
+def test_fr_update_layout_axes_range(driver):
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(2_000))
+    f_pr = FigureResampler(default_n_shown_samples=500).add_scatter(y=np.arange(2_000))
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range == None
+    assert f_pr.layout.xaxis.range == None
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range == None
+    assert f_pr.layout.yaxis.range == None
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    # Before showing the figure, the f_pr contains the full original data (downsampled to 500 samples)
+    assert len(f_pr.data[0]["y"]) == 500
+    assert len(f_pr.data[0]["x"]) == 500
+    assert f_pr.data[0]["y"][0] == 0
+    assert f_pr.data[0]["y"][-1] == 1999
+    assert f_pr.data[0]["x"][0] == 0
+    assert f_pr.data[0]["x"][-1] == 1999
+
+    f_pr.stop_server()
+    proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
+    proc.start()
+    time.sleep(1)
+    driver.get(f"http://localhost:8050")
+    time.sleep(2)
+    # Get the data property from the front-end figure
+    el = driver.find_element(by=By.ID, value="resample-figure")
+    el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
+    f_pr_data = el.get_property("data")
+    f_pr_layout = el.get_property("layout")
+
+    # After showing the figure, the f_pr contains the original data of the selected xrange (downsampled to 500 samples)
+    assert len(f_pr_data[0]["y"]) == 500
+    assert len(f_pr_data[0]["x"]) == 500
+    assert f_pr_data[0]["y"][0] >= 100 and f_pr_data[0]["y"][-1] <= 1000
+    assert f_pr_data[0]["x"][0] >= 100 and f_pr_data[0]["x"][-1] <= 1000
+    # Check the front-end layout
+    assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
+    assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
+
+    f_pr.stop_server()
+    proc.terminate()
+    
+
+def test_fr_update_layout_axes_range_no_update(driver):
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(2_000))
+    f_pr = FigureResampler(default_n_shown_samples=20_000).add_scatter(
+        y=np.arange(2_000)
+    )
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range == None
+    assert f_pr.layout.xaxis.range == None
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range == None
+    assert f_pr.layout.yaxis.range == None
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    # Before showing the figure, the f_pr contains the full original data (not downsampled)
+    assert len(f_pr.data[0]["y"]) == 2_000
+    assert len(f_pr.data[0]["x"]) == 2_000
+    assert f_pr.data[0]["y"][0] == 0
+    assert f_pr.data[0]["y"][-1] == 1999
+    assert f_pr.data[0]["x"][0] == 0
+    assert f_pr.data[0]["x"][-1] == 1999
+
+    f_pr.stop_server()
+    proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
+    proc.start()
+    time.sleep(1)
+    driver.get(f"http://localhost:8050")
+    time.sleep(2)
+    # Get the data & layout property from the front-end figure
+    el = driver.find_element(by=By.ID, value="resample-figure")
+    el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
+    f_pr_data = el.get_property("data")
+    f_pr_layout = el.get_property("layout")
+
+    # After showing the figure, the f_pr contains the original data of the selected xrange (downsampled to 500 samples)
+    assert len(f_pr_data[0]["y"]) == 2_000
+    assert len(f_pr_data[0]["x"]) == 2_000
+    assert f_pr.data[0]["y"][0] == 0
+    assert f_pr.data[0]["y"][-1] == 1999
+    assert f_pr.data[0]["x"][0] == 0
+    assert f_pr.data[0]["x"][-1] == 1999
+    # Check the front-end layout
+    assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
+    assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
+
+    f_pr.stop_server()
+    proc.terminate()
 
 
 def test_fr_copy_grid():

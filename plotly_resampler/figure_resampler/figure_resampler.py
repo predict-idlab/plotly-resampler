@@ -390,15 +390,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
         if len(relayout_dict):
             update_data = self.construct_update_data(relayout_dict)
+            if not self._is_no_update(update_data):  # when there is an update
+                with self.batch_update():
+                    # First update the layout (first item of update_data)
+                    self.layout.update(update_data[0])
 
-            with self.batch_update():
-                # First update the layout (first item of update_data)
-                self.layout.update(update_data[0])
-
-                # Then update the data
-                for updated_trace in update_data[1:]:
-                    trace_idx = updated_trace.pop("index")
-                    self.data[trace_idx].update(updated_trace)
+                    # Then update the data
+                    for updated_trace in update_data[1:]:
+                        trace_idx = updated_trace.pop("index")
+                        self.data[trace_idx].update(updated_trace)
 
         # 1. Construct the Dash app layout
         if mode == "inline_persistent":
