@@ -1032,9 +1032,26 @@ def test_fr_object_binary_data():
 
 
 def test_fr_update_layout_axes_range(driver):
+    nb_datapoints = 2_000
+    n_shown = 500  # < nb_datapoints
+
     # Checks whether the update_layout method works as expected
-    f_orig = go.Figure().add_scatter(y=np.arange(2_000))
-    f_pr = FigureResampler(default_n_shown_samples=500).add_scatter(y=np.arange(2_000))
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints-1):
+        # closure for n_shown and nb_datapoints
+        assert len(fr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fr.data[0]["y"][0] == min_v
+        assert fr.data[0]["y"][-1] == max_v
+        assert fr.data[0]["x"][0] == min_v
+        assert fr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
 
     # The xaxis (auto)range should be the same for both figures
 
@@ -1067,12 +1084,8 @@ def test_fr_update_layout_axes_range(driver):
     assert f_pr.layout.yaxis.autorange == None
 
     # Before showing the figure, the f_pr contains the full original data (downsampled to 500 samples)
-    assert len(f_pr.data[0]["y"]) == 500
-    assert len(f_pr.data[0]["x"]) == 500
-    assert f_pr.data[0]["y"][0] == 0
-    assert f_pr.data[0]["y"][-1] == 1999
-    assert f_pr.data[0]["x"][0] == 0
-    assert f_pr.data[0]["x"][-1] == 1999
+    # Even after updating the axes ranges
+    check_data(f_pr)
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
@@ -1086,7 +1099,7 @@ def test_fr_update_layout_axes_range(driver):
     f_pr_data = el.get_property("data")
     f_pr_layout = el.get_property("layout")
 
-    # After showing the figure, the f_pr contains the original data of the selected xrange (downsampled to 500 samples)
+    # After showing the figure, the f_pr contains the data of the selected xrange (downsampled to 500 samples)
     assert len(f_pr_data[0]["y"]) == 500
     assert len(f_pr_data[0]["x"]) == 500
     assert f_pr_data[0]["y"][0] >= 100 and f_pr_data[0]["y"][-1] <= 1000
@@ -1100,11 +1113,26 @@ def test_fr_update_layout_axes_range(driver):
     
 
 def test_fr_update_layout_axes_range_no_update(driver):
+    nb_datapoints = 2_000
+    n_shown = 20_000  # > nb. datapoints
+
     # Checks whether the update_layout method works as expected
-    f_orig = go.Figure().add_scatter(y=np.arange(2_000))
-    f_pr = FigureResampler(default_n_shown_samples=20_000).add_scatter(
-        y=np.arange(2_000)
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
     )
+
+    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints-1):
+        # closure for n_shown and nb_datapoints
+        assert len(fr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fr.data[0]["y"][0] == min_v
+        assert fr.data[0]["y"][-1] == max_v
+        assert fr.data[0]["x"][0] == min_v
+        assert fr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
 
     # The xaxis (auto)range should be the same for both figures
 
@@ -1137,12 +1165,8 @@ def test_fr_update_layout_axes_range_no_update(driver):
     assert f_pr.layout.yaxis.autorange == None
 
     # Before showing the figure, the f_pr contains the full original data (not downsampled)
-    assert len(f_pr.data[0]["y"]) == 2_000
-    assert len(f_pr.data[0]["x"]) == 2_000
-    assert f_pr.data[0]["y"][0] == 0
-    assert f_pr.data[0]["y"][-1] == 1999
-    assert f_pr.data[0]["x"][0] == 0
-    assert f_pr.data[0]["x"][-1] == 1999
+    # Even after updating the axes ranges
+    check_data(f_pr)
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
@@ -1156,7 +1180,7 @@ def test_fr_update_layout_axes_range_no_update(driver):
     f_pr_data = el.get_property("data")
     f_pr_layout = el.get_property("layout")
 
-    # After showing the figure, the f_pr contains the original data of the selected xrange (downsampled to 500 samples)
+    # After showing the figure, the f_pr contains the original data (not downsampled), but shown xrange is [100, 1000]
     assert len(f_pr_data[0]["y"]) == 2_000
     assert len(f_pr_data[0]["x"]) == 2_000
     assert f_pr.data[0]["y"][0] == 0
