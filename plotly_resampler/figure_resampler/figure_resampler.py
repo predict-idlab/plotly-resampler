@@ -380,6 +380,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         assert "config" not in graph_properties.keys()  # There is a param for config
 
         # 0. Check if the traces need to be updated when there is a xrange set
+        # This will be the case when the users has set a xrange (via the `update_layout`
+        # or `update_xaxes` methods`)
         relayout_dict = {}
         for xaxis_str in self._xaxis_list:
             x_range = self.layout[xaxis_str].range

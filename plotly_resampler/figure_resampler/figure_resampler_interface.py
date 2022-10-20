@@ -1272,7 +1272,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return sorted(matches)
 
     @staticmethod
-    def _is_no_update(update_data: Union[List[dict], dash.no_update]):
+    def _is_no_update(update_data: Union[List[dict], dash.no_update]) -> bool:
         return update_data is dash.no_update
 
     ## Magic methods (to use plotly.py words :grin:)
