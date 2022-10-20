@@ -378,6 +378,27 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties.keys()  # There is a param for config
+
+        # 0. Check if the traces need to be updated when there is a xrange set
+        relayout_dict = {}
+        for xaxis_str in self._xaxis_list:
+            x_range = self.layout[xaxis_str].range
+            if x_range:  # when not None
+                relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
+                relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
+        if len(relayout_dict):
+            update_data = self.construct_update_data(relayout_dict)
+
+            if not self._is_no_update(update_data):  # when there is an update
+                with self.batch_update():
+                    # First update the layout (first item of update_data)
+                    self.layout.update(update_data[0])
+
+                    # Then update the data
+                    for updated_trace in update_data[1:]:
+                        trace_idx = updated_trace.pop("index")
+                        self.data[trace_idx].update(updated_trace)
+
         # 1. Construct the Dash app layout
         if mode == "inline_persistent":
             # Inline persistent mode: we display a static image of the figure when the
