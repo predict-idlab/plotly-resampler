@@ -17,6 +17,10 @@ from typing import List
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
 
+# Note: this will be used to skip / alter behavior when running browser tests on 
+# non-linux platforms.
+from .utils import not_on_linux
+
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
@@ -1087,13 +1091,17 @@ def test_fr_update_layout_axes_range(driver):
     # Even after updating the axes ranges
     check_data(f_pr)
 
+    if not_on_linux():
+        # TODO: eventually we should run this test on Windows & MacOS too
+        return
+
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
     proc.start()
     try:
-        time.sleep(2)
+        time.sleep(1)
         driver.get(f"http://localhost:8050")
-        time.sleep(7)
+        time.sleep(3)
         # Get the data property from the front-end figure
         el = driver.find_element(by=By.ID, value="resample-figure")
         el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
@@ -1171,13 +1179,17 @@ def test_fr_update_layout_axes_range_no_update(driver):
     # Even after updating the axes ranges
     check_data(f_pr)
 
+    if not_on_linux():
+        # TODO: eventually we should run this test on Windows & MacOS too
+        return
+
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
     proc.start()
     try:
-        time.sleep(2)
+        time.sleep(1)
         driver.get(f"http://localhost:8050")
-        time.sleep(7)
+        time.sleep(3)
         # Get the data & layout property from the front-end figure
         el = driver.find_element(by=By.ID, value="resample-figure")
         el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
