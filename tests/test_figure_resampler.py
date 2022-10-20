@@ -1090,26 +1090,29 @@ def test_fr_update_layout_axes_range(driver):
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
     proc.start()
-    time.sleep(1)
-    driver.get(f"http://localhost:8050")
-    time.sleep(2)
-    # Get the data property from the front-end figure
-    el = driver.find_element(by=By.ID, value="resample-figure")
-    el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
-    f_pr_data = el.get_property("data")
-    f_pr_layout = el.get_property("layout")
+    try:
+        time.sleep(2)
+        driver.get(f"http://localhost:8050")
+        time.sleep(7)
+        # Get the data property from the front-end figure
+        el = driver.find_element(by=By.ID, value="resample-figure")
+        el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
+        f_pr_data = el.get_property("data")
+        f_pr_layout = el.get_property("layout")
 
-    # After showing the figure, the f_pr contains the data of the selected xrange (downsampled to 500 samples)
-    assert len(f_pr_data[0]["y"]) == 500
-    assert len(f_pr_data[0]["x"]) == 500
-    assert f_pr_data[0]["y"][0] >= 100 and f_pr_data[0]["y"][-1] <= 1000
-    assert f_pr_data[0]["x"][0] >= 100 and f_pr_data[0]["x"][-1] <= 1000
-    # Check the front-end layout
-    assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
-    assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
-
-    f_pr.stop_server()
-    proc.terminate()
+        # After showing the figure, the f_pr contains the data of the selected xrange (downsampled to 500 samples)
+        assert len(f_pr_data[0]["y"]) == 500
+        assert len(f_pr_data[0]["x"]) == 500
+        assert f_pr_data[0]["y"][0] >= 100 and f_pr_data[0]["y"][-1] <= 1000
+        assert f_pr_data[0]["x"][0] >= 100 and f_pr_data[0]["x"][-1] <= 1000
+        # Check the front-end layout
+        assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
+        assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
+        f_pr.stop_server()
     
 
 def test_fr_update_layout_axes_range_no_update(driver):
@@ -1171,28 +1174,31 @@ def test_fr_update_layout_axes_range_no_update(driver):
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
     proc.start()
-    time.sleep(1)
-    driver.get(f"http://localhost:8050")
-    time.sleep(2)
-    # Get the data & layout property from the front-end figure
-    el = driver.find_element(by=By.ID, value="resample-figure")
-    el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
-    f_pr_data = el.get_property("data")
-    f_pr_layout = el.get_property("layout")
+    try:
+        time.sleep(2)
+        driver.get(f"http://localhost:8050")
+        time.sleep(7)
+        # Get the data & layout property from the front-end figure
+        el = driver.find_element(by=By.ID, value="resample-figure")
+        el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
+        f_pr_data = el.get_property("data")
+        f_pr_layout = el.get_property("layout")
 
-    # After showing the figure, the f_pr contains the original data (not downsampled), but shown xrange is [100, 1000]
-    assert len(f_pr_data[0]["y"]) == 2_000
-    assert len(f_pr_data[0]["x"]) == 2_000
-    assert f_pr.data[0]["y"][0] == 0
-    assert f_pr.data[0]["y"][-1] == 1999
-    assert f_pr.data[0]["x"][0] == 0
-    assert f_pr.data[0]["x"][-1] == 1999
-    # Check the front-end layout
-    assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
-    assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
-
-    f_pr.stop_server()
-    proc.terminate()
+        # After showing the figure, the f_pr contains the original data (not downsampled), but shown xrange is [100, 1000]
+        assert len(f_pr_data[0]["y"]) == 2_000
+        assert len(f_pr_data[0]["x"]) == 2_000
+        assert f_pr.data[0]["y"][0] == 0
+        assert f_pr.data[0]["y"][-1] == 1999
+        assert f_pr.data[0]["x"][0] == 0
+        assert f_pr.data[0]["x"][-1] == 1999
+        # Check the front-end layout
+        assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
+        assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
+        f_pr.stop_server()
 
 
 def test_fr_copy_grid():
