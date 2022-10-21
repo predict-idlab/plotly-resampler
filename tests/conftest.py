@@ -493,4 +493,5 @@ def multi_trace_go_figure() -> FigureResampler:
             hf_y=y + i,
         )
     fig.update_layout(height=800)
+    fig.update_xaxes(range=[100, 200_000])
     return fig
