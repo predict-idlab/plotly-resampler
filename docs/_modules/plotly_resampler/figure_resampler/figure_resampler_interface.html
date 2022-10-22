@@ -971,6 +971,23 @@
             <span class="s2">&quot;hovertext&quot;</span><span class="p">:</span> <span class="n">dc</span><span class="o">.</span><span class="n">hovertext</span><span class="p">,</span>
         <span class="p">}</span>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Convert the `add_trace` kwargs to the `add_traces` kwargs.&quot;&quot;&quot;</span>
+        <span class="c1"># The keywords that need to be converted to a list</span>
+        <span class="n">convert_keywords</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;row&quot;</span><span class="p">,</span> <span class="s2">&quot;col&quot;</span><span class="p">,</span> <span class="s2">&quot;secondary_y&quot;</span><span class="p">]</span>
+
+        <span class="n">updated_kwargs</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># The updated kwargs (from `add_trace` to `add_traces`)</span>
+        <span class="k">for</span> <span class="n">keyword</span> <span class="ow">in</span> <span class="n">convert_keywords</span><span class="p">:</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">keyword</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">updated_kwargs</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">updated_kwargs</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    
+        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">updated_kwargs</span><span class="p">}</span>
+
+
 <div class="viewcode-block" id="AbstractFigureAggregator.add_trace"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_trace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BaseTraceType</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
@@ -1132,7 +1149,9 @@
                 <span class="c1"># Hence, you first downsample the trace.</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_check_update_trace_data</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
                 <span class="k">assert</span> <span class="n">trace</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span>
+                <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">trace</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">trace_kwargs</span><span class="p">)</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[i] NOT resampling </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - len=</span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
                 <span class="c1"># TODO: can be made more generic</span>
@@ -1140,9 +1159,12 @@
                 <span class="n">trace</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">y</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">text</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">hovertext</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">hovertext</span>
-                <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">)</span></div>
+                <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
+                    <span class="p">[</span><span class="n">trace</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">trace_kwargs</span><span class="p">)</span>
+                <span class="p">)</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">trace</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">trace_kwargs</span><span class="p">)</span>
+        <span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbstractFigureAggregator.add_traces"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces">[docs]</a>    <span class="k">def</span> <span class="nf">add_traces</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1329,8 +1351,8 @@
         <span class="p">)</span></div>
 
 <div class="viewcode-block" id="AbstractFigureAggregator.construct_update_data"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data">[docs]</a>    <span class="k">def</span> <span class="nf">construct_update_data</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> 
-        <span class="n">relayout_data</span><span class="p">:</span> <span class="nb">dict</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">relayout_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Construct the to-be-updated front-end data, based on the layout change.</span>
 
