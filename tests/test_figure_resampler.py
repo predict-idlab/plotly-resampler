@@ -102,6 +102,18 @@ def test_add_trace_not_resampling(float_series):
     )
 
 
+def test_max_n_samples(float_series):
+    s = float_series[:5000]
+
+    fig = FigureResampler()
+    fig.add_trace(
+        go.Scattergl(name="test"), hf_x=s.index, hf_y=s, max_n_samples=len(s) + 1
+    )
+    # make sure that there is not hf_data
+    assert len(fig.hf_data) == 0
+    assert len(fig.data[0]["x"]) == len(s)
+
+
 def test_add_scatter_trace_no_data():
     fig = FigureResampler(default_n_shown_samples=1000)
 
@@ -1045,7 +1057,7 @@ def test_fr_update_layout_axes_range(driver):
         y=np.arange(nb_datapoints)
     )
 
-    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints-1):
+    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints - 1):
         # closure for n_shown and nb_datapoints
         assert len(fr.data[0]["y"]) == min(n_shown, nb_datapoints)
         assert len(fr.data[0]["x"]) == min(n_shown, nb_datapoints)
@@ -1121,7 +1133,7 @@ def test_fr_update_layout_axes_range(driver):
     finally:
         proc.terminate()
         f_pr.stop_server()
-    
+
 
 def test_fr_update_layout_axes_range_no_update(driver):
     nb_datapoints = 2_000
@@ -1133,7 +1145,7 @@ def test_fr_update_layout_axes_range_no_update(driver):
         y=np.arange(nb_datapoints)
     )
 
-    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints-1):
+    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints - 1):
         # closure for n_shown and nb_datapoints
         assert len(fr.data[0]["y"]) == min(n_shown, nb_datapoints)
         assert len(fr.data[0]["x"]) == min(n_shown, nb_datapoints)
