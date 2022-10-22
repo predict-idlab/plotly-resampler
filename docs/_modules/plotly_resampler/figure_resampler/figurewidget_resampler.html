@@ -349,6 +349,10 @@
             <span class="c1"># Construct the update data</span>
             <span class="n">update_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_update_data</span><span class="p">(</span><span class="n">relayout_dict</span><span class="p">)</span>
 
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_no_update</span><span class="p">(</span><span class="n">update_data</span><span class="p">):</span>
+                <span class="c1"># Return when no data update</span>
+                <span class="k">return</span>
+
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print_verbose</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_relayout_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">,</span> <span class="n">x_ranges</span><span class="p">)))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_relayout_hist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
@@ -457,7 +461,7 @@
         <span class="c1"># Reset the layout</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
             <span class="p">{</span>
-                <span class="n">axis</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;autorange&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+                <span class="n">axis</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;autorange&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
                 <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_list</span>
             <span class="p">}</span>
         <span class="p">)</span></div>

@@ -555,6 +555,29 @@
         <span class="p">),</span> <span class="sa">f</span><span class="s2">&quot;mode must be one of </span><span class="si">{</span><span class="n">available_modes</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="n">graph_properties</span> <span class="o">=</span> <span class="p">{}</span> <span class="k">if</span> <span class="n">graph_properties</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">graph_properties</span>
         <span class="k">assert</span> <span class="s2">&quot;config&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">graph_properties</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>  <span class="c1"># There is a param for config</span>
+
+        <span class="c1"># 0. Check if the traces need to be updated when there is a xrange set</span>
+        <span class="c1"># This will be the case when the users has set a xrange (via the `update_layout`</span>
+        <span class="c1"># or `update_xaxes` methods`)</span>
+        <span class="n">relayout_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">xaxis_str</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">:</span>
+            <span class="n">x_range</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="p">[</span><span class="n">xaxis_str</span><span class="p">]</span><span class="o">.</span><span class="n">range</span>
+            <span class="k">if</span> <span class="n">x_range</span><span class="p">:</span>  <span class="c1"># when not None</span>
+                <span class="n">relayout_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xaxis_str</span><span class="si">}</span><span class="s2">.range[0]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">relayout_dict</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">xaxis_str</span><span class="si">}</span><span class="s2">.range[1]&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">relayout_dict</span><span class="p">):</span>
+            <span class="n">update_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_update_data</span><span class="p">(</span><span class="n">relayout_dict</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_no_update</span><span class="p">(</span><span class="n">update_data</span><span class="p">):</span>  <span class="c1"># when there is an update</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">batch_update</span><span class="p">():</span>
+                    <span class="c1"># First update the layout (first item of update_data)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">update_data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+                    <span class="c1"># Then update the data</span>
+                    <span class="k">for</span> <span class="n">updated_trace</span> <span class="ow">in</span> <span class="n">update_data</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+                        <span class="n">trace_idx</span> <span class="o">=</span> <span class="n">updated_trace</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">trace_idx</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">updated_trace</span><span class="p">)</span>
+
         <span class="c1"># 1. Construct the Dash app layout</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;inline_persistent&quot;</span><span class="p">:</span>
             <span class="c1"># Inline persistent mode: we display a static image of the figure when the</span>
