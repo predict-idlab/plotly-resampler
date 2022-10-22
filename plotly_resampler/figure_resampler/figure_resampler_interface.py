@@ -797,16 +797,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     @staticmethod
     def _add_trace_to_add_traces_kwargs(kwargs: dict) -> dict:
         """Convert the `add_trace` kwargs to the `add_traces` kwargs."""
-        row = kwargs.pop("row", None)
-        row = [row] if row is not None else None
+        # The keywords that need to be converted to a list
+        convert_keywords = ["row", "col", "secondary_y"]
 
-        cols = kwargs.pop("col", None)
-        cols = [cols] if cols is not None else None
+        updated_kwargs = {}  # The updated kwargs (from `add_trace` to `add_traces`)
+        for keyword in convert_keywords:
+            value = kwargs.pop(keyword, None)
+            if value is not None:
+                updated_kwargs[f"{keyword}s"] = [value]
+            else:
+                updated_kwargs[f"{keyword}s"] = None
+    
+        return {**kwargs, **updated_kwargs}
 
-        secondary_ys = kwargs.pop("secondary_y", None)
-        secondary_ys = [secondary_ys] if secondary_ys is not None else None
-
-        return {**kwargs, "rows": row, "cols": cols, "secondary_ys": secondary_ys}
 
     def add_trace(
         self,
