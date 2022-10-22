@@ -3,14 +3,16 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
-from copy import copy
-from datetime import datetime
-from typing import List
+import pytest
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-import pytest
+
+from copy import copy
+from datetime import datetime
+from typing import List
+
 from plotly.subplots import make_subplots
 from plotly_resampler import EfficientLTTB, EveryNthPoint, FigureWidgetResampler
 
@@ -1815,6 +1817,119 @@ def test_fwr_object_binary_data():
     assert (fig.hf_data[0]["y"].dtype == "int32") or (fig.hf_data[0]["y"].dtype == "int64")
     assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
+
+
+def test_fwr_update_layout_axes_range():
+    nb_datapoints = 2_000
+    n_shown = 500  # < nb_datapoints
+
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureWidgetResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fwr: FigureWidgetResampler, min_v=0, max_v=nb_datapoints-1):
+        # closure for n_shown and nb_datapoints
+        assert len(fwr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fwr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fwr.data[0]["y"][0] == min_v
+        assert fwr.data[0]["y"][-1] == max_v
+        assert fwr.data[0]["x"][0] == min_v
+        assert fwr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range == None
+    assert f_pr.layout.xaxis.range == None
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range == None
+    assert f_pr.layout.yaxis.range == None
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    # Now the f_pr contains the data of the selected xrange (downsampled to 500 samples)
+    check_data(f_pr, 100, 1_000-1)
+    
+
+def test_fwr_update_layout_axes_range_no_update():
+    nb_datapoints = 2_000
+    n_shown = 20_000  # > nb. datapoints
+
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureWidgetResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fwr: FigureWidgetResampler, min_v=0, max_v=nb_datapoints-1):
+        # closure for n_shown and nb_datapoints
+        assert len(fwr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fwr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fwr.data[0]["y"][0] == min_v
+        assert fwr.data[0]["y"][-1] == max_v
+        assert fwr.data[0]["x"][0] == min_v
+        assert fwr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range == None
+    assert f_pr.layout.xaxis.range == None
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range == None
+    assert f_pr.layout.yaxis.range == None
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    # Now the f_pr still contains the full original data (not downsampled)
+    # Even after updating the axes ranges
+    check_data(f_pr)
 
 
 def test_fwr_copy_grid():

@@ -18,6 +18,9 @@ jobs:
       matrix:
         os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
         python-version: ['3.7', '3.8', '3.9', '3.10']
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@v2
@@ -30,8 +33,8 @@ jobs:
 
     - uses: nanasess/setup-chromedriver@master
 
-    - name: Install poetry
-      uses: Gr1N/setup-poetry@v4
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
     - name: Cache poetry
       id: cached-poetry-dependencies
       uses: actions/cache@v2

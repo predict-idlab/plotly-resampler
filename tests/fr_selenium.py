@@ -11,7 +11,6 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 
-import sys
 import json
 import time
 from typing import List, Union
@@ -20,21 +19,15 @@ from seleniumwire import webdriver
 from seleniumwire.request import Request
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-
-def not_on_linux():
-    """Return True if the current platform is not Linux.
-    
-    Note: this will be used to add more waiting time to windows & mac os tests as 
-    - on these OS's serialization of the figure is necessary (to start the dash app in a 
-      multiprocessing.Process)
-      https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
-    - on linux, the browser (i.e., sending & getting requests) goes a lot faster
-    """
-    return not sys.platform.startswith("linux")
+# Note: this will be used to add more waiting time to windows & mac os tests as 
+# - on these OS's serialization of the figure is necessary (to start the dash app in a 
+#    multiprocessing.Process)
+#    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+# - on linux, the browser (i.e., sending & getting requests) goes a lot faster
+from .utils import not_on_linux
 
 
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
