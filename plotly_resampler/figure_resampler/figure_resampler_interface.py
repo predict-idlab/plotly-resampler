@@ -292,8 +292,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             s_res: pd.Series = downsampler.aggregate(
                 hf_series, hf_trace_data["max_n_samples"]
             )
+            # Also parse the data types to an orjson compatible format
             trace["x"] = self._parse_dtype_orjson(s_res.index)
-            trace["y"] = s_res.values
+            trace["y"] = self._parse_dtype_orjson(s_res.values)
             # todo -> first draft & not MP safe
 
             agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
