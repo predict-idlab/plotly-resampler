@@ -101,6 +101,43 @@ def test_add_trace_not_resampling(float_series):
         hf_hovertext="hovertext",
     )
 
+def test_various_dtypes(float_series):
+    valid_dtype_list = [
+        np.bool_,
+        # ---- uints
+        np.uint8,
+        np.uint16,
+        np.uint32,
+        np.uint64,
+        # -------- ints
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
+        # -------- floats
+        np.float16,
+        np.float32,
+        np.float64,
+    ]
+    for dtype in valid_dtype_list:
+        fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+        fig.add_trace(
+            go.Scatter(name="float_series"),
+            hf_x=float_series.index,
+            hf_y=float_series.astype(dtype),
+            limit_to_view=True,
+        )
+
+    invalid_dtype_list = [ np.float128 ]
+    for invalid_dtype in invalid_dtype_list:
+        fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+        with pytest.raises(AssertionError):
+            fig.add_trace(
+                go.Scatter(name="float_series"),
+                hf_x=float_series.index,
+                hf_y=float_series.astype(invalid_dtype),
+                limit_to_view=True,
+            )
 
 def test_add_scatter_trace_no_data():
     fig = FigureResampler(default_n_shown_samples=1000)

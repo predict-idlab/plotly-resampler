@@ -18,6 +18,7 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 from collections import namedtuple
 
+import orjson
 import dash
 import numpy as np
 import pandas as pd
@@ -291,7 +292,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             s_res: pd.Series = downsampler.aggregate(
                 hf_series, hf_trace_data["max_n_samples"]
             )
-            trace["x"] = s_res.index
+            trace["x"] = self._parse_dtype_orjson(s_res.index)
             trace["y"] = s_res.values
             # todo -> first draft & not MP safe
 
@@ -700,9 +701,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 except ValueError:
                     hf_y = hf_y.astype("str")
 
-            # orjson encoding doesn't like to encode with uint8 & uint16 dtype
-            if str(hf_y.dtype) in ["uint8", "uint16"]:
-                hf_y = hf_y.astype("uint32")
+            msg = (
+                "Plotly-Resampler its aggregator functions do not support the float128"
+                + " dtype, so please consider casting your data to float64\n."
+                + " If you have an eligible usecase where float128 still is necessary,"
+                + " please consider making an issue on GitHub."
+            )
+            assert hf_x.dtype != np.float128, msg
+            assert hf_y.dtype != np.float128, msg
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
         else:
@@ -1152,8 +1158,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
     def construct_update_data(
-        self, 
-        relayout_data: dict
+        self, relayout_data: dict
     ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
@@ -1260,6 +1265,24 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
+
+    @staticmethod
+    def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:
+        """Verify the orjson compatibility of the series and convert it if needed."""
+        # NOTE:
+        #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
+        #    * this method assumes that the it will not get a float128 series
+        if series.dtype in [np.float16]:
+            return series.astype(np.float32)
+
+        # orjson < 3.8.0 encoding cannot encode with int16 & uint16 dtype
+        elif series.dtype in [np.int16, np.uint16]:
+            major_v, minor_v = list(map(int, orjson.__version__.split(".")))[:2]
+            if major_v < 3 or major_v == 3 and minor_v < 8:
+                if series.dtype == np.uint16:
+                    return series.astype("uint32")
+                return series.astype(np.int32)
+        return series
 
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
