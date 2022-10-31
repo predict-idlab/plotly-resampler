@@ -657,3 +657,31 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
         raise e
     finally:
         proc.terminate()
+
+
+def test_multi_trace_go_figure_updated_xrange(driver, multi_trace_go_figure):
+    # This test checks that the xaxis range is updated when the xaxis range is set
+    # Notet hat this test just hits the .show_dash() method
+    from pytest_cov.embed import cleanup_on_sigterm
+
+    cleanup_on_sigterm()
+
+    multi_trace_go_figure.update_xaxes(range=[100, 200_000])
+
+    port = 9038
+    proc = multiprocessing.Process(
+        target=multi_trace_go_figure.show_dash,
+        kwargs=dict(mode="external", port=port),
+    )
+    proc.start()
+    try:
+        # Just hit the code of the .show_dash method when an x-range is set
+        time.sleep(1)
+        fr = FigureResamplerGUITests(driver, port=port)
+        time.sleep(1)
+        fr.go_to_page()
+
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()

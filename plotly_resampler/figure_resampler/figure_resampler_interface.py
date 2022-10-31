@@ -800,6 +800,23 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "hovertext": dc.hovertext,
         }
 
+    @staticmethod
+    def _add_trace_to_add_traces_kwargs(kwargs: dict) -> dict:
+        """Convert the `add_trace` kwargs to the `add_traces` kwargs."""
+        # The keywords that need to be converted to a list
+        convert_keywords = ["row", "col", "secondary_y"]
+
+        updated_kwargs = {}  # The updated kwargs (from `add_trace` to `add_traces`)
+        for keyword in convert_keywords:
+            value = kwargs.pop(keyword, None)
+            if value is not None:
+                updated_kwargs[f"{keyword}s"] = [value]
+            else:
+                updated_kwargs[f"{keyword}s"] = None
+    
+        return {**kwargs, **updated_kwargs}
+
+
     def add_trace(
         self,
         trace: Union[BaseTraceType, dict],
@@ -961,7 +978,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # Hence, you first downsample the trace.
                 trace = self._check_update_trace_data(trace)
                 assert trace is not None
-                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+                return super(AbstractFigureAggregator, self).add_traces(
+                    [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+                )
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
                 # TODO: can be made more generic
@@ -969,9 +988,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 trace.y = dc.y
                 trace.text = dc.text
                 trace.hovertext = dc.hovertext
-                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
-
-        return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+                return super(AbstractFigureAggregator, self).add_traces(
+                    [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+                )
+        return super(AbstractFigureAggregator, self).add_traces(
+            [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+        )
 
     def add_traces(
         self,
@@ -1158,7 +1180,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
     def construct_update_data(
-        self, relayout_data: dict
+        self,
+        relayout_data: dict,
     ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
