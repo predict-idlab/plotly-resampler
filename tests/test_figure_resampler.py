@@ -102,6 +102,7 @@ def test_add_trace_not_resampling(float_series):
     )
 
 def test_various_dtypes(float_series):
+    # List of dtypes supported by orjson >= 3.8
     valid_dtype_list = [
         np.bool_,
         # ---- uints
@@ -115,29 +116,33 @@ def test_various_dtypes(float_series):
         np.int32,
         np.int64,
         # -------- floats
-        np.float16,
+        np.float16,  # currently not supported by orjson
         np.float32,
         np.float64,
     ]
     for dtype in valid_dtype_list:
         fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+        # nb. datapoints > default_n_shown_samples
         fig.add_trace(
             go.Scatter(name="float_series"),
             hf_x=float_series.index,
             hf_y=float_series.astype(dtype),
-            limit_to_view=True,
         )
+        fig.full_figure_for_development()
 
-    invalid_dtype_list = [ np.float128 ]
+    # List of dtypes not supported by orjson >= 3.8
+    invalid_dtype_list = [ np.float16 ]
     for invalid_dtype in invalid_dtype_list:
         fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
-        with pytest.raises(AssertionError):
+        # nb. datapoints < default_n_shown_samples
+        with pytest.raises(TypeError):  
+            # if this test fails -> orjson supports f16 => remove casting frome code
             fig.add_trace(
                 go.Scatter(name="float_series"),
-                hf_x=float_series.index,
-                hf_y=float_series.astype(invalid_dtype),
-                limit_to_view=True,
+                hf_x=float_series.index[:500],
+                hf_y=float_series.astype(invalid_dtype)[:500],
             )
+            fig.full_figure_for_development()
 
 def test_max_n_samples(float_series):
     s = float_series[:5000]

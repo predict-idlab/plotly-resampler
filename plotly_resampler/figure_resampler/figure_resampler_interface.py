@@ -18,7 +18,6 @@ from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 from collections import namedtuple
 
-import orjson
 import dash
 import numpy as np
 import pandas as pd
@@ -293,6 +292,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 hf_series, hf_trace_data["max_n_samples"]
             )
             # Also parse the data types to an orjson compatible format
+            # Note this can be removed once orjson supports f16
             trace["x"] = self._parse_dtype_orjson(s_res.index)
             trace["y"] = self._parse_dtype_orjson(s_res.values)
             # todo -> first draft & not MP safe
@@ -701,15 +701,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_y = pd.to_numeric(hf_y, errors="raise")
                 except ValueError:
                     hf_y = hf_y.astype("str")
-
-            msg = (
-                "Plotly-Resampler its aggregator functions do not support the float128"
-                + " dtype, so please consider casting your data to float64\n."
-                + " If you have an eligible usecase where float128 still is necessary,"
-                + " please consider making an issue on GitHub."
-            )
-            assert hf_x.dtype != np.float128, msg
-            assert hf_y.dtype != np.float128, msg
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
         else:
@@ -1296,16 +1287,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # NOTE:
         #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
         #    * this method assumes that the it will not get a float128 series
+        # -> this method can be removed if orjson supports float16
         if series.dtype in [np.float16]:
             return series.astype(np.float32)
-
-        # orjson < 3.8.0 encoding cannot encode with int16 & uint16 dtype
-        elif series.dtype in [np.int16, np.uint16]:
-            major_v, minor_v = list(map(int, orjson.__version__.split(".")))[:2]
-            if major_v < 3 or major_v == 3 and minor_v < 8:
-                if series.dtype == np.uint16:
-                    return series.astype("uint32")
-                return series.astype(np.int32)
         return series
 
     @staticmethod
