@@ -468,8 +468,10 @@
             <span class="n">s_res</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">downsampler</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
                 <span class="n">hf_series</span><span class="p">,</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]</span>
             <span class="p">)</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_res</span><span class="o">.</span><span class="n">index</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">s_res</span><span class="o">.</span><span class="n">values</span>
+            <span class="c1"># Also parse the data types to an orjson compatible format</span>
+            <span class="c1"># Note this can be removed once orjson supports f16</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_dtype_orjson</span><span class="p">(</span><span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_dtype_orjson</span><span class="p">(</span><span class="n">s_res</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
             <span class="c1"># todo -&gt; first draft &amp; not MP safe</span>
 
             <span class="n">agg_prefix</span><span class="p">,</span> <span class="n">agg_suffix</span> <span class="o">=</span> <span class="s1">&#39; &lt;i style=&quot;color:#fc9944&quot;&gt;~&#39;</span><span class="p">,</span> <span class="s2">&quot;&lt;/i&gt;&quot;</span>
@@ -876,10 +878,6 @@
                     <span class="n">hf_y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
                     <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
-
-            <span class="c1"># orjson encoding doesn&#39;t like to encode with uint8 &amp; uint16 dtype</span>
-            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;uint8&quot;</span><span class="p">,</span> <span class="s2">&quot;uint16&quot;</span><span class="p">]:</span>
-                <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint32&quot;</span><span class="p">)</span>
 
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">),</span> <span class="s2">&quot;x and y have different length!&quot;</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1459,6 +1457,17 @@
             <span class="n">trace_reduced</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;index&quot;</span><span class="p">:</span> <span class="n">idx</span><span class="p">})</span>
             <span class="n">layout_traces_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trace_reduced</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">layout_traces_list</span></div>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_parse_dtype_orjson</span><span class="p">(</span><span class="n">series</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Verify the orjson compatibility of the series and convert it if needed.&quot;&quot;&quot;</span>
+        <span class="c1"># NOTE:</span>
+        <span class="c1">#    * float16 and float128 aren&#39;t supported with latest orjson versions (3.8.1)</span>
+        <span class="c1">#    * this method assumes that the it will not get a float128 series</span>
+        <span class="c1"># -&gt; this method can be removed if orjson supports float16</span>
+        <span class="k">if</span> <span class="n">series</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">series</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">series</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_re_matches</span><span class="p">(</span><span class="n">regex</span><span class="p">:</span> <span class="n">re</span><span class="o">.</span><span class="n">Pattern</span><span class="p">,</span> <span class="n">strings</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="nb">str</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
