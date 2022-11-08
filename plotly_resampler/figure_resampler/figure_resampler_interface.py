@@ -291,8 +291,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             s_res: pd.Series = downsampler.aggregate(
                 hf_series, hf_trace_data["max_n_samples"]
             )
-            trace["x"] = s_res.index
-            trace["y"] = s_res.values
+            # Also parse the data types to an orjson compatible format
+            # Note this can be removed once orjson supports f16
+            trace["x"] = self._parse_dtype_orjson(s_res.index)
+            trace["y"] = self._parse_dtype_orjson(s_res.values)
             # todo -> first draft & not MP safe
 
             agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
@@ -699,10 +701,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_y = pd.to_numeric(hf_y, errors="raise")
                 except ValueError:
                     hf_y = hf_y.astype("str")
-
-            # orjson encoding doesn't like to encode with uint8 & uint16 dtype
-            if str(hf_y.dtype) in ["uint8", "uint16"]:
-                hf_y = hf_y.astype("uint32")
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
         else:
@@ -1282,6 +1280,17 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
+
+    @staticmethod
+    def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:
+        """Verify the orjson compatibility of the series and convert it if needed."""
+        # NOTE:
+        #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
+        #    * this method assumes that the it will not get a float128 series
+        # -> this method can be removed if orjson supports float16
+        if series.dtype in [np.float16]:
+            return series.astype(np.float32)
+        return series
 
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
