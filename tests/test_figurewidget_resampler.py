@@ -746,6 +746,55 @@ def test_hf_data_property_subplots_reload_data():
     )
 
 
+def test_hf_data_subplots_non_shared_xaxes():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=1, col=1)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+    x_0 = fwr.data[0]['x']
+    assert 0 <= x_0[0] <= (n / 1000)  
+    assert (n - 1000) <= x_0[-1] <= n - 1
+    x_1 = fwr.data[1]['x']
+    assert 40_000 <= x_1[0] <= 40_000 + (20_000 / 1000)  
+    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_000
+
+
+def test_hf_data_subplots_non_shared_xaxes_row_col_none():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+    x_0 = fwr.data[0]['x']
+    assert 0 <= x_0[0] <= (n / 1000)  
+    assert (n - 1000) <= x_0[-1] <= n - 1
+    x_1 = fwr.data[1]['x']
+    assert 40_000 <= x_1[0] <= 40_000 + (20_000 / 1000)  
+    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_000
+
 def test_updates_two_traces():
     n = 1_000_000
     X = np.arange(n)
