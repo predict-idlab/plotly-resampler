@@ -398,8 +398,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if xaxis_filter is not None:
                 # the x-anchor of the trace is stored in the layout data
                 if trace.get("yaxis") is None:
-                    # no yaxis -> we make the assumption that yaxis = xaxis_filter_short
-                    # TODO -> why did we make this assumption
+                    # TODO In versions up until v0.8.2 we made the assumption that yaxis
+                    # = xaxis_filter_short. -> Why did we make this assumption?
                     y_axis = "y"  # + xaxis_filter[1:]
                 else:
                     y_axis = "yaxis" + trace.get("yaxis")[1:]
