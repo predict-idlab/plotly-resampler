@@ -575,8 +575,9 @@
             <span class="k">if</span> <span class="n">xaxis_filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="c1"># the x-anchor of the trace is stored in the layout data</span>
                 <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;yaxis&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="c1"># no yaxis -&gt; we make the assumption that yaxis = xaxis_filter_short</span>
-                    <span class="n">y_axis</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span> <span class="o">+</span> <span class="n">xaxis_filter</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+                    <span class="c1"># TODO In versions up until v0.8.2 we made the assumption that yaxis</span>
+                    <span class="c1"># = xaxis_filter_short. -&gt; Why did we make this assumption?</span>
+                    <span class="n">y_axis</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>  <span class="c1"># + xaxis_filter[1:]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">y_axis</span> <span class="o">=</span> <span class="s2">&quot;yaxis&quot;</span> <span class="o">+</span> <span class="n">trace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;yaxis&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
 
