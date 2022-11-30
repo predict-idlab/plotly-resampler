@@ -28,8 +28,9 @@ trace-updater = ">=0.0.8"
 numpy = ">=1.14"
 Flask-Cors = "^3.0.10"
 orjson = "^3.8.0"  # Faster json serialization
-Werkzeug = "2.1.2"  # Fixating werkzeug version because of:
+# TODO -> check other werkzeug versions: 2.1.2 and 2.1.1 seem to work.
 # https://github.com/predict-idlab/plotly-resampler/issues/123
+Werkzeug = "<=2.1.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

@@ -140,7 +140,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 
 <br>
-<details><summary>Features</summary>
+<details><summary>👉 <b>Features</b></summary>
 
   * **Convenient** to use:
     * just add either
@@ -149,7 +149,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
       * `FigureWidgetResampler` decorator around a plotly Figure and output the instance in a cell
     * allows all other plotly figure construction flexibility to be used!
   * **Environment-independent**
-    * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, Google Colab, and even as application (on a server)
+    * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, Google Colab, DataSpell, and even as application (on a server)
   * Interface for **various aggregation algorithms**:
     * ability to develop or select your preferred sequence aggregation method
 </details>
