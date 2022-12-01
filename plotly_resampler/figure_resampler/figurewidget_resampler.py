@@ -172,6 +172,10 @@ class FigureWidgetResampler(
             # Construct the update data
             update_data = self.construct_update_data(relayout_dict)
 
+            if self._is_no_update(update_data):
+                # Return when no data update
+                return
+
             if self._print_verbose:
                 self._relayout_hist.append(dict(zip(self._xaxis_list, x_ranges)))
                 self._relayout_hist.append(layout)
@@ -280,7 +284,7 @@ class FigureWidgetResampler(
         # Reset the layout
         self.update_layout(
             {
-                axis: {"autorange": True, "range": None}
+                axis: {"autorange": None, "range": None}
                 for axis in self._xaxis_list + self._yaxis_list
             }
         )

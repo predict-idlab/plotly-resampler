@@ -84,7 +84,7 @@ poetry build  # build the underlying C code
 You can run the test with the following code:
 
 ```sh
-poetry run pytest --cov-report term-missing --cov=plotly-resampler tests
+poetry run pytest --cov-report term-missing --cov=plotly_resampler tests
 ```
 
 To get the selenium tests working you should have Google Chrome installed.

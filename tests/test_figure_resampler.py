@@ -6,13 +6,21 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 import pytest
 import time
 import datetime
+import multiprocessing
+
 import numpy as np
 import pandas as pd
-import multiprocessing
 import plotly.graph_objects as go
+
+from selenium.webdriver.common.by import By
+from typing import List
+
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
-from typing import List
+
+# Note: this will be used to skip / alter behavior when running browser tests on 
+# non-linux platforms.
+from .utils import not_on_linux
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -93,6 +101,60 @@ def test_add_trace_not_resampling(float_series):
         hf_text="text",
         hf_hovertext="hovertext",
     )
+
+def test_various_dtypes(float_series):
+    # List of dtypes supported by orjson >= 3.8
+    valid_dtype_list = [
+        np.bool_,
+        # ---- uints
+        np.uint8,
+        np.uint16,
+        np.uint32,
+        np.uint64,
+        # -------- ints
+        np.int8,
+        np.int16,
+        np.int32,
+        np.int64,
+        # -------- floats
+        np.float16,  # currently not supported by orjson
+        np.float32,
+        np.float64,
+    ]
+    for dtype in valid_dtype_list:
+        fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+        # nb. datapoints > default_n_shown_samples
+        fig.add_trace(
+            go.Scatter(name="float_series"),
+            hf_x=float_series.index,
+            hf_y=float_series.astype(dtype),
+        )
+        fig.full_figure_for_development()
+
+    # List of dtypes not supported by orjson >= 3.8
+    invalid_dtype_list = [ np.float16 ]
+    for invalid_dtype in invalid_dtype_list:
+        fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
+        # nb. datapoints < default_n_shown_samples
+        with pytest.raises(TypeError):  
+            # if this test fails -> orjson supports f16 => remove casting frome code
+            fig.add_trace(
+                go.Scatter(name="float_series"),
+                hf_x=float_series.index[:500],
+                hf_y=float_series.astype(invalid_dtype)[:500],
+            )
+            fig.full_figure_for_development()
+
+def test_max_n_samples(float_series):
+    s = float_series[:5000]
+
+    fig = FigureResampler()
+    fig.add_trace(
+        go.Scattergl(name="test"), hf_x=s.index, hf_y=s, max_n_samples=len(s) + 1
+    )
+    # make sure that there is not hf_data
+    assert len(fig.hf_data) == 0
+    assert len(fig.data[0]["x"]) == len(s)
 
 
 def test_add_scatter_trace_no_data():
@@ -1163,6 +1225,184 @@ def test_fr_object_binary_data():
     )
     assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
+
+
+def test_fr_update_layout_axes_range(driver):
+    nb_datapoints = 2_000
+    n_shown = 500  # < nb_datapoints
+
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints - 1):
+        # closure for n_shown and nb_datapoints
+        assert len(fr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fr.data[0]["y"][0] == min_v
+        assert fr.data[0]["y"][-1] == max_v
+        assert fr.data[0]["x"][0] == min_v
+        assert fr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range == None
+    assert f_pr.layout.xaxis.range == None
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range == None
+    assert f_pr.layout.yaxis.range == None
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    # Before showing the figure, the f_pr contains the full original data (downsampled to 500 samples)
+    # Even after updating the axes ranges
+    check_data(f_pr)
+
+    if not_on_linux():
+        # TODO: eventually we should run this test on Windows & MacOS too
+        return
+
+    f_pr.stop_server()
+    proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
+    proc.start()
+    try:
+        time.sleep(1)
+        driver.get(f"http://localhost:8050")
+        time.sleep(3)
+        # Get the data property from the front-end figure
+        el = driver.find_element(by=By.ID, value="resample-figure")
+        el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
+        f_pr_data = el.get_property("data")
+        f_pr_layout = el.get_property("layout")
+
+        # After showing the figure, the f_pr contains the data of the selected xrange (downsampled to 500 samples)
+        assert len(f_pr_data[0]["y"]) == 500
+        assert len(f_pr_data[0]["x"]) == 500
+        assert f_pr_data[0]["y"][0] >= 100 and f_pr_data[0]["y"][-1] <= 1000
+        assert f_pr_data[0]["x"][0] >= 100 and f_pr_data[0]["x"][-1] <= 1000
+        # Check the front-end layout
+        assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
+        assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
+        f_pr.stop_server()
+
+
+def test_fr_update_layout_axes_range_no_update(driver):
+    nb_datapoints = 2_000
+    n_shown = 20_000  # > nb. datapoints
+
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fr: FigureResampler, min_v=0, max_v=nb_datapoints - 1):
+        # closure for n_shown and nb_datapoints
+        assert len(fr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fr.data[0]["y"][0] == min_v
+        assert fr.data[0]["y"][-1] == max_v
+        assert fr.data[0]["x"][0] == min_v
+        assert fr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range == None
+    assert f_pr.layout.xaxis.range == None
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange == None
+    assert f_pr.layout.xaxis.autorange == None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range == None
+    assert f_pr.layout.yaxis.range == None
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange == None
+    assert f_pr.layout.yaxis.autorange == None
+
+    # Before showing the figure, the f_pr contains the full original data (not downsampled)
+    # Even after updating the axes ranges
+    check_data(f_pr)
+
+    if not_on_linux():
+        # TODO: eventually we should run this test on Windows & MacOS too
+        return
+
+    f_pr.stop_server()
+    proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
+    proc.start()
+    try:
+        time.sleep(1)
+        driver.get(f"http://localhost:8050")
+        time.sleep(3)
+        # Get the data & layout property from the front-end figure
+        el = driver.find_element(by=By.ID, value="resample-figure")
+        el = el.find_element(by=By.CLASS_NAME, value="js-plotly-plot")
+        f_pr_data = el.get_property("data")
+        f_pr_layout = el.get_property("layout")
+
+        # After showing the figure, the f_pr contains the original data (not downsampled), but shown xrange is [100, 1000]
+        assert len(f_pr_data[0]["y"]) == 2_000
+        assert len(f_pr_data[0]["x"]) == 2_000
+        assert f_pr.data[0]["y"][0] == 0
+        assert f_pr.data[0]["y"][-1] == 1999
+        assert f_pr.data[0]["x"][0] == 0
+        assert f_pr.data[0]["x"][-1] == 1999
+        # Check the front-end layout
+        assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
+        assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
+    except Exception as e:
+        raise e
+    finally:
+        proc.terminate()
+        f_pr.stop_server()
 
 
 def test_fr_copy_grid():

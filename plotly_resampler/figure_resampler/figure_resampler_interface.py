@@ -151,7 +151,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Make sure to reset the layout its range
         self.update_layout(
             {
-                axis: {"autorange": True, "range": None}
+                axis: {"autorange": None, "range": None}
                 for axis in self._xaxis_list + self._yaxis_list
             }
         )
@@ -293,8 +293,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             s_res: pd.Series = downsampler.aggregate(
                 hf_series, hf_trace_data["max_n_samples"]
             )
-            trace["x"] = s_res.index
-            trace["y"] = s_res.values
+            # Also parse the data types to an orjson compatible format
+            # Note this can be removed once orjson supports f16
+            trace["x"] = self._parse_dtype_orjson(s_res.index)
+            trace["y"] = self._parse_dtype_orjson(s_res.values)
             # todo -> first draft & not MP safe
 
             agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
@@ -398,8 +400,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if xaxis_filter is not None:
                 # the x-anchor of the trace is stored in the layout data
                 if trace.get("yaxis") is None:
-                    # no yaxis -> we make the assumption that yaxis = xaxis_filter_short
-                    y_axis = "y" + xaxis_filter[1:]
+                    # TODO In versions up until v0.8.2 we made the assumption that yaxis
+                    # = xaxis_filter_short. -> Why did we make this assumption?
+                    y_axis = "y"  # + xaxis_filter[1:]
                 else:
                     y_axis = "yaxis" + trace.get("yaxis")[1:]
 
@@ -723,10 +726,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 except ValueError:
                     hf_y = hf_y.astype("str")
 
-            # orjson encoding doesn't like to encode with uint8 & uint16 dtype
-            if str(hf_y.dtype) in ["uint8", "uint16"]:
-                hf_y = hf_y.astype("uint32")
-
             assert len(hf_x) == len(hf_y), "x and y have different length!"
         else:
             self._print(f"trace {trace['type']} is not a high-frequency trace")
@@ -816,6 +815,23 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "text": dc.text,
             "hovertext": dc.hovertext,
         }
+
+    @staticmethod
+    def _add_trace_to_add_traces_kwargs(kwargs: dict) -> dict:
+        """Convert the `add_trace` kwargs to the `add_traces` kwargs."""
+        # The keywords that need to be converted to a list
+        convert_keywords = ["row", "col", "secondary_y"]
+
+        updated_kwargs = {}  # The updated kwargs (from `add_trace` to `add_traces`)
+        for keyword in convert_keywords:
+            value = kwargs.pop(keyword, None)
+            if value is not None:
+                updated_kwargs[f"{keyword}s"] = [value]
+            else:
+                updated_kwargs[f"{keyword}s"] = None
+    
+        return {**kwargs, **updated_kwargs}
+
 
     def add_trace(
         self,
@@ -978,7 +994,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # Hence, you first downsample the trace.
                 trace = self._check_update_trace_data(trace)
                 assert trace is not None
-                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+                return super(AbstractFigureAggregator, self).add_traces(
+                    [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+                )
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
                 # TODO: can be made more generic
@@ -986,9 +1004,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 trace.y = dc.y
                 trace.text = dc.text
                 trace.hovertext = dc.hovertext
-                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
-
-        return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+                return super(AbstractFigureAggregator, self).add_traces(
+                    [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+                )
+        return super(AbstractFigureAggregator, self).add_traces(
+            [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+        )
 
     def add_traces(
         self,
@@ -1174,7 +1195,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
-    def construct_update_data(self, relayout_data: dict) -> List[dict]:
+    def construct_update_data(
+        self,
+        relayout_data: dict,
+    ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
         Attention
@@ -1265,7 +1289,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
         for range_change_axis in xy_matches:
             axis = range_change_axis.split(".")[0]
-            extra_layout_updates[f"{axis}.autorange"] = False
+            extra_layout_updates[f"{axis}.autorange"] = None
         layout_traces_list.append(extra_layout_updates)
 
         # 2. Create the additional trace data for the frond-end
@@ -1282,6 +1306,17 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return layout_traces_list
 
     @staticmethod
+    def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:
+        """Verify the orjson compatibility of the series and convert it if needed."""
+        # NOTE:
+        #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
+        #    * this method assumes that the it will not get a float128 series
+        # -> this method can be removed if orjson supports float16
+        if series.dtype in [np.float16]:
+            return series.astype(np.float32)
+        return series
+
+    @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:
         """Returns all the items in ``strings`` which regex.match(es) ``regex``."""
         matches = []
@@ -1290,6 +1325,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if m is not None:
                 matches.append(m.string)
         return sorted(matches)
+
+    @staticmethod
+    def _is_no_update(update_data: Union[List[dict], dash.no_update]) -> bool:
+        return update_data is dash.no_update
 
     ## Magic methods (to use plotly.py words :grin:)
 
