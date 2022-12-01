@@ -692,7 +692,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
             # Try to parse the hf_x data if it is of object type or 
-            if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):
+            if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):# and not isinstance(hf_x[0], (pd.Timestamp, datetime.datetime)):
                 try:
                     # Try to parse to numeric
                     hf_x = pd.to_numeric(hf_x, errors="raise")
@@ -700,7 +700,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     try:
                         # Try to parse to datetime
                         hf_x = pd.to_datetime(hf_x, utc=False, errors="raise")
-                        # Will be cast to object array if it contains multiple timezones...
+                        # Will be cast to object array if it contains multiple timezones.
                         if hf_x.dtype == "object":
                             raise ValueError(
                                 "The x-data contains multiple timezones, which is not "
@@ -711,6 +711,25 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             "plotly-resampler requires the x-data to be numeric or datetime-like"
                             "\nMore details in the stacktrace above."
                         )
+
+            # # Check and update timezones of the hf_x data when there are multiple
+            # # timezones in the data
+            # if len(hf_x) and hf_x.dtype == "object" and isinstance(hf_x[0], (pd.Timestamp, datetime.datetime)):
+            #     # Assumes that all values in hf_x are either pd.Timestamp or datetime.datetime
+            #     try:
+            #         hf_x = pd.to_datetime(hf_x, utc=False)
+            #     except ValueError:
+            #         # ValueError will be thrown when there are multiple timezones in the data
+            #         # => remove the timezone data for plotting when multiple timezones
+            #         warnings.warn(
+            #             "x-data of multiple timezones / fixedoffsets is passed, "
+            #             + "omitting the timezone data for plotting\n"
+            #             + "If you are dealing with daylight savings time we suggest converting to one and the same timezone.",
+            #             UserWarning,
+            #         )
+
+            #         hf_x = [x.replace(tzinfo=None) for x in hf_x]
+            #         hf_x = pd.to_datetime(hf_x, utc=False)
 
             # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we

@@ -10,7 +10,6 @@ import pandas as pd
 import plotly.graph_objects as go
 
 from copy import copy
-from datetime import datetime
 from typing import List
 
 from plotly.subplots import make_subplots
