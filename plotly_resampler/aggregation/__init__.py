@@ -16,3 +16,13 @@ from .aggregators import (
     MinMaxAggregator,
     MinMaxOverlapAggregator,
 )
+
+__all__ = [
+    "AbstractSeriesAggregator",
+    "LTTB",
+    "EfficientLTTB",
+    "EveryNthPoint",
+    "FuncAggregator",
+    "MinMaxAggregator",
+    "MinMaxOverlapAggregator",
+]

@@ -851,7 +851,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     
         return {**kwargs, **updated_kwargs}
 
-
     def add_trace(
         self,
         trace: Union[BaseTraceType, dict],
@@ -972,8 +971,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if not isinstance(trace, BaseTraceType):
             trace = self._data_validator.validate_coerce(trace)[0]
 
-        # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison. If the trace already has an UUID, we will keep it.
+        # First add a UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison. If the trace already has a UUID, we will keep it.
         uuid_str = str(uuid4()) if trace.uid is None else trace.uid
         trace.uid = uuid_str
 
@@ -981,7 +980,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
         dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
 
-        # These traces will determine the autoscale RANGE!
+        # These traces will determine the autoscale its RANGE!
         #   -> so also store when `limit_to_view` is set.
         if trace["type"].lower() in self._high_frequency_traces:
             n_samples = len(dc.x)
@@ -1105,8 +1104,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             for trace in data
         ]
 
-        # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison. If the trace already has an UUID, we will keep it.
+        # First add a UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison. If the trace already has a UUID, we will keep it.
         for trace in data:
             uuid_str = str(uuid4()) if trace.uid is None else trace.uid
             trace.uid = uuid_str
@@ -1252,7 +1251,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             cl_k = relayout_data.keys()
 
             # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is a x-range specified in the front-end
+            # 1. Base case - there is an x-range specified in the front-end
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
             if len(start_matches) and len(stop_matches):
@@ -1386,4 +1385,4 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         props["pr_props"] = {}
         for k in self._get_pr_props_keys():
             props["pr_props"][k] = getattr(self, k)
-        return (self.__class__, (props,))  # (props,) to comply with plotly magic
+        return self.__class__, (props,)  # (props,) to comply with plotly magic
