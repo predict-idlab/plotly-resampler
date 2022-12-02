@@ -5,6 +5,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import pytest
 import time
+import datetime
 import multiprocessing
 
 import numpy as np
@@ -17,7 +18,7 @@ from typing import List
 from plotly.subplots import make_subplots
 from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
 
-# Note: this will be used to skip / alter behavior when running browser tests on 
+# Note: this will be used to skip / alter behavior when running browser tests on
 # non-linux platforms.
 from .utils import not_on_linux
 
@@ -101,6 +102,7 @@ def test_add_trace_not_resampling(float_series):
         hf_hovertext="hovertext",
     )
 
+
 def test_various_dtypes(float_series):
     # List of dtypes supported by orjson >= 3.8
     valid_dtype_list = [
@@ -131,11 +133,11 @@ def test_various_dtypes(float_series):
         fig.full_figure_for_development()
 
     # List of dtypes not supported by orjson >= 3.8
-    invalid_dtype_list = [ np.float16 ]
+    invalid_dtype_list = [np.float16]
     for invalid_dtype in invalid_dtype_list:
         fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
         # nb. datapoints < default_n_shown_samples
-        with pytest.raises(TypeError):  
+        with pytest.raises(TypeError):
             # if this test fails -> orjson supports f16 => remove casting frome code
             fig.add_trace(
                 go.Scatter(name="float_series"),
@@ -143,6 +145,7 @@ def test_various_dtypes(float_series):
                 hf_y=float_series.astype(invalid_dtype)[:500],
             )
             fig.full_figure_for_development()
+
 
 def test_max_n_samples(float_series):
     s = float_series[:5000]
@@ -513,6 +516,9 @@ def test_multiple_timezones():
         dr.tz_convert("Australia/Canberra"),
     ]
 
+    plain_plotly_fig = make_subplots(rows=len(cs), cols=1, shared_xaxes=True)
+    plain_plotly_fig.update_layout(height=min(300, 250 * len(cs)))
+
     fr_fig = FigureResampler(
         make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
         default_n_shown_samples=500,
@@ -522,13 +528,76 @@ def test_multiple_timezones():
     fr_fig.update_layout(height=min(300, 250 * len(cs)))
 
     for i, date_range in enumerate(cs, 1):
+        name = date_range.dtype.name.split(", ")[-1][:-1]
+        plain_plotly_fig.add_trace(
+            go.Scattergl(x=date_range, y=dr_v, name=name), row=i, col=1
+        )
         fr_fig.add_trace(
-            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            go.Scattergl(name=name),
             hf_x=date_range,
             hf_y=dr_v,
             row=i,
             col=1,
         )
+        # Assert that the time parsing is exactly the same
+        assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
+
+
+def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
+    # TODO: can be improved with pytest parametrize
+    y = np.arange(20)
+
+    index1 = pd.date_range("2018-01-01", periods=10, freq="H", tz="US/Eastern")
+    index2 = pd.date_range("2018-01-02", periods=10, freq="H", tz="Asia/Dubai")
+    index_timestamps = index1.append(index2)
+    assert all(isinstance(x, pd.Timestamp) for x in index_timestamps)
+    index1_datetimes = pd.Index([x.to_pydatetime() for x in index1])
+    index_datetimes = pd.Index([x.to_pydatetime() for x in index_timestamps])
+    assert not any(isinstance(x, pd.Timestamp) for x in index_datetimes)
+    assert all(isinstance(x, datetime.datetime) for x in index_datetimes)
+
+    ## Test why we throw ValueError if array is still of object type after
+    ## successful pd.to_datetime call
+    # String array of datetimes with same tz -> NOT object array
+    assert not pd.to_datetime(index1.astype("str")).dtype == "object"
+    assert not pd.to_datetime(index1_datetimes.astype("str")).dtype == "object"
+    # String array of datetimes with multiple tz -> object array
+    assert pd.to_datetime(index_timestamps.astype("str")).dtype == "object"
+    assert pd.to_datetime(index_datetimes.astype("str")).dtype == "object"
+
+    for index in [index_timestamps, index_datetimes]:
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index, y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureResampler(fig, default_n_shown_samples=10)
+        # Add as hf_x as index
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
+        # Add as hf_x as object array of datetime values
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.values.astype("object"), hf_y=y)
+        # Add as hf_x as string array
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+        # Add as hf_x as object array of strings
+        fr_fig = FigureResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(
+                go.Scattergl(), hf_x=index.astype(str).astype("object"), hf_y=y
+            )
+
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureResampler(fig, default_n_shown_samples=10)
+
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureResampler(fig, default_n_shown_samples=10)
 
 
 def test_proper_copy_of_wrapped_fig(float_series):
@@ -573,6 +642,82 @@ def test_2d_input_y():
             default_n_shown_samples=500,
         )
         assert "1 dimensional" in e_info
+
+
+def test_hf_x_object_array():
+    y = np.random.randn(100)
+
+    ## Object array of datetime
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], pd.Timestamp)
+    # Add in the scatter
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+    # Add as hf_x
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+
+    ## Object array of datetime strings
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype(str).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], str)
+    # Add in the scatter
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+    # Add as hf_x
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+
+    ## Object array of ints
+    ### Should be parsed to an int array (is more efficient than object array)
+    x = np.arange(100).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], int)
+    # Add in the scatter
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+    # Add as hf_x
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+
+    ## Object array of ints as strings
+    ### Should be an integer array where the values are int objects
+    x = np.arange(100).astype(str).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], str)
+    # Add in the scatter
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+    # Add as hf_x
+    fig = FigureResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+
+    ## Object array of strings
+    x = np.array(["x", "y"] * 50).astype("object")
+    assert x.dtype == "object"
+    # Add in the scatter
+    with pytest.raises(ValueError):
+        fig = FigureResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    # Add as hf_x
+    with pytest.raises(ValueError):
+        fig = FigureResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
 
 
 def test_time_tz_slicing():

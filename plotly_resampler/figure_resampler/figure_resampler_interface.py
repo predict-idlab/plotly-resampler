@@ -210,8 +210,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _check_update_trace_data(
         self,
         trace: dict,
-        start=None,
-        end=None,
+        start: Optional[Union[str, float]] = None,
+        end: Optional[Union[str, float]] = None,
     ) -> Optional[Union[dict, BaseTraceType]]:
         """Check and update the passed ``trace`` its data properties based on the
         slice range.
@@ -624,7 +624,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             A namedtuple which serves as a datacontainer.
 
         """
-        hf_x = (
+        hf_x: np.ndarray = (
             trace["x"]
             if hasattr(trace, "x") and hf_x is None
             else hf_x.values
@@ -641,7 +641,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if isinstance(hf_y, (pd.Series, pd.Index))
             else hf_y
         )
-        hf_y = np.asarray(hf_y)
+        hf_y : np.ndarray = np.asarray(hf_y)
 
         hf_text = (
             hf_text
@@ -694,6 +694,29 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_text = hf_text[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
+
+            # Try to parse the hf_x data if it is of object type or
+            if len(hf_x) and (
+                hf_x.dtype.type is np.str_ or hf_x.dtype == "object"
+            ):  
+                try:
+                    # Try to parse to numeric
+                    hf_x = pd.to_numeric(hf_x, errors="raise")
+                except (ValueError, TypeError):
+                    try:
+                        # Try to parse to datetime
+                        hf_x = pd.to_datetime(hf_x, utc=False, errors="raise")
+                        # Will be cast to object array if it contains multiple timezones.
+                        if hf_x.dtype == "object":
+                            raise ValueError(
+                                "The x-data contains multiple timezones, which is not "
+                                "supported by plotly-resampler!"
+                            )
+                    except (ValueError, TypeError):
+                        raise ValueError(
+                            "plotly-resampler requires the x-data to be numeric or "
+                            "datetime-like \nMore details in the stacktrace above."
+                        )
 
             # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we
@@ -812,9 +835,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 updated_kwargs[f"{keyword}s"] = [value]
             else:
                 updated_kwargs[f"{keyword}s"] = None
-    
-        return {**kwargs, **updated_kwargs}
 
+        return {**kwargs, **updated_kwargs}
 
     def add_trace(
         self,
@@ -944,8 +966,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if not isinstance(trace, BaseTraceType):
             trace = self._data_validator.validate_coerce(trace)[0]
 
-        # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison. If the trace already has an UUID, we will keep it.
+        # First add a UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison. If the trace already has a UUID, we will keep it.
         uuid_str = str(uuid4()) if trace.uid is None else trace.uid
         trace.uid = uuid_str
 
@@ -953,7 +975,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
         dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext, check_nans)
 
-        # These traces will determine the autoscale RANGE!
+        # These traces will determine the autoscale its RANGE!
         #   -> so also store when `limit_to_view` is set.
         if trace["type"].lower() in self._high_frequency_traces:
             n_samples = len(dc.x)
@@ -1087,8 +1109,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             for trace in data
         ]
 
-        # First add an UUID, as each (even the non-hf_data traces), must contain this
-        # key for comparison. If the trace already has an UUID, we will keep it.
+        # First add a UUID, as each (even the non-hf_data traces), must contain this
+        # key for comparison. If the trace already has a UUID, we will keep it.
         for trace in data:
             uuid_str = str(uuid4()) if trace.uid is None else trace.uid
             trace.uid = uuid_str
@@ -1236,7 +1258,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             cl_k = relayout_data.keys()
 
             # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is a x-range specified in the front-end
+            # 1. Base case - there is an x-range specified in the front-end
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
             if len(start_matches) and len(stop_matches):
@@ -1370,4 +1392,4 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         props["pr_props"] = {}
         for k in self._get_pr_props_keys():
             props["pr_props"][k] = getattr(self, k)
-        return (self.__class__, (props,))  # (props,) to comply with plotly magic
+        return self.__class__, (props,)  # (props,) to comply with plotly magic

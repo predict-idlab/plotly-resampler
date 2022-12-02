@@ -4,13 +4,12 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
 import pytest
-
+import datetime
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 
 from copy import copy
-from datetime import datetime
 from typing import List
 
 from plotly.subplots import make_subplots
@@ -434,6 +433,9 @@ def test_multiple_timezones():
         dr.tz_convert("Australia/Canberra"),
     ]
 
+    plain_plotly_fig = make_subplots(rows=len(cs), cols=1, shared_xaxes=True)
+    plain_plotly_fig.update_layout(height=min(300, 250 * len(cs)))
+
     fr_fig = FigureWidgetResampler(
         make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
         default_n_shown_samples=500,
@@ -443,13 +445,72 @@ def test_multiple_timezones():
     fr_fig.update_layout(height=min(300, 250 * len(cs)))
 
     for i, date_range in enumerate(cs, 1):
+        name = date_range.dtype.name.split(", ")[-1][:-1]
+        plain_plotly_fig.add_trace(
+            go.Scattergl(x=date_range, y=dr_v, name=name), row=i, col=1
+        )
         fr_fig.add_trace(
-            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            go.Scattergl(name=name),
             hf_x=date_range,
             hf_y=dr_v,
             row=i,
             col=1,
         )
+        # Assert that the time parsing is exactly the same
+        assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
+
+
+def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
+    # TODO: can be improved with pytest parametrize
+    y = np.arange(20)
+    
+    index1 = pd.date_range('2018-01-01', periods=10, freq='H', tz="US/Eastern")
+    index2 = pd.date_range('2018-01-02', periods=10, freq='H', tz="Asia/Dubai")
+    index_timestamps = index1.append(index2)
+    assert all(isinstance(x, pd.Timestamp) for x in index_timestamps)
+    index_datetimes = pd.Index([x.to_pydatetime() for x in index_timestamps])
+    assert not any(isinstance(x, pd.Timestamp) for x in index_datetimes)
+    assert all(isinstance(x, datetime.datetime) for x in index_datetimes)
+
+    ## Test why we throw ValueError if array is still of object type after
+    ## successful pd.to_datetime call
+    # String array of datetimes with same tz -> NOT object array
+    assert not pd.to_datetime(index1.astype("str")).dtype == "object"
+    # String array of datetimes with multiple tz -> object array
+    assert pd.to_datetime(index_timestamps.astype("str")).dtype == "object"
+    assert pd.to_datetime(index_datetimes.astype("str")).dtype == "object"
+
+    for index in [index_timestamps, index_datetimes]:
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index, y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+        # Add as hf_x as index
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
+        # Add as hf_x as object array of datetime values
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.values.astype("object"), hf_y=y)
+        # Add as hf_x as string array
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+        # Add as hf_x as object array of strings
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str).astype("object"), hf_y=y)
+
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
 
 
 def test_proper_copy_of_wrapped_fig(float_series):
@@ -496,6 +557,82 @@ def test_2d_input_y():
             default_n_shown_samples=500,
         )
         assert "1 dimensional" in e_info
+
+
+def test_hf_x_object_array():
+    y = np.random.randn(100)
+
+    ## Object array of datetime
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], pd.Timestamp)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+
+    ## Object array of datetime strings
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype(str).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], str)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+
+    ## Object array of ints
+    ### Should be parsed to an int array (is more efficient than object array)
+    x = np.arange(100).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], int)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+
+    ## Object array of ints as strings
+    ### Should be an integer array where the values are int objects
+    x = np.arange(100).astype(str).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], str)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+
+    ## Object array of strings
+    x = np.array(["x", "y"]*50).astype("object")
+    assert x.dtype == "object"
+    # Add in the scatter
+    with pytest.raises(ValueError):
+        fig = FigureWidgetResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    # Add as hf_x
+    with pytest.raises(ValueError):
+        fig = FigureWidgetResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
 
 
 def test_time_tz_slicing():
@@ -1476,7 +1613,7 @@ def test_fwr_time_based_data_ns():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(), freq=f"{np.random.randint(5,100_000)}ns", periods=n
+                datetime.datetime.now(), freq=f"{np.random.randint(5,100_000)}ns", periods=n
             ),
             data=np.arange(n),
         )
@@ -1514,7 +1651,7 @@ def test_fwr_time_based_data_us():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(), freq=f"{np.random.randint(5,100_000)}us", periods=n
+                datetime.datetime.now(), freq=f"{np.random.randint(5,100_000)}us", periods=n
             ),
             data=np.arange(n),
         )
@@ -1552,7 +1689,7 @@ def test_fwr_time_based_data_ms():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(), freq=f"{np.random.randint(5,10_000)}ms", periods=n
+                datetime.datetime.now(), freq=f"{np.random.randint(5,10_000)}ms", periods=n
             ),
             data=np.arange(n),
         )
@@ -1591,7 +1728,7 @@ def test_fwr_time_based_data_s():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(),
+                datetime.datetime.now(),
                 freq=pd.Timedelta(f"{round(np.abs(np.random.randn()) * 1000, 4)}s"),
                 periods=n,
             ),
