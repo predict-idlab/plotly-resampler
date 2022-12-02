@@ -13,14 +13,12 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
-import warnings
 from copy import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
 from collections import namedtuple
 
 import dash
-import datetime
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -212,8 +210,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _check_update_trace_data(
         self,
         trace: dict,
-        start=None,
-        end=None,
+        start: Optional[Union[str, float]] = None,
+        end: Optional[Union[str, float]] = None,
     ) -> Optional[Union[dict, BaseTraceType]]:
         """Check and update the passed ``trace`` its data properties based on the
         slice range.
@@ -620,7 +618,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             A namedtuple which serves as a datacontainer.
 
         """
-        hf_x = (
+        hf_x: np.ndarray = (
             trace["x"]
             if hasattr(trace, "x") and hf_x is None
             else hf_x.values
@@ -637,7 +635,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if isinstance(hf_y, (pd.Series, pd.Index))
             else hf_y
         )
-        hf_y = np.asarray(hf_y)
+        hf_y : np.ndarray = np.asarray(hf_y)
 
         hf_text = (
             hf_text
@@ -691,8 +689,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
-            # Try to parse the hf_x data if it is of object type or 
-            if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):# and not isinstance(hf_x[0], (pd.Timestamp, datetime.datetime)):
+            # Try to parse the hf_x data if it is of object type or
+            if len(hf_x) and (
+                hf_x.dtype.type is np.str_ or hf_x.dtype == "object"
+            ):  
                 try:
                     # Try to parse to numeric
                     hf_x = pd.to_numeric(hf_x, errors="raise")
@@ -708,28 +708,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             )
                     except (ValueError, TypeError):
                         raise ValueError(
-                            "plotly-resampler requires the x-data to be numeric or datetime-like"
-                            "\nMore details in the stacktrace above."
+                            "plotly-resampler requires the x-data to be numeric or "
+                            "datetime-like \nMore details in the stacktrace above."
                         )
-
-            # # Check and update timezones of the hf_x data when there are multiple
-            # # timezones in the data
-            # if len(hf_x) and hf_x.dtype == "object" and isinstance(hf_x[0], (pd.Timestamp, datetime.datetime)):
-            #     # Assumes that all values in hf_x are either pd.Timestamp or datetime.datetime
-            #     try:
-            #         hf_x = pd.to_datetime(hf_x, utc=False)
-            #     except ValueError:
-            #         # ValueError will be thrown when there are multiple timezones in the data
-            #         # => remove the timezone data for plotting when multiple timezones
-            #         warnings.warn(
-            #             "x-data of multiple timezones / fixedoffsets is passed, "
-            #             + "omitting the timezone data for plotting\n"
-            #             + "If you are dealing with daylight savings time we suggest converting to one and the same timezone.",
-            #             UserWarning,
-            #         )
-
-            #         hf_x = [x.replace(tzinfo=None) for x in hf_x]
-            #         hf_x = pd.to_datetime(hf_x, utc=False)
 
             # If the categorical or string-like hf_y data is of type object (happens
             # when y argument is used for the trace constructor instead of hf_y), we
@@ -848,7 +829,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 updated_kwargs[f"{keyword}s"] = [value]
             else:
                 updated_kwargs[f"{keyword}s"] = None
-    
+
         return {**kwargs, **updated_kwargs}
 
     def add_trace(
