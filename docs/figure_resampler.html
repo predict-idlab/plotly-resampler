@@ -285,7 +285,7 @@ will be used to convert the existing traces.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">
-<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="Permalink to this definition">#</a></dt>
 <dd><p>Add a trace to the figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -319,7 +319,7 @@ of the specified trace type.</p></li>
 <p>If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_downsampler</span></code> will be used.</p>
 </div>
 </p></li>
-<li><p><strong>limit_to_view</strong> (<em>boolean</em><em>, </em><em>optional</em>) – <p>If set to True the trace’s datapoints will be cut to the corresponding
+<li><p><strong>limit_to_view</strong> (<em>boolean</em><em>, </em><em>optional</em>) – <p>If set to True, the trace’s datapoints will be cut to the corresponding
 front-end view, even if the total number of samples is lower than
 <code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code>, By default False.</p>
 <p>Remark that setting this parameter to True ensures that low frequency traces
@@ -334,6 +334,12 @@ trace its data.</p></li>
 its <code class="docutils literal notranslate"><span class="pre">text</span></code> argument.</p></li>
 <li><p><strong>hf_hovertext</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – The original high frequency hovertext. If set, this has priority over the
 trace its <code class="docutils literal notranslate"><span class="pre">`hovertext</span></code> argument.</p></li>
+<li><p><strong>check_nans</strong> (<em>boolean</em><em>, </em><em>optional</em>) – If set to True, the trace’s data will be checked for NaNs - which will be
+removed. By default True.
+As this is a costly operation, it is recommended to set this parameter to
+False if you are sure that your data does not contain NaNs (or when the
+downsampler can handle NaNs, e.g., EveryNthPoint). This should considerably
+speed up the graph construction time.</p></li>
 <li><p><strong>**trace_kwargs</strong> (<em>dict</em>) – <p>Additional trace related keyword arguments.
 e.g.: row=.., col=…, secondary_y=…</p>
 <div class="admonition seealso">
@@ -401,7 +407,7 @@ also storing the low-frequency series in the back-end.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces">
-<span class="sig-name descname"><span class="pre">add_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsamplers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_views</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">traces_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">add_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsamplers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_views</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">traces_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces" title="Permalink to this definition">#</a></dt>
 <dd><p>Add traces to the figure.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -438,13 +444,21 @@ variable is not set; <code class="docutils literal notranslate"><span class="pre
 <li><p><strong>downsamplers</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><em>AbstractSeriesAggregator</em></a><em>] </em><em>| </em><a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><em>AbstractFigureAggregator</em></a><em>, </em><em>optional</em>) – The downsampler that will be used to aggregate the traces. If a single
 aggregator is passed, all traces will use this aggregator.
 If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_downsampler</span></code> will be used.</p></li>
-<li><p><strong>limit_to_views</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><em>bool</em><em>] </em><em>| </em><em>bool</em><em>, </em><em>optional</em>) – <p>List of limit_to_view booleans for the added traces.  If set to True
-the trace’s datapoints will be cut to the corresponding front-end view,
-even if the total number of samples is lower than <code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code>. If a
-single boolean is passed, all to be added traces will use this value,
+<li><p><strong>limit_to_views</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><em>bool</em><em>] </em><em>| </em><em>bool</em><em>, </em><em>optional</em>) – <p>List of limit_to_view booleans for the added traces. If set to True the
+trace’s datapoints will be cut to the corresponding front-end view, even if
+the total number of samples is lower than <code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code>.
+If a single boolean is passed, all to be added traces will use this value,
 by default False.</p>
 <p>Remark that setting this parameter to True ensures that low frequency traces
 are added to the <code class="docutils literal notranslate"><span class="pre">hf_data</span></code> property.</p>
+</p></li>
+<li><p><strong>check_nans</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><em>bool</em><em>] </em><em>| </em><em>bool</em><em>, </em><em>optional</em>) – <p>List of check_nans booleans for the added traces. If set to True, the
+trace’s datapoints will be checked for NaNs. If a single boolean is passed,
+all to be added traces will use this value, by default True.</p>
+<p>As this is a costly operation, it is recommended to set this parameter to
+False if the data is known to contain no NaNs (or when the downsampler can
+handle NaNs, e.g., EveryNthPoint). This will considerably speed up the graph
+construction time.</p>
 </p></li>
 <li><p><strong>**traces_kwargs</strong> (<em>dict</em>) – <p>Additional trace related keyword arguments.
 e.g.: rows=.., cols=…, secondary_ys=…</p>
