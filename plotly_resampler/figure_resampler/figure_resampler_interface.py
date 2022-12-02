@@ -595,6 +595,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y: Iterable = None,
         hf_text: Iterable = None,
         hf_hovertext: Iterable = None,
+        check_nans: bool = True,
     ) -> _hf_data_container:
         """Parse and capture the possibly high-frequency trace-props in a datacontainer.
 
@@ -603,14 +604,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         trace : BaseTraceType
             The trace which will be parsed.
         hf_x : Iterable, optional
-            high-frequency trace "x" data, overrides the current trace its x-data.
+            High-frequency trace "x" data, overrides the current trace its x-data.
         hf_y : Iterable, optional
-            high-frequency trace "y" data, overrides the current trace its y-data.
+            High-frequency trace "y" data, overrides the current trace its y-data.
         hf_text : Iterable, optional
-            high-frequency trace "text" data, overrides the current trace its text-data.
+            High-frequency trace "text" data, overrides the current trace its text-data.
         hf_hovertext : Iterable, optional
-            high-frequency trace "hovertext" data, overrides the current trace its
+            High-frequency trace "hovertext" data, overrides the current trace its
             hovertext data.
+        check_nans: bool, optional
+            Whether the `hf_y` should be checked for NaNs, by default True.
+            As checking for NaNs is expensive, this can be disabled when the `hf_y` is
+            already known to contain no NaNs (or when the downsampler can handle NaNs,
+            e.g., EveryNthPoint).
 
         Returns
         -------
@@ -680,7 +686,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN data points & might distort
             # the resampling algorithms
-            if pd.isna(hf_y).any():
+            if check_nans and pd.isna(hf_y).any():
                 not_nan_mask = ~pd.isna(hf_y)
                 hf_x = hf_x[not_nan_mask]
                 hf_y = hf_y[not_nan_mask]
@@ -821,6 +827,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y: Iterable = None,
         hf_text: Union[str, Iterable] = None,
         hf_hovertext: Union[str, Iterable] = None,
+        check_nans: bool = True,
         **trace_kwargs,
     ):
         """Add a trace to the figure.
@@ -848,7 +855,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             .. note::
                 If this variable is not set, ``_global_downsampler`` will be used.
         limit_to_view: boolean, optional
-            If set to True the trace's datapoints will be cut to the corresponding
+            If set to True, the trace's datapoints will be cut to the corresponding
             front-end view, even if the total number of samples is lower than
             ``max_n_samples``, By default False.\n
             Remark that setting this parameter to True ensures that low frequency traces
@@ -866,6 +873,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
             trace its ```hovertext`` argument.
+        check_nans: boolean, optional
+            If set to True, the trace's data will be checked for NaNs - which will be
+            removed. By default True.
+            As this is a costly operation, it is recommended to set this parameter to
+            False if you are sure that your data does not contain NaNs (or when the
+            downsampler can handle NaNs, e.g., EveryNthPoint). This should considerably
+            speed up the graph construction time. 
         **trace_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
@@ -937,7 +951,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # construct the hf_data_container
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
-        dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext)
+        dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext, check_nans)
 
         # These traces will determine the autoscale RANGE!
         #   -> so also store when `limit_to_view` is set.
@@ -996,6 +1010,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         | List[AbstractSeriesAggregator]
         | AbstractFigureAggregator = None,
         limit_to_views: List[bool] | bool = False,
+        check_nans: List[bool] | bool = True,
         **traces_kwargs,
     ):
         """Add traces to the figure.
@@ -1030,13 +1045,22 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             aggregator is passed, all traces will use this aggregator.
             If this variable is not set, ``_global_downsampler`` will be used.
         limit_to_views : None | List[bool] | bool, optional
-            List of limit_to_view booleans for the added traces.  If set to True
-            the trace's datapoints will be cut to the corresponding front-end view,
-            even if the total number of samples is lower than ``max_n_samples``. If a
-            single boolean is passed, all to be added traces will use this value,
+            List of limit_to_view booleans for the added traces. If set to True the
+            trace's datapoints will be cut to the corresponding front-end view, even if
+            the total number of samples is lower than ``max_n_samples``. 
+            If a single boolean is passed, all to be added traces will use this value,
             by default False.\n
             Remark that setting this parameter to True ensures that low frequency traces
             are added to the ``hf_data`` property.
+        check_nans : None | List[bool] | bool, optional
+            List of check_nans booleans for the added traces. If set to True, the
+            trace's datapoints will be checked for NaNs. If a single boolean is passed,
+            all to be added traces will use this value, by default True.\n
+            As this is a costly operation, it is recommended to set this parameter to
+            False if the data is known to contain no NaNs (or when the downsampler can
+            handle NaNs, e.g., EveryNthPoint). This will considerably speed up the graph
+            construction time.
+
         **traces_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: rows=.., cols=..., secondary_ys=...
@@ -1076,9 +1100,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             downsamplers = [downsamplers] * len(data)
         if isinstance(limit_to_views, bool):
             limit_to_views = [limit_to_views] * len(data)
+        if isinstance(check_nans, bool):
+            check_nans = [check_nans] * len(data)
 
-        for i, (trace, max_out, downsampler, limit_to_view) in enumerate(
-            zip(data, max_n_samples, downsamplers, limit_to_views)
+        for i, (trace, max_out, downsampler, limit_to_view, check_nan) in enumerate(
+            zip(data, max_n_samples, downsamplers, limit_to_views, check_nans)
         ):
             if (
                 trace.type.lower() not in self._high_frequency_traces
@@ -1090,7 +1116,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if not limit_to_view and (trace.y is None or len(trace.y) <= max_out_s):
                 continue
 
-            dc = self._parse_get_trace_props(trace)
+            dc = self._parse_get_trace_props(trace, check_nans=check_nan)
             self._hf_data[trace.uid] = self._construct_hf_data_dict(
                 dc,
                 trace=trace,
