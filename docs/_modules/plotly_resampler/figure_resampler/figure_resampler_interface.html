@@ -387,8 +387,8 @@
     <span class="k">def</span> <span class="nf">_check_update_trace_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-        <span class="n">start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">end</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">end</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">BaseTraceType</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Check and update the passed ``trace`` its data properties based on the</span>
 <span class="sd">        slice range.</span>
@@ -801,7 +801,7 @@
 <span class="sd">            A namedtuple which serves as a datacontainer.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">hf_x</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">hf_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hf_x</span> <span class="ow">is</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">values</span>
@@ -818,7 +818,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">))</span>
             <span class="k">else</span> <span class="n">hf_y</span>
         <span class="p">)</span>
-        <span class="n">hf_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
+        <span class="n">hf_y</span> <span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
 
         <span class="n">hf_text</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">hf_text</span>
@@ -871,6 +871,29 @@
                     <span class="n">hf_text</span> <span class="o">=</span> <span class="n">hf_text</span><span class="p">[</span><span class="n">not_nan_mask</span><span class="p">]</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
                     <span class="n">hf_hovertext</span> <span class="o">=</span> <span class="n">hf_hovertext</span><span class="p">[</span><span class="n">not_nan_mask</span><span class="p">]</span>
+
+            <span class="c1"># Try to parse the hf_x data if it is of object type or</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="n">hf_x</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="ow">is</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span> <span class="ow">or</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span>
+            <span class="p">):</span>  
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Try to parse to numeric</span>
+                    <span class="n">hf_x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># Try to parse to datetime</span>
+                        <span class="n">hf_x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">utc</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
+                        <span class="c1"># Will be cast to object array if it contains multiple timezones.</span>
+                        <span class="k">if</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="s2">&quot;The x-data contains multiple timezones, which is not &quot;</span>
+                                <span class="s2">&quot;supported by plotly-resampler!&quot;</span>
+                            <span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="s2">&quot;plotly-resampler requires the x-data to be numeric or &quot;</span>
+                            <span class="s2">&quot;datetime-like </span><span class="se">\n</span><span class="s2">More details in the stacktrace above.&quot;</span>
+                        <span class="p">)</span>
 
             <span class="c1"># If the categorical or string-like hf_y data is of type object (happens</span>
             <span class="c1"># when y argument is used for the trace constructor instead of hf_y), we</span>
@@ -989,9 +1012,8 @@
                 <span class="n">updated_kwargs</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">updated_kwargs</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">keyword</span><span class="si">}</span><span class="s2">s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    
-        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">updated_kwargs</span><span class="p">}</span>
 
+        <span class="k">return</span> <span class="p">{</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="o">**</span><span class="n">updated_kwargs</span><span class="p">}</span>
 
 <div class="viewcode-block" id="AbstractFigureAggregator.add_trace"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">[docs]</a>    <span class="k">def</span> <span class="nf">add_trace</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1121,8 +1143,8 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">BaseTraceType</span><span class="p">):</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_validator</span><span class="o">.</span><span class="n">validate_coerce</span><span class="p">(</span><span class="n">trace</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 
-        <span class="c1"># First add an UUID, as each (even the non-hf_data traces), must contain this</span>
-        <span class="c1"># key for comparison. If the trace already has an UUID, we will keep it.</span>
+        <span class="c1"># First add a UUID, as each (even the non-hf_data traces), must contain this</span>
+        <span class="c1"># key for comparison. If the trace already has a UUID, we will keep it.</span>
         <span class="n">uuid_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span> <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">trace</span><span class="o">.</span><span class="n">uid</span>
         <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uuid_str</span>
 
@@ -1130,7 +1152,7 @@
         <span class="c1"># TODO in future version -&gt; maybe regex on kwargs which start with `hf_`</span>
         <span class="n">dc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_get_trace_props</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">hf_x</span><span class="p">,</span> <span class="n">hf_y</span><span class="p">,</span> <span class="n">hf_text</span><span class="p">,</span> <span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">check_nans</span><span class="p">)</span>
 
-        <span class="c1"># These traces will determine the autoscale RANGE!</span>
+        <span class="c1"># These traces will determine the autoscale its RANGE!</span>
         <span class="c1">#   -&gt; so also store when `limit_to_view` is set.</span>
         <span class="k">if</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_high_frequency_traces</span><span class="p">:</span>
             <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
@@ -1264,8 +1286,8 @@
             <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">data</span>
         <span class="p">]</span>
 
-        <span class="c1"># First add an UUID, as each (even the non-hf_data traces), must contain this</span>
-        <span class="c1"># key for comparison. If the trace already has an UUID, we will keep it.</span>
+        <span class="c1"># First add a UUID, as each (even the non-hf_data traces), must contain this</span>
+        <span class="c1"># key for comparison. If the trace already has a UUID, we will keep it.</span>
         <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
             <span class="n">uuid_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid4</span><span class="p">())</span> <span class="k">if</span> <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">trace</span><span class="o">.</span><span class="n">uid</span>
             <span class="n">trace</span><span class="o">.</span><span class="n">uid</span> <span class="o">=</span> <span class="n">uuid_str</span>
@@ -1413,7 +1435,7 @@
             <span class="n">cl_k</span> <span class="o">=</span> <span class="n">relayout_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
 
             <span class="c1"># ------------------ HF DATA aggregation ---------------------</span>
-            <span class="c1"># 1. Base case - there is a x-range specified in the front-end</span>
+            <span class="c1"># 1. Base case - there is an x-range specified in the front-end</span>
             <span class="n">start_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;xaxis\d*.range\[0]&quot;</span><span class="p">),</span> <span class="n">cl_k</span><span class="p">)</span>
             <span class="n">stop_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;xaxis\d*.range\[1]&quot;</span><span class="p">),</span> <span class="n">cl_k</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_matches</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stop_matches</span><span class="p">):</span>
@@ -1547,7 +1569,7 @@
         <span class="n">props</span><span class="p">[</span><span class="s2">&quot;pr_props&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_pr_props_keys</span><span class="p">():</span>
             <span class="n">props</span><span class="p">[</span><span class="s2">&quot;pr_props&quot;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="p">(</span><span class="n">props</span><span class="p">,))</span>  <span class="c1"># (props,) to comply with plotly magic</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="p">(</span><span class="n">props</span><span class="p">,)</span>  <span class="c1"># (props,) to comply with plotly magic</span></div>
 </pre></div>
 
               </article>
