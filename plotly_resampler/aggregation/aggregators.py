@@ -443,7 +443,12 @@ class M4Aggregator(AbstractSeriesAggregator):
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
         assert n_out % 4 == 0, "n_out must be a multiple of 4"
 
-        s_i = s.index.astype(np.int64) if s.dtype.type == np.datetime64 else s.index
+        s_i = (
+            s.index.astype(np.int64)
+            if s.index.dtype.type in (np.datetime64, pd.Timestamp)
+            else s.index
+        )
+        print(s_i)
 
         # Thanks to the `linspace` the data is evenly distributed over the index-range
         # The searchsorted function returns the index positions
