@@ -397,7 +397,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         for idx, trace in enumerate(figure["data"]):
             # We skip when the trace-idx already has been updated.
-            if idx in updated_trace_indices or (idx not in invisible_indices and not aggregate_invisible):
+            if idx in updated_trace_indices or (idx in invisible_indices and not aggregate_invisible):
                 # print(f'idx {idx} was not resampled')
                 continue
 
