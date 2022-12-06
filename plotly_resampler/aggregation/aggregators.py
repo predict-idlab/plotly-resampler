@@ -15,12 +15,14 @@ import numpy as np
 import pandas as pd
 
 from ..aggregation.aggregation_interface import AbstractSeriesAggregator
+# from plotly_resampler.aggregation import AbstractSeriesAggregator
 
 try:
     # The efficient c version of the LTTB algorithm
     from .algorithms.lttb_c import LTTB_core_c as LTTB_core
 except (ImportError, ModuleNotFoundError):
     import warnings
+
     warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
     from .algorithms.lttb_py import LTTB_core_py as LTTB_core
 
@@ -76,7 +78,7 @@ class LTTB(AbstractSeriesAggregator):
             interleave_gaps,
             nan_position,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
-            + ["category", "bool"],
+                             + ["category", "bool"],
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
@@ -151,17 +153,17 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-            s.values[: block_size * offset.shape[0]]
-            .reshape(-1, block_size)
-            .argmin(axis=1)
-            + offset
+                s.values[: block_size * offset.shape[0]]
+                .reshape(-1, block_size)
+                .argmin(axis=1)
+                + offset
         )
         argmax = (
-            s.values[argmax_offset : block_size * offset.shape[0] + argmax_offset]
-            .reshape(-1, block_size)
-            .argmax(axis=1)
-            + offset
-            + argmax_offset
+                s.values[argmax_offset: block_size * offset.shape[0] + argmax_offset]
+                .reshape(-1, block_size)
+                .argmax(axis=1)
+                + offset
+                + argmax_offset
         )
         # Sort the argmin & argmax (where we append the first and last index item)
         # and then slice the original series on these indexes.
@@ -216,16 +218,16 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-            s.values[: block_size * offset.shape[0]]
-            .reshape(-1, block_size)
-            .argmin(axis=1)
-            + offset
+                s.values[: block_size * offset.shape[0]]
+                .reshape(-1, block_size)
+                .argmin(axis=1)
+                + offset
         )
         argmax = (
-            s.values[: block_size * offset.shape[0]]
-            .reshape(-1, block_size)
-            .argmax(axis=1)
-            + offset
+                s.values[: block_size * offset.shape[0]]
+                .reshape(-1, block_size)
+                .argmax(axis=1)
+                + offset
         )
 
         # Note: the implementation below flips the array to search from
@@ -278,7 +280,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
             interleave_gaps,
             nan_position,
             dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
-            + ["category", "bool"],
+                             + ["category", "bool"],
         )
 
     def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
@@ -336,11 +338,11 @@ class FuncAggregator(AbstractSeriesAggregator):
     """
 
     def __init__(
-        self,
-        aggregation_func,
-        interleave_gaps: bool = True,
-        nan_position="end",
-        dtype_regex_list=None,
+            self,
+            aggregation_func,
+            interleave_gaps: bool = True,
+            nan_position="end",
+            dtype_regex_list=None,
     ):
         """
         Parameters
@@ -383,8 +385,8 @@ class FuncAggregator(AbstractSeriesAggregator):
                 # where each value is repeated based $len(s)/n_out$ times
                 by=np.repeat(np.arange(n_out), group_size)[: len(s)]
             )
-            .agg(self.aggregation_func)
-            .dropna()
+                .agg(self.aggregation_func)
+                .dropna()
         )
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window
@@ -399,3 +401,64 @@ class FuncAggregator(AbstractSeriesAggregator):
             name=str(s.name),
             copy=False,
         )
+
+
+class M4Aggregator(AbstractSeriesAggregator):
+    """Aggregation method which performs binned min-max aggregation over fully
+    overlapping windows.
+
+    .. note::
+        This method is rather efficient when scaling to large data sizes and can be used
+        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
+        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the
+        :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>`.
+
+    """
+
+    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
+        """
+        Parameters
+        ----------
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes, by default None.
+        """
+        # this downsampler supports all pd.Series dtypes
+        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
+
+    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
+        assert n_out % 4 == 0, "n_out must be a multiple of 4"
+
+        s_i = s.index.astype(np.int64) if s.dtype.type == np.datetime64 else s.index
+
+        # Thanks to the `linspace` the data is evenly distributed over the index-range
+        # The searchsorted function returns the index positions
+        bins = np.searchsorted(s_i, np.linspace(s_i[0], s_i[-1], n_out // 4 + 1))
+
+        rel_idxs = []
+        for lower, upper in zip(bins, bins[1:]):
+            slice = s.iloc[lower:upper]
+            if not len(slice):
+                continue
+
+            # calculate the min(idx), argmin(slice), argmax(slice), max(idx)
+            rel_idxs.append(slice.index[0])
+            rel_idxs.append(slice.idxmin())
+            rel_idxs.append(slice.idxmax())
+            rel_idxs.append(slice.index[-1])
+
+        return s.loc[np.unique(rel_idxs)]
