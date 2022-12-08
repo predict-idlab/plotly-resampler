@@ -464,13 +464,20 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         """
         app.callback(
-            dash.dependencies.Output(trace_updater_id, "updateData"),
-            # dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
+            # dash.dependencies.Output(trace_updater_id, "updateData"),
+            dash.dependencies.Output(trace_updater_id, "visibleUpdateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             dash.dependencies.State(graph_id, "figure"),
-            dash.dependencies.State(graph_id, "style"),
             prevent_initial_call=True,
         )(self.construct_update_data)
+
+        app.callback(
+            dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
+            dash.dependencies.Input(trace_updater_id, "visibleUpdateData"),
+            dash.dependencies.State(graph_id, "relayoutData"),
+            dash.dependencies.State(graph_id, "figure"),
+            prevent_initial_call=True,
+        )(self.construct_invisible_update_data)
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class
