@@ -15,10 +15,10 @@ source: https://dash.plotly.com/sharing-data-between-callbacks:
 
 import numpy as np
 import plotly.graph_objects as go
-from dash import Input, Output, dcc, html, Dash, no_update, callback_context
+from dash import Dash, Input, Output, callback_context, dcc, html, no_update
+from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
-from trace_updater import TraceUpdater
 
 # Data that will be used for the plotly-resampler figures
 x = np.arange(2_000_000)
@@ -38,7 +38,6 @@ app.layout = html.Div(
         html.H1("plotly-resampler global variable", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-
         # The graph and it's needed components to update efficiently
         dcc.Graph(id="graph-id"),
         TraceUpdater(id="trace-updater", gdID="graph-id"),
@@ -59,8 +58,8 @@ def plot_graph(n_clicks):
         # Note how the replace method is used here on the global figure object
         global fig
         fig.replace(go.Figure())
-        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * .9999995 ** x)
-        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002 ** x)
+        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * 0.9999995**x)
+        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002**x)
         return fig
     else:
         return no_update

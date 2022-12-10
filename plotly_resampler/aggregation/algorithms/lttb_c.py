@@ -2,6 +2,7 @@
 
 
 import numpy as np
+
 from .lttbc import (
     downsample_double_double,
     downsample_int_double,

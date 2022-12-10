@@ -549,7 +549,7 @@ def test_shared_hover_gui(driver, shared_hover_figure):
 
         fr.drag_and_zoom("x3y2", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
 
-       # First, apply some horizontal based zooms
+        # First, apply some horizontal based zooms
         fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("x3y3", x0=0.1, x1=0.5, y0=0.5, y1=0.5)
         time.sleep(1)
@@ -628,7 +628,7 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
         fr.drag_and_zoom("xy", x0=0.1, x1=0.3, y0=0.6, y1=0.9)
         fr.clear_requests(sleep_time_s=3)
 
-       # First, apply some horizontal based zooms
+        # First, apply some horizontal based zooms
         fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("xy", x0=0.1, x1=0.2, y0=0.5, y1=0.5)
         time.sleep(3)

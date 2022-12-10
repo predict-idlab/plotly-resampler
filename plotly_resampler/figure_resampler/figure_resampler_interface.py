@@ -13,21 +13,20 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
+from abc import ABC
+from collections import namedtuple
 from copy import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
-from collections import namedtuple
 
 import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.basedatatypes import BaseTraceType, BaseFigure
+from plotly.basedatatypes import BaseFigure, BaseTraceType
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
-from .utils import round_td_str, round_number_str
-
-from abc import ABC
+from .utils import round_number_str, round_td_str
 
 _hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"])
 
@@ -641,7 +640,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if isinstance(hf_y, (pd.Series, pd.Index))
             else hf_y
         )
-        hf_y : np.ndarray = np.asarray(hf_y)
+        hf_y: np.ndarray = np.asarray(hf_y)
 
         hf_text = (
             hf_text
@@ -696,9 +695,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_hovertext = hf_hovertext[not_nan_mask]
 
             # Try to parse the hf_x data if it is of object type or
-            if len(hf_x) and (
-                hf_x.dtype.type is np.str_ or hf_x.dtype == "object"
-            ):  
+            if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):
                 try:
                     # Try to parse to numeric
                     hf_x = pd.to_numeric(hf_x, errors="raise")
@@ -901,7 +898,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             As this is a costly operation, it is recommended to set this parameter to
             False if you are sure that your data does not contain NaNs (or when the
             downsampler can handle NaNs, e.g., EveryNthPoint). This should considerably
-            speed up the graph construction time. 
+            speed up the graph construction time.
         **trace_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
@@ -973,7 +970,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # construct the hf_data_container
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
-        dc = self._parse_get_trace_props(trace, hf_x, hf_y, hf_text, hf_hovertext, check_nans)
+        dc = self._parse_get_trace_props(
+            trace, hf_x, hf_y, hf_text, hf_hovertext, check_nans
+        )
 
         # These traces will determine the autoscale its RANGE!
         #   -> so also store when `limit_to_view` is set.
@@ -1069,7 +1068,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         limit_to_views : None | List[bool] | bool, optional
             List of limit_to_view booleans for the added traces. If set to True the
             trace's datapoints will be cut to the corresponding front-end view, even if
-            the total number of samples is lower than ``max_n_samples``. 
+            the total number of samples is lower than ``max_n_samples``.
             If a single boolean is passed, all to be added traces will use this value,
             by default False.\n
             Remark that setting this parameter to True ensures that low frequency traces

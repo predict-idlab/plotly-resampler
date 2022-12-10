@@ -13,8 +13,8 @@ chained together using the dcc.Interval component.
 
 """
 
-from uuid import uuid4
 from typing import List
+from uuid import uuid4
 
 import numpy as np
 import plotly.graph_objects as go
@@ -26,8 +26,9 @@ from dash_extensions.enrich import (
     Trigger,
     TriggerTransform,
 )
-from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
+
+from plotly_resampler import FigureResampler
 
 # Data that will be used for the plotly-resampler figures
 x = np.arange(2_000_000)

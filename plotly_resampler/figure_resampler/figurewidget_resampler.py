@@ -66,7 +66,7 @@ class FigureWidgetResampler(
             f._grid_ref = figure._grid_ref
             f.add_traces(figure.data)
         elif isinstance(figure, dict) and (
-            "data" in figure or "layout" in figure # or "frames" in figure  # TODO
+            "data" in figure or "layout" in figure  # or "frames" in figure  # TODO
         ):
             # A figure as a dict, can be;
             # - a plotly figure as a dict (after calling `fig.to_dict()`)
