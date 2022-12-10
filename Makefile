@@ -9,8 +9,8 @@ format:
 .PHONY: lint
 lint:
 	poetry run ruff plotly_resampler tests
-	$(isort) --check-only --df
-	$(black) --check --diff
+	poetry run $(isort) --check-only --df
+	poetry run $(black) --check --diff
 
 .PHONY: test
 test:
