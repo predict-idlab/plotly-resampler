@@ -623,11 +623,12 @@ def test_proper_copy_of_wrapped_fig(float_series):
 
 def test_low_dim_input():
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=[1, 2, 3], y=[1, 2, 3], name='a'))
+    fig.add_trace(go.Scatter(x=[1, 2, 3], y=[1, 2, 3], name="a"))
 
     fig = FigureResampler(go.Figure())
-    fig.add_trace(go.Scatter(x=[1, 2, 3], y=[1, 2, 3], name='a'))
+    fig.add_trace(go.Scatter(x=[1, 2, 3], y=[1, 2, 3], name="a"))
     fig.add_trace(go.Scatter(), hf_x=[1, 2, 3], hf_y=[1, 2, 3])
+
 
 def test_2d_input_y():
     # Create some dummy dataframe with a nan
