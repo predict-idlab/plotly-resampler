@@ -179,13 +179,14 @@
 
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Jeroen Van Der Donckt, Jonas Van Der Donckt, Emiel Deprost&quot;</span>
 
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+
+<span class="kn">import</span> <span class="nn">plotly</span>
+
 <span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span><span class="p">,</span> <span class="n">FigureWidgetResampler</span>
 <span class="kn">from</span> <span class="nn">plotly_resampler.figure_resampler.figure_resampler_interface</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">AbstractFigureAggregator</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
-
-<span class="kn">import</span> <span class="nn">plotly</span>
 
 <span class="n">WRAPPED_PREFIX</span> <span class="o">=</span> <span class="s2">&quot;[Plotly-Resampler]__&quot;</span>
 <span class="n">PLOTLY_MODULES</span> <span class="o">=</span> <span class="p">[</span>

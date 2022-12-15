@@ -190,21 +190,20 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost&quot;</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">copy</span> <span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
 <span class="kn">from</span> <span class="nn">uuid</span> <span class="kn">import</span> <span class="n">uuid4</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 
 <span class="kn">import</span> <span class="nn">dash</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
-<span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseTraceType</span><span class="p">,</span> <span class="n">BaseFigure</span>
+<span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseFigure</span><span class="p">,</span> <span class="n">BaseTraceType</span>
 
 <span class="kn">from</span> <span class="nn">..aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">EfficientLTTB</span>
-<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">round_td_str</span><span class="p">,</span> <span class="n">round_number_str</span>
-
-<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">round_number_str</span><span class="p">,</span> <span class="n">round_td_str</span>
 
 <span class="n">_hf_data_container</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;DataContainer&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">])</span>
 
