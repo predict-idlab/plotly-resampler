@@ -1,16 +1,18 @@
+import numpy as np
+import pandas as pd
+import pytest
+
 from plotly_resampler.aggregation import (
+    LTTB,
+    EfficientLTTB,
     EveryNthPoint,
     FuncAggregator,
-    LTTB,
-    MinMaxOverlapAggregator,
     MinMaxAggregator,
-    EfficientLTTB,
+    MinMaxOverlapAggregator,
 )
-from plotly_resampler.aggregation.algorithms.lttb_py import LTTB_core_py
 from plotly_resampler.aggregation.algorithms.lttb_c import LTTB_core_c
-import pandas as pd
-import numpy as np
-import pytest
+from plotly_resampler.aggregation.algorithms.lttb_py import LTTB_core_py
+
 
 # --------------------------------- EveryNthPoint ------------------------------------
 def test_every_nth_point_float_time_data(float_series):
@@ -90,7 +92,7 @@ def test_every_nth_point_bool_sequence_data(bool_series):
 
 
 def test_every_nth_point_empty_series():
-    empty_series = pd.Series(name="empty", dtype='float32')
+    empty_series = pd.Series(name="empty", dtype="float32")
     out = EveryNthPoint(interleave_gaps=True).aggregate(empty_series, n_out=1_000)
     assert out.equals(empty_series)
 
@@ -232,7 +234,7 @@ def test_mmo_bool_sequence_data(bool_series):
 
 
 def test_mmo_empty_series():
-    empty_series = pd.Series(name="empty", dtype='float32')
+    empty_series = pd.Series(name="empty", dtype="float32")
     out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
         empty_series, n_out=1_000
     )
@@ -646,7 +648,7 @@ def test_func_aggregator_invalid_input_data(cat_series):
 
 # ------------------------------- LTTB_Bindings -------------------------------
 def test_lttb_bindings():
-    # Test whether both algorithms produce the same results with different types of 
+    # Test whether both algorithms produce the same results with different types of
     # input data
     n = np.random.randint(low=1_000_000, high=2_000_000)
     x_int = np.arange(n, dtype="int64")

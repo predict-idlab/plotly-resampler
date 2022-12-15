@@ -1,19 +1,20 @@
-import plotly.graph_objects as go
-import plotly.express as px
+from inspect import isfunction
+
 import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 
 from plotly_resampler import FigureResampler, FigureWidgetResampler
 from plotly_resampler.figure_resampler.figure_resampler_interface import (
     AbstractFigureAggregator,
 )
 from plotly_resampler.registering import (
+    _get_plotly_constr,
     register_plotly_resampler,
     unregister_plotly_resampler,
-    _get_plotly_constr,
 )
 
 from .conftest import registering_cleanup
-from inspect import isfunction
 
 
 def test_get_plotly_const(registering_cleanup):

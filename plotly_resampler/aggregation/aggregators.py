@@ -21,6 +21,7 @@ try:
     from .algorithms.lttb_c import LTTB_core_c as LTTB_core
 except (ImportError, ModuleNotFoundError):
     import warnings
+
     warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
     from .algorithms.lttb_py import LTTB_core_py as LTTB_core
 
@@ -286,7 +287,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
         ratio_threshold = 100
 
         # TODO -> test this with a move of the .so file
-        if LTTB_core.__name__ == 'LTTB_core_py':
+        if LTTB_core.__name__ == "LTTB_core_py":
             size_threshold = 1_000_000
 
         if s.shape[0] > size_threshold and s.shape[0] / n_out > ratio_threshold:

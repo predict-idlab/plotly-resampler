@@ -10,11 +10,11 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-import warnings
-from typing import Tuple, List
-
-import uuid
 import base64
+import uuid
+import warnings
+from typing import List, Tuple
+
 import dash
 import plotly.graph_objects as go
 from flask_cors import cross_origin

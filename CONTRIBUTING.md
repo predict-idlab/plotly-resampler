@@ -79,12 +79,30 @@ poetry build  # build the underlying C code
 
 </details>
 
+### Formatting the code
+
+We use [black](https://github.com/psf/black) and [isort](https://github.com/PyCQA/isort) to format the code.
+
+To format the code, run the following command (more details in the [Makefile](Makefile)):
+```sh
+make format
+```
+
+### Checking the linting
+
+We use [ruff](https://github.com/charliermarsh/ruff) to check the linting.
+
+To check the linting, run the following command (more details in the [Makefile](Makefile)):
+```sh
+make lint
+```
+
 ### Running the tests (& code coverage)
 
-You can run the test with the following code:
+You can run the tests with the following code (more details in the [Makefile](Makefile)):
 
 ```sh
-poetry run pytest --cov-report term-missing --cov=plotly_resampler tests
+make test
 ```
 
 To get the selenium tests working you should have Google Chrome installed.

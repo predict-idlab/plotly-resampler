@@ -14,10 +14,10 @@ construct the plotly-resampler figure and cache it on the server side.
 
 from uuid import uuid4
 
+import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.graph_objects as go
-import dash_bootstrap_components as dbc
-from dash import MATCH, Input, Output, State, dcc, html, no_update, callback_context
+from dash import MATCH, Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
@@ -25,8 +25,9 @@ from dash_extensions.enrich import (
     Trigger,
     TriggerTransform,
 )
-from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
+
+from plotly_resampler import FigureResampler
 
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(

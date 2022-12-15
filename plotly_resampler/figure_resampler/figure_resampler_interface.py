@@ -13,21 +13,20 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import re
+from abc import ABC
+from collections import namedtuple
 from copy import copy
 from typing import Dict, Iterable, List, Optional, Tuple, Union
 from uuid import uuid4
-from collections import namedtuple
 
 import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from plotly.basedatatypes import BaseTraceType, BaseFigure
+from plotly.basedatatypes import BaseFigure, BaseTraceType
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
-from .utils import round_td_str, round_number_str
-
-from abc import ABC
+from .utils import round_number_str, round_td_str
 
 _hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"])
 

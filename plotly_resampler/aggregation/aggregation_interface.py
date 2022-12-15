@@ -29,14 +29,14 @@ class AbstractSeriesAggregator(ABC):
             irregularly sampled data. By default, True.
         nan_position: str, optional
             Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a 
+            If ``'end'``, the first point after a gap will be replaced with a
             nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a 
+            If ``'begin'``, the last point before a gap will be replaced with a
             nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with 
+            If ``'both'``, both the encompassing gap datapoints are replaced with
             nan-values \n
             .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set 
+                This parameter only has an effect when ``interleave_gaps`` is set
                 to *True*.
         dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes, by default None.

@@ -1,10 +1,11 @@
 """Utility functions for the figure_resampler submodule."""
 
 import math
-import pandas as pd
 
+import pandas as pd
 from plotly.basedatatypes import BaseFigure
-try: # Fails when IPywidgets is not installed
+
+try:  # Fails when IPywidgets is not installed
     from plotly.basewidget import BaseFigureWidget
 except (ImportError, ModuleNotFoundError):
     BaseFigureWidget = type(None)

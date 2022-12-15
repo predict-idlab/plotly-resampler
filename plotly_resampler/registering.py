@@ -2,13 +2,14 @@
 
 __author__ = "Jeroen Van Der Donckt, Jonas Van Der Donckt, Emiel Deprost"
 
+from functools import wraps
+
+import plotly
+
 from plotly_resampler import FigureResampler, FigureWidgetResampler
 from plotly_resampler.figure_resampler.figure_resampler_interface import (
     AbstractFigureAggregator,
 )
-from functools import wraps
-
-import plotly
 
 WRAPPED_PREFIX = "[Plotly-Resampler]__"
 PLOTLY_MODULES = [

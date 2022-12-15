@@ -1,16 +1,21 @@
 """Fixtures and helper functions for testing"""
 
 
+import os
 from typing import Union
 
-import os
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint, unregister_plotly_resampler
+from plotly_resampler import (
+    LTTB,
+    EveryNthPoint,
+    FigureResampler,
+    unregister_plotly_resampler,
+)
 
 # hyperparameters
 _nb_samples = 10_000
@@ -31,6 +36,7 @@ def _remove_file(file_path):
     if os.path.exists(file_path):
         os.remove(file_path)
 
+
 @pytest.fixture
 def pickle_figure():
     FIG_PATH = "fig.pkl"
@@ -41,17 +47,18 @@ def pickle_figure():
 
 @pytest.fixture
 def driver():
-    from seleniumwire import webdriver
-    from webdriver_manager.chrome import ChromeDriverManager, ChromeType
+    import time
+
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+    from seleniumwire import webdriver
+    from webdriver_manager.chrome import ChromeDriverManager, ChromeType
 
-    import time
     time.sleep(1)
-    
+
     options = Options()
     d = DesiredCapabilities.CHROME
-    d['goog:loggingPrefs'] = {'browser': 'ALL'}
+    d["goog:loggingPrefs"] = {"browser": "ALL"}
     if not TESTING_LOCAL:
         if headless:
             options.add_argument("--headless")

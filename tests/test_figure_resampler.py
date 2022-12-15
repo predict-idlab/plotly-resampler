@@ -3,20 +3,19 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
-import pytest
-import time
 import datetime
 import multiprocessing
+import time
+from typing import List
 
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-
-from selenium.webdriver.common.by import By
-from typing import List
-
+import pytest
 from plotly.subplots import make_subplots
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
+from selenium.webdriver.common.by import By
+
+from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
 
 # Note: this will be used to skip / alter behavior when running browser tests on
 # non-linux platforms.
@@ -380,6 +379,7 @@ def test_nan_removed_input(float_series):
         col=2,
     )
 
+
 def test_nan_removed_input_check_nans_false(float_series):
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
     base_fig = make_subplots(
@@ -405,7 +405,7 @@ def test_nan_removed_input_check_nans_false(float_series):
         col=1,
         hf_text="text",
         hf_hovertext="hovertext",
-        check_nans=False
+        check_nans=False,
     )
     # Check the undesired behavior
     assert len(fig.hf_data[0]["y"]) == len(float_series)
@@ -912,10 +912,11 @@ def test_manual_jupyterdashpersistentinline():
 
     # no need to start the app (we just need the FigureResampler object)
 
+    import dash
+
     from plotly_resampler.figure_resampler.figure_resampler import (
         JupyterDashPersistentInlineOutput,
     )
-    import dash
 
     app = JupyterDashPersistentInlineOutput("manual_app")
     assert hasattr(app, "_uid")
@@ -931,9 +932,9 @@ def test_manual_jupyterdashpersistentinline():
     )
 
     # call the method (as it would normally be called)
-    app._display_in_jupyter(f"", port="", mode="inline", width="100%", height=500)
+    app._display_in_jupyter("", port="", mode="inline", width="100%", height=500)
     # call with a different mode (as it normally never would be called)
-    app._display_in_jupyter(f"", port="", mode="external", width="100%", height=500)
+    app._display_in_jupyter("", port="", mode="external", width="100%", height=500)
 
 
 def test_stop_server_external():
@@ -1300,33 +1301,33 @@ def test_fr_update_layout_axes_range(driver):
 
     # The xaxis (auto)range should be the same for both figures
 
-    assert f_orig.layout.xaxis.range == None
-    assert f_pr.layout.xaxis.range == None
-    assert f_orig.layout.xaxis.autorange == None
-    assert f_pr.layout.xaxis.autorange == None
+    assert f_orig.layout.xaxis.range is None
+    assert f_pr.layout.xaxis.range is None
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
 
     f_orig.update_layout(xaxis_range=[100, 1000])
     f_pr.update_layout(xaxis_range=[100, 1000])
 
     assert f_orig.layout.xaxis.range == (100, 1000)
     assert f_pr.layout.xaxis.range == (100, 1000)
-    assert f_orig.layout.xaxis.autorange == None
-    assert f_pr.layout.xaxis.autorange == None
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
 
     # The yaxis (auto)range should be the same for both figures
 
-    assert f_orig.layout.yaxis.range == None
-    assert f_pr.layout.yaxis.range == None
-    assert f_orig.layout.yaxis.autorange == None
-    assert f_pr.layout.yaxis.autorange == None
+    assert f_orig.layout.yaxis.range is None
+    assert f_pr.layout.yaxis.range is None
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
 
     f_orig.update_layout(yaxis_range=[100, 1000])
     f_pr.update_layout(yaxis_range=[100, 1000])
 
     assert list(f_orig.layout.yaxis.range) == [100, 1000]
     assert list(f_pr.layout.yaxis.range) == [100, 1000]
-    assert f_orig.layout.yaxis.autorange == None
-    assert f_pr.layout.yaxis.autorange == None
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
 
     # Before showing the figure, the f_pr contains the full original data (downsampled to 500 samples)
     # Even after updating the axes ranges
@@ -1341,7 +1342,7 @@ def test_fr_update_layout_axes_range(driver):
     proc.start()
     try:
         time.sleep(1)
-        driver.get(f"http://localhost:8050")
+        driver.get("http://localhost:8050")
         time.sleep(3)
         # Get the data property from the front-end figure
         el = driver.find_element(by=By.ID, value="resample-figure")
@@ -1388,33 +1389,33 @@ def test_fr_update_layout_axes_range_no_update(driver):
 
     # The xaxis (auto)range should be the same for both figures
 
-    assert f_orig.layout.xaxis.range == None
-    assert f_pr.layout.xaxis.range == None
-    assert f_orig.layout.xaxis.autorange == None
-    assert f_pr.layout.xaxis.autorange == None
+    assert f_orig.layout.xaxis.range is None
+    assert f_pr.layout.xaxis.range is None
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
 
     f_orig.update_layout(xaxis_range=[100, 1000])
     f_pr.update_layout(xaxis_range=[100, 1000])
 
     assert f_orig.layout.xaxis.range == (100, 1000)
     assert f_pr.layout.xaxis.range == (100, 1000)
-    assert f_orig.layout.xaxis.autorange == None
-    assert f_pr.layout.xaxis.autorange == None
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
 
     # The yaxis (auto)range should be the same for both figures
 
-    assert f_orig.layout.yaxis.range == None
-    assert f_pr.layout.yaxis.range == None
-    assert f_orig.layout.yaxis.autorange == None
-    assert f_pr.layout.yaxis.autorange == None
+    assert f_orig.layout.yaxis.range is None
+    assert f_pr.layout.yaxis.range is None
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
 
     f_orig.update_layout(yaxis_range=[100, 1000])
     f_pr.update_layout(yaxis_range=[100, 1000])
 
     assert list(f_orig.layout.yaxis.range) == [100, 1000]
     assert list(f_pr.layout.yaxis.range) == [100, 1000]
-    assert f_orig.layout.yaxis.autorange == None
-    assert f_pr.layout.yaxis.autorange == None
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
 
     # Before showing the figure, the f_pr contains the full original data (not downsampled)
     # Even after updating the axes ranges
@@ -1429,7 +1430,7 @@ def test_fr_update_layout_axes_range_no_update(driver):
     proc.start()
     try:
         time.sleep(1)
-        driver.get(f"http://localhost:8050")
+        driver.get("http://localhost:8050")
         time.sleep(3)
         # Get the data & layout property from the front-end figure
         el = driver.find_element(by=By.ID, value="resample-figure")
