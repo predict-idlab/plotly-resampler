@@ -128,7 +128,7 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
     if c.days > 0:
         out_str += f"{c.days}D"
     if c.hours > 0 or c.minutes > 0 or c.seconds > 0 or c.milliseconds > 0:
-        out_str += "_" if len(out_str) else ""
+        out_str += "_" if out_str else out_str
 
     if c.hours > 0:
         out_str += f"{c.hours}h"
@@ -142,11 +142,11 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
         else:
             out_str += f"{c.seconds}s"
     elif c.milliseconds > 0:
-        out_str += f"{str(c.milliseconds)}ms"
+        out_str += f"{c.milliseconds}ms"
     if c.microseconds > 0:
-        out_str += f"{str(c.microseconds)}us"
+        out_str += f"{c.microseconds}us"
     if c.nanoseconds > 0:
-        out_str += f"{str(c.nanoseconds)}ns"
+        out_str += f"{c.nanoseconds}ns"
     return out_str
 
 
@@ -156,14 +156,14 @@ def round_td_str(td: pd.Timedelta) -> str:
     .. seealso::
         :func:`timedelta_to_str`
     """
-    for t_s in ["D", "H", "min", "s", "ms", "us", "ns"]:
+    for t_s in ("D", "H", "min", "s", "ms", "us", "ns"):
         if td > 0.95 * pd.Timedelta(f"1{t_s}"):
             return timedelta_to_str(td.round(t_s))
 
 
 def round_number_str(number: float) -> str:
     if number > 0.95:
-        for unit, scaling in [("M", int(1e6)), ("k", int(1e3))]:
+        for unit, scaling in (("M", int(1e6)), ("k", int(1e3))):
             if number / scaling > 0.95:
                 return f"{round(number / scaling)}{unit}"
         return str(round(number))

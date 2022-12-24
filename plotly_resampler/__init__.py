@@ -1,5 +1,7 @@
 """**plotly\_resampler**: visualizing large sequences."""
 
+import contextlib
+
 from .aggregation import LTTB, EfficientLTTB, EveryNthPoint
 from .figure_resampler import FigureResampler, FigureWidgetResampler
 from .registering import register_plotly_resampler, unregister_plotly_resampler
@@ -20,12 +22,11 @@ __all__ = [
 ]
 
 
-try:  # Enable ipywidgets on google colab!
+# Enable ipywidgets on google colab!
+with contextlib.suppress(ImportError, ModuleNotFoundError):
     import sys
 
     if "google.colab" in sys.modules:
         from google.colab import output
 
         output.enable_custom_widget_manager()
-except (ImportError, ModuleNotFoundError):
-    pass
