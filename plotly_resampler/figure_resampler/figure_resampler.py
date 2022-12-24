@@ -377,7 +377,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             mode is None or mode in available_modes
         ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
-        assert "config" not in graph_properties.keys()  # There is a param for config
+        assert "config" not in graph_properties  # There is a param for config
 
         # 0. Check if the traces need to be updated when there is a xrange set
         # This will be the case when the users has set a xrange (via the `update_layout`
@@ -388,7 +388,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             if x_range:  # when not None
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
                 relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
-        if len(relayout_dict):
+        if relayout_dict:
             update_data = self.construct_update_data(relayout_dict)
 
             if not self._is_no_update(update_data):  # when there is an update
