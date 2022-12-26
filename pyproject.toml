@@ -19,13 +19,16 @@ include = [
 build = "build.py"
 
 [tool.poetry.dependencies]
-python = "^3.7.1,<3.11"
+python = "^3.7.1"
 jupyter-dash = ">=0.4.2"
 plotly = "^5.5.0"
 dash = "^2.2.0"
 pandas = "^1.3.5"
 trace-updater = ">=0.0.8"
-numpy = ">=1.14"
+numpy = [
+    { version = ">=1.14", python = "<3.11" },
+    { version = ">=1.24", python = ">=3.11" }
+]
 Flask-Cors = "^3.0.10"
 orjson = "^3.8.0"  # Faster json serialization
 # TODO -> check other werkzeug versions: 2.1.2 and 2.1.1 seem to work.
@@ -38,14 +41,14 @@ pytest-cov = "^3.0.0"
 selenium = "4.2.0"
 pytest-selenium = "^2.0.1"
 webdriver-manager = "^3.5.2"
-selenium-wire = "^4.5.6"
-pyarrow = "^8.0.0"
+selenium-wire = "^5.0"
+pyarrow = "^10.0"
 Sphinx = "^4.4.0"
 pydata-sphinx-theme = "^0.9.0"
 sphinx-autodoc-typehints = "^1.17.0"
 ipywidgets = "^7.7.1"
 memory-profiler = "^0.60.0"
-line-profiler = "^3.5.1"
+line-profiler = "^4.0"
 kaleido = "0.2.1"
 ruff = "^0.0.173"
 black = "^22.6.0"
