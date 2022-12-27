@@ -433,12 +433,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if (
                     xaxis_filter_short == "x"
                     and (
-                        x_anchor_trace not in [None, "x"]
+                        x_anchor_trace not in (None, "x")
                         and xaxis_matches != xaxis_filter_short
                     )
                 ) or (
                     xaxis_filter_short != "x"
-                    and (xaxis_filter_short not in [x_anchor_trace, xaxis_matches])
+                    and (xaxis_filter_short not in (x_anchor_trace, xaxis_matches))
                 ):
                     continue
 
@@ -1260,7 +1260,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # 1. Base case - there is an x-range specified in the front-end
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
-            if len(start_matches) and len(stop_matches):
+            if start_matches and stop_matches:  # when both are not empty
                 for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                     # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
                     xaxis = t_start_key.split(".")[0]
@@ -1280,7 +1280,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             )
             spike_matches = self._re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
             # 2.1 Reset-axes -> autorange & reset to the global data view
-            if len(autorange_matches) and len(spike_matches):
+            if autorange_matches and spike_matches:  # when both are not empty
                 for autorange_key in autorange_matches:
                     if relayout_data[autorange_key]:
                         xaxis = autorange_key.split(".")[0]
@@ -1291,14 +1291,16 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the
             #      current front-end view
-            elif len(autorange_matches) and not len(spike_matches):
+            elif (
+                autorange_matches and not spike_matches
+            ):  # when only autorange is not empty
                 # PreventUpdate returns a 204 status code response on the
                 # relayout post request
                 return dash.no_update
 
         # If we do not have any traces to be updated, we will return an empty
         # request response
-        if len(updated_trace_indices) == 0:
+        if not updated_trace_indices:  # when updated_trace_indices is empty
             # PreventUpdate returns a 204 status-code response on the relayout post
             # request
             return dash.no_update
@@ -1336,7 +1338,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
         #    * this method assumes that the it will not get a float128 series
         # -> this method can be removed if orjson supports float16
-        if series.dtype in [np.float16]:
+        if series.dtype == np.float16:
             return series.astype(np.float32)
         return series
 

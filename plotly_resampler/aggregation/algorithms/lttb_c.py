@@ -35,7 +35,7 @@ class LTTB_core_c:
         """
         if x.dtype == np.int64 and y.dtype == np.float64:
             return downsample_int_double(x, y, n_out)
-        elif x.dtype == np.int64 and y.dtype == np.int64:
+        elif x.dtype == y.dtype == np.int64:
             return downsample_int_int(x, y, n_out)
         elif x.dtype == np.int64 and y.dtype == np.float32:
             return downsample_int_float(x, y, n_out)

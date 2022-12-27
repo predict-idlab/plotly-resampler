@@ -168,7 +168,7 @@ class FigureWidgetResampler(
                 # -> save current xaxis range to _prev_layout
                 self._prev_layout[xaxis_str]["range"] = x_range
 
-        if len(relayout_dict):
+        if relayout_dict:  # when not empty
             # Construct the update data
             update_data = self.construct_update_data(relayout_dict)
 

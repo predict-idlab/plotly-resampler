@@ -76,7 +76,7 @@ class LTTB(AbstractSeriesAggregator):
         super().__init__(
             interleave_gaps,
             nan_position,
-            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
+            dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
 
@@ -278,7 +278,7 @@ class EfficientLTTB(AbstractSeriesAggregator):
         super().__init__(
             interleave_gaps,
             nan_position,
-            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
+            dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
 
