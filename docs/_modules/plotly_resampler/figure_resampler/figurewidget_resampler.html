@@ -345,7 +345,7 @@
                 <span class="c1"># -&gt; save current xaxis range to _prev_layout</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_prev_layout</span><span class="p">[</span><span class="n">xaxis_str</span><span class="p">][</span><span class="s2">&quot;range&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_range</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">relayout_dict</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">relayout_dict</span><span class="p">:</span>  <span class="c1"># when not empty</span>
             <span class="c1"># Construct the update data</span>
             <span class="n">update_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">construct_update_data</span><span class="p">(</span><span class="n">relayout_dict</span><span class="p">)</span>
 

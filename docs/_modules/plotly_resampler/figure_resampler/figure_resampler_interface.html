@@ -610,12 +610,12 @@
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="n">xaxis_filter_short</span> <span class="o">==</span> <span class="s2">&quot;x&quot;</span>
                     <span class="ow">and</span> <span class="p">(</span>
-                        <span class="n">x_anchor_trace</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">]</span>
+                        <span class="n">x_anchor_trace</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
                         <span class="ow">and</span> <span class="n">xaxis_matches</span> <span class="o">!=</span> <span class="n">xaxis_filter_short</span>
                     <span class="p">)</span>
                 <span class="p">)</span> <span class="ow">or</span> <span class="p">(</span>
                     <span class="n">xaxis_filter_short</span> <span class="o">!=</span> <span class="s2">&quot;x&quot;</span>
-                    <span class="ow">and</span> <span class="p">(</span><span class="n">xaxis_filter_short</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">x_anchor_trace</span><span class="p">,</span> <span class="n">xaxis_matches</span><span class="p">])</span>
+                    <span class="ow">and</span> <span class="p">(</span><span class="n">xaxis_filter_short</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">x_anchor_trace</span><span class="p">,</span> <span class="n">xaxis_matches</span><span class="p">))</span>
                 <span class="p">):</span>
                     <span class="k">continue</span>
 
@@ -1437,7 +1437,7 @@
             <span class="c1"># 1. Base case - there is an x-range specified in the front-end</span>
             <span class="n">start_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;xaxis\d*.range\[0]&quot;</span><span class="p">),</span> <span class="n">cl_k</span><span class="p">)</span>
             <span class="n">stop_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;xaxis\d*.range\[1]&quot;</span><span class="p">),</span> <span class="n">cl_k</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">start_matches</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stop_matches</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">start_matches</span> <span class="ow">and</span> <span class="n">stop_matches</span><span class="p">:</span>  <span class="c1"># when both are not empty</span>
                 <span class="k">for</span> <span class="n">t_start_key</span><span class="p">,</span> <span class="n">t_stop_key</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">start_matches</span><span class="p">,</span> <span class="n">stop_matches</span><span class="p">):</span>
                     <span class="c1"># Check if the xaxis&lt;NUMB&gt; part of xaxis&lt;NUMB&gt;.[0-1] matches</span>
                     <span class="n">xaxis</span> <span class="o">=</span> <span class="n">t_start_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -1457,7 +1457,7 @@
             <span class="p">)</span>
             <span class="n">spike_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;xaxis\d*.showspikes&quot;</span><span class="p">),</span> <span class="n">cl_k</span><span class="p">)</span>
             <span class="c1"># 2.1 Reset-axes -&gt; autorange &amp; reset to the global data view</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">autorange_matches</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">spike_matches</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">autorange_matches</span> <span class="ow">and</span> <span class="n">spike_matches</span><span class="p">:</span>  <span class="c1"># when both are not empty</span>
                 <span class="k">for</span> <span class="n">autorange_key</span> <span class="ow">in</span> <span class="n">autorange_matches</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">relayout_data</span><span class="p">[</span><span class="n">autorange_key</span><span class="p">]:</span>
                         <span class="n">xaxis</span> <span class="o">=</span> <span class="n">autorange_key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -1468,14 +1468,16 @@
                         <span class="p">)</span>
             <span class="c1"># 2.1. Autorange -&gt; do nothing, the autorange will be applied on the</span>
             <span class="c1">#      current front-end view</span>
-            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">autorange_matches</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">spike_matches</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="p">(</span>
+                <span class="n">autorange_matches</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">spike_matches</span>
+            <span class="p">):</span>  <span class="c1"># when only autorange is not empty</span>
                 <span class="c1"># PreventUpdate returns a 204 status code response on the</span>
                 <span class="c1"># relayout post request</span>
                 <span class="k">return</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span>
 
         <span class="c1"># If we do not have any traces to be updated, we will return an empty</span>
         <span class="c1"># request response</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">updated_trace_indices</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">updated_trace_indices</span><span class="p">:</span>  <span class="c1"># when updated_trace_indices is empty</span>
             <span class="c1"># PreventUpdate returns a 204 status-code response on the relayout post</span>
             <span class="c1"># request</span>
             <span class="k">return</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span>
@@ -1513,7 +1515,7 @@
         <span class="c1">#    * float16 and float128 aren&#39;t supported with latest orjson versions (3.8.1)</span>
         <span class="c1">#    * this method assumes that the it will not get a float128 series</span>
         <span class="c1"># -&gt; this method can be removed if orjson supports float16</span>
-        <span class="k">if</span> <span class="n">series</span><span class="o">.</span><span class="n">dtype</span> <span class="ow">in</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="n">series</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">series</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">series</span>
 
