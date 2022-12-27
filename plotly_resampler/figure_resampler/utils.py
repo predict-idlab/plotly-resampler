@@ -128,7 +128,7 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
     if c.days > 0:
         out_str += f"{c.days}D"
     if c.hours > 0 or c.minutes > 0 or c.seconds > 0 or c.milliseconds > 0:
-        out_str += "_" if out_str else out_str
+        out_str += "_" if out_str else ""
 
     if c.hours > 0:
         out_str += f"{c.hours}h"
