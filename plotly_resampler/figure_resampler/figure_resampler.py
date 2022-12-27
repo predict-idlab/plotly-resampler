@@ -388,7 +388,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             if x_range:  # when not None
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
                 relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
-        if relayout_dict:
+        if relayout_dict:  # when not empty
             update_data = self.construct_update_data(relayout_dict)
 
             if not self._is_no_update(update_data):  # when there is an update
