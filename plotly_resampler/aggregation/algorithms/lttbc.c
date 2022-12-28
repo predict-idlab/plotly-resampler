@@ -156,7 +156,7 @@ fail:
 }
 
 // This method only returns the index positions of the selected points.
-// almost everything can be sucessfully parsed to this so this will be
+// almost everything can be successfully parsed to this so this will be
 // our fallback method
 static PyObject *downsample_double_double(PyObject *self, PyObject *args)
 {

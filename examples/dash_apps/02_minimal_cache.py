@@ -11,14 +11,15 @@ variable is used and shows the best practice of using plotly-resampler within da
 
 import numpy as np
 import plotly.graph_objects as go
-from dash import Input, Output, State, dcc, html, no_update, callback_context
+from dash import Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
     ServersideOutputTransform,
 )
-from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
+
+from plotly_resampler import FigureResampler
 
 # Data that will be used for the plotly-resampler figures
 x = np.arange(2_000_000)

@@ -3,10 +3,10 @@
 
 __author__ = "Jonas Van Der Donckt"
 
+import itertools
 from pathlib import Path
 from typing import Dict, List
 
-import itertools
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, dcc, html
 from functional import seq
@@ -21,8 +21,8 @@ def _update_file_widget(folder):
             set(
                 list(
                     seq(Path(folder).iterdir())
-                        .filter(lambda x: x.is_file() and x.name.endswith("parquet"))
-                        .map(lambda x: x.name)
+                    .filter(lambda x: x.is_file() and x.name.endswith("parquet"))
+                    .map(lambda x: x.name)
                 )
             )
         )
@@ -41,7 +41,7 @@ def _register_selection_callbacks(app, ids=None):
 
 
 def multiple_folder_file_selector(
-        app, name_folders_list: List[Dict[str, dict]], multi=True
+    app, name_folders_list: List[Dict[str, dict]], multi=True
 ) -> dbc.Card:
     """Constructs a folder user date selector
 

@@ -65,7 +65,7 @@ class LTTB_core_py:
         sampled_x[-1] = x.shape[0] - 1
 
         # Convert y to int if it is boolean
-        if y.dtype == np.bool:
+        if y.dtype == np.bool_:
             y = y.astype(np.int8)
 
         a = 0

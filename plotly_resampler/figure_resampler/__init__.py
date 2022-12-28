@@ -13,7 +13,6 @@ The term `high-frequency` actually refers very large amounts of sequential data.
 from .figure_resampler import FigureResampler
 from .figurewidget_resampler import FigureWidgetResampler
 
-
 __all__ = [
     "FigureResampler",
     "FigureWidgetResampler",

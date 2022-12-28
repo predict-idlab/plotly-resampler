@@ -12,18 +12,17 @@ from typing import List
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import Input, Output, State, dcc, html, no_update, callback_context
-
+from dash import Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
     ServersideOutputTransform,
 )
-from plotly_resampler import FigureResampler
 from trace_updater import TraceUpdater
-
-from utils.callback_helpers import multiple_folder_file_selector, get_selector_states
+from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
 from utils.graph_construction import visualize_multiple_files
+
+from plotly_resampler import FigureResampler
 
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(

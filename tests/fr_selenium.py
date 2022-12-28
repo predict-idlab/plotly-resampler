@@ -11,31 +11,23 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 
-import sys
 import json
 import time
 from typing import List, Union
 
-from seleniumwire import webdriver
-from seleniumwire.request import Request
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from seleniumwire import webdriver
+from seleniumwire.request import Request
 
-
-def not_on_linux():
-    """Return True if the current platform is not Linux.
-    
-    Note: this will be used to add more waiting time to windows & mac os tests as 
-    - on these OS's serialization of the figure is necessary (to start the dash app in a 
-      multiprocessing.Process)
-      https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
-    - on linux, the browser (i.e., sending & getting requests) goes a lot faster
-    """
-    return not sys.platform.startswith("linux")
-
+# Note: this will be used to add more waiting time to windows & mac os tests as
+# - on these OS's serialization of the figure is necessary (to start the dash app in a
+#    multiprocessing.Process)
+#    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
+# - on linux, the browser (i.e., sending & getting requests) goes a lot faster
+from .utils import not_on_linux
 
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
 # and create a parameterized driver.get method
@@ -159,7 +151,7 @@ class RequestParser:
 
 
 class FigureResamplerGUITests:
-    """Wrapper for performing figure-resampler GUI. """
+    """Wrapper for performing figure-resampler GUI."""
 
     def __init__(self, driver: webdriver, port: int):
         """Construct an instance of A firefox selenium driver to fetch wearable data.
@@ -185,13 +177,14 @@ class FigureResamplerGUITests:
         time.sleep(1)
         self.driver.get("http://localhost:{}".format(self.port))
         self.on_page = True
-        if not_on_linux(): time.sleep(7)  # bcs serialization of multiprocessing
+        if not_on_linux():
+            time.sleep(7)  # bcs serialization of multiprocessing
         max_nb_tries = 3
         for _ in range(max_nb_tries):
             try:
                 self.driver.find_element_by_id("resample-figure")
                 break
-            except:
+            except Exception:
                 time.sleep(5)
 
     def clear_requests(self, sleep_time_s=1):
@@ -199,7 +192,8 @@ class FigureResamplerGUITests:
         del self.driver.requests
 
     def get_requests(self, delete: bool = True):
-        if not_on_linux(): time.sleep(2)  # bcs slower browser 
+        if not_on_linux():
+            time.sleep(2)  # bcs slower browser
         requests = self.driver.requests
         if delete:
             self.clear_requests()

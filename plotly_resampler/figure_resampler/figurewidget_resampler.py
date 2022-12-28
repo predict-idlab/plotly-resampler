@@ -66,7 +66,7 @@ class FigureWidgetResampler(
             f._grid_ref = figure._grid_ref
             f.add_traces(figure.data)
         elif isinstance(figure, dict) and (
-            "data" in figure or "layout" in figure # or "frames" in figure  # TODO
+            "data" in figure or "layout" in figure  # or "frames" in figure  # TODO
         ):
             # A figure as a dict, can be;
             # - a plotly figure as a dict (after calling `fig.to_dict()`)
@@ -168,9 +168,13 @@ class FigureWidgetResampler(
                 # -> save current xaxis range to _prev_layout
                 self._prev_layout[xaxis_str]["range"] = x_range
 
-        if len(relayout_dict):
+        if relayout_dict:  # when not empty
             # Construct the update data
             update_data = self.construct_update_data(relayout_dict)
+
+            if self._is_no_update(update_data):
+                # Return when no data update
+                return
 
             if self._print_verbose:
                 self._relayout_hist.append(dict(zip(self._xaxis_list, x_ranges)))
@@ -280,7 +284,7 @@ class FigureWidgetResampler(
         # Reset the layout
         self.update_layout(
             {
-                axis: {"autorange": True, "range": None}
+                axis: {"autorange": None, "range": None}
                 for axis in self._xaxis_list + self._yaxis_list
             }
         )

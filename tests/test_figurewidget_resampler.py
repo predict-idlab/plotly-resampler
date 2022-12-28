@@ -3,8 +3,8 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
+import datetime
 from copy import copy
-from datetime import datetime
 from typing import List
 
 import numpy as np
@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
+
 from plotly_resampler import EfficientLTTB, EveryNthPoint, FigureWidgetResampler
 
 
@@ -261,7 +262,7 @@ def test_nan_removed_input(float_series):
     )
 
     float_series = float_series.copy()
-    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    float_series.iloc[np.random.choice(len(float_series), 100, replace=False)] = np.nan
     fig.add_trace(
         go.Scatter(x=float_series.index, y=float_series, name="float_series"),
         row=1,
@@ -269,6 +270,9 @@ def test_nan_removed_input(float_series):
         hf_text="text",
         hf_hovertext="hovertext",
     )
+    # Check the desired behavior
+    assert len(fig.hf_data[0]["y"]) == len(float_series) - 100
+    assert ~pd.isna(fig.hf_data[0]["y"]).any()
 
     # here we test whether we are able to deal with not-nan output
     float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
@@ -291,6 +295,38 @@ def test_nan_removed_input(float_series):
         row=1,
         col=2,
     )
+
+
+def test_nan_removed_input_check_nans_false(float_series):
+    # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
+    base_fig = make_subplots(
+        rows=2,
+        cols=2,
+        specs=[[{}, {}], [{"colspan": 2}, None]],
+    )
+
+    fig = FigureWidgetResampler(
+        base_fig,
+        default_n_shown_samples=1000,
+        resampled_trace_prefix_suffix=(
+            '<b style="color:sandybrown">[R]</b>',
+            '<b style="color:sandybrown">[R]</b>',
+        ),
+    )
+
+    float_series = float_series.copy()
+    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    fig.add_trace(
+        go.Scatter(x=float_series.index, y=float_series, name="float_series"),
+        row=1,
+        col=1,
+        hf_text="text",
+        hf_hovertext="hovertext",
+        check_nans=False,
+    )
+    # Check the undesired behavior
+    assert len(fig.hf_data[0]["y"]) == len(float_series)
+    assert pd.isna(fig.hf_data[0]["y"]).any()
 
 
 def test_hf_text():
@@ -397,6 +433,9 @@ def test_multiple_timezones():
         dr.tz_convert("Australia/Canberra"),
     ]
 
+    plain_plotly_fig = make_subplots(rows=len(cs), cols=1, shared_xaxes=True)
+    plain_plotly_fig.update_layout(height=min(300, 250 * len(cs)))
+
     fr_fig = FigureWidgetResampler(
         make_subplots(rows=len(cs), cols=1, shared_xaxes=True),
         default_n_shown_samples=500,
@@ -406,13 +445,74 @@ def test_multiple_timezones():
     fr_fig.update_layout(height=min(300, 250 * len(cs)))
 
     for i, date_range in enumerate(cs, 1):
+        name = date_range.dtype.name.split(", ")[-1][:-1]
+        plain_plotly_fig.add_trace(
+            go.Scattergl(x=date_range, y=dr_v, name=name), row=i, col=1
+        )
         fr_fig.add_trace(
-            go.Scattergl(name=date_range.dtype.name.split(", ")[-1]),
+            go.Scattergl(name=name),
             hf_x=date_range,
             hf_y=dr_v,
             row=i,
             col=1,
         )
+        # Assert that the time parsing is exactly the same
+        assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
+
+
+def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
+    # TODO: can be improved with pytest parametrize
+    y = np.arange(20)
+
+    index1 = pd.date_range("2018-01-01", periods=10, freq="H", tz="US/Eastern")
+    index2 = pd.date_range("2018-01-02", periods=10, freq="H", tz="Asia/Dubai")
+    index_timestamps = index1.append(index2)
+    assert all(isinstance(x, pd.Timestamp) for x in index_timestamps)
+    index_datetimes = pd.Index([x.to_pydatetime() for x in index_timestamps])
+    assert not any(isinstance(x, pd.Timestamp) for x in index_datetimes)
+    assert all(isinstance(x, datetime.datetime) for x in index_datetimes)
+
+    ## Test why we throw ValueError if array is still of object type after
+    ## successful pd.to_datetime call
+    # String array of datetimes with same tz -> NOT object array
+    assert not pd.to_datetime(index1.astype("str")).dtype == "object"
+    # String array of datetimes with multiple tz -> object array
+    assert pd.to_datetime(index_timestamps.astype("str")).dtype == "object"
+    assert pd.to_datetime(index_datetimes.astype("str")).dtype == "object"
+
+    for index in [index_timestamps, index_datetimes]:
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index, y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+        # Add as hf_x as index
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index, hf_y=y)
+        # Add as hf_x as object array of datetime values
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.values.astype("object"), hf_y=y)
+        # Add as hf_x as string array
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(go.Scattergl(), hf_x=index.astype(str), hf_y=y)
+        # Add as hf_x as object array of strings
+        fr_fig = FigureWidgetResampler(default_n_shown_samples=10)
+        with pytest.raises(ValueError):
+            fr_fig.add_trace(
+                go.Scattergl(), hf_x=index.astype(str).astype("object"), hf_y=y
+            )
+
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("object"), y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
+
+        fig = go.Figure()
+        fig.add_trace(go.Scattergl(x=index.astype("str"), y=y))
+        with pytest.raises(ValueError):
+            fr_fig = FigureWidgetResampler(fig, default_n_shown_samples=10)
 
 
 def test_proper_copy_of_wrapped_fig(float_series):
@@ -459,6 +559,82 @@ def test_2d_input_y():
             default_n_shown_samples=500,
         )
         assert "1 dimensional" in e_info
+
+
+def test_hf_x_object_array():
+    y = np.random.randn(100)
+
+    ## Object array of datetime
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], pd.Timestamp)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+
+    ## Object array of datetime strings
+    ### Should be parsed to a pd.DatetimeIndex (is more efficient than object array)
+    x = pd.date_range("2020-01-01", freq="s", periods=100).astype(str).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], str)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert isinstance(fig.hf_data[0]["x"], pd.DatetimeIndex)
+    assert isinstance(fig.hf_data[0]["x"][0], pd.Timestamp)
+
+    ## Object array of ints
+    ### Should be parsed to an int array (is more efficient than object array)
+    x = np.arange(100).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], int)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+
+    ## Object array of ints as strings
+    ### Should be an integer array where the values are int objects
+    x = np.arange(100).astype(str).astype("object")
+    assert x.dtype == "object"
+    assert isinstance(x[0], str)
+    # Add in the scatter
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+    # Add as hf_x
+    fig = FigureWidgetResampler(default_n_shown_samples=50)
+    fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
+    assert np.issubdtype(fig.hf_data[0]["x"].dtype, np.integer)
+
+    ## Object array of strings
+    x = np.array(["x", "y"] * 50).astype("object")
+    assert x.dtype == "object"
+    # Add in the scatter
+    with pytest.raises(ValueError):
+        fig = FigureWidgetResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla", x=x, y=y))
+    # Add as hf_x
+    with pytest.raises(ValueError):
+        fig = FigureWidgetResampler(default_n_shown_samples=50)
+        fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
 
 
 def test_time_tz_slicing():
@@ -744,6 +920,56 @@ def test_hf_data_property_subplots_reload_data():
     )
 
 
+def test_hf_data_subplots_non_shared_xaxes():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=1, col=1)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+    x_0 = fwr.data[0]["x"]
+    assert 0 <= x_0[0] <= (n / 1000)
+    assert (n - 1000) <= x_0[-1] <= n - 1
+    x_1 = fwr.data[1]["x"]
+    assert 40_000 <= x_1[0] <= 40_000 + (20_000 / 1000)
+    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_000
+
+
+def test_hf_data_subplots_non_shared_xaxes_row_col_none():
+    fwr = FigureWidgetResampler(make_subplots(rows=2, cols=1, shared_xaxes=False))
+    n = 100_000
+    x = np.arange(n)
+    y = np.sin(x)
+
+    assert len(fwr.hf_data) == 0
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y)
+    fwr.add_trace(go.Scattergl(name="test"), hf_x=x, hf_y=y, row=2, col=1)
+
+    fwr.layout.update(
+        {
+            "xaxis2": {"range": [40_000, 60_000]},
+            "yaxis2": {"range": [-10, 3]},
+        },
+        overwrite=False,
+    )
+    x_0 = fwr.data[0]["x"]
+    assert 0 <= x_0[0] <= (n / 1000)
+    assert (n - 1000) <= x_0[-1] <= n - 1
+    x_1 = fwr.data[1]["x"]
+    assert 40_000 <= x_1[0] <= 40_000 + (20_000 / 1000)
+    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_000
+
+
 def test_updates_two_traces():
     n = 1_000_000
     X = np.arange(n)
@@ -889,7 +1115,7 @@ def test_updates_two_traces_single_trace_adjust():
 
     # check whether the single traces was updated with the showspike method
     assert ["showspikes-update", 1] in fw_fig._relayout_hist
-    assert not ["showspikes-update", 2] in fw_fig._relayout_hist
+    assert ["showspikes-update", 2] not in fw_fig._relayout_hist
     assert sum([["showspikes-update", 1] == rh for rh in fw_fig._relayout_hist]) == 1
     # check whether the xaxis-range-update was did not enter the update state
     assert (
@@ -1063,14 +1289,14 @@ def test_bare_update_methods():
 
     # perform an reset axis
     fw_fig._relayout_hist.clear()
-    l = fw_fig.layout.update(
+    layout = fw_fig.layout.update(
         {
             "xaxis": {"autorange": True, "showspikes": False},
             "xaxis2": {"autorange": True, "showspikes": False},
         },
         overwrite=True,  # by setting this to true -> the update call will not takte clear
     )
-    fw_fig._update_spike_ranges(l, False, False)
+    fw_fig._update_spike_ranges(layout, False, False)
 
     # Assert that only a single trace was updated
     assert ["showspikes-update", 1] in fw_fig._relayout_hist
@@ -1134,12 +1360,12 @@ def test_fwr_update_trace_data_zoom():
     )
 
     # zoom in on the first row it's xaxis and perform a layout update
-    l = fig.layout.update(
+    layout = fig.layout.update(
         {"xaxis": {"range": [0, 100_000]}},
         overwrite=True,
     )
     fig._update_x_ranges(
-        l, (0, 100_000), (fig.hf_data[1]["x"][0], fig.hf_data[1]["x"][-1])
+        layout, (0, 100_000), (fig.hf_data[1]["x"][0], fig.hf_data[1]["x"][-1])
     )
 
     fig._relayout_hist.clear()
@@ -1166,11 +1392,11 @@ def test_fwr_update_trace_data_zoom():
     )
 
     # zoom in on the second row it's xaxis and perform a layout update
-    l = fig.layout.update(
+    layout = fig.layout.update(
         {"xaxis2": {"range": [200_000, 500_000]}},
         overwrite=True,
     )
-    fig._update_x_ranges(l, (0, 100_000), (200_000, 500_000))
+    fig._update_x_ranges(layout, (0, 100_000), (200_000, 500_000))
 
     fig._relayout_hist.clear()
     fig.hf_data[0]["x"] = fig.hf_data[0]["x"]
@@ -1300,21 +1526,6 @@ def test_fwr_hovertext_adjust_unequal_length():
         fig.reload_data()
 
 
-def test_fwr_hovertext_adjust_unequal_length():
-    k = 10_000
-    fig = FigureWidgetResampler(default_n_shown_samples=1000, verbose=True)
-    fig.add_trace(go.Scattergl(name="A", line_color="red"), limit_to_view=True)
-
-    fig._relayout_hist.clear()
-
-    with pytest.raises(ValueError):
-        A = np.random.randn(k)
-        fig.hf_data[0]["x"] = pd.Series(np.arange(k - 500))
-        fig.hf_data[0]["y"] = np.arange(k - 500) + A * 300 * 20
-        fig.hf_data[0]["hovertext"] = (-A * 20).astype(int).astype(str)
-        fig.reload_data()
-
-
 def test_fwr_adjust_series_input():
     k = 10_000
     a_k = np.arange(k)
@@ -1389,7 +1600,9 @@ def test_fwr_time_based_data_ns():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(), freq=f"{np.random.randint(5,100_000)}ns", periods=n
+                datetime.datetime.now(),
+                freq=f"{np.random.randint(5,100_000)}ns",
+                periods=n,
             ),
             data=np.arange(n),
         )
@@ -1427,7 +1640,9 @@ def test_fwr_time_based_data_us():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(), freq=f"{np.random.randint(5,100_000)}us", periods=n
+                datetime.datetime.now(),
+                freq=f"{np.random.randint(5,100_000)}us",
+                periods=n,
             ),
             data=np.arange(n),
         )
@@ -1465,7 +1680,9 @@ def test_fwr_time_based_data_ms():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(), freq=f"{np.random.randint(5,10_000)}ms", periods=n
+                datetime.datetime.now(),
+                freq=f"{np.random.randint(5,10_000)}ms",
+                periods=n,
             ),
             data=np.arange(n),
         )
@@ -1504,7 +1721,7 @@ def test_fwr_time_based_data_s():
     for i in range(3):
         s = pd.Series(
             index=pd.date_range(
-                datetime.now(),
+                datetime.datetime.now(),
                 freq=pd.Timedelta(f"{round(np.abs(np.random.randn()) * 1000, 4)}s"),
                 periods=n,
             ),
@@ -1795,7 +2012,9 @@ def test_fwr_object_bool_data(bool_series):
 
 
 def test_fwr_object_binary_data():
-    binary_series = np.array([0, 1]*20, dtype="int32")  # as this is << max_n_samples -> limit_to_view
+    binary_series = np.array(
+        [0, 1] * 20, dtype="int32"
+    )  # as this is << max_n_samples -> limit_to_view
 
     # First try with the original non-object binary series
     fig = FigureWidgetResampler()
@@ -1812,9 +2031,124 @@ def test_fwr_object_binary_data():
     fig.add_trace({"name": "s0"}, hf_y=binary_series_o, limit_to_view=True)
     assert binary_series_o.dtype == object
     assert len(fig.hf_data) == 1
-    assert (fig.hf_data[0]["y"].dtype == "int32") or (fig.hf_data[0]["y"].dtype == "int64")
+    assert (fig.hf_data[0]["y"].dtype == "int32") or (
+        fig.hf_data[0]["y"].dtype == "int64"
+    )
     assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
+
+
+def test_fwr_update_layout_axes_range():
+    nb_datapoints = 2_000
+    n_shown = 500  # < nb_datapoints
+
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureWidgetResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fwr: FigureWidgetResampler, min_v=0, max_v=nb_datapoints - 1):
+        # closure for n_shown and nb_datapoints
+        assert len(fwr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fwr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fwr.data[0]["y"][0] == min_v
+        assert fwr.data[0]["y"][-1] == max_v
+        assert fwr.data[0]["x"][0] == min_v
+        assert fwr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range is None
+    assert f_pr.layout.xaxis.range is None
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range is None
+    assert f_pr.layout.yaxis.range is None
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
+
+    # Now the f_pr contains the data of the selected xrange (downsampled to 500 samples)
+    check_data(f_pr, 100, 1_000 - 1)
+
+
+def test_fwr_update_layout_axes_range_no_update():
+    nb_datapoints = 2_000
+    n_shown = 20_000  # > nb. datapoints
+
+    # Checks whether the update_layout method works as expected
+    f_orig = go.Figure().add_scatter(y=np.arange(nb_datapoints))
+    f_pr = FigureWidgetResampler(default_n_shown_samples=n_shown).add_scatter(
+        y=np.arange(nb_datapoints)
+    )
+
+    def check_data(fwr: FigureWidgetResampler, min_v=0, max_v=nb_datapoints - 1):
+        # closure for n_shown and nb_datapoints
+        assert len(fwr.data[0]["y"]) == min(n_shown, nb_datapoints)
+        assert len(fwr.data[0]["x"]) == min(n_shown, nb_datapoints)
+        assert fwr.data[0]["y"][0] == min_v
+        assert fwr.data[0]["y"][-1] == max_v
+        assert fwr.data[0]["x"][0] == min_v
+        assert fwr.data[0]["x"][-1] == max_v
+
+    # Check the initial data
+    check_data(f_pr)
+
+    # The xaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.xaxis.range is None
+    assert f_pr.layout.xaxis.range is None
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
+
+    f_orig.update_layout(xaxis_range=[100, 1000])
+    f_pr.update_layout(xaxis_range=[100, 1000])
+
+    assert f_orig.layout.xaxis.range == (100, 1000)
+    assert f_pr.layout.xaxis.range == (100, 1000)
+    assert f_orig.layout.xaxis.autorange is None
+    assert f_pr.layout.xaxis.autorange is None
+
+    # The yaxis (auto)range should be the same for both figures
+
+    assert f_orig.layout.yaxis.range is None
+    assert f_pr.layout.yaxis.range is None
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
+
+    f_orig.update_layout(yaxis_range=[100, 1000])
+    f_pr.update_layout(yaxis_range=[100, 1000])
+
+    assert list(f_orig.layout.yaxis.range) == [100, 1000]
+    assert list(f_pr.layout.yaxis.range) == [100, 1000]
+    assert f_orig.layout.yaxis.autorange is None
+    assert f_pr.layout.yaxis.autorange is None
+
+    # Now the f_pr still contains the full original data (not downsampled)
+    # Even after updating the axes ranges
+    check_data(f_pr)
 
 
 def test_fwr_copy_grid():
@@ -1833,7 +2167,7 @@ def test_fwr_copy_grid():
     assert fwr._grid_ref == f._grid_ref
     assert fwr._grid_str is not None
     assert fwr._grid_str == f._grid_str
-    
+
     ## go.FigureWidget
     fw = go.FigureWidget(f)
     assert fw._grid_ref is not None
@@ -1858,6 +2192,7 @@ def test_fwr_copy_grid():
 
     ## FigureResampler
     from plotly_resampler import FigureResampler
+
     fr = FigureResampler(f)
     assert fr._grid_ref is not None
     assert fr._grid_str is not None
