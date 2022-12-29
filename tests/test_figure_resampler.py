@@ -1614,5 +1614,5 @@ def test_hf_marker_size_plotly_args():
     assert np.allclose(
         update_trace["marker"]["color"],
         (np.abs(update_trace["y"]) / np.max(np.abs(y))),
-        rtol=1e-3
+        rtol=1e-3,
     )

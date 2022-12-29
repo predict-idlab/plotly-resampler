@@ -28,15 +28,14 @@ from plotly.basedatatypes import BaseFigure, BaseTraceType
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .utils import round_number_str, round_td_str
 
-from abc import ABC
-
 # A high-frequency data container
-# NOTE: the attributes must all be valid trace dict attributes as the 
-# `_hf_data_container._asdict()` function is used in 
-# `AbstractFigureAggregator._construct_hf_data_dict`. 
+# NOTE: the attributes must all be valid trace dict attributes as the
+# `_hf_data_container._asdict()` function is used in
+# `AbstractFigureAggregator._construct_hf_data_dict`.
 _hf_data_container = namedtuple(
     "DataContainer", ["x", "y", "text", "hovertext", "marker_size", "marker_color"]
 )
+
 
 class AbstractFigureAggregator(BaseFigure, ABC):
     """Abstract interface for data aggregation functionality for plotly figures."""
@@ -865,7 +864,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "axis_type": axis_type,
             "downsampler": downsampler,
             "default_downsampler": default_downsampler,
-            **dc._asdict()
+            **dc._asdict(),
         }
 
     @staticmethod
@@ -1016,7 +1015,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # construct the hf_data_container
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
         dc = self._parse_get_trace_props(
-            trace, hf_x, hf_y, hf_text, hf_hovertext, hf_marker_size, hf_marker_color
+            trace,
+            hf_x,
+            hf_y,
+            hf_text,
+            hf_hovertext,
+            hf_marker_size,
+            hf_marker_color,
+            check_nans,
         )
 
         # These traces will determine the autoscale its RANGE!
