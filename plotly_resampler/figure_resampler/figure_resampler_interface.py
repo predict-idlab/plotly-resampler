@@ -1073,9 +1073,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     if hasattr(trace["marker"], "size"):
                         trace["marker"]["size"] = dc.marker_size
 
-                return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+                return super(self._figure_class, self).add_traces(
+                    [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+                )
 
-        return super(self._figure_class, self).add_trace(trace, **trace_kwargs)
+        return super(self._figure_class, self).add_traces(
+            [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
+        )
 
     def add_traces(
         self,
