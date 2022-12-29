@@ -289,7 +289,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 trace["y"] = [None]
                 trace["text"] = ""
                 trace["hovertext"] = ""
-                # TODO -> add marker kwargs here?
+                trace["marker"] = None
                 return trace
 
             # Downsample the data and store it in the trace-fields
@@ -346,7 +346,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else:
                 trace["hovertext"] = hovertext
 
-            # Check if the marker size neets to be resampled
+            # Check if the marker size needs to be resampled
             if not hasattr(trace, "marker"):
                 trace["marker"] = {}
 
@@ -942,7 +942,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
             trace its ```hovertext`` argument.
-        TODO docs
+        check_nans: boolean, optional
+            If set to True, the trace's data will be checked for NaNs - which will be
+            removed. By default True.
+            As this is a costly operation, it is recommended to set this parameter to
+            False if you are sure that your data does not contain NaNs (or when the
+            downsampler can handle NaNs, e.g., EveryNthPoint). This should considerably
+            speed up the graph construction time.
         **trace_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
