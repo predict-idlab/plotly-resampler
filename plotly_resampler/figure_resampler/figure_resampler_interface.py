@@ -12,6 +12,7 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
+import bisect
 import re
 from abc import ABC
 from collections import namedtuple
@@ -286,7 +287,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 tz = hf_trace_data["x"].tz
                 start, end = self.to_same_tz(start, tz), self.to_same_tz(end, tz)
         # Search the index-positions
-        start_idx, end_idx = np.searchsorted(hf_trace_data["x"], [start, end])
+        start_idx = bisect.bisect_left(hf_trace_data["x"], start)
+        # TODO: check whether we need to use bisect_left or bisect_right
+        end_idx = bisect.bisect_right(hf_trace_data["x"], end)
 
         hf_x = hf_trace_data["x"][start_idx:end_idx]
         hf_y = hf_trace_data["y"][start_idx:end_idx]
@@ -299,9 +302,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # TODO -> the name needs to be adjusted (i.e., remove the start/end)
             return trace
 
-
         agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
         name: str = trace["name"].split(agg_prefix)[0]
+        default_hf_x: bool = (  # indicates whether the x is a default pd.RangeIndex
+            isinstance(hf_trace_data["x"], pd.RangeIndex)
+            and hf_trace_data["x"].start == 0
+            and hf_trace_data["x"].step == 1
+        )
 
         if len(hf_y) <= hf_trace_data["max_n_samples"]:  # No downsampling needed
             # We show the raw data as is, no gap detection
@@ -313,12 +320,16 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if len(self._suffix) and trace["name"].endswith(self._suffix):
                 name = name[: -len(self._suffix)]
 
-        else: # Downsample the data
+        else:  # Downsample the data
             downsampler: AbstractSeriesArgDownsampler = hf_trace_data["downsampler"]
             idxs = downsampler.arg_downsample(
                 hf_x, hf_y, hf_trace_data["max_n_samples"]
             )
-            agg_x, agg_y = hf_x[idxs], hf_y[idxs]
+            if default_hf_x:  # we avoid slicing the default pd.RangeIndex
+                agg_x = start_idx + idxs
+            else:
+                agg_x = hf_x[idxs]
+            agg_y = hf_y[idxs]
 
             # TODO check for trace mode (markers, lines, etc.) and only perform the
             # gap insertion methodology when the mode is lines.
@@ -330,9 +341,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 ):
                     agg_x = agg_x.view("int64")
                 agg_y, idxs = downsampler.insert_gap_none(agg_x, agg_y, idxs)
-                agg_x = hf_x[idxs]
+                if default_hf_x:  # we avoid slicing the default pd.RangeIndex
+                    agg_x = start_idx + idxs
+                else:
+                    agg_x = hf_x[idxs]
 
-            # Parse the trace name 
+            # Parse the trace name
             name = ("" if name.startswith(self._prefix) else self._prefix) + name
             name += self._suffix if not name.endswith(self._suffix) else ""
             ## Add the mean aggregation bin size to the trace name
@@ -569,42 +583,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         """
         return list(self._hf_data.values())
 
-    @staticmethod
-    def _to_hf_series(x: np.ndarray, y: np.ndarray) -> pd.Series:
-        """Construct the hf-series.
-
-        By constructing the hf-series this way, users can dynamically adjust the hf
-        series argument.
-
-        Parameters
-        ----------
-        x : np.ndarray
-            The hf_series index
-        y : np.ndarray
-            The hf_series values
-
-        Returns
-        -------
-        pd.Series
-            The constructed hf_series
-        """
-        # Note this is the same behavior as plotly support
-        # i.e. it also used the `values` property of the `x` and `y` parameters when
-        # these are pd.Series
-        if isinstance(x, pd.Series):
-            x = x.values
-
-        if isinstance(y, pd.Series):
-            y = y.values
-
-        return pd.Series(
-            data=y,
-            index=x,
-            copy=False,
-            name="data",
-            dtype="category" if y.dtype.type == np.str_ else y.dtype,
-        )
-
     def _parse_get_trace_props(
         self,
         trace: BaseTraceType,
@@ -792,13 +770,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         dict
             The hf_data dict.
         """
-        # We will re-create this each time as hf_x and hf_y withholds
-        # high-frequency data and can be adjusted on the fly with the public hf_data
-        # property.
-        hf_series = self._to_hf_series(x=dc.x, y=dc.y)
-
         # Checking this now avoids less interpretable `KeyError` when resampling
-        assert hf_series.index.is_monotonic_increasing
+        # TODO: check if this is still necessary, as this check is really slow
+        # if isinstance(dc.x, pd.Index):
+        #     assert dc.x.is_monotonic_increasing
+        # else:
+        #     assert pd.Series(dc.x).is_monotonic_increasing
 
         # As we support prefix-suffixing of downsampled data, we assure that
         # each trace has a name
