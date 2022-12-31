@@ -119,7 +119,7 @@ class AbstractSeriesArgDownsampler(ABC):
 
         # use the (arange)repeats to expand the index, agg_x, and agg_y array
         idx_exp_nan = np.repeat(idxs, repeats)
-        y_agg_exp_nan =  y_agg[np.repeat(np.arange(idxs.shape[0]), repeats)]
+        y_agg_exp_nan = y_agg[np.repeat(np.arange(idxs.shape[0]), repeats)]
 
         # only float alike array can contain None values
         if issubclass(y_agg_exp_nan.dtype.type, np.integer):
