@@ -15,7 +15,7 @@ from typing import Tuple
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
 
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..aggregation import AbstractSeriesArgDownsampler, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
 
 
@@ -43,7 +43,7 @@ class FigureWidgetResampler(
         figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        default_downsampler: AbstractSeriesArgDownsampler = EfficientLTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",

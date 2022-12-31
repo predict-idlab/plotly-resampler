@@ -25,7 +25,7 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure, BaseTraceType
 
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..aggregation import AbstractSeriesArgDownsampler, EfficientLTTB
 from .utils import round_number_str, round_td_str
 
 _hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"])
@@ -41,7 +41,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         figure: BaseFigure,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        default_downsampler: AbstractSeriesArgDownsampler = EfficientLTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -206,6 +206,23 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "layout": copy(self._layout),
         }
 
+    @staticmethod
+    def to_same_tz(
+        ts: Union[pd.Timestamp, None], reference_tz
+    ) -> Union[pd.Timestamp, None]:
+        """Adjust `ts` its timezone to the `reference_tz`."""
+        if ts is None:
+            return None
+        elif reference_tz is not None:
+            if ts.tz is not None:
+                assert ts.tz.zone == reference_tz.zone
+                return ts
+            else:  # localize -> time remains the same
+                return ts.tz_localize(reference_tz)
+        elif reference_tz is None and ts.tz is not None:
+            return ts.tz_localize(None)
+        return ts
+
     def _check_update_trace_data(
         self,
         trace: dict,
@@ -254,93 +271,94 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         """
         hf_trace_data = self._query_hf_data(trace)
-        if hf_trace_data is not None:
-            axis_type = hf_trace_data["axis_type"]
-            if axis_type == "date":
-                start, end = pd.to_datetime(start), pd.to_datetime(end)
-                hf_series = self._slice_time(
-                    self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"]),
-                    start,
-                    end,
-                )
-            else:
-                hf_series = self._to_hf_series(hf_trace_data["x"], hf_trace_data["y"])
-                if len(hf_series) and (start is not None or end is not None):
-                    start = hf_series.index[0] if start is None else start
-                    end = hf_series.index[-1] if end is None else end
-                    if hf_series.index.is_integer():
-                        start = round(start)
-                        end = round(end)
 
-                    # Search the index-positions
-                    start_idx, end_idx = np.searchsorted(hf_series.index, [start, end])
-                    hf_series = hf_series.iloc[start_idx:end_idx]
-
-            # Return an invisible, single-point, trace when the sliced hf_series doesn't
-            # contain any data in the current view
-            if len(hf_series) == 0:
-                trace["x"] = [start]
-                trace["y"] = [None]
-                trace["text"] = ""
-                trace["hovertext"] = ""
-                return trace
-
-            # Downsample the data and store it in the trace-fields
-            downsampler: AbstractSeriesAggregator = hf_trace_data["downsampler"]
-            s_res: pd.Series = downsampler.aggregate(
-                hf_series, hf_trace_data["max_n_samples"]
-            )
-            # Also parse the data types to an orjson compatible format
-            # Note this can be removed once orjson supports f16
-            trace["x"] = self._parse_dtype_orjson(s_res.index)
-            trace["y"] = self._parse_dtype_orjson(s_res.values)
-            # todo -> first draft & not MP safe
-
-            agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
-            name: str = trace["name"].split(agg_prefix)[0]
-
-            if len(hf_series) > hf_trace_data["max_n_samples"]:
-                name = ("" if name.startswith(self._prefix) else self._prefix) + name
-                name += self._suffix if not name.endswith(self._suffix) else ""
-                # Add the mean aggregation bin size to the trace name
-                if self._show_mean_aggregation_size:
-                    agg_mean = np.mean(np.diff(s_res.index.values))
-                    if isinstance(agg_mean, np.timedelta64):
-                        agg_mean = round_td_str(pd.Timedelta(agg_mean))
-                    else:
-                        agg_mean = round_number_str(agg_mean)
-                    name += f"{agg_prefix}{agg_mean}{agg_suffix}"
-            else:
-                # When not resampled: trim prefix and/or suffix if necessary
-                if len(self._prefix) and name.startswith(self._prefix):
-                    name = name[len(self._prefix) :]
-                if len(self._suffix) and trace["name"].endswith(self._suffix):
-                    name = name[: -len(self._suffix)]
-            trace["name"] = name
-
-            # Check if text also needs to be resampled
-            text = hf_trace_data.get("text")
-            if isinstance(text, (np.ndarray, pd.Series)):
-                # TODO -> extra logic is necessary for the detection and processing of
-                # non data-point selection downsamplers
-                trace["text"] = self._to_hf_series(x=hf_trace_data["x"], y=text).loc[
-                    s_res.index
-                ]
-            else:
-                trace["text"] = text
-
-            # Check if hovertext also needs to be resampled
-            hovertext = hf_trace_data.get("hovertext")
-            if isinstance(hovertext, (np.ndarray, pd.Series)):
-                trace["hovertext"] = self._to_hf_series(
-                    x=hf_trace_data["x"], y=hovertext
-                ).loc[s_res.index]
-            else:
-                trace["hovertext"] = hovertext
-            return trace
-        else:
+        if hf_trace_data is None:
             self._print("hf_data not found")
             return None
+
+        start = hf_trace_data["x"][0] if start is None else start
+        end = hf_trace_data["x"][-1] if end is None else end
+
+        if hf_trace_data["axis_type"] == "date":
+            start, end = pd.to_datetime(start), pd.to_datetime(end)
+            # convert start & end to the same timezone
+            if isinstance(hf_trace_data["x"], pd.DatetimeIndex):
+                tz = hf_trace_data["x"].tz
+                start, end = self.to_same_tz(start, tz), self.to_same_tz(end, tz)
+        # Search the index-positions
+        start_idx, end_idx = np.searchsorted(hf_trace_data["x"], [start, end])
+
+        hf_x = hf_trace_data["x"][start_idx:end_idx]
+        hf_y = hf_trace_data["y"][start_idx:end_idx]
+
+        # Return an invisible, single-point, trace when the sliced hf_series doesn't
+        # contain any data in the current view
+        if len(hf_y) == 0:
+            trace["x"] = [start]
+            trace["y"] = [None]
+            # TODO -> the name needs to be adjusted (i.e., remove the start/end)
+            return trace
+
+
+        agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
+        name: str = trace["name"].split(agg_prefix)[0]
+
+        if len(hf_y) <= hf_trace_data["max_n_samples"]:  # No downsampling needed
+            # We show the raw data as is, no gap detection
+            idxs, agg_x, agg_y = np.arange(len(hf_y)), hf_x, hf_y
+
+            # When not resampled: trim prefix and/or suffix if necessary
+            if len(self._prefix) and name.startswith(self._prefix):
+                name = name[len(self._prefix) :]
+            if len(self._suffix) and trace["name"].endswith(self._suffix):
+                name = name[: -len(self._suffix)]
+
+        else: # Downsample the data
+            downsampler: AbstractSeriesArgDownsampler = hf_trace_data["downsampler"]
+            idxs = downsampler.arg_downsample(
+                hf_x, hf_y, hf_trace_data["max_n_samples"]
+            )
+            agg_x, agg_y = hf_x[idxs], hf_y[idxs]
+
+            # TODO check for trace mode (markers, lines, etc.) and only perform the
+            # gap insertion methodology when the mode is lines.
+            if not trace.get("connectgaps") and downsampler.interleave_gaps:
+                # View the data as an int64 when we have a datetimeindex
+                # We only want to detect gaps so we only want to compare values.
+                if hf_trace_data["axis_type"] == "date" and isinstance(
+                    agg_x, pd.DatetimeIndex
+                ):
+                    agg_x = agg_x.view("int64")
+                agg_y, idxs = downsampler.insert_gap_none(agg_x, agg_y, idxs)
+                agg_x = hf_x[idxs]
+
+            # Parse the trace name 
+            name = ("" if name.startswith(self._prefix) else self._prefix) + name
+            name += self._suffix if not name.endswith(self._suffix) else ""
+            ## Add the mean aggregation bin size to the trace name
+            if self._show_mean_aggregation_size:
+                agg_mean = np.mean(np.diff(agg_x))
+                if isinstance(agg_mean, (np.timedelta64, pd.Timedelta)):
+                    agg_mean = round_td_str(pd.Timedelta(agg_mean))
+                else:
+                    agg_mean = round_number_str(agg_mean)
+                name += f"{agg_prefix}{agg_mean}{agg_suffix}"
+
+        # Parse the data types to an orjson compatible format
+        # NOTE: this can be removed once orjson supports f16
+        trace["x"] = self._parse_dtype_orjson(agg_x)
+        trace["y"] = self._parse_dtype_orjson(agg_y)
+        trace["name"] = name
+
+        # Check if (hover)text also needs to be downsampled
+        for k in ["text", "hovertext"]:
+            k_val = hf_trace_data.get(k)
+            if isinstance(k_val, (np.ndarray, pd.Series)):
+                trace[k] = k_val[start_idx + idxs]
+            else:
+                trace[k] = k_val
+
+        return trace
 
     def _check_update_figure_dict(
         self,
@@ -473,56 +491,56 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         return _get_plotly_constr(constr)
 
-    @staticmethod
-    def _slice_time(
-        hf_series: pd.Series,
-        t_start: Optional[pd.Timestamp] = None,
-        t_stop: Optional[pd.Timestamp] = None,
-    ) -> pd.Series:
-        """Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.
+    # @staticmethod
+    # def _slice_time(
+    #     hf_series: pd.Series,
+    #     t_start: Optional[pd.Timestamp] = None,
+    #     t_stop: Optional[pd.Timestamp] = None,
+    # ) -> pd.Series:
+    #     """Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.
 
-        Note
-        ----
-        This returns a **view** of ``hf_series``!
+    #     Note
+    #     ----
+    #     This returns a **view** of ``hf_series``!
 
-        Parameters
-        ----------
-        hf_series: pd.Series
-            The **datetime-indexed** series, which will be sliced.
-        t_start: pd.Timestamp, optional
-            The lower-time-bound of the slice, if set to None, no lower-bound threshold
-            will be applied, by default None.
-        t_stop:  pd.Timestamp, optional
-            The upper time-bound of the slice, if set to None, no upper-bound threshold
-            will be applied, by default None.
+    #     Parameters
+    #     ----------
+    #     hf_series: pd.Series
+    #         The **datetime-indexed** series, which will be sliced.
+    #     t_start: pd.Timestamp, optional
+    #         The lower-time-bound of the slice, if set to None, no lower-bound threshold
+    #         will be applied, by default None.
+    #     t_stop:  pd.Timestamp, optional
+    #         The upper time-bound of the slice, if set to None, no upper-bound threshold
+    #         will be applied, by default None.
 
-        Returns
-        -------
-        pd.Series
-            The sliced **view** of the series.
+    #     Returns
+    #     -------
+    #     pd.Series
+    #         The sliced **view** of the series.
 
-        """
+    #     """
 
-        def to_same_tz(
-            ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
-        ) -> Union[pd.Timestamp, None]:
-            """Adjust `ts` its timezone to the `reference_tz`."""
-            if ts is None:
-                return None
-            elif reference_tz is not None:
-                if ts.tz is not None:
-                    assert ts.tz.zone == reference_tz.zone
-                    return ts
-                else:  # localize -> time remains the same
-                    return ts.tz_localize(reference_tz)
-            elif reference_tz is None and ts.tz is not None:
-                return ts.tz_localize(None)
-            return ts
+    #     def to_same_tz(
+    #         ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
+    #     ) -> Union[pd.Timestamp, None]:
+    #         """Adjust `ts` its timezone to the `reference_tz`."""
+    #         if ts is None:
+    #             return None
+    #         elif reference_tz is not None:
+    #             if ts.tz is not None:
+    #                 assert ts.tz.zone == reference_tz.zone
+    #                 return ts
+    #             else:  # localize -> time remains the same
+    #                 return ts.tz_localize(reference_tz)
+    #         elif reference_tz is None and ts.tz is not None:
+    #             return ts.tz_localize(None)
+    #         return ts
 
-        if t_start is not None and t_stop is not None:
-            assert t_start.tz == t_stop.tz
+    #     if t_start is not None and t_stop is not None:
+    #         assert t_start.tz == t_stop.tz
 
-        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
+    #     return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     @property
     def hf_data(self):
@@ -752,7 +770,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self,
         dc: _hf_data_container,
         trace: BaseTraceType,
-        downsampler: AbstractSeriesAggregator | None,
+        downsampler: AbstractSeriesArgDownsampler | None,
         max_n_samples: int | None,
         offset=0,
     ) -> dict:
@@ -839,7 +857,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self,
         trace: Union[BaseTraceType, dict],
         max_n_samples: int = None,
-        downsampler: AbstractSeriesAggregator = None,
+        downsampler: AbstractSeriesArgDownsampler = None,
         limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
@@ -1028,7 +1046,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         data: List[BaseTraceType | dict] | BaseTraceType | Dict,
         max_n_samples: None | List[int] | int = None,
         downsamplers: None
-        | List[AbstractSeriesAggregator]
+        | List[AbstractSeriesArgDownsampler]
         | AbstractFigureAggregator = None,
         limit_to_views: List[bool] | bool = False,
         check_nans: List[bool] | bool = True,
@@ -1117,7 +1135,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Convert the data properties
         if isinstance(max_n_samples, (int, np.integer)) or max_n_samples is None:
             max_n_samples = [max_n_samples] * len(data)
-        if isinstance(downsamplers, AbstractSeriesAggregator) or downsamplers is None:
+        if (
+            isinstance(downsamplers, AbstractSeriesArgDownsampler)
+            or downsamplers is None
+        ):
             downsamplers = [downsamplers] * len(data)
         if isinstance(limit_to_views, bool):
             limit_to_views = [limit_to_views] * len(data)
