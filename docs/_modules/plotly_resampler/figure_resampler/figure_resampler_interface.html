@@ -957,7 +957,11 @@
         <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">dc</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
 
         <span class="c1"># Checking this now avoids less interpretable `KeyError` when resampling</span>
-        <span class="k">assert</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_monotonic_increasing</span>
+        <span class="k">assert</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_monotonic_increasing</span><span class="p">,</span> <span class="p">(</span>
+            <span class="s2">&quot;In order to perform time series aggregation, the data must be &quot;</span>
+            <span class="s2">&quot;sorted in time; i.e., the x-data must be (non-strictly) &quot;</span>
+            <span class="s2">&quot;monotonically increasing.&quot;</span>
+        <span class="p">)</span>
 
         <span class="c1"># As we support prefix-suffixing of downsampled data, we assure that</span>
         <span class="c1"># each trace has a name</span>
