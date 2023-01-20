@@ -781,8 +781,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # Checking this now avoids less interpretable `KeyError` when resampling
         assert hf_series.index.is_monotonic_increasing, (
-            "In order to perform time series aggregation, the data must be sorted "
-            " in time; i.e., the x-data must be (non-strictly) monotonically increasing"
+            "In order to perform time series aggregation, the data must be "
+            "sorted in time; i.e., the x-data must be (non-strictly) "
+            "monotonically increasing."
         )
 
         # As we support prefix-suffixing of downsampled data, we assure that
