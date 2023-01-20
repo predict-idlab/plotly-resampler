@@ -18,6 +18,7 @@ The [basic example notebook](basic_example.ipynb) covers most use-cases in which
 Additionally, this notebook also shows some more advanced functionalities, such as:
 * Retaining (a static) plotly-resampler figure in your notebook
 * Adjusting trace data of plotly-resampler figures at runtime
+* How to add (shaded) confidence bounds to your timeseries
 * The flexibility of configuring different aggregation-algorithms and number of shown samples per trace
 
 
