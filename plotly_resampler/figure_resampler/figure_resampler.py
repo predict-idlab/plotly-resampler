@@ -22,8 +22,7 @@ from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
-from ..aggregation import MinMaxLTTB
-from ..aggregation.aggregation_interface import AbstractAggregator
+from ..aggregation import AbstractAggregator, MinMaxLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
 

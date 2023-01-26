@@ -7,7 +7,7 @@ other downsample methods.
 __author__ = "Jonas Van Der Donckt"
 
 
-from .aggregation_interface import DataPointSelector
+from .aggregation_interface import AbstractAggregator
 from .aggregators import (
     LTTB,
     EveryNthPoint,
@@ -18,7 +18,7 @@ from .aggregators import (
 )
 
 __all__ = [
-    "DataPointSelector",
+    "AbstractAggregator",
     "LTTB",
     "MinMaxLTTB",
     "EveryNthPoint",
