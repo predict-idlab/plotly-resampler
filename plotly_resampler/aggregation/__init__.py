@@ -7,21 +7,22 @@ other downsample methods.
 __author__ = "Jonas Van Der Donckt"
 
 
-from .aggregation_interface import AbstractSeriesArgDownsampler
-from .aggregators import (  # FuncAggregator,
+from .aggregation_interface import DataPointSelector
+from .aggregators import (
     LTTB,
-    EfficientLTTB,
     EveryNthPoint,
+    FuncAggregator,
     MinMaxAggregator,
+    MinMaxLTTB,
     MinMaxOverlapAggregator,
 )
 
 __all__ = [
-    "AbstractSeriesArgDownsampler",
+    "DataPointSelector",
     "LTTB",
-    "EfficientLTTB",
+    "MinMaxLTTB",
     "EveryNthPoint",
-    # "FuncAggregator",
+    "FuncAggregator",
     "MinMaxAggregator",
     "MinMaxOverlapAggregator",
 ]

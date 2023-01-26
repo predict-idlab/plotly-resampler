@@ -22,7 +22,8 @@ from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
-from ..aggregation import AbstractSeriesArgDownsampler, EfficientLTTB
+from ..aggregation import MinMaxLTTB
+from ..aggregation.aggregation_interface import AbstractAggregator
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
 
@@ -188,7 +189,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesArgDownsampler = EfficientLTTB(),
+        default_downsampler: AbstractAggregator = MinMaxLTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -217,8 +218,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 * This can be overridden within the :func:`add_trace` method.
                 * If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
-        default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface and
+        default_downsampler: AbstractAggregator
+            An instance which implements the AbstractAggregator interface and
             will be used as default downsampler, by default ``EfficientLTTB`` with
             _interleave_gaps_ set to True. \n
             .. note:: This can be overridden within the :func:`add_trace` method.

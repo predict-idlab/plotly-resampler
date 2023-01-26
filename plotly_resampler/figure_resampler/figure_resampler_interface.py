@@ -12,7 +12,6 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-import bisect
 import re
 from abc import ABC
 from collections import namedtuple
@@ -26,7 +25,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure, BaseTraceType
 
-from ..aggregation import AbstractSeriesArgDownsampler, EfficientLTTB
+from ..aggregation import MinMaxLTTB
+from ..aggregation.aggregation_interface import AbstractAggregator, DataPointSelector
+from ..aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 from .utils import round_number_str, round_td_str
 
 _hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"])
@@ -42,7 +43,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         figure: BaseFigure,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesArgDownsampler = EfficientLTTB(),
+        default_downsampler: AbstractAggregator = MinMaxLTTB(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -70,7 +71,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 * This can be overridden within the :func:`add_trace` method.
                 * If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
-        default_downsampler: AbstractSeriesDownsampler
+        default_downsampler: AbstractAggregator
             An instance which implements the AbstractSeriesDownsampler interface and
             will be used as default downsampler, by default ``EfficientLTTB`` with
             _interleave_gaps_ set to True. \n
@@ -78,7 +79,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its legend-name when a resampled version of the
-            trace is shown. By default a bold, orange ``[R]`` is shown as prefix
+            trace is shown. By default, a bold, orange ``[R]`` is shown as prefix
             (no suffix is shown).
         show_mean_aggregation_size: bool, optional
             Whether the mean aggregation bin size will be added as a suffix to the trace
@@ -207,22 +208,24 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "layout": copy(self._layout),
         }
 
-    @staticmethod
-    def to_same_tz(
-        ts: Union[pd.Timestamp, None], reference_tz
-    ) -> Union[pd.Timestamp, None]:
-        """Adjust `ts` its timezone to the `reference_tz`."""
-        if ts is None:
-            return None
-        elif reference_tz is not None:
-            if ts.tz is not None:
-                assert ts.tz.zone == reference_tz.zone
-                return ts
-            else:  # localize -> time remains the same
-                return ts.tz_localize(reference_tz)
-        elif reference_tz is None and ts.tz is not None:
-            return ts.tz_localize(None)
-        return ts
+    def _parse_trace_name(self, hf_trace_data: dict, slice_len: int, agg_x) -> str:
+        """Parse the trace name and return the in-place updated trace dict."""
+        if slice_len <= hf_trace_data["max_n_samples"]:  # No downsampling needed
+            return hf_trace_data["name"]
+
+        # The data is downsampled, so we add the downsampling information to the name
+        agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
+        name = self._prefix + hf_trace_data["name"] + self._suffix
+
+        ## Add the mean aggregation bin size to the trace name
+        if self._show_mean_aggregation_size:
+            agg_mean = np.mean(np.diff(agg_x))
+            if isinstance(agg_mean, (np.timedelta64, pd.Timedelta)):
+                agg_mean = round_td_str(pd.Timedelta(agg_mean))
+            else:
+                agg_mean = round_number_str(agg_mean)
+            name += f"{agg_prefix}{agg_mean}{agg_suffix}"
+        return name
 
     def _check_update_trace_data(
         self,
@@ -277,99 +280,40 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             self._print("hf_data not found")
             return None
 
-        start = hf_trace_data["x"][0] if start is None else start
-        end = hf_trace_data["x"][-1] if end is None else end
-
-        if hf_trace_data["axis_type"] == "date":
-            start, end = pd.to_datetime(start), pd.to_datetime(end)
-            # convert start & end to the same timezone
-            if isinstance(hf_trace_data["x"], pd.DatetimeIndex):
-                tz = hf_trace_data["x"].tz
-                start, end = self.to_same_tz(start, tz), self.to_same_tz(end, tz)
-        # Search the index-positions
-        start_idx = bisect.bisect_left(hf_trace_data["x"], start)
-        # TODO: check whether we need to use bisect_left or bisect_right
-        end_idx = bisect.bisect_right(hf_trace_data["x"], end)
-
-        hf_x = hf_trace_data["x"][start_idx:end_idx]
-        hf_y = hf_trace_data["y"][start_idx:end_idx]
+        start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
+            hf_trace_data, start, end
+        )
 
         # Return an invisible, single-point, trace when the sliced hf_series doesn't
         # contain any data in the current view
-        if len(hf_y) == 0:
-            trace["x"] = [start]
+        if end_idx == start_idx:
+            trace["x"] = [hf_trace_data["x"][0]]
             trace["y"] = [None]
-            # TODO -> the name needs to be adjusted (i.e., remove the start/end)
+            trace["name"] = hf_trace_data["name"]
             return trace
 
-        agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
-        name: str = trace["name"].split(agg_prefix)[0]
-        default_hf_x: bool = (  # indicates whether the x is a default pd.RangeIndex
-            isinstance(hf_trace_data["x"], pd.RangeIndex)
-            and hf_trace_data["x"].start == 0
-            and hf_trace_data["x"].step == 1
+        agg_x, agg_y, indices = PlotlyAggregatorParser.aggregate(
+            hf_trace_data, start_idx, end_idx
         )
 
-        if len(hf_y) <= hf_trace_data["max_n_samples"]:  # No downsampling needed
-            # We show the raw data as is, no gap detection
-            idxs, agg_x, agg_y = np.arange(len(hf_y)), hf_x, hf_y
-
-            # When not resampled: trim prefix and/or suffix if necessary
-            if len(self._prefix) and name.startswith(self._prefix):
-                name = name[len(self._prefix) :]
-            if len(self._suffix) and trace["name"].endswith(self._suffix):
-                name = name[: -len(self._suffix)]
-
-        else:  # Downsample the data
-            downsampler: AbstractSeriesArgDownsampler = hf_trace_data["downsampler"]
-            idxs = downsampler.arg_downsample(
-                hf_x, hf_y, hf_trace_data["max_n_samples"]
-            )
-            if default_hf_x:  # we avoid slicing the default pd.RangeIndex
-                agg_x = start_idx + idxs
-            else:
-                agg_x = hf_x[idxs]
-            agg_y = hf_y[idxs]
-
-            # TODO check for trace mode (markers, lines, etc.) and only perform the
-            # gap insertion methodology when the mode is lines.
-            if not trace.get("connectgaps") and downsampler.interleave_gaps:
-                # View the data as an int64 when we have a datetimeindex
-                # We only want to detect gaps so we only want to compare values.
-                if hf_trace_data["axis_type"] == "date" and isinstance(
-                    agg_x, pd.DatetimeIndex
-                ):
-                    agg_x = agg_x.view("int64")
-                agg_y, idxs = downsampler.insert_gap_none(agg_x, agg_y, idxs)
-                if default_hf_x:  # we avoid slicing the default pd.RangeIndex
-                    agg_x = start_idx + idxs
-                else:
-                    agg_x = hf_x[idxs]
-
-            # Parse the trace name
-            name = ("" if name.startswith(self._prefix) else self._prefix) + name
-            name += self._suffix if not name.endswith(self._suffix) else ""
-            ## Add the mean aggregation bin size to the trace name
-            if self._show_mean_aggregation_size:
-                agg_mean = np.mean(np.diff(agg_x))
-                if isinstance(agg_mean, (np.timedelta64, pd.Timedelta)):
-                    agg_mean = round_td_str(pd.Timedelta(agg_mean))
-                else:
-                    agg_mean = round_number_str(agg_mean)
-                name += f"{agg_prefix}{agg_mean}{agg_suffix}"
-
+        # -------------------- Set the hf_trace_data_props -------------------
         # Parse the data types to an orjson compatible format
         # NOTE: this can be removed once orjson supports f16
         trace["x"] = self._parse_dtype_orjson(agg_x)
         trace["y"] = self._parse_dtype_orjson(agg_y)
-        trace["name"] = name
+        trace["name"] = self._parse_trace_name(
+            hf_trace_data, end_idx - start_idx, agg_x
+        )
 
         # Check if (hover)text also needs to be downsampled
         for k in ["text", "hovertext"]:
             k_val = hf_trace_data.get(k)
             if isinstance(k_val, (np.ndarray, pd.Series)):
-                trace[k] = k_val[start_idx + idxs]
-            else:
+                assert isinstance(
+                    hf_trace_data["downsampler"], DataPointSelector
+                ), "Only DataPointSelector can downsample non-data trace array props."
+                trace[k] = k_val[start_idx + indices]
+            elif k_val is not None:
                 trace[k] = k_val
 
         return trace
@@ -505,57 +449,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         return _get_plotly_constr(constr)
 
-    # @staticmethod
-    # def _slice_time(
-    #     hf_series: pd.Series,
-    #     t_start: Optional[pd.Timestamp] = None,
-    #     t_stop: Optional[pd.Timestamp] = None,
-    # ) -> pd.Series:
-    #     """Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.
-
-    #     Note
-    #     ----
-    #     This returns a **view** of ``hf_series``!
-
-    #     Parameters
-    #     ----------
-    #     hf_series: pd.Series
-    #         The **datetime-indexed** series, which will be sliced.
-    #     t_start: pd.Timestamp, optional
-    #         The lower-time-bound of the slice, if set to None, no lower-bound threshold
-    #         will be applied, by default None.
-    #     t_stop:  pd.Timestamp, optional
-    #         The upper time-bound of the slice, if set to None, no upper-bound threshold
-    #         will be applied, by default None.
-
-    #     Returns
-    #     -------
-    #     pd.Series
-    #         The sliced **view** of the series.
-
-    #     """
-
-    #     def to_same_tz(
-    #         ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
-    #     ) -> Union[pd.Timestamp, None]:
-    #         """Adjust `ts` its timezone to the `reference_tz`."""
-    #         if ts is None:
-    #             return None
-    #         elif reference_tz is not None:
-    #             if ts.tz is not None:
-    #                 assert ts.tz.zone == reference_tz.zone
-    #                 return ts
-    #             else:  # localize -> time remains the same
-    #                 return ts.tz_localize(reference_tz)
-    #         elif reference_tz is None and ts.tz is not None:
-    #             return ts.tz_localize(None)
-    #         return ts
-
-    #     if t_start is not None and t_stop is not None:
-    #         assert t_start.tz == t_stop.tz
-
-    #     return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
-
     @property
     def hf_data(self):
         """Property to adjust the `data` component of the current graph
@@ -565,6 +458,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
 
         Example:
+            >>> from plotly_resampler import FigureResampler
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(...)
             >>> fig.hf_data[-1]["y"] = - s ** 2  # adjust the y-property of the trace added above
@@ -748,7 +642,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self,
         dc: _hf_data_container,
         trace: BaseTraceType,
-        downsampler: AbstractSeriesArgDownsampler | None,
+        downsampler: AbstractAggregator | None,
         max_n_samples: int | None,
         offset=0,
     ) -> dict:
@@ -760,7 +654,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The hf_data container, withholding the parsed hf-data.
         trace : BaseTraceType
             The trace.
-        downsampler : AbstractSeriesAggregator | None
+        downsampler : AbstractAggregator | None
             The downsampler which will be used.
         max_n_samples : int | None
             The max number of output samples.
@@ -807,6 +701,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "default_n_samples": default_n_samples,
             "x": dc.x,
             "y": dc.y,
+            "name": trace.name,
             "axis_type": axis_type,
             "downsampler": downsampler,
             "default_downsampler": default_downsampler,
@@ -834,7 +729,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self,
         trace: Union[BaseTraceType, dict],
         max_n_samples: int = None,
-        downsampler: AbstractSeriesArgDownsampler = None,
+        downsampler: AbstractAggregator = None,
         limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
@@ -864,7 +759,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The maximum number of samples that will be shown by the trace.\n
             .. note::
                 If this variable is not set; ``_global_n_shown_samples`` will be used.
-        downsampler: AbstractSeriesDownsampler, optional
+        downsampler: AbstractAggregator, optional
             The abstract series downsampler method.\n
             .. note::
                 If this variable is not set, ``_global_downsampler`` will be used.
@@ -1022,9 +917,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self,
         data: List[BaseTraceType | dict] | BaseTraceType | Dict,
         max_n_samples: None | List[int] | int = None,
-        downsamplers: None
-        | List[AbstractSeriesArgDownsampler]
-        | AbstractFigureAggregator = None,
+        downsamplers: None | List[AbstractAggregator] | AbstractAggregator = None,
         limit_to_views: List[bool] | bool = False,
         check_nans: List[bool] | bool = True,
         **traces_kwargs,
@@ -1056,7 +949,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
               The maximum number of samples that will be shown for each trace.
               If a single integer is passed, all traces will use this number. If this
               variable is not set; ``_global_n_shown_samples`` will be used.
-        downsamplers : None | List[AbstractSeriesAggregator] | AbstractFigureAggregator, optional
+        downsamplers : None | List[AbstractAggregator] | AbstractAggregator, optional
             The downsampler that will be used to aggregate the traces. If a single
             aggregator is passed, all traces will use this aggregator.
             If this variable is not set, ``_global_downsampler`` will be used.
@@ -1112,10 +1005,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Convert the data properties
         if isinstance(max_n_samples, (int, np.integer)) or max_n_samples is None:
             max_n_samples = [max_n_samples] * len(data)
-        if (
-            isinstance(downsamplers, AbstractSeriesArgDownsampler)
-            or downsamplers is None
-        ):
+        if isinstance(downsamplers, DataPointSelector) or downsamplers is None:
             downsamplers = [downsamplers] * len(data)
         if isinstance(limit_to_views, bool):
             limit_to_views = [limit_to_views] * len(data)
@@ -1156,7 +1046,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return super(self._figure_class, self).add_traces(data, **traces_kwargs)
 
     def _clear_figure(self):
-        """Clear the current figure object it's data and layout."""
+        """Clear the current figure object its data and layout."""
         self._hf_data = {}
         self.data = []
         self._data = []
@@ -1310,11 +1200,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         extra_layout_updates = {}
 
         # 1.1. Set autorange to False for each layout item with a specified x-range
+        # TODO -> check why this is needed (look into commit history)
         xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
         for range_change_axis in xy_matches:
             axis = range_change_axis.split(".")[0]
             extra_layout_updates[f"{axis}.autorange"] = None
         layout_traces_list.append(extra_layout_updates)
+        layout_traces_list.append(relayout_data)
 
         # 2. Create the additional trace data for the frond-end
         relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
@@ -1354,7 +1246,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _is_no_update(update_data: Union[List[dict], dash.no_update]) -> bool:
         return update_data is dash.no_update
 
-    ## Magic methods (to use plotly.py words :grin:)
+    # --------------- Magic methods (to use plotly.py words :grin:) -----------------
 
     def _get_pr_props_keys(self) -> List[str]:
         """Returns the keys (i.e., the names) of the plotly-resampler properties.

@@ -10,11 +10,11 @@
 __author__ = "Jonas Van Der Donckt"
 
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
-from ..aggregation.aggregation_interface import AbstractSeriesArgDownsampler
+from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
 try:
     # The efficient c version of the LTTB algorithm
@@ -26,7 +26,7 @@ except (ImportError, ModuleNotFoundError):
     from .algorithms.lttb_py import LTTB_core_py as LTTB_core
 
 
-class LTTB(AbstractSeriesArgDownsampler):
+class LTTB(DataPointSelector):
     """Largest Triangle Three Buckets (LTTB) aggregation method.
 
     .. Tip::
@@ -46,6 +46,7 @@ class LTTB(AbstractSeriesArgDownsampler):
       the ordered category codes values (se bullet above) to calculate distances and
       make aggregation decisions.
       .. code::
+        >>> import pandas as pd
         >>> s = pd.Series(["a", "b", "c", "a"])
         >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
         >>> s_cat = s.astype(cat_type)
@@ -85,12 +86,13 @@ class LTTB(AbstractSeriesArgDownsampler):
         x: Optional[np.ndarray] = None,
         y: Optional[np.ndarray] = None,
         n_out: int = None,
+        **kwargs,
     ) -> np.ndarray:
         # Use the Core interface to perform the downsampling
         return LTTB_core.downsample(x, y, n_out)
 
 
-class MinMaxOverlapAggregator(AbstractSeriesArgDownsampler):
+class MinMaxOverlapAggregator(DataPointSelector):
     """Aggregation method which performs binned min-max aggregation over 50% overlapping
     windows.
 
@@ -136,6 +138,7 @@ class MinMaxOverlapAggregator(AbstractSeriesArgDownsampler):
         x: Optional[np.ndarray] = None,
         y: Optional[np.ndarray] = None,
         n_out: int = None,
+        **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
         # to ensure that the block_size = TODO
@@ -166,7 +169,7 @@ class MinMaxOverlapAggregator(AbstractSeriesArgDownsampler):
         return np.unique(np.concatenate((argmin, argmax, [0, y.shape[0] - 1])))
 
 
-class MinMaxAggregator(AbstractSeriesArgDownsampler):
+class MinMaxAggregator(DataPointSelector):
     """Aggregation method which performs binned min-max aggregation over fully
     overlapping windows.
 
@@ -197,8 +200,7 @@ class MinMaxAggregator(AbstractSeriesArgDownsampler):
             .. note::
                 This parameter only has an effect when ``interleave_gaps`` is set
                 to *True*.
-        dtype_regex_list: List[str], optional
-            List containing the regex matching the supported datatypes, by default None.
+
         """
         # this downsampler supports all pd.Series dtypes
         super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
@@ -208,6 +210,7 @@ class MinMaxAggregator(AbstractSeriesArgDownsampler):
         x: Optional[np.ndarray] = None,
         y: Optional[np.ndarray] = None,
         n_out: int = None,
+        **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
         # to ensure that the block_size =
@@ -228,7 +231,7 @@ class MinMaxAggregator(AbstractSeriesArgDownsampler):
         )
 
         # Note: the implementation below flips the array to search from
-        # right-to left (as min or max will always usee the first same minimum item,
+        # right-to left (as min or max will always use the first same minimum item,
         # i.e. the most left item)
         # This however creates a large computational overhead -> we do not use this
         # implementation and suggest using the minmaxaggregator.
@@ -245,7 +248,7 @@ class MinMaxAggregator(AbstractSeriesArgDownsampler):
         return mmo_idxs
 
 
-class EfficientLTTB(AbstractSeriesArgDownsampler):
+class MinMaxLTTB(DataPointSelector):
     """Efficient version off LTTB by first reducing really large datasets with
     the :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>` and then further
     aggregating the reduced result with :class:`LTTB <LTTB>`.
@@ -286,6 +289,7 @@ class EfficientLTTB(AbstractSeriesArgDownsampler):
         x: Optional[np.ndarray] = None,
         y: Optional[np.ndarray] = None,
         n_out: int = None,
+        **kwargs,
     ) -> np.ndarray:
         size_threshold = 10_000_000
         ratio_threshold = 100
@@ -302,7 +306,7 @@ class EfficientLTTB(AbstractSeriesArgDownsampler):
         return self.lttb._arg_downsample(x, y, n_out)
 
 
-class EveryNthPoint(AbstractSeriesArgDownsampler):
+class EveryNthPoint(DataPointSelector):
     """Naive (but fast) aggregator method which returns every N'th point."""
 
     def __init__(self, interleave_gaps: bool = True, nan_position="end"):
@@ -334,87 +338,90 @@ class EveryNthPoint(AbstractSeriesArgDownsampler):
         x: Optional[np.ndarray] = None,
         y: Optional[np.ndarray] = None,
         n_out: int = None,
+        **kwargs,
     ) -> np.ndarray:
         # TODO: check -1
         return np.arange(step=max(1, math.ceil(len(y) / n_out)), stop=len(y) - 1)
 
 
-# class FuncAggregator(AbstractSeriesDownsampler):
-#     """Aggregator instance which uses the passed aggregation func.
+class FuncAggregator(DataAggregator):
+    """Aggregator instance which uses the passed aggregation func.
 
-#     .. attention::
-#         The user has total control which `aggregation_func` is passed to this method,
-#         hence it is the users' responsibility to handle categorical and bool-based
-#         data types.
+    .. attention::
+        The user has total control which `aggregation_func` is passed to this method,
+        hence it is the users' responsibility to handle categorical and bool-based
+        data types.
 
-#     """
+    """
 
-#     def __init__(
-#         self,
-#         aggregation_func,
-#         interleave_gaps: bool = True,
-#         nan_position="end",
-#         dtype_regex_list=None,
-#     ):
-#         """
-#         Parameters
-#         ----------
-#         aggregation_func: Callable
-#             The aggregation function which will be applied on each pin.
-#         interleave_gaps: bool, optional
-#             Whether None values should be added when there are gaps / irregularly
-#             sampled data. A quantile-based approach is used to determine the gaps /
-#             irregularly sampled data. By default, True.
-#         nan_position: str, optional
-#             Indicates where nans must be placed when gaps are detected. \n
-#             If ``'end'``, the first point after a gap will be replaced with a
-#             nan-value \n
-#             If ``'begin'``, the last point before a gap will be replaced with a
-#             nan-value \n
-#             If ``'both'``, both the encompassing gap datapoints are replaced with
-#             nan-values \n
-#             .. note::
-#                 This parameter only has an effect when ``interleave_gaps`` is set
-#                 to *True*.
-#         dtype_regex_list: List[str], optional
-#             List containing the regex matching the supported datatypes, by default None.
+    def __init__(
+        self,
+        aggregation_func,
+        interleave_gaps: bool = True,
+        nan_position="end",
+        dtype_regex_list=None,
+    ):
+        """
+        Parameters
+        ----------
+        aggregation_func: Callable
+            The aggregation function which will be applied on each pin.
+        interleave_gaps: bool, optional
+            Whether None values should be added when there are gaps / irregularly
+            sampled data. A quantile-based approach is used to determine the gaps /
+            irregularly sampled data. By default, True.
+        nan_position: str, optional
+            Indicates where nans must be placed when gaps are detected. \n
+            If ``'end'``, the first point after a gap will be replaced with a
+            nan-value \n
+            If ``'begin'``, the last point before a gap will be replaced with a
+            nan-value \n
+            If ``'both'``, both the encompassing gap datapoints are replaced with
+            nan-values \n
+            .. note::
+                This parameter only has an effect when ``interleave_gaps`` is set
+                to *True*.
+        dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes, by default None.
 
-#         """
-#         self.aggregation_func = aggregation_func
-#         super().__init__(interleave_gaps, nan_position, dtype_regex_list)
+        """
+        self.aggregation_func = aggregation_func
+        super().__init__(interleave_gaps, nan_position, dtype_regex_list)
 
-#     def _arg_downsample(
-#         self,
-#         x: Optional[np.ndarray] = None,
-#         y: Optional[np.ndarray] = None,
-#         n_out: int = None,
-#     ) -> np.ndarray:
-#         if isinstance(s.index, pd.DatetimeIndex):
-#             t_start, t_end = s.index[:: len(s) - 1]
-#             rate = (t_end - t_start) / n_out
-#             return s.resample(rate).apply(self.aggregation_func).dropna()
+    def _aggregate(
+        self,
+        x: Optional[np.ndarray] = None,
+        y: Optional[np.ndarray] = None,
+        n_out: int = None,
+        **kwargs,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        # no time index -> use the every nth heuristic
+        group_size = max(1, np.ceil(len(y) / n_out))
 
-#         # no time index -> use the every nth heuristic
-#         group_size = max(1, np.ceil(len(s) / n_out))
-#         s_out = (
-#             s.groupby(
-#                 # create an array of [0, 0, 0, ...., n_out, n_out]
-#                 # where each value is repeated based $len(s)/n_out$ times
-#                 by=np.repeat(np.arange(n_out), group_size)[: len(s)]
-#             )
-#             .agg(self.aggregation_func)
-#             .dropna()
-#         )
-#         # Create an index-estimation for real-time data
-#         # Add one to the index so it's pointed at the end of the window
-#         # Note: this can be adjusted to .5 to center the data
-#         # Multiply it with the group size to get the real index-position
-#         # TODO: add option to select start / middle / end as index
-#         idx_locs = (np.arange(len(s_out)) + 1) * group_size
-#         idx_locs[-1] = len(s) - 1
-#         return pd.Series(
-#             index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
-#             data=s_out.values,
-#             name=str(s.name),
-#             copy=False,
-#         )
+        # Create an index-estimation for real-time data
+        # Add one to the index so it's pointed at the end of the window
+        # Note: this can be adjusted to .5 to center the data
+        # Multiply it with the group size to get the real index-position
+        # TODO: add option to select start / middle / end as index
+        if x is None:
+            idxs = (np.arange(len(n_out)) + 1) * group_size
+            idxs[-1] = len(y)
+        else:
+            # Thanks to `linspace`, the data is evenly distributed over the index-range
+            # The searchsorted function returns the index positions
+            idxs = np.searchsorted(x, np.linspace(x[0], x[-1], n_out + 1))
+
+        y_agg = np.array(
+            [
+                self.aggregation_func(y[t0:t1], **kwargs)
+                for t0, t1 in zip(idxs[:-1], idxs[1:])
+            ]
+        )
+
+        if x is not None:
+            x_agg = x[idxs]
+        else:
+            idxs[-1] -= 1
+            x_agg = idxs
+
+        return x_agg, y_agg
