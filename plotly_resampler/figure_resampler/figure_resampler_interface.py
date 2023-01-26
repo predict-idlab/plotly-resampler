@@ -219,7 +219,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         ## Add the mean aggregation bin size to the trace name
         if self._show_mean_aggregation_size:
-            agg_mean = np.mean(np.diff(agg_x))
+            agg_mean = (agg_x[-1] - agg_x[0]) / agg_x.shape[0]
             if isinstance(agg_mean, (np.timedelta64, pd.Timedelta)):
                 agg_mean = round_td_str(pd.Timedelta(agg_mean))
             else:
@@ -1110,6 +1110,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def construct_update_data(
         self,
         relayout_data: dict,
+        force_update: bool = False,
     ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
@@ -1142,7 +1143,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if relayout_data:
             self._print("-" * 100 + "\n", "changed layout", relayout_data)
 
-            cl_k = relayout_data.keys()
+            cl_k = list(relayout_data.keys())
 
             # ------------------ HF DATA aggregation ---------------------
             # 1. Base case - there is an x-range specified in the front-end
@@ -1201,18 +1202,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # 1.1. Set autorange to False for each layout item with a specified x-range
         # TODO -> check why this is needed (look into commit history)
+        # This is needed for the figureWidgetResampler I guess?
         xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
         for range_change_axis in xy_matches:
             axis = range_change_axis.split(".")[0]
             extra_layout_updates[f"{axis}.autorange"] = None
         layout_traces_list.append(extra_layout_updates)
-        layout_traces_list.append(relayout_data)
 
         # 2. Create the additional trace data for the frond-end
         relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
+            #// TODO -> check if we can reduce even more
             trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
 
             # Store the index into the corresponding to-be-sent trace-data so

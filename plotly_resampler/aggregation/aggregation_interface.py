@@ -47,24 +47,28 @@ class AbstractAggregator(ABC):
         super().__init__()
 
     @staticmethod
-    def _calc_med_diff(x_agg: np.ndarray) -> Tuple[float, np.ndarray]:
+    def _calc_mean_diff(x_agg: np.ndarray) -> Tuple[float, np.ndarray]:
         # ----- divide and conquer heuristic to calculate the median diff ------
-        # remark: thanks to the prepend -> s_idx_diff.shape === len(s)
+        # remark: thanks to the prepend -> x_diff.shape === len(s)
         x_diff = np.diff(x_agg, prepend=x_agg[0])
 
         # To do so - use a quantile-based (median) approach where we reshape the data
         # into `n_blocks` blocks and calculate the min
-        n_blocks = 128
-        if x_agg.shape[0] > 5 * n_blocks:
-            blck_size = x_diff.shape[0] // n_blocks
+        # n_blocks = 128
+        # if x_agg.shape[0] > 5 * n_blocks:
+        #     blck_size = x_diff.shape[0] // n_blocks
 
-            # convert the index series index diff into a reshaped view (i.e., sid_v)
-            sid_v: np.ndarray = x_diff[: blck_size * n_blocks].reshape(n_blocks, -1)
+        #     # convert the index series index diff into a reshaped view (i.e., sid_v)
+        #     sid_v: np.ndarray = x_diff[: blck_size * n_blocks].reshape(n_blocks, -1)
 
-            # calculate the min and max and calculate the median on that
-            med_diff = np.median(np.mean(sid_v, axis=1))
-        else:
-            med_diff = np.median(x_diff)
+        #     calculate the min and max and calculate the median on that
+        #     med_diff = np.median(np.mean(sid_v, axis=1))
+        # else:
+        #     med_diff = np.median(x_diff)
+
+        # NOTE: as the x-range determines the canvas width; we think it's better
+        #       (and certainly faster) to just use the mean "range" diff
+        med_diff = (x_agg[-1] - x_agg[0]) / x_agg.shape[0]
 
         return med_diff, x_diff
 
@@ -72,12 +76,12 @@ class AbstractAggregator(ABC):
     def _get_gap_mask(x_agg: np.ndarray) -> Optional[np.ndarray]:
         # TODO: implement this functionality elsewhere
         # ------- INSERT None between gaps / irregularly sampled data -------
-        med_diff, s_idx_diff = AbstractAggregator._calc_med_diff(x_agg)
-        if med_diff is None:
+        mean_diff, s_idx_diff = AbstractAggregator._calc_mean_diff(x_agg)
+        if mean_diff is None:
             return
 
         # TODO: tweak the nan mask condition
-        gap_mask = s_idx_diff > 4 * med_diff
+        gap_mask = s_idx_diff > 4 * mean_diff
         if not any(gap_mask):
             return
         return gap_mask

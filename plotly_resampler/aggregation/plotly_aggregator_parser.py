@@ -30,6 +30,13 @@ class PlotlyAggregatorParser:
         start = hf_trace_data["x"][0] if start is None else start
         end = hf_trace_data["x"][-1] if end is None else end
 
+        # We can compute the start & end indices directly when it is a RangeIndex
+        if isinstance(hf_trace_data["x"], pd.RangeIndex):
+            x_start = hf_trace_data["x"].start
+            x_step = hf_trace_data["x"].step
+            return int((start - x_start) // x_step ), int((end - x_start) // x_step)
+        # TODO: this can be performed as-well for a fixed frequency range-index w/ freq
+
         if hf_trace_data["axis_type"] == "date":
             start, end = pd.to_datetime(start), pd.to_datetime(end)
             # convert start & end to the same timezone
@@ -58,11 +65,6 @@ class PlotlyAggregatorParser:
             return hf_x, hf_y, np.arange(len(hf_y))
 
         # indicates whether the x is a default pd.RangeIndex
-        default_hf_x: bool = (
-            isinstance(hf_trace_data["x"], pd.RangeIndex)
-            and hf_trace_data["x"].start == -1
-            and hf_trace_data["x"].step == 1
-        )
         downsampler = hf_trace_data["downsampler"]
 
         if isinstance(downsampler, DataPointSelector):
@@ -73,7 +75,15 @@ class PlotlyAggregatorParser:
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
             # we avoid slicing the default pd.RangeIndex
-            agg_x = start_idx + indices if default_hf_x else hf_x[indices]
+            if isinstance(hf_trace_data["x"], pd.RangeIndex):
+                agg_x = (
+                    start_idx
+                    + hf_trace_data["x"].start
+                    + indices
+                    + hf_trace_data["x"].step
+                )
+            else:
+                agg_x = hf_x[indices]
             agg_y = hf_y[indices]
         elif isinstance(downsampler, DataAggregator):
             agg_x, agg_y = downsampler.aggregate(
@@ -90,7 +100,17 @@ class PlotlyAggregatorParser:
         # TODO check for trace mode (markers, lines, etc.) and only perform the
         # gap insertion methodology when the mode is lines.
         # if trace.get("connectgaps") != True and
-        if downsampler.interleave_gaps:
+        if (
+            # rangeIndex | datetimeIndex with freq -> equally spaced x; so no gaps
+            not (
+                isinstance(hf_trace_data["x"], pd.RangeIndex)
+                or (
+                    isinstance(hf_trace_data["x"], pd.DatetimeIndex)
+                    and hf_trace_data["x"].freq is not None
+                )
+            )
+            and downsampler.interleave_gaps
+        ):
             # View the data as an int64 when we have a DatetimeIndex
             # We only want to detect gaps, so we only want to compare values.
             if hf_trace_data["axis_type"] == "date" and isinstance(
@@ -100,12 +120,9 @@ class PlotlyAggregatorParser:
 
             agg_y, indices = downsampler.insert_gap_none(agg_x, agg_y, indices)
             if isinstance(downsampler, DataPointSelector):
-                if default_hf_x:  # we avoid slicing the default pd.RangeIndex
-                    agg_x = start_idx + indices
-                else:
-                    agg_x = hf_x[indices]
+                agg_x = hf_x[indices]
             elif isinstance(downsampler, DataAggregator):
-                # The indices where in this case a repeat
+                # The indices are in this case a repeat
                 agg_x = agg_x[indices]
 
         return agg_x, agg_y, indices
