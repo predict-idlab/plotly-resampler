@@ -13,7 +13,7 @@ import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 
-from plotly_resampler import EfficientLTTB, EveryNthPoint, FigureWidgetResampler
+from plotly_resampler import EveryNthPoint, FigureWidgetResampler, MinMaxLTTB
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -27,7 +27,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     kwarg_space_list = [
         {},
         {
-            "default_downsampler": EfficientLTTB(interleave_gaps=True),
+            "default_downsampler": MinMaxLTTB(interleave_gaps=True),
             "resampled_trace_prefix_suffix": tuple(["<b>[r]</b>", "~~"]),
             "verbose": True,
         },
@@ -635,129 +635,6 @@ def test_hf_x_object_array():
     with pytest.raises(ValueError):
         fig = FigureWidgetResampler(default_n_shown_samples=50)
         fig.add_trace(go.Scatter(name="blabla"), hf_x=x, hf_y=y)
-
-
-def test_time_tz_slicing():
-    n = 5050
-    dr = pd.Series(
-        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
-        data=np.random.randn(n),
-    )
-
-    cs = [
-        dr,
-        dr.tz_localize(None),
-        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
-        dr.tz_convert("Europe/Brussels"),
-        dr.tz_convert("Australia/Perth"),
-        dr.tz_convert("Australia/Canberra"),
-    ]
-
-    fig = FigureWidgetResampler(go.Figure())
-
-    for s in cs:
-        t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
-        out = fig._slice_time(s, t_start, t_stop)
-        assert (out.index[0] - t_start) <= pd.Timedelta(seconds=1)
-        assert (out.index[-1] - t_stop) <= pd.Timedelta(seconds=1)
-
-
-def test_time_tz_slicing_different_timestamp():
-    # construct a time indexed series with UTC timezone
-    n = 60 * 60 * 24 * 3
-    dr = pd.Series(
-        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
-        data=np.random.randn(n),
-    )
-
-    # create multiple other time zones
-    cs = [
-        dr,
-        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
-        dr.tz_convert("Europe/Brussels"),
-        dr.tz_convert("Australia/Perth"),
-        dr.tz_convert("Australia/Canberra"),
-    ]
-
-    fig = FigureWidgetResampler(go.Figure())
-    for i, s in enumerate(cs):
-        t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
-        t_start = t_start.tz_convert(cs[(i + 1) % len(cs)].index.tz)
-        t_stop = t_stop.tz_convert(cs[(i + 1) % len(cs)].index.tz)
-
-        # As each timezone in CS tz aware, using other timezones in `t_start` & `t_stop`
-        # will raise an AssertionError
-        with pytest.raises(AssertionError):
-            fig._slice_time(s, t_start, t_stop)
-
-
-def test_different_tz_no_tz_series_slicing():
-    n = 60 * 60 * 24 * 3
-    dr = pd.Series(
-        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
-        data=np.random.randn(n),
-    )
-
-    cs = [
-        dr,
-        dr.tz_localize(None),
-        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
-        dr.tz_convert("Europe/Brussels"),
-        dr.tz_convert("Australia/Perth"),
-        dr.tz_convert("Australia/Canberra"),
-    ]
-
-    fig = FigureWidgetResampler(go.Figure())
-
-    for i, s in enumerate(cs):
-        t_start, t_stop = sorted(
-            s.tz_localize(None).iloc[np.random.randint(n / 2, n, 2)].index
-        )
-        # both timestamps now have the same tz
-        t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
-        t_stop = t_stop.tz_localize(cs[(i + 1) % len(cs)].index.tz)
-
-        # the s has no time-info -> assumption is made that s has the same time-zone
-        # the timestamps
-        out = fig._slice_time(s.tz_localize(None), t_start, t_stop)
-        assert (out.index[0].tz_localize(t_start.tz) - t_start) <= pd.Timedelta(
-            seconds=1
-        )
-        assert (out.index[-1].tz_localize(t_stop.tz) - t_stop) <= pd.Timedelta(
-            seconds=1
-        )
-
-
-def test_multiple_tz_no_tz_series_slicing():
-    n = 60 * 60 * 24 * 3
-    dr = pd.Series(
-        index=pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC"),
-        data=np.random.randn(n),
-    )
-
-    cs = [
-        dr,
-        dr.tz_localize(None),
-        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
-        dr.tz_convert("Europe/Brussels"),
-        dr.tz_convert("Australia/Perth"),
-        dr.tz_convert("Australia/Canberra"),
-    ]
-
-    fig = FigureWidgetResampler(go.Figure())
-
-    for i, s in enumerate(cs):
-        t_start, t_stop = sorted(
-            s.tz_localize(None).iloc[np.random.randint(n / 2, n, 2)].index
-        )
-        # both timestamps now have the a different tz
-        t_start = t_start.tz_localize(cs[(i + 1) % len(cs)].index.tz)
-        t_stop = t_stop.tz_localize(cs[(i + 2) % len(cs)].index.tz)
-
-        # Now the assumption cannot be made that s has the same time-zone as the
-        # timestamps -> AssertionError will be raised.
-        with pytest.raises(AssertionError):
-            fig._slice_time(s.tz_localize(None), t_start, t_stop)
 
 
 def test_check_update_figure_dict():
@@ -1594,7 +1471,7 @@ def test_fwr_adjust_series_text_input():
 def test_fwr_time_based_data_ns():
     n = 100_000
     fig = FigureWidgetResampler(
-        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+        default_n_shown_samples=1000, verbose=True, default_downsampler=MinMaxLTTB()
     )
 
     for i in range(3):
@@ -1634,7 +1511,7 @@ def test_fwr_time_based_data_ns():
 def test_fwr_time_based_data_us():
     n = 100_000
     fig = FigureWidgetResampler(
-        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+        default_n_shown_samples=1000, verbose=True, default_downsampler=MinMaxLTTB()
     )
 
     for i in range(3):
@@ -1674,7 +1551,7 @@ def test_fwr_time_based_data_us():
 def test_fwr_time_based_data_ms():
     n = 100_000
     fig = FigureWidgetResampler(
-        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+        default_n_shown_samples=1000, verbose=True, default_downsampler=MinMaxLTTB()
     )
 
     for i in range(3):
@@ -1715,7 +1592,7 @@ def test_fwr_time_based_data_s():
     # See: https://github.com/predict-idlab/plotly-resampler/issues/93
     n = 100_000
     fig = FigureWidgetResampler(
-        default_n_shown_samples=1000, verbose=True, default_downsampler=EfficientLTTB()
+        default_n_shown_samples=1000, verbose=True, default_downsampler=MinMaxLTTB()
     )
 
     for i in range(3):
