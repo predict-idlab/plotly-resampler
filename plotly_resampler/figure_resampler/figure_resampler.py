@@ -394,7 +394,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             if not self._is_no_update(update_data):  # when there is an update
                 with self.batch_update():
                     # First update the layout (first item of update_data)
-                    self.layout.update(update_data[0])
+                    self.layout.update(self._parse_relayout(update_data[0]))
 
                     # Then update the data
                     for updated_trace in update_data[1:]:

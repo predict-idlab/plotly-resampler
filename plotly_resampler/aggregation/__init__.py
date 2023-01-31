@@ -16,9 +16,11 @@ from .aggregators import (
     MinMaxLTTB,
     MinMaxOverlapAggregator,
 )
+from .plotly_aggregator_parser import PlotlyAggregatorParser
 
 __all__ = [
     "AbstractAggregator",
+    "PlotlyAggregatorParser",
     "LTTB",
     "MinMaxLTTB",
     "EveryNthPoint",

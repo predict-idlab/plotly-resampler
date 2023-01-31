@@ -13,10 +13,8 @@ class AbstractAggregator(ABC):
     def __init__(
         self,
         interleave_gaps: bool = True,
-        nan_position: str = "end",
-        dtype_regex_list: Optional[List[str]] = None,
-        # TODO -> split this in a x and y dtype regex list
-        # NOTE: this functionality will be implemented into the `tsdownsample`
+        x_dtype_regex_list: Optional[List[str]] = None,
+        y_dtype_regex_list: Optional[List[str]] = None,
     ):
         """Constructor of AbstractSeriesAggregator.
 
@@ -24,26 +22,19 @@ class AbstractAggregator(ABC):
         ----------
         interleave_gaps: bool, optional
             Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
+            sampled data. An x-range based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-        dtype_regex_list: List[str], optional
-            List containing the regex matching the supported datatypes, by default None.
+        x_dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes for the x array,
+            by default None.
+        y_dtype_regex_list: List[str], optional
+            List containing the regex matching the supported datatypes for the y array,
+            by default None.
 
         """
         self.interleave_gaps = interleave_gaps
-        self.dtype_regex_list = dtype_regex_list
-        self.nan_position = nan_position.lower()
+        self.x_dtype_regex_list = x_dtype_regex_list
+        self.y_dtype_regex_list = y_dtype_regex_list
         super().__init__()
 
     @staticmethod
@@ -52,36 +43,32 @@ class AbstractAggregator(ABC):
         # remark: thanks to the prepend -> x_diff.shape === len(s)
         x_diff = np.diff(x_agg, prepend=x_agg[0])
 
-        # To do so - use a quantile-based (median) approach where we reshape the data
-        # into `n_blocks` blocks and calculate the min
-        # n_blocks = 128
-        # if x_agg.shape[0] > 5 * n_blocks:
-        #     blck_size = x_diff.shape[0] // n_blocks
+        # To do so - use an approach where we reshape the data
+        # into `n_blocks` blocks and calculate the mean and then the median on that
+        # Why use `median` instead of a global mean?
+        #   => when you have large gaps, they will be represented by a large diff
+        #      which will skew the mean way more than the median!
+        n_blocks = 128
+        if x_agg.shape[0] > 5 * n_blocks:
+            blck_size = x_diff.shape[0] // n_blocks
 
-        #     # convert the index series index diff into a reshaped view (i.e., sid_v)
-        #     sid_v: np.ndarray = x_diff[: blck_size * n_blocks].reshape(n_blocks, -1)
+            # convert the index series index diff into a reshaped view (i.e., sid_v)
+            sid_v: np.ndarray = x_diff[: blck_size * n_blocks].reshape(n_blocks, -1)
 
-        #     calculate the min and max and calculate the median on that
-        #     med_diff = np.median(np.mean(sid_v, axis=1))
-        # else:
-        #     med_diff = np.median(x_diff)
-
-        # NOTE: as the x-range determines the canvas width; we think it's better
-        #       (and certainly faster) to just use the mean "range" diff
-        med_diff = (x_agg[-1] - x_agg[0]) / x_agg.shape[0]
+            # calculate the min and max and calculate the median on that
+            med_diff = np.median(np.mean(sid_v, axis=1))
+        else:
+            med_diff = np.median(x_diff)
 
         return med_diff, x_diff
 
     @staticmethod
     def _get_gap_mask(x_agg: np.ndarray) -> Optional[np.ndarray]:
-        # TODO: implement this functionality elsewhere
         # ------- INSERT None between gaps / irregularly sampled data -------
-        mean_diff, s_idx_diff = AbstractAggregator._calc_mean_diff(x_agg)
-        if mean_diff is None:
-            return
+        med_diff, s_idx_diff = AbstractAggregator._calc_mean_diff(x_agg)
 
         # TODO: tweak the nan mask condition
-        gap_mask = s_idx_diff > 4 * mean_diff
+        gap_mask = s_idx_diff > 4 * med_diff
         if not any(gap_mask):
             return
         return gap_mask
@@ -106,7 +93,9 @@ class AbstractAggregator(ABC):
         y_agg_exp_nan = y_agg[np.repeat(np.arange(x_agg.shape[0]), repeats)]
 
         # only float alike array can contain None values
-        if issubclass(y_agg_exp_nan.dtype.type, np.integer):
+        if issubclass(y_agg_exp_nan.dtype.type, np.integer) or issubclass(
+            y_agg_exp_nan.dtype.type, np.bool_
+        ):
             y_agg_exp_nan = y_agg_exp_nan.astype("float")
 
         # Set the None values
@@ -114,21 +103,19 @@ class AbstractAggregator(ABC):
 
         return y_agg_exp_nan, idx_exp_nan
 
-    def _supports_y_dtype(self, y: np.ndarray):
+    @staticmethod
+    def _supports_dtype(arr: np.ndarray, dtype_regex_list: Optional[List[str]] = None):
         # base case
-        if self.dtype_regex_list is None:
+        if dtype_regex_list is None:
             return
 
-        for dtype_regex_str in self.dtype_regex_list:
-            m = re.compile(dtype_regex_str).match(str(y.dtype))
+        for dtype_regex_str in dtype_regex_list:
+            m = re.compile(dtype_regex_str).match(str(arr.dtype))
             if m is not None:  # a match is found
                 return
         raise ValueError(
-            f"{y.dtype} doesn't match with any regex in {self.dtype_regex_list}"
+            f"{arr.dtype} doesn't match with any regex in {dtype_regex_list}"
         )
-
-    def _supports_x_dtype(self, x: np.ndarray):
-        pass
 
 
 class DataAggregator(AbstractAggregator, ABC):
@@ -174,22 +161,16 @@ class DataAggregator(AbstractAggregator, ABC):
         Tuple[np.ndarray, np.ndarray]
             The aggregated x and y data, respectively
         """
-        # TODO -> a lot of code duplication
         assert n_out is not None
 
-        assert isinstance(y, np.ndarray)
+        # assert isinstance(y, np.ndarray)
         assert y.ndim == 1
-
-        if len(y) <= n_out:
-            # Fewer samples than n_out -> return the original data
-            return x, y
-
-        self._supports_y_dtype(y)
+        DataAggregator._supports_dtype(y, self.y_dtype_regex_list)
 
         if x is not None:
             assert x.ndim == 1
             assert x.shape == y.shape
-            self._supports_x_dtype(x)
+            DataAggregator._supports_dtype(x, self.x_dtype_regex_list)
 
         # More samples that n_out -> perform data aggregation
         return self._aggregate(x, y, n_out=n_out, **kwargs)
@@ -248,12 +229,12 @@ class DataPointSelector(AbstractAggregator, ABC):
             # Fewer samples than n_out -> no data aggregation need to be performed
             return np.arange(len(y))
 
-        self._supports_y_dtype(y)
+        DataAggregator._supports_dtype(y, self.y_dtype_regex_list)
 
         if x is not None:
             assert x.ndim == 1
             assert x.shape == y.shape
-            self._supports_x_dtype(x)
+            DataAggregator._supports_dtype(x, self.x_dtype_regex_list)
 
         # More samples that n_out -> perform data aggregation
         return self._arg_downsample(x, y, n_out=n_out, **kwargs)

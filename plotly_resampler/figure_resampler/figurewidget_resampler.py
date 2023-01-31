@@ -184,7 +184,7 @@ class FigureWidgetResampler(
 
             with self.batch_update():
                 # First update the layout (first item of update_data)
-                self.layout.update(update_data[0])
+                self.layout.update(self._parse_relayout(update_data[0]))
 
                 for xaxis_str in self._xaxis_list:
                     if "showspikes" in layout[xaxis_str]:
@@ -255,7 +255,7 @@ class FigureWidgetResampler(
             with self.batch_update():
                 # First update the layout (first item of update_data)
                 if not force_update:
-                    self.layout.update(update_data[0])
+                    self.layout.update(self._parse_relayout(update_data[0]))
 
                 # Also:  Remove the showspikes from the layout, otherwise the autorange
                 # will not work as intended (it will not be triggered again)

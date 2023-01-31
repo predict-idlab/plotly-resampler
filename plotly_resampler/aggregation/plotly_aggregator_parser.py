@@ -1,5 +1,5 @@
 import bisect
-from typing import Tuple, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 import pandas as pd
@@ -8,6 +8,14 @@ from .aggregation_interface import DataAggregator, DataPointSelector
 
 
 class PlotlyAggregatorParser:
+    @staticmethod
+    def parse_hf_data(hf_data_dict, hf_keys: List[str]):
+        # TODO: check overhead --> add this to a hf_data parsing function
+        for k in hf_keys:
+            if k in hf_data_dict:
+                if isinstance(hf_data_dict[k], pd.Series):
+                    hf_data_dict[k] = hf_data_dict[k].values
+
     @staticmethod
     def to_same_tz(
         ts: Union[pd.Timestamp, None], reference_tz
@@ -27,6 +35,14 @@ class PlotlyAggregatorParser:
 
     @staticmethod
     def get_start_end_indices(hf_trace_data, start, end) -> Tuple[int, int]:
+        # Base case: no hf data, or both start & end are None
+        if not len(hf_trace_data["x"]):
+            return 0, 0
+        elif start is None and end is None:
+            return 0, len(hf_trace_data["x"])
+
+        # NOTE: as we use bisect right for the end index, we do not need to add a
+        #      small epsilon to the end value
         start = hf_trace_data["x"][0] if start is None else start
         end = hf_trace_data["x"][-1] if end is None else end
 
@@ -34,20 +50,20 @@ class PlotlyAggregatorParser:
         if isinstance(hf_trace_data["x"], pd.RangeIndex):
             x_start = hf_trace_data["x"].start
             x_step = hf_trace_data["x"].step
-            return int((start - x_start) // x_step ), int((end - x_start) // x_step)
-        # TODO: this can be performed as-well for a fixed frequency range-index w/ freq
+            return int((start - x_start) // x_step), int((end - x_start) // x_step)
+        # NOTE: this can be performed as-well for a fixed frequency range-index w/ freq
 
         if hf_trace_data["axis_type"] == "date":
             start, end = pd.to_datetime(start), pd.to_datetime(end)
             # convert start & end to the same timezone
             if isinstance(hf_trace_data["x"], pd.DatetimeIndex):
                 tz = hf_trace_data["x"].tz
+                assert start.tz == end.tz
                 start = PlotlyAggregatorParser.to_same_tz(start, tz)
                 end = PlotlyAggregatorParser.to_same_tz(end, tz)
 
         # Search the index-positions
         start_idx = bisect.bisect_left(hf_trace_data["x"], start)
-        # TODO: check whether we need to use bisect_left or bisect_right
         end_idx = bisect.bisect_right(hf_trace_data["x"], end)
         return start_idx, end_idx
 
@@ -57,6 +73,14 @@ class PlotlyAggregatorParser:
         start_idx: int,
         end_idx: int,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Aggregate the data in `hf_trace_data` between `start_idx` and `end_idx`.
+
+        Returns:
+            - x: the aggregated x-values
+            - y: the aggregated y-values
+            - indices: the indices of the hf_data data that were aggregated
+        """
+
         hf_x = hf_trace_data["x"][start_idx:end_idx]
         hf_y = hf_trace_data["y"][start_idx:end_idx]
 
@@ -68,9 +92,14 @@ class PlotlyAggregatorParser:
         downsampler = hf_trace_data["downsampler"]
 
         if isinstance(downsampler, DataPointSelector):
+            s_v = hf_y
+            if isinstance(hf_y, pd.Series):
+                s_v = hf_y.values
+            if str(s_v.dtype) == "category":
+                s_v = s_v.codes
             indices = downsampler.arg_downsample(
                 hf_x,
-                hf_y,
+                s_v,
                 hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
@@ -79,8 +108,7 @@ class PlotlyAggregatorParser:
                 agg_x = (
                     start_idx
                     + hf_trace_data["x"].start
-                    + indices
-                    + hf_trace_data["x"].step
+                    + indices * hf_trace_data["x"].step
                 )
             else:
                 agg_x = hf_x[indices]
@@ -92,7 +120,7 @@ class PlotlyAggregatorParser:
                 hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
-            # TODO
+            # The indices are just the range of the aggregated data
             indices = np.arange(len(agg_x))
         else:
             raise ValueError("Invalid downsampler instance")
@@ -101,28 +129,27 @@ class PlotlyAggregatorParser:
         # gap insertion methodology when the mode is lines.
         # if trace.get("connectgaps") != True and
         if (
+            not downsampler.interleave_gaps
             # rangeIndex | datetimeIndex with freq -> equally spaced x; so no gaps
-            not (
-                isinstance(hf_trace_data["x"], pd.RangeIndex)
-                or (
-                    isinstance(hf_trace_data["x"], pd.DatetimeIndex)
-                    and hf_trace_data["x"].freq is not None
-                )
+            or isinstance(hf_trace_data["x"], pd.RangeIndex)
+            or (
+                isinstance(hf_trace_data["x"], pd.DatetimeIndex)
+                and hf_trace_data["x"].freq is not None
             )
-            and downsampler.interleave_gaps
         ):
-            # View the data as an int64 when we have a DatetimeIndex
-            # We only want to detect gaps, so we only want to compare values.
-            if hf_trace_data["axis_type"] == "date" and isinstance(
-                agg_x, pd.DatetimeIndex
-            ):
-                agg_x = agg_x.view("int64")
+            return agg_x, agg_y, indices
 
-            agg_y, indices = downsampler.insert_gap_none(agg_x, agg_y, indices)
-            if isinstance(downsampler, DataPointSelector):
-                agg_x = hf_x[indices]
-            elif isinstance(downsampler, DataAggregator):
-                # The indices are in this case a repeat
-                agg_x = agg_x[indices]
+        # Interleave the gaps`
+        # View the data as an int64 when we have a DatetimeIndex
+        # We only want to detect gaps, so we only want to compare values.
+        if isinstance(agg_x, (pd.DatetimeIndex, pd.TimedeltaIndex)):
+            agg_x = agg_x.view("int64")
+
+        agg_y, indices = downsampler.insert_gap_none(agg_x, agg_y, indices)
+        if isinstance(downsampler, DataPointSelector):
+            agg_x = hf_x[indices]
+        elif isinstance(downsampler, DataAggregator):
+            # The indices are in this case a repeat
+            agg_x = agg_x[indices]
 
         return agg_x, agg_y, indices

@@ -217,8 +217,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         agg_prefix, agg_suffix = ' <i style="color:#fc9944">~', "</i>"
         name = self._prefix + hf_trace_data["name"] + self._suffix
 
-        ## Add the mean aggregation bin size to the trace name
+        # Add the mean aggregation bin size to the trace name
         if self._show_mean_aggregation_size:
+            # Base case ...
+            if len(agg_x) < 2:
+                return name
+
             agg_mean = (agg_x[-1] - agg_x[0]) / agg_x.shape[0]
             if isinstance(agg_mean, (np.timedelta64, pd.Timedelta)):
                 agg_mean = round_td_str(pd.Timedelta(agg_mean))
@@ -279,6 +283,18 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if hf_trace_data is None:
             self._print("hf_data not found")
             return None
+
+        # Also check if the x-data is empty, if so, return an empty trace
+        if len(hf_trace_data["y"]) == 0:
+            trace["x"] = []
+            trace["y"] = []
+            trace["name"] = hf_trace_data["name"]
+            return trace
+
+        # We first check the traces to ensure that they are still arrays
+        PlotlyAggregatorParser.parse_hf_data(
+            hf_trace_data, ["x", "y", "text", "hovertext"]
+        )
 
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
             hf_trace_data, start, end
@@ -461,7 +477,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             >>> from plotly_resampler import FigureResampler
             >>> fig = FigureResampler(go.Figure())
             >>> fig.add_trace(...)
-            >>> fig.hf_data[-1]["y"] = - s ** 2  # adjust the y-property of the trace added above
+            >>> # Adjust the y property of the above added trace
+            >>> fig.hf_data[-1]["y"] = - s ** 2
             >>> fig.hf_data
             [
                 {
@@ -530,7 +547,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if isinstance(hf_y, (pd.Series, pd.Index))
             else hf_y
         )
-        hf_y: np.ndarray = np.asarray(hf_y)
+        # NOTE: the if will not be triggered for a categorical series its values
+        if not hasattr(hf_y, "dtype"):
+            hf_y: np.ndarray = np.asarray(hf_y)
 
         hf_text = (
             hf_text
@@ -609,7 +628,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # when y argument is used for the trace constructor instead of hf_y), we
             # transform it to type string as such it will be sent as categorical data
             # to the downsampling algorithm
-            if hf_y.dtype == "object":
+            if hf_y.dtype == "object" or hf_y.dtype.type == np.str_:
                 # But first, we try to parse to a numeric dtype (as this is the
                 # behavior that plotly supports)
                 # Note that a bool array of type object will remain a bool array (and
@@ -617,7 +636,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
                 except ValueError:
-                    hf_y = hf_y.astype("str")
+                    hf_y = pd.Series(data=hf_y, copy=False, dtype="category").values
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
         else:
@@ -1107,10 +1126,30 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
+    def _parse_relayout(self, relayout_dict: dict) -> dict:
+        """Update the relayout object so that the autorange will be set to None when
+        there are xy-matches.
+
+        Parameters
+        ----------
+        relayout_dict : dict
+            The relayout dictionary.
+        """
+        # 1. Create a new dict with additional layout updates for the front-end
+        extra_layout_updates = {}
+
+        # 1.1. Set autorange to False for each layout item with a specified x-range
+        xy_matches = self._re_matches(
+            re.compile(r"[xy]axis\d*.range\[\d+]"), relayout_dict.keys()
+        )
+        for range_change_axis in xy_matches:
+            axis = range_change_axis.split(".")[0]
+            extra_layout_updates[f"{axis}.autorange"] = None
+        return extra_layout_updates
+
     def construct_update_data(
         self,
         relayout_data: dict,
-        force_update: bool = False,
     ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
@@ -1195,26 +1234,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             return dash.no_update
 
         # -------------------- construct callback data --------------------------
-        layout_traces_list: List[dict] = []  # the data
-
-        # 1. Create a new dict with additional layout updates for the front-end
-        extra_layout_updates = {}
-
-        # 1.1. Set autorange to False for each layout item with a specified x-range
-        # TODO -> check why this is needed (look into commit history)
-        # This is needed for the figureWidgetResampler I guess?
-        xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
-        for range_change_axis in xy_matches:
-            axis = range_change_axis.split(".")[0]
-            extra_layout_updates[f"{axis}.autorange"] = None
-        layout_traces_list.append(extra_layout_updates)
+        # 1. Create the layout data for the front-end
+        layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
         relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
-            #// TODO -> check if we can reduce even more
+            # TODO: check if we can reduce even more
             trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
 
             # Store the index into the corresponding to-be-sent trace-data so
