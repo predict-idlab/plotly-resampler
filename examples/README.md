@@ -13,11 +13,12 @@ pip install -r requirements.txt
 ## 1. Example notebooks
 ### 1.1 basic examples
 
-The [basic example notebook](basic_example.ipynb) covers most use-cases in which plotly resampler will be employed. It serves as an ideal starting point for data-scientists who want to use plotly-resampler in their day-to-day jupyter environments.
+The [basic example notebook](basic_example.ipynb) covers most use-cases in which plotly-resampler will be employed. It serves as an ideal starting point for data-scientists who want to use plotly-resampler in their day-to-day jupyter environments.
 
 Additionally, this notebook also shows some more advanced functionalities, such as:
 * Retaining (a static) plotly-resampler figure in your notebook
 * Adjusting trace data of plotly-resampler figures at runtime
+* How to add (shaded) confidence bounds to your time series
 * The flexibility of configuring different aggregation-algorithms and number of shown samples per trace
 
 
@@ -29,8 +30,7 @@ Additionally, this notebook highlights how to use the `FigureWidget` its on-clic
 
 ## 2. Dash apps
 
-The [dash_apps](dash_apps/) folder contains example dash apps in
-which `plotly-resampler` is integrated
+The [dash_apps](dash_apps/) folder contains example dash apps in which `plotly-resampler` is integrated
 
 |                                                          | description                                                                                                                                                                                                                                                                         |
 |------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
