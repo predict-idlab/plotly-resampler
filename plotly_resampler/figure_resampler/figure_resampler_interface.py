@@ -684,11 +684,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The hf_data dict.
         """
         # Checking this now avoids less interpretable `KeyError` when resampling
-        # TODO: check if this is still necessary, as this check is really slow
-        # if isinstance(dc.x, pd.Index):
-        #     assert dc.x.is_monotonic_increasing
-        # else:
-        #     assert pd.Series(dc.x).is_monotonic_increasing
+        assert_text = (
+            "In order to perform time series aggregation, the data must be "
+            "sorted in time; i.e., the x-data must be (non-strictly) "
+            "monotonically increasing."
+        )
+        if isinstance(dc.x, pd.Index):
+            assert dc.x.is_monotonic_increasing, assert_text
+        else:
+            assert pd.Series(dc.x).is_monotonic_increasing, assert_text
 
         # As we support prefix-suffixing of downsampled data, we assure that
         # each trace has a name

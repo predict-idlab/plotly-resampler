@@ -40,7 +40,18 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 | ---| ----|
 <!-- | [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` | -->
 
-<br>
+### Features :tada:
+
+  * **Convenient** to use:
+    * just add either
+      * `register_plotly_resampler` function to your notebook with the best suited `mode` argument.
+      * `FigureResampler` decorator around a plotly Figure and call `.show_dash()`
+      * `FigureWidgetResampler` decorator around a plotly Figure and output the instance in a cell
+    * allows all other plotly figure construction flexibility to be used!
+  * **Environment-independent**
+    * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, Google Colab, DataSpell, and even as application (on a server)
+  * Interface for **various aggregation algorithms**:
+    * ability to develop or select your preferred sequence aggregation method
 
 ## Usage
 
@@ -79,14 +90,9 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
   </details>
 
 * 👷 <b>Manually</b> _(higher data aggregation configurability, more speedup possibilities)_:
-  <details>
-    <summary>Within a <b><i>jupyter</i></b> environment without creating a <i>web application</i></summary>
-    <br>
-
+  * Within a <b><i>jupyter</i></b> environment without creating a <i>web application</i>
     1. wrap the plotly Figure with `FigureWidgetResampler`
     2. output the `FigureWidgetResampler` instance in a cell
-
-    * **code example**:
       ```python
       import plotly.graph_objects as go; import numpy as np
       from plotly_resampler import FigureResampler, FigureWidgetResampler
@@ -100,15 +106,9 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
       fig
       ```
-  </details>
-  <details>
-    <summary>Using a <b><i>web-application</i></b> with <b><a href="https://github.com/plotly/dash">dash</a></b> callbacks</summary>
-    <br>
-
+  * Using a <b><i>web-application</i></b> with <b><a href="https://github.com/plotly/dash">dash</a></b> callbacks
     1. wrap the plotly Figure with `FigureResampler`
     2. call `.show_dash()` on the `Figure`
-
-    * **code example**:
       ```python
       import plotly.graph_objects as go; import numpy as np
       from plotly_resampler import FigureResampler, FigureWidgetResampler
@@ -122,10 +122,6 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
       fig.show_dash(mode='inline')
       ```
-
-  </details>
-  <br>
-
   > **Tip** 💡:
    > For significant faster initial loading of the Figure, we advise to wrap the 
    > constructor of the plotly Figure and add the trace data as `hf_x` and `hf_y`
@@ -136,25 +132,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 > Any plotly Figure can be wrapped with `FigureResampler` and `FigureWidgetResampler`! 🎉
 > But, (obviously) only the scatter traces will be resampled.
 
-
-
-
-<br>
-<details><summary>👉 <b>Features</b></summary>
-
-  * **Convenient** to use:
-    * just add either
-      * `register_plotly_resampler` function to your notebook with the best suited `mode` argument.
-      * `FigureResampler` decorator around a plotly Figure and call `.show_dash()`
-      * `FigureWidgetResampler` decorator around a plotly Figure and output the instance in a cell
-    * allows all other plotly figure construction flexibility to be used!
-  * **Environment-independent**
-    * can be used in Jupyter, vscode-notebooks, Pycharm-notebooks, Google Colab, DataSpell, and even as application (on a server)
-  * Interface for **various aggregation algorithms**:
-    * ability to develop or select your preferred sequence aggregation method
-</details>
-
-### Important considerations & tips
+## Important considerations & tips
 
 * When running the code on a server, you should forward the port of the `FigureResampler.show_dash()` method to your local machine.<br>
   **Note** that you can add dynamic aggregation to plotly figures with the `FigureWidgetResampler` wrapper without needing to forward a port!
@@ -167,22 +145,23 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 Paper (preprint): https://arxiv.org/abs/2206.08703
 
-```latex
-@misc{https://doi.org/10.48550/arxiv.2206.08703,
-  author = {Van Der Donckt, Jonas and Van Der Donckt, Jeroen and Deprost, Emiel and Van Hoecke, Sofie},
-  title = {Plotly-Resampler: Effective Visual Analytics for Large Time Series},
-  year = {2022},
-  doi = {10.48550/ARXIV.2206.08703},
-  url = {https://arxiv.org/abs/2206.08703},
-  publisher = {arXiv},
+```bibtex
+@inproceedings{van2022plotly,
+  title={Plotly-resampler: Effective visual analytics for large time series},
+  author={Van Der Donckt, Jonas and Van Der Donckt, Jeroen and Deprost, Emiel and Van Hoecke, Sofie},
+  booktitle={2022 IEEE Visualization and Visual Analytics (VIS)},
+  pages={21--25},
+  year={2022},
+  organization={IEEE}
 }
 ```
 
 ## Future work 🔨
 
 - [x] Support `.add_traces()` (currently only `.add_trace` is supported)
-- [ ] Support `hf_color` and `hf_markersize`, see [#50](https://github.com/predict-idlab/plotly-resampler/pull/50)
-- [ ] Create C bindings for our EfficientLTTB algorithm.
+- [ ] Support `hf_color` and `hf_markersize`, see [#148](https://github.com/predict-idlab/plotly-resampler/pull/148)
+- [x] Create C bindings for our EfficientLTTB algorithm.
+- [ ] Integrate with [tsdownsample](https://github.com/predict-idlab/tsdownsample) :racehorse:
 
 <br>
 
