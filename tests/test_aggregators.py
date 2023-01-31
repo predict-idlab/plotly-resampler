@@ -194,12 +194,30 @@ def test_func_aggregator_float_time_data(series, interleave_gaps, index_type, ag
     series = series.copy()
     series.index = construct_index(series, index_type)
     for n in np.random.randint(100, len(series), 6):
-        x, y = FuncAggregator(
-            interleave_gaps=interleave_gaps, aggregation_func=agg_func
-        ).aggregate(series.index, series.values, n_out=n)
-        assert not np.isnan(y).any()
-        assert len(x) == len(y)
-        assert len(y) == n
+        x_agg, y_agg, indices = wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series.values,
+            downsampler=FuncAggregator(
+                interleave_gaps=interleave_gaps, aggregation_func=agg_func
+            ),
+            n_out=100,
+        )
+        assert not pd.Series(y_agg).isna().any()
+        assert len(x_agg) == len(y_agg) == len(indices)
+        assert len(y_agg) <= n + (n % 2)
+
+        # pd.Series as input
+        x_agg, y_agg, indices = wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series,
+            downsampler=FuncAggregator(
+                interleave_gaps=interleave_gaps, aggregation_func=agg_func
+            ),
+            n_out=100,
+        )
+        assert not pd.Series(y_agg).isna().any()
+        assert len(x_agg) == len(y_agg) == len(indices)
+        assert len(y_agg) <= n + (n % 2)
 
 
 def test_func_aggregator_categorical_time_data(cat_series):
@@ -233,6 +251,27 @@ def test_func_aggregator_invalid_input_data(cat_series):
         FuncAggregator(
             interleave_gaps=True, aggregation_func=treat_string_as_numeric_data
         ).aggregate(cat_series.index, cat_series, n_out=n)
+
+
+def test_funcAggregator_no_x():
+    n = 1_000_000
+    x = np.arange(n)
+    y = np.sin(x / (x.shape[0] / 30)) + np.random.randn(n)
+
+    fa = FuncAggregator(np.mean, interleave_gaps=False)
+    for n_out in np.random.randint(500, 1_000, size=3):
+        fa.aggregate(y=y, n_out=n_out)
+
+
+# ------------------------------- MinMaxLTTB -------------------------------
+def test_mmLTTB_size():
+    # This test was made to certainly trigger the threshold for the MinMaxLTTB algorithm
+    n = 12_000_000
+    x = np.arange(n)
+    y = np.sin(x / (x.shape[0] / 30)) + np.random.randn(n)
+    mmltb = MinMaxLTTB(interleave_gaps=False)
+    for n_out in np.random.randint(500, 1_000, size=3):
+        assert n_out == mmltb._arg_downsample(x, y, n_out).shape[0]
 
 
 # # ------------------------------- LTTB_Bindings -------------------------------
