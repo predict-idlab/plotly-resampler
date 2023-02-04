@@ -12,9 +12,9 @@ class PlotlyAggregatorParser:
     def parse_hf_data(hf_data_dict, hf_keys: List[str]):
         # TODO: check overhead --> add this to a hf_data parsing function
         for k in hf_keys:
-            if k in hf_data_dict:
-                if isinstance(hf_data_dict[k], pd.Series):
-                    hf_data_dict[k] = hf_data_dict[k].values
+            if k in hf_data_dict and isinstance(hf_data_dict[k], pd.Series):
+                # TODO: we can ommit pandas here, by using hasattr - see below
+                hf_data_dict[k] = hf_data_dict[k].values
 
     @staticmethod
     def to_same_tz(
@@ -35,6 +35,7 @@ class PlotlyAggregatorParser:
 
     @staticmethod
     def get_start_end_indices(hf_trace_data, start, end) -> Tuple[int, int]:
+        """Get the start & end indices of the high-frequency data."""
         # Base case: no hf data, or both start & end are None
         if not len(hf_trace_data["x"]):
             return 0, 0
@@ -50,7 +51,7 @@ class PlotlyAggregatorParser:
         if isinstance(hf_trace_data["x"], pd.RangeIndex):
             x_start = hf_trace_data["x"].start
             x_step = hf_trace_data["x"].step
-            return int((start - x_start) // x_step), int((end - x_start) // x_step)
+            return max((start - x_start) // x_step, 0), (end - x_start) // x_step
         # NOTE: this can be performed as-well for a fixed frequency range-index w/ freq
 
         if hf_trace_data["axis_type"] == "date":
@@ -79,8 +80,8 @@ class PlotlyAggregatorParser:
             - x: the aggregated x-values
             - y: the aggregated y-values
             - indices: the indices of the hf_data data that were aggregated
-        """
 
+        """
         hf_x = hf_trace_data["x"][start_idx:end_idx]
         hf_y = hf_trace_data["y"][start_idx:end_idx]
 
@@ -88,12 +89,13 @@ class PlotlyAggregatorParser:
         if (end_idx - start_idx) <= hf_trace_data["max_n_samples"]:
             return hf_x, hf_y, np.arange(len(hf_y))
 
-        # indicates whether the x is a default pd.RangeIndex
         downsampler = hf_trace_data["downsampler"]
 
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y
             if isinstance(hf_y, pd.Series):
+                # TODO: this line should not be needed here as we perform the
+                # parsing in the `parse_hf_data` function
                 s_v = hf_y.values
             if str(s_v.dtype) == "category":
                 s_v = s_v.codes
@@ -142,10 +144,11 @@ class PlotlyAggregatorParser:
         # Interleave the gaps`
         # View the data as an int64 when we have a DatetimeIndex
         # We only want to detect gaps, so we only want to compare values.
+        agg_x_view = agg_x
         if isinstance(agg_x, (pd.DatetimeIndex, pd.TimedeltaIndex)):
-            agg_x = agg_x.view("int64")
+            agg_x_view = agg_x.view("int64")
 
-        agg_y, indices = downsampler.insert_gap_none(agg_x, agg_y, indices)
+        agg_y, indices = downsampler.insert_gap_none(agg_x_view, agg_y, indices)
         if isinstance(downsampler, DataPointSelector):
             agg_x = hf_x[indices]
         elif isinstance(downsampler, DataAggregator):

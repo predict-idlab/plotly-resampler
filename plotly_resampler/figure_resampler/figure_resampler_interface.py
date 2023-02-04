@@ -208,9 +208,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "layout": copy(self._layout),
         }
 
-    def _parse_trace_name(self, hf_trace_data: dict, slice_len: int, agg_x) -> str:
+    def _parse_trace_name(
+        self, hf_trace_data: dict, slice_len: int, agg_x: np.ndarray
+    ) -> str:
         """Parse the trace name and return the in-place updated trace dict."""
-        if slice_len <= hf_trace_data["max_n_samples"]:  # No downsampling needed
+        if slice_len <= hf_trace_data["max_n_samples"]:  # When no downsampling needed
             return hf_trace_data["name"]
 
         # The data is downsampled, so we add the downsampling information to the name
@@ -223,12 +225,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if len(agg_x) < 2:
                 return name
 
-            agg_mean = (agg_x[-1] - agg_x[0]) / agg_x.shape[0]
-            if isinstance(agg_mean, (np.timedelta64, pd.Timedelta)):
-                agg_mean = round_td_str(pd.Timedelta(agg_mean))
+            mean_bin_size = (agg_x[-1] - agg_x[0]) / agg_x.shape[0]  # mean bin size
+            if isinstance(mean_bin_size, (np.timedelta64, pd.Timedelta)):
+                mean_bin_size = round_td_str(pd.Timedelta(mean_bin_size))
             else:
-                agg_mean = round_number_str(agg_mean)
-            name += f"{agg_prefix}{agg_mean}{agg_suffix}"
+                mean_bin_size = round_number_str(mean_bin_size)
+            name += f"{agg_prefix}{mean_bin_size}{agg_suffix}"
         return name
 
     def _check_update_trace_data(
@@ -284,7 +286,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             self._print("hf_data not found")
             return None
 
-        # Also check if the x-data is empty, if so, return an empty trace
+        # Also check if the y-data is empty, if so, return an empty trace
         if len(hf_trace_data["y"]) == 0:
             trace["x"] = []
             trace["y"] = []
@@ -636,6 +638,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
                 except ValueError:
+                    # TODO: would be great if we could omit pandas here
                     hf_y = pd.Series(data=hf_y, copy=False, dtype="category").values
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"

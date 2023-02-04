@@ -772,7 +772,6 @@ def test_time_tz_slicing_different_timestamp():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    # fig = FigureResampler(go.Figure())
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
         t_start = t_start.tz_convert(cs[(i + 1) % len(cs)].index.tz)

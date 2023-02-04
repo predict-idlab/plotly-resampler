@@ -30,6 +30,8 @@ except (ImportError, ModuleNotFoundError):
 class LTTB(DataPointSelector):
     """Largest Triangle Three Buckets (LTTB) aggregation method.
 
+    Thesis: https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf
+
     .. Tip::
         `LTTB` doesn't scale super-well when moving to really large datasets, so when
         dealing with more than 1 million samples, you might consider using
@@ -44,7 +46,7 @@ class LTTB(DataPointSelector):
     * To aggregate category data with LTTB, your ``pd.Series`` must be of dtype
       'category'. |br|
       **Tip**: if there is an order in your categories, order them that way, LTTB uses
-      the ordered category codes values (se bullet above) to calculate distances and
+      the ordered category codes values (see bullet above) to calculate distances and
       make aggregation decisions.
       .. code::
         >>> import pandas as pd
@@ -69,13 +71,14 @@ class LTTB(DataPointSelector):
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
+        # TODO: when integrating with tsdownsample add x & y dtype regex list
 
     def _arg_downsample(
         self,
         x: Optional[np.ndarray] = None,
         y: Optional[np.ndarray] = None,
         n_out: int = None,
-        **kwargs,
+        **_,
     ) -> np.ndarray:
         # Use the Core interface to perform the downsampling
         return LTTB_core.downsample(x, y, n_out)
@@ -119,7 +122,7 @@ class MinMaxOverlapAggregator(DataPointSelector):
         **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
-        # to ensure that the block_size = TODO
+        # to ensure that the block_size * n_out / 2 < len(x)
         block_size = math.ceil(y.shape[0] / (n_out + 1) * 2)
         argmax_offset = block_size // 2
 
@@ -143,7 +146,6 @@ class MinMaxOverlapAggregator(DataPointSelector):
         )
 
         # Sort the argmin & argmax (where we append the first and last index item)
-        # and then slice the original x on these indexes.
         return np.unique(np.concatenate((argmin, argmax, [0, y.shape[0] - 1])))
 
 
@@ -180,7 +182,7 @@ class MinMaxAggregator(DataPointSelector):
         **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
-        # to ensure that the block_size =
+        # to ensure that the block_size * n_out / 2 < len(x)
         block_size = math.ceil(y.shape[0] / n_out * 2)
 
         # Calculate the offset range which will be added to the argmin and argmax pos
@@ -210,15 +212,15 @@ class MinMaxAggregator(DataPointSelector):
         # ) + offset
 
         # Sort the argmin & argmax (where we append the first and last index item)
-        # and then slice the original series on these indexes.
-        mmo_idxs = np.unique(np.concatenate((argmin, argmax, [0, y.shape[0] - 1])))
-        return mmo_idxs
+        return np.unique(np.concatenate((argmin, argmax, [0, y.shape[0] - 1])))
 
 
 class MinMaxLTTB(DataPointSelector):
     """Efficient version off LTTB by first reducing really large datasets with
     the :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>` and then further
     aggregating the reduced result with :class:`LTTB <LTTB>`.
+
+    Inventor: Jonas & Jeroen Van Der Donckt - 2022
     """
 
     def __init__(self, interleave_gaps: bool = True):
@@ -238,6 +240,7 @@ class MinMaxLTTB(DataPointSelector):
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
+        # TODO: when integrating with tsdownsample add x & y dtype regex list
 
     def _arg_downsample(
         self,
@@ -254,6 +257,7 @@ class MinMaxLTTB(DataPointSelector):
             size_threshold = 1_000_000
 
         if y.shape[0] > size_threshold and y.shape[0] / n_out > ratio_threshold:
+            # TODO: add argument for 30 when the paper is published
             idxs = self.minmax._arg_downsample(x, y, n_out * 30)
             y = y[idxs]
             if x is not None:
@@ -342,6 +346,7 @@ class FuncAggregator(DataAggregator):
             idxs = (np.arange(n_out) * group_size).astype(int)
         else:
             x_ = x
+            # TODO: perhaps we can make pandas optional and import it here
             if isinstance(x, (pd.DatetimeIndex, pd.TimedeltaIndex)):
                 x_ = x_.view("int64")
             # Thanks to `linspace`, the data is evenly distributed over the index-range
@@ -358,6 +363,7 @@ class FuncAggregator(DataAggregator):
         if x is not None:
             x_agg = x[idxs[:-1]]
         else:
+            # groupsize * n_out can be larger than the length of the data
             idxs[-1] -= 1
             x_agg = idxs
 
