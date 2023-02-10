@@ -5,6 +5,7 @@ from dash import html, dcc, Input, Output
 from plotly_resampler import FigureResampler
 from plotly_resampler.aggregation import EveryNthPoint
 import numpy as np
+from trace_updater import TraceUpdater
 
 # Construct a high-frequency signal
 n = 1_000_000
@@ -15,7 +16,7 @@ noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / (n / 10)
 fig = FigureResampler(
     go.Figure(),
     # show_mean_aggregation_size=False,
-    default_downsampler=EveryNthPoint(interleave_gaps=False),
+    # default_downsampler=EveryNthPoint(interleave_gaps=False),
     default_n_shown_samples=4000,
     resampled_trace_prefix_suffix=("", ""),
 )
@@ -28,14 +29,15 @@ app = dash.Dash(__name__)
 
 app.layout = html.Div(
     [
+        dcc.Store(id="visible-indices", data={"visible": [], "invisible": []}),
         dcc.Graph(id="graph-id", figure=fig),
-        trace_updater.TraceUpdater(id="trace-updater", gdID="graph-id"),
+        TraceUpdater(id="trace-updater", gdID="graph-id"),
     ]
 )
 
 # Register the callback
-fig.register_update_graph_callback(app, "graph-id", "trace-updater")
+fig.register_update_graph_callback(app, "graph-id", "trace-updater", "visible-indices")
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True, port=8059)
+    app.run_server(debug=True, port=8050)
