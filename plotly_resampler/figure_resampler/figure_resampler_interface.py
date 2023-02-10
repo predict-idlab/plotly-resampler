@@ -394,9 +394,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             indices_to_use = []
 
         for idx, trace in enumerate(figure["data"]):
-            # We skip when the trace-idx already has been updated.
+            # We skip when the trace-idx already has been updated or when it's not due for an update.
             if idx in updated_trace_indices or idx not in indices_to_use:
-                print(f'idx {idx} was not resampled')
+                # print(f'idx {idx} was not resampled')
                 continue
 
             if xaxis_filter is not None:
@@ -1160,7 +1160,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
-    def construct_update_data(self, relayout_data: dict, figure: dict) -> List[dict]:
+    def construct_update_data(self, relayout_data: dict, trace_visibility: dict) -> List[dict]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
         Attention
@@ -1193,14 +1193,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             in each dict.
 
         """
-        visible_trace_idx = []
 
-        if figure:
-            for idx, trace in enumerate(figure["data"]):
-                visible = trace.get("visible", True)
-                if visible is True:
-                    visible_trace_idx.append(idx)
-        print(visible_trace_idx)
+        if len(trace_visibility["visible"]) == 0 and len(trace_visibility["invisible"]) == 0:
+            visible_trace_idx = [i for i, trace in enumerate(self._data)]
+        else:
+            visible_trace_idx = trace_visibility["visible"]
+
         # import json
         # import datetime
         # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:
@@ -1286,22 +1284,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # the client front-end can know which trace needs to be updated
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
-        print(layout_traces_list)
+        # print(layout_traces_list)
         return layout_traces_list
 
-    def construct_invisible_update_data(self, visible_update_data: int, relayout_data, figure):
-        # print(visible_updated)
-        # print(f'relayout: {relayout}')
-        invisible_trace_idx = []
-
-        if figure:
-
-            # print(figure["data"][0].get('visible'))
-            for idx, trace in enumerate(figure["data"]):
-                visible = trace.get("visible", True)
-                if visible is not True:
-                    invisible_trace_idx.append(idx)
-        print(invisible_trace_idx)
+    def construct_invisible_update_data(self, visible_update: int, relayout_data,
+                                        trace_visibility: dict):
+        invisible_trace_idx = trace_visibility["invisible"]
+        print(f'invisible_trace_idx: {invisible_trace_idx}')
         # import json
         # import datetime
         # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:

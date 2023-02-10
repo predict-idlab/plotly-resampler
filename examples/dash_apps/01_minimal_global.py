@@ -29,7 +29,7 @@ flat = np.ones(n)
 
 # --------------------------------------Globals ---------------------------------------
 app = Dash(__name__)
-fig: FigureResampler = FigureResampler(verbose=True)
+fig: FigureResampler = FigureResampler(verbose=False)
 # NOTE: in this example, this reference to a FigureResampler is essential to preserve
 # throughout the whole dash app! If your dash app wants to create a new go.Figure(),
 # you should not construct a new FigureResampler object, but replace the figure of this
@@ -42,7 +42,7 @@ app.layout = html.Div(
         html.Hr(),
 
         # The graph and it's needed components to update efficiently
-
+        dcc.Store(id="visible-indices", data={"visible": [], "invisible": []}),
         dcc.Graph(id="graph-id"),
         TraceUpdater(id="trace-updater", gdID="graph-id"),
         GraphReporter(id="graph-reporter", gId="graph-id"),
@@ -55,6 +55,7 @@ app.layout = html.Div(
 # The callback used to construct and store the graph's data on the serverside
 @app.callback(
     Output("graph-id", "figure"),
+    # Output("visible-indices", "data"),
     Input("plot-button", "n_clicks"),
     prevent_initial_call=True,
 )
@@ -72,22 +73,11 @@ def plot_graph(n_clicks):
         fig.update_layout(showlegend=True)
         return fig
     else:
-        return no_update
-
-
-# @app.callback(
-#     Output("print", "children"),
-#     Input("graph-id", "restyleData"),
-#     prevent_initial_call=True,
-# )
-# def get_restyle_data(restyle_data):
-#     print(restyle_data)
-#     return ""
-#
+        return no_update, no_update
 
 # Register the graph update callbacks to the layout
 fig.register_update_graph_callback(
-    app=app, graph_id="graph-id", trace_updater_id="trace-updater"
+    app=app, graph_id="graph-id", trace_updater_id="trace-updater", store_id="visible-indices"
 )
 
 # --------------------------------- Running the app ---------------------------------
