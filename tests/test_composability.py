@@ -1,8 +1,9 @@
 from random import sample
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from plotly_resampler import FigureResampler, FigureWidgetResampler
 
+from plotly_resampler import FigureResampler, FigureWidgetResampler
 
 # ----------------------- Figure as Base -----------------------
 if True:

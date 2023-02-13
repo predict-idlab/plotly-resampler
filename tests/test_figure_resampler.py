@@ -3,15 +3,17 @@
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 
-import pytest
+import multiprocessing
 import time
+from typing import List
+
 import numpy as np
 import pandas as pd
-import multiprocessing
 import plotly.graph_objects as go
+import pytest
 from plotly.subplots import make_subplots
-from plotly_resampler import FigureResampler, LTTB, EveryNthPoint
-from typing import List
+
+from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -663,10 +665,11 @@ def test_manual_jupyterdashpersistentinline():
 
     # no need to start the app (we just need the FigureResampler object)
 
+    import dash
+
     from plotly_resampler.figure_resampler.figure_resampler import (
         JupyterDashPersistentInlineOutput,
     )
-    import dash
 
     app = JupyterDashPersistentInlineOutput("manual_app")
     assert hasattr(app, "_uid")

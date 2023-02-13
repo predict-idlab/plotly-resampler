@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
+
 from plotly_resampler import EfficientLTTB, EveryNthPoint, FigureWidgetResampler
 
 
@@ -1795,7 +1796,9 @@ def test_fwr_object_bool_data(bool_series):
 
 
 def test_fwr_object_binary_data():
-    binary_series = np.array([0, 1]*20, dtype="int32")  # as this is << max_n_samples -> limit_to_view
+    binary_series = np.array(
+        [0, 1] * 20, dtype="int32"
+    )  # as this is << max_n_samples -> limit_to_view
 
     # First try with the original non-object binary series
     fig = FigureWidgetResampler()
@@ -1812,7 +1815,9 @@ def test_fwr_object_binary_data():
     fig.add_trace({"name": "s0"}, hf_y=binary_series_o, limit_to_view=True)
     assert binary_series_o.dtype == object
     assert len(fig.hf_data) == 1
-    assert (fig.hf_data[0]["y"].dtype == "int32") or (fig.hf_data[0]["y"].dtype == "int64")
+    assert (fig.hf_data[0]["y"].dtype == "int32") or (
+        fig.hf_data[0]["y"].dtype == "int64"
+    )
     assert str(fig.data[0]["y"].dtype).startswith("int")
     assert np.all(fig.data[0]["y"] == binary_series)
 
@@ -1833,7 +1838,7 @@ def test_fwr_copy_grid():
     assert fwr._grid_ref == f._grid_ref
     assert fwr._grid_str is not None
     assert fwr._grid_str == f._grid_str
-    
+
     ## go.FigureWidget
     fw = go.FigureWidget(f)
     assert fw._grid_ref is not None
@@ -1858,6 +1863,7 @@ def test_fwr_copy_grid():
 
     ## FigureResampler
     from plotly_resampler import FigureResampler
+
     fr = FigureResampler(f)
     assert fr._grid_ref is not None
     assert fr._grid_str is not None

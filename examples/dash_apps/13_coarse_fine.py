@@ -13,23 +13,22 @@ TODO: add an rectangle on the coarse graph
 
 __author__ = "Jonas Van Der Donckt"
 
-import dash_bootstrap_components as dbc
-import plotly.graph_objects as go
 from pathlib import Path
 from typing import List
-from dash import Input, Output, State, dcc, html, no_update, callback_context
 
+import dash_bootstrap_components as dbc
+import plotly.graph_objects as go
+from dash import Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
     ServersideOutput,
     ServersideOutputTransform,
 )
+from trace_updater import TraceUpdater
+from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
+from utils.graph_construction import visualize_multiple_files
 
 from plotly_resampler import FigureResampler
-from trace_updater import TraceUpdater
-
-from utils.callback_helpers import multiple_folder_file_selector, get_selector_states
-from utils.graph_construction import visualize_multiple_files
 
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(

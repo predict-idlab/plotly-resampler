@@ -1,11 +1,12 @@
-import trace_updater
 import dash
+import numpy as np
 import plotly.graph_objs as go
-from dash import html, dcc, Input, Output
+import trace_updater
+from dash import Input, Output, dcc, html
+from trace_updater import TraceUpdater
+
 from plotly_resampler import FigureResampler
 from plotly_resampler.aggregation import EveryNthPoint
-import numpy as np
-from trace_updater import TraceUpdater
 
 # Construct a high-frequency signal
 n = 1_000_000
@@ -21,7 +22,9 @@ fig = FigureResampler(
     resampled_trace_prefix_suffix=("", ""),
 )
 for i in range(100):
-    fig.add_trace(go.Scattergl(name=f"sine-{i}", showlegend=True), hf_x=x, hf_y=noisy_sin + 10 * i)
+    fig.add_trace(
+        go.Scattergl(name=f"sine-{i}", showlegend=True), hf_x=x, hf_y=noisy_sin + 10 * i
+    )
 
 
 # Construct app & its layout

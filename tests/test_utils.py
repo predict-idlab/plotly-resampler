@@ -1,15 +1,16 @@
 import pandas as pd
 import plotly.graph_objects as go
+
+from plotly_resampler import FigureResampler, FigureWidgetResampler
 from plotly_resampler.figure_resampler.utils import (
     is_figure,
     is_figurewidget,
     is_fr,
     is_fwr,
-    timedelta_to_str,
-    round_td_str,
     round_number_str,
+    round_td_str,
+    timedelta_to_str,
 )
-from plotly_resampler import FigureResampler, FigureWidgetResampler
 
 
 def test_is_figure():

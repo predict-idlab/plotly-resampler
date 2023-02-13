@@ -10,18 +10,18 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-import warnings
-from typing import Tuple, List
-
-import uuid
 import base64
+import uuid
+import warnings
+from typing import List, Tuple
+
 import dash
 import plotly.graph_objects as go
 from flask_cors import cross_origin
+from graph_reporter import GraphReporter
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
-from graph_reporter import GraphReporter
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
@@ -92,19 +92,19 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                 <div id='PR_div__{uid}'></div>
                 <script type='text/javascript'>
                 """
-                             + """
+                + """
 
                 function setOutput(timeout) {
                     """
-                             +
-                             # Variables should be in local scope (in the closure)
-                             f"""
+                +
+                # Variables should be in local scope (in the closure)
+                f"""
                     var pr_div = document.getElementById('PR_div__{uid}');
                     var url = '{dashboard_url}';
                     var pr_img_src = 'data:image/png;base64, {fig_base64}';
                     var is_alive_suffix = '_is_alive_{uid}';
                     """
-                             + """
+                + """
 
                     if (pr_div.firstChild) return  // return if already loaded
 
@@ -139,13 +139,13 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                     pr_img.setAttribute("src", pr_img_src)
                     pr_img.setAttribute("alt", 'Server unreachable - using image instead');
                     """
-                             + f"""
+                + f"""
                     pr_img.setAttribute("max-width", '{width}');
                     pr_img.setAttribute("max-height", '{height}');
                     pr_img.setAttribute("width", 'auto');
                     pr_img.setAttribute("height", 'auto');
                     """
-                             + """
+                + """
                     element.appendChild(pr_img);
                 }
 
@@ -156,11 +156,11 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
                     pr_iframe.setAttribute("frameborder", '0');
                     pr_iframe.setAttribute("allowfullscreen", '');
                     """
-                             + f"""
+                + f"""
                     pr_iframe.setAttribute("width", '{width}');
                     pr_iframe.setAttribute("height", '{height}');
                     """
-                             + """
+                + """
                     element.appendChild(pr_iframe);
                 }
                 </script>
@@ -185,19 +185,19 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
     """Data aggregation functionality for ``go.Figures``."""
 
     def __init__(
-            self,
-            figure: BaseFigure | dict = None,
-            convert_existing_traces: bool = True,
-            default_n_shown_samples: int = 1000,
-            default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
-            resampled_trace_prefix_suffix: Tuple[str, str] = (
-                    '<b style="color:sandybrown">[R]</b> ',
-                    "",
-            ),
-            show_mean_aggregation_size: bool = True,
-            convert_traces_kwargs: dict | None = None,
-            verbose: bool = False,
-            show_dash_kwargs: dict | None = None,
+        self,
+        figure: BaseFigure | dict = None,
+        convert_existing_traces: bool = True,
+        default_n_shown_samples: int = 1000,
+        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        resampled_trace_prefix_suffix: Tuple[str, str] = (
+            '<b style="color:sandybrown">[R]</b> ',
+            "",
+        ),
+        show_mean_aggregation_size: bool = True,
+        convert_traces_kwargs: dict | None = None,
+        verbose: bool = False,
+        show_dash_kwargs: dict | None = None,
     ):
         """Initialize a dynamic aggregation data mirror using a dash web app.
 
@@ -265,7 +265,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 f._grid_ref = figure._grid_ref
                 f.add_traces(figure.data)
             elif isinstance(figure, dict) and (
-                    "data" in figure or "layout" in figure  # or "frames" in figure  # TODO
+                "data" in figure or "layout" in figure  # or "frames" in figure  # TODO
             ):
                 # A figure as a dict, can be;
                 # - a plotly figure as a dict (after calling `fig.to_dict()`)
@@ -325,11 +325,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._host: str | None = None
 
     def show_dash(
-            self,
-            mode=None,
-            config: dict | None = None,
-            graph_properties: dict | None = None,
-            **kwargs,
+        self,
+        mode=None,
+        config: dict | None = None,
+        graph_properties: dict | None = None,
+        **kwargs,
     ):
         """Registers the :func:`update_graph` callback & show the figure in a dash app.
 
@@ -375,7 +375,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         """
         available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
         assert (
-                mode is None or mode in available_modes
+            mode is None or mode in available_modes
         ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties.keys()  # There is a param for config
@@ -396,7 +396,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 TraceUpdater(
                     id="trace-updater", gdID="resample-figure", sequentialUpdate=False
                 ),
-                GraphReporter(id='graph-reporter', gId='resample-figure'),
+                GraphReporter(id="graph-reporter", gId="resample-figure"),
             ]
         )
         self.register_update_graph_callback(app, "resample-figure", "trace-updater")
@@ -447,7 +447,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
     # TODO: check if i should put the clientside callback to fill the store here or in a different function
     # for now, here
     def register_update_graph_callback(
-            self, app: dash.Dash, graph_id: str, trace_updater_id: str, store_id: str
+        self, app: dash.Dash, graph_id: str, trace_updater_id: str, store_id: str
     ):
         """Register the :func:`construct_update_data` method as callback function to
         the passed dash-app.
@@ -473,7 +473,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # this includes hiding traces or making them visible again, which is the
         # desired use-case
         app.clientside_callback(
-            '''
+            """
             function(restyleData, gdID) {
                 // HELPER FUNCTIONS
             
@@ -517,10 +517,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 //console.log(storeData);
                 return storeData;
             }
-            ''',
+            """,
             dash.dependencies.Output(store_id, "data"),
             dash.dependencies.Input(graph_id, "restyleData"),
-            dash.dependencies.State(graph_id, "id")
+            dash.dependencies.State(graph_id, "id"),
         )
 
         app.callback(

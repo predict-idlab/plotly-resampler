@@ -15,11 +15,11 @@ source: https://dash.plotly.com/sharing-data-between-callbacks:
 
 import numpy as np
 import plotly.graph_objects as go
-from dash import Input, Output, dcc, html, Dash, no_update, callback_context
+from dash import Dash, Input, Output, callback_context, dcc, html, no_update
 from graph_reporter import GraphReporter
+from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
-from trace_updater import TraceUpdater
 
 # Data that will be used for the plotly-resampler figures
 n = 500_000
@@ -40,7 +40,6 @@ app.layout = html.Div(
         html.H1("plotly-resampler global variable", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-
         # The graph and it's needed components to update efficiently
         dcc.Store(id="visible-indices", data={"visible": [], "invisible": []}),
         dcc.Graph(id="graph-id"),
@@ -66,18 +65,22 @@ def plot_graph(n_clicks):
         global fig
         fig.replace(go.Figure())
         fig._print_verbose = True
-        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * .9999995 ** x)
-        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002 ** x)
+        fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * 0.9999995**x)
+        fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002**x)
         fig.add_trace(go.Scattergl(name="const"), hf_x=x, hf_y=flat)
-        fig.add_trace(go.Scattergl(name="poly"), hf_x=x, hf_y=noisy_sin * 1.000002 ** 2)
+        fig.add_trace(go.Scattergl(name="poly"), hf_x=x, hf_y=noisy_sin * 1.000002**2)
         fig.update_layout(showlegend=True)
         return fig
     else:
         return no_update, no_update
 
+
 # Register the graph update callbacks to the layout
 fig.register_update_graph_callback(
-    app=app, graph_id="graph-id", trace_updater_id="trace-updater", store_id="visible-indices"
+    app=app,
+    graph_id="graph-id",
+    trace_updater_id="trace-updater",
+    store_id="visible-indices",
 )
 
 # --------------------------------- Running the app ---------------------------------
