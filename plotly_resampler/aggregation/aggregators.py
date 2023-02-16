@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 
 from ..aggregation.aggregation_interface import AbstractSeriesAggregator
+
 # from plotly_resampler.aggregation import AbstractSeriesAggregator
 
 try:
@@ -22,7 +23,6 @@ try:
     from .algorithms.lttb_c import LTTB_core_c as LTTB_core
 except (ImportError, ModuleNotFoundError):
     import warnings
-
 
     warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
     from .algorithms.lttb_py import LTTB_core_py as LTTB_core
@@ -154,17 +154,17 @@ class MinMaxOverlapAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-                s.values[: block_size * offset.shape[0]]
-                .reshape(-1, block_size)
-                .argmin(axis=1)
-                + offset
+            s.values[: block_size * offset.shape[0]]
+            .reshape(-1, block_size)
+            .argmin(axis=1)
+            + offset
         )
         argmax = (
-                s.values[argmax_offset: block_size * offset.shape[0] + argmax_offset]
-                .reshape(-1, block_size)
-                .argmax(axis=1)
-                + offset
-                + argmax_offset
+            s.values[argmax_offset : block_size * offset.shape[0] + argmax_offset]
+            .reshape(-1, block_size)
+            .argmax(axis=1)
+            + offset
+            + argmax_offset
         )
         # Sort the argmin & argmax (where we append the first and last index item)
         # and then slice the original series on these indexes.
@@ -219,16 +219,16 @@ class MinMaxAggregator(AbstractSeriesAggregator):
         # Calculate the argmin & argmax on the reshaped view of `s` &
         # add the corresponding offset
         argmin = (
-                s.values[: block_size * offset.shape[0]]
-                .reshape(-1, block_size)
-                .argmin(axis=1)
-                + offset
+            s.values[: block_size * offset.shape[0]]
+            .reshape(-1, block_size)
+            .argmin(axis=1)
+            + offset
         )
         argmax = (
-                s.values[: block_size * offset.shape[0]]
-                .reshape(-1, block_size)
-                .argmax(axis=1)
-                + offset
+            s.values[: block_size * offset.shape[0]]
+            .reshape(-1, block_size)
+            .argmax(axis=1)
+            + offset
         )
 
         # Note: the implementation below flips the array to search from
@@ -339,11 +339,11 @@ class FuncAggregator(AbstractSeriesAggregator):
     """
 
     def __init__(
-            self,
-            aggregation_func,
-            interleave_gaps: bool = True,
-            nan_position="end",
-            dtype_regex_list=None,
+        self,
+        aggregation_func,
+        interleave_gaps: bool = True,
+        nan_position="end",
+        dtype_regex_list=None,
     ):
         """
         Parameters
@@ -386,8 +386,8 @@ class FuncAggregator(AbstractSeriesAggregator):
                 # where each value is repeated based $len(s)/n_out$ times
                 by=np.repeat(np.arange(n_out), group_size)[: len(s)]
             )
-                .agg(self.aggregation_func)
-                .dropna()
+            .agg(self.aggregation_func)
+            .dropna()
         )
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window

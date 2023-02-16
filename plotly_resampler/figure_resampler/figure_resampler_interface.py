@@ -37,19 +37,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     _high_frequency_traces = ["scatter", "scattergl"]
 
     def __init__(
-            self,
-            figure: BaseFigure,
-            convert_existing_traces: bool = True,
-            default_n_shown_samples: int = 1000,
-            default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
-            resampled_trace_prefix_suffix: Tuple[str, str] = (
-                    '<b style="color:sandybrown">[R]</b> ',
-                    "",
-            ),
-            show_mean_aggregation_size: bool = True,
-            convert_traces_kwargs: dict | None = None,
-            verbose: bool = False,
-            # TODO: add c_width parameter
+        self,
+        figure: BaseFigure,
+        convert_existing_traces: bool = True,
+        default_n_shown_samples: int = 1000,
+        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        resampled_trace_prefix_suffix: Tuple[str, str] = (
+            '<b style="color:sandybrown">[R]</b> ',
+            "",
+        ),
+        show_mean_aggregation_size: bool = True,
+        convert_traces_kwargs: dict | None = None,
+        verbose: bool = False,
+        # TODO: add c_width parameter
     ):
         """Instantiate a resampling data mirror.
 
@@ -314,7 +314,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else:
                 # When not resampled: trim prefix and/or suffix if necessary
                 if len(self._prefix) and name.startswith(self._prefix):
-                    name = name[len(self._prefix):]
+                    name = name[len(self._prefix) :]
                 if len(self._suffix) and trace["name"].endswith(self._suffix):
                     name = name[: -len(self._suffix)]
             trace["name"] = name
@@ -344,13 +344,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             return None
 
     def _check_update_figure_dict(
-            self,
-            figure: dict,
-            start: Optional[Union[float, str]] = None,
-            stop: Optional[Union[float, str]] = None,
-            xaxis_filter: str = None,
-            updated_trace_indices: Optional[List[int]] = None,
-            indices_to_use: Optional[List[int]] = None,
+        self,
+        figure: dict,
+        start: Optional[Union[float, str]] = None,
+        stop: Optional[Union[float, str]] = None,
+        xaxis_filter: str = None,
+        updated_trace_indices: Optional[List[int]] = None,
+        indices_to_use: Optional[List[int]] = None,
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -417,8 +417,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if x_anchor_trace is not None:
                     xaxis_matches = (
                         figure["layout"]
-                            .get("xaxis" + x_anchor_trace.lstrip("x"), {})
-                            .get("matches")
+                        .get("xaxis" + x_anchor_trace.lstrip("x"), {})
+                        .get("matches")
                     )
                 else:
                     xaxis_matches = figure["layout"].get("xaxis", {}).get("matches")
@@ -484,9 +484,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
     @staticmethod
     def _slice_time(
-            hf_series: pd.Series,
-            t_start: Optional[pd.Timestamp] = None,
-            t_stop: Optional[pd.Timestamp] = None,
+        hf_series: pd.Series,
+        t_start: Optional[pd.Timestamp] = None,
+        t_stop: Optional[pd.Timestamp] = None,
     ) -> pd.Series:
         """Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.
 
@@ -513,7 +513,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         """
 
         def to_same_tz(
-                ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
+            ts: Union[pd.Timestamp, None], reference_tz=hf_series.index.tz
         ) -> Union[pd.Timestamp, None]:
             """Adjust `ts` its timezone to the `reference_tz`."""
             if ts is None:
@@ -531,7 +531,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if t_start is not None and t_stop is not None:
             assert t_start.tz == t_stop.tz
 
-        return hf_series[to_same_tz(t_start): to_same_tz(t_stop)]
+        return hf_series[to_same_tz(t_start) : to_same_tz(t_stop)]
 
     @property
     def hf_data(self):
@@ -758,12 +758,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return _hf_data_container(hf_x, hf_y, hf_text, hf_hovertext)
 
     def _construct_hf_data_dict(
-            self,
-            dc: _hf_data_container,
-            trace: BaseTraceType,
-            downsampler: AbstractSeriesAggregator | None,
-            max_n_samples: int | None,
-            offset=0,
+        self,
+        dc: _hf_data_container,
+        trace: BaseTraceType,
+        downsampler: AbstractSeriesAggregator | None,
+        max_n_samples: int | None,
+        offset=0,
     ) -> dict:
         """Create the `hf_data` dict which will be put in the `_hf_data` property.
 
@@ -1141,8 +1141,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             zip(data, max_n_samples, downsamplers, limit_to_views, check_nans)
         ):
             if (
-                    trace.type.lower() not in self._high_frequency_traces
-                    or self._hf_data.get(trace.uid) is not None
+                trace.type.lower() not in self._high_frequency_traces
+                or self._hf_data.get(trace.uid) is not None
             ):
                 continue
 
@@ -1269,7 +1269,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         """
 
-        if len(trace_visibility["visible"]) == 0 and len(trace_visibility["invisible"]) == 0:
+        if (
+            len(trace_visibility["visible"]) == 0
+            and len(trace_visibility["invisible"]) == 0
+        ):
             visible_trace_idx = [i for i, trace in enumerate(self._data)]
         else:
             visible_trace_idx = trace_visibility["visible"]
@@ -1318,7 +1321,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             current_graph,
                             xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
-                            indices_to_use=invisible_trace_idx
+                            indices_to_use=invisible_trace_idx,
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the
             #      current front-end view
@@ -1361,10 +1364,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # print(layout_traces_list)
         return layout_traces_list
 
-    def construct_invisible_update_data(self, visible_update: int, relayout_data,
-                                        trace_visibility: dict):
+    def construct_invisible_update_data(
+        self, visible_update: int, relayout_data, trace_visibility: dict
+    ):
         invisible_trace_idx = trace_visibility["invisible"]
-        print(f'invisible_trace_idx: {invisible_trace_idx}')
+        print(f"invisible_trace_idx: {invisible_trace_idx}")
         # import json
         # import datetime
         # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:
@@ -1392,9 +1396,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         stop=relayout_data[t_stop_key],
                         xaxis_filter=xaxis,
                         updated_trace_indices=updated_trace_indices,
-                        indices_to_use=visible_trace_idx
+                        indices_to_use=visible_trace_idx,
                     )
-                    print(updated_trace_indices)  # only contains ints (the indices of the updated traces)
+                    print(
+                        updated_trace_indices
+                    )  # only contains ints (the indices of the updated traces)
 
             # 2. The user clicked on either autorange | reset axes
             autorange_matches = self._re_matches(
@@ -1410,7 +1416,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             current_graph,
                             xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
-                            indices_to_use=visible_trace_idx
+                            indices_to_use=visible_trace_idx,
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the
             #      current front-end view
