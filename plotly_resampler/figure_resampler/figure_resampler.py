@@ -18,7 +18,6 @@ from typing import List, Tuple
 import dash
 import plotly.graph_objects as go
 from flask_cors import cross_origin
-from graph_reporter import GraphReporter
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
@@ -26,6 +25,8 @@ from trace_updater import TraceUpdater
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
+
+# from graph_reporter import GraphReporter
 
 
 class JupyterDashPersistentInlineOutput(JupyterDash):
@@ -556,13 +557,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             prevent_initial_call=True,
         )(self.construct_visible_update_data)
 
+        # NOTE: we use a lambda here to omit the first argument, which is the trigger
+        # TODO check if this works on Windows
         app.callback(
             dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
             dash.dependencies.Input(trace_updater_id, "visibleUpdate"),
             dash.dependencies.State(graph_id, "relayoutData"),
             dash.dependencies.State(store_id, "data"),
             prevent_initial_call=True,
-        )(self.construct_invisible_update_data)
+        )(lambda args: self.construct_invisible_update_data(args[1], args[2]))
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class

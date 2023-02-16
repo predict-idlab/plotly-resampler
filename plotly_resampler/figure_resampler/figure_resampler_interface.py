@@ -1244,17 +1244,17 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             cl_k = relayout_data.keys()
 
             # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is a x-range specified in the front-end
+            # 1. Base case - there is an x-range specified in the front-end
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
-            if len(start_matches) and len(stop_matches):
+            if start_matches and stop_matches:  # when both are not empty
                 for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                     # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
                     xaxis = t_start_key.split(".")[0]
                     assert xaxis == t_stop_key.split(".")[0]
                     # -> we want to copy the layout on the back-end
                     updated_trace_indices = self._check_update_figure_dict(
-                        figure=current_graph,
+                        current_graph,
                         start=relayout_data[t_start_key],
                         stop=relayout_data[t_stop_key],
                         xaxis_filter=xaxis,
@@ -1268,7 +1268,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             )
             spike_matches = self._re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
             # 2.1 Reset-axes -> autorange & reset to the global data view
-            if len(autorange_matches) and len(spike_matches):
+            if autorange_matches and spike_matches:  # when both are not empty
                 for autorange_key in autorange_matches:
                     if relayout_data[autorange_key]:
                         xaxis = autorange_key.split(".")[0]
@@ -1280,14 +1280,16 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the
             #      current front-end view
-            elif len(autorange_matches) and not len(spike_matches):
+            elif (
+                autorange_matches and not spike_matches
+            ):  # when only autorange is not empty
                 # PreventUpdate returns a 204 status code response on the
                 # relayout post request
                 return dash.no_update
 
         # If we do not have any traces to be updated, we will return an empty
         # request response
-        if len(updated_trace_indices) == 0:
+        if not updated_trace_indices:  # when updated_trace_indices is empty
             # PreventUpdate returns a 204 status-code response on the relayout post
             # request
             return dash.no_update
@@ -1316,19 +1318,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # the client front-end can know which trace needs to be updated
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
-        # print(layout_traces_list)
         return layout_traces_list
 
     def construct_update_data(
         self,
         relayout_data: dict,
-    ) -> Union[List[dict], dash.no_update]:
-        return self._construct_update_data(relayout_data)
-
-    def construct_visible_update_data(
-        self,
-        relayout_data: dict,
-        trace_visibility: Optional[dict] = None,
     ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
@@ -1361,6 +1355,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             in each dict.
 
         """
+        return self._construct_update_data(relayout_data)
+
+    def construct_visible_update_data(
+        self,
+        relayout_data: dict,
+        trace_visibility: Optional[dict] = None,
+    ) -> Union[List[dict], dash.no_update]:
+
         if trace_visibility is None or (
             trace_visibility.get("visible", []) == []
             and trace_visibility.get("invisible", []) == []
@@ -1368,12 +1370,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             visible_trace_idx = None
         else:
             visible_trace_idx = trace_visibility["visible"]
-
         return self._construct_update_data(relayout_data, visible_trace_idx)
 
     def construct_invisible_update_data(
-        self, visible_update: int, relayout_data, trace_visibility: dict
-    ):
+        self,
+        relayout_data,
+        trace_visibility: Optional[dict] = None,
+    ) -> Union[List[dict], dash.no_update]:
         return self._construct_update_data(
             relayout_data, trace_visibility.get("invisible", [])
         )
@@ -1397,7 +1400,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             m = regex.match(item)
             if m is not None:
                 matches.append(m.string)
-        # print(f'sorted(matches): {sorted(matches)}')
         return sorted(matches)
 
     @staticmethod
