@@ -557,15 +557,18 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             prevent_initial_call=True,
         )(self.construct_visible_update_data)
 
-        # NOTE: we use a lambda here to omit the first argument, which is the trigger
-        # TODO check if this works on Windows
-        app.callback(
+        @app.callback(
             dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
             dash.dependencies.Input(trace_updater_id, "visibleUpdate"),
             dash.dependencies.State(graph_id, "relayoutData"),
             dash.dependencies.State(store_id, "data"),
             prevent_initial_call=True,
-        )(lambda args: self.construct_invisible_update_data(args[1], args[2]))
+        )
+        def wrap_construct_invisible_update_data(
+            visbile_update_trigger, relayout, store_data
+        ):
+            # This wrapper is necessary to omit the trigger argument 
+            return self.construct_invisible_update_data(relayout, store_data)
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class
