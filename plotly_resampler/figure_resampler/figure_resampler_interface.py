@@ -213,7 +213,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         start: Optional[Union[str, float]] = None,
         end: Optional[Union[str, float]] = None,
     ) -> Optional[Union[dict, BaseTraceType]]:
-        """Check and update the passed ddfkj``trace`` its data properties based on the
+        """Check and update the passed ``trace`` its data properties based on the
         slice range.
 
         Note
@@ -376,6 +376,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             Additional trace-update subplot filter, by default None.
         updated_trace_indices: List[int], optional
             List of trace indices that already have been updated, by default None.
+        indices_to_use: List[int], optional
+            List of trace indices that should be updated, by default None.
+            If not provided, all traces which match xaxis_filter will be updated.
 
         Returns
         -------
@@ -391,13 +394,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if updated_trace_indices is None:
             updated_trace_indices = []
 
-        if indices_to_use is None:
-            indices_to_use = []
-
         for idx, trace in enumerate(figure["data"]):
-            # We skip when the trace-idx already has been updated or when it's not due for an update.
-            if idx in updated_trace_indices or idx not in indices_to_use:
-                # print(f'idx {idx} was not resampled')
+            # We skip when the trace-idx already has been updated or when it's not
+            # due for an update (i.e, when indices_to_use is provided)
+            if idx in updated_trace_indices or (
+                indices_to_use and idx not in indices_to_use
+            ):
                 continue
 
             if xaxis_filter is not None:
@@ -461,10 +463,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         .. Note::
             This method will always return a plotly constructor, even when the given
-            `constr` is decorated (after executing the ``
-
-
-            _plotly_resampler``
+            `constr` is decorated (after executing the ``register_plotly_resampler``
             function).
 
         Parameters
@@ -1232,55 +1231,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
         )
 
-    def construct_update_data(
+    def _construct_update_data(
         self,
         relayout_data: dict,
+        indices_to_use: Optional[List[int]] = None,
     ) -> Union[List[dict], dash.no_update]:
-        """Construct the to-be-updated front-end data, based on the layout change.
-
-        Attention
-        ---------
-        This method is tightly coupled with Dash app callbacks. It takes the front-end
-        figure its ``relayoutData`` as input and returns the data which needs to be
-        sent tot the ``TraceUpdater`` its ``visibleUpdateData`` property for that corresponding
-        graph.
-
-        Parameters
-        ----------
-        relayout_data: dict
-            A dict containing the ``relayout``-data (a.k.a. changed layout data) of
-            the corresponding front-end graph.
-
-        figure: dict
-            A dict containing the ``figure``-data (a.k.a. all the data needed to plot traces and style them accordingly) of
-            the corresponding front-end graph. Used to determine the current visible state of each trace
-            NOTE: there should be a better way to pass ONLY the visible state of the traces to the back-end
-                wrap dcc.Graph? => could extract the visible data from the figure before passing it to the callback?
-
-        Returns
-        -------
-        List[dict]:
-            A list of dicts, where each dict-item is a representation of a trace its
-            *data* properties which are affected by the front-end layout change. |br|
-            In other words, only traces which need to be updated will be sent to the
-            front-end. Additionally, each trace-dict withholds the *index* of its
-            corresponding position in the ``figure[data]`` array with the ``index``-key
-            in each dict.
-
-        """
-
-        if (
-            len(trace_visibility["visible"]) == 0
-            and len(trace_visibility["invisible"]) == 0
-        ):
-            visible_trace_idx = [i for i, trace in enumerate(self._data)]
-        else:
-            visible_trace_idx = trace_visibility["visible"]
-
-        # import json
-        # import datetime
-        # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:
-        #     json.dump({"data": figure['data']}, f)
         current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
@@ -1304,7 +1259,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         stop=relayout_data[t_stop_key],
                         xaxis_filter=xaxis,
                         updated_trace_indices=updated_trace_indices,
-                        indices_to_use=invisible_trace_idx,
+                        indices_to_use=indices_to_use,
                     )
 
             # 2. The user clicked on either autorange | reset axes
@@ -1321,7 +1276,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             current_graph,
                             xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
-                            indices_to_use=invisible_trace_idx,
+                            indices_to_use=indices_to_use,
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the
             #      current front-end view
@@ -1364,101 +1319,64 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # print(layout_traces_list)
         return layout_traces_list
 
+    def construct_update_data(
+        self,
+        relayout_data: dict,
+    ) -> Union[List[dict], dash.no_update]:
+        return self._construct_update_data(relayout_data)
+
+    def construct_visible_update_data(
+        self,
+        relayout_data: dict,
+        trace_visibility: Optional[dict] = None,
+    ) -> Union[List[dict], dash.no_update]:
+        """Construct the to-be-updated front-end data, based on the layout change.
+
+        Attention
+        ---------
+        This method is tightly coupled with Dash app callbacks. It takes the front-end
+        figure its ``relayoutData`` as input and returns the data which needs to be
+        sent tot the ``TraceUpdater`` its ``visibleUpdateData`` property for that corresponding
+        graph.
+
+        Parameters
+        ----------
+        relayout_data: dict
+            A dict containing the ``relayout``-data (a.k.a. changed layout data) of
+            the corresponding front-end graph.
+        figure: dict
+            A dict containing the ``figure``-data (a.k.a. all the data needed to plot traces and style them accordingly) of
+            the corresponding front-end graph. Used to determine the current visible state of each trace
+            NOTE: there should be a better way to pass ONLY the visible state of the traces to the back-end
+                wrap dcc.Graph? => could extract the visible data from the figure before passing it to the callback?
+
+        Returns
+        -------
+        List[dict]:
+            A list of dicts, where each dict-item is a representation of a trace its
+            *data* properties which are affected by the front-end layout change. |br|
+            In other words, only traces which need to be updated will be sent to the
+            front-end. Additionally, each trace-dict withholds the *index* of its
+            corresponding position in the ``figure[data]`` array with the ``index``-key
+            in each dict.
+
+        """
+        if trace_visibility is None or (
+            trace_visibility.get("visible", []) == []
+            and trace_visibility.get("invisible", []) == []
+        ):
+            visible_trace_idx = None
+        else:
+            visible_trace_idx = trace_visibility["visible"]
+
+        return self._construct_update_data(relayout_data, visible_trace_idx)
+
     def construct_invisible_update_data(
         self, visible_update: int, relayout_data, trace_visibility: dict
     ):
-        invisible_trace_idx = trace_visibility["invisible"]
-        print(f"invisible_trace_idx: {invisible_trace_idx}")
-        # import json
-        # import datetime
-        # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:
-        #     json.dump({"data": figure['data']}, f)
-        current_graph = self._get_current_graph()
-        updated_trace_indices, cl_k = [], []
-        if relayout_data:
-            self._print("-" * 100 + "\n", "changed layout", relayout_data)
-
-            cl_k = relayout_data.keys()
-
-            # ------------------ HF DATA aggregation ---------------------
-            # 1. Base case - there is an x-range specified in the front-end
-            start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
-            stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
-            if start_matches and stop_matches:  # when both are not empty
-                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
-                    # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
-                    xaxis = t_start_key.split(".")[0]
-                    assert xaxis == t_stop_key.split(".")[0]
-                    # -> we want to copy the layout on the back-end
-                    updated_trace_indices = self._check_update_figure_dict(
-                        figure=current_graph,
-                        start=relayout_data[t_start_key],
-                        stop=relayout_data[t_stop_key],
-                        xaxis_filter=xaxis,
-                        updated_trace_indices=updated_trace_indices,
-                        indices_to_use=visible_trace_idx,
-                    )
-                    print(
-                        updated_trace_indices
-                    )  # only contains ints (the indices of the updated traces)
-
-            # 2. The user clicked on either autorange | reset axes
-            autorange_matches = self._re_matches(
-                re.compile(r"xaxis\d*.autorange"), cl_k
-            )
-            spike_matches = self._re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
-            # 2.1 Reset-axes -> autorange & reset to the global data view
-            if autorange_matches and spike_matches:  # when both are not empty
-                for autorange_key in autorange_matches:
-                    if relayout_data[autorange_key]:
-                        xaxis = autorange_key.split(".")[0]
-                        updated_trace_indices = self._check_update_figure_dict(
-                            current_graph,
-                            xaxis_filter=xaxis,
-                            updated_trace_indices=updated_trace_indices,
-                            indices_to_use=visible_trace_idx,
-                        )
-            # 2.1. Autorange -> do nothing, the autorange will be applied on the
-            #      current front-end view
-            elif (
-                autorange_matches and not spike_matches
-            ):  # when only autorange is not empty
-                # PreventUpdate returns a 204 status code response on the
-                # relayout post request
-                return dash.no_update
-
-        # If we do not have any traces to be updated, we will return an empty
-        # request response
-        if not updated_trace_indices:  # when updated_trace_indices is empty
-            # PreventUpdate returns a 204 status-code response on the relayout post
-            # request
-            return dash.no_update
-
-        # -------------------- construct callback data --------------------------
-        layout_traces_list: List[dict] = []  # the data
-
-        # 1. Create a new dict with additional layout updates for the front-end
-        extra_layout_updates = {}
-
-        # 1.1. Set autorange to False for each layout item with a specified x-range
-        xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
-        for range_change_axis in xy_matches:
-            axis = range_change_axis.split(".")[0]
-            extra_layout_updates[f"{axis}.autorange"] = None
-        layout_traces_list.append(extra_layout_updates)
-
-        # 2. Create the additional trace data for the frond-end
-        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
-        # Note that only updated trace-data will be sent to the client
-        for idx in updated_trace_indices:
-            trace = current_graph["data"][idx]
-            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
-
-            # Store the index into the corresponding to-be-sent trace-data so
-            # the client front-end can know which trace needs to be updated
-            trace_reduced.update({"index": idx})
-            layout_traces_list.append(trace_reduced)
-        return layout_traces_list
+        return self._construct_update_data(
+            relayout_data, trace_visibility.get("invisible", [])
+        )
 
     @staticmethod
     def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:

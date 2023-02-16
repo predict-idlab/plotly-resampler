@@ -419,10 +419,13 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 TraceUpdater(
                     id="trace-updater", gdID="resample-figure", sequentialUpdate=False
                 ),
-                GraphReporter(id="graph-reporter", gId="resample-figure"),
+                # GraphReporter(id="graph-reporter", gId="resample-figure"),
+                dash.dcc.Store(id="indices", data={"visible": [], "invisible": []}),
             ]
         )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
+        self.register_update_graph_callback(
+            app, "resample-figure", "trace-updater", "indices"
+        )
 
         # 2. Run the app
         if mode == "inline" and "height" not in kwargs:
@@ -499,7 +502,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             """
             function(restyleData, gdID) {
                 // HELPER FUNCTIONS
-            
+
                 function getGraphDiv(gdID){
                     // see this link for more information https://stackoverflow.com/a/34002028 
                     let graphDiv = document?.querySelectorAll('div[id*="' + gdID + '"][class*="dash-graph"]');
@@ -515,16 +518,16 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     }
                     return graphDiv;
                 }
-                
+
                 //MAIN CALLBACK
                 let storeData = {'visible':[], 'invisible':[]};
                 if (restyleData) {
                     let graphDiv = getGraphDiv(gdID);
-                    
+
                     //console.log("restyleData:");
                     //console.log(restyleData);
                     //console.log("\tgraph data -> visibility of traces: ");
-                    
+
                     let visible_traces = [];
                     let invisible_traces = [];
                     graphDiv.data.forEach((trace, index) => {
@@ -549,14 +552,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         app.callback(
             dash.dependencies.Output(trace_updater_id, "visibleUpdateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
-            # dash.dependencies.State(graph_id, "restyleData"),
             dash.dependencies.State(store_id, "data"),
             prevent_initial_call=True,
-        )(self.construct_update_data)
+        )(self.construct_visible_update_data)
 
         app.callback(
             dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
-            # dash.dependencies.Input(trace_updater_id, "visibleUpdateData"),
             dash.dependencies.Input(trace_updater_id, "visibleUpdate"),
             dash.dependencies.State(graph_id, "relayoutData"),
             dash.dependencies.State(store_id, "data"),
