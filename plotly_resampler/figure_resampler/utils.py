@@ -186,14 +186,16 @@ def round_number_str(number: float) -> str:
     -------
     str
         The rounded number as a string.
-        If the number is <= 0, None is returned.
+        If the number is == 0, None is returned.
 
     """
+    sign = "-" if number < 0 else ""
+    number = abs(number)
     if number > 0.95:
         for unit, scaling in (("M", int(1e6)), ("k", int(1e3))):
             if number / scaling > 0.95:
                 return f"{round(number / scaling)}{unit}"
-        return str(round(number))
+        return sign + str(round(number))
     if number > 0:  # avoid log10(0)
         # we have a number between 0-0.95 -> round till nearest non-zero digit
-        return str(round(number, 1 + abs(int(math.log10(number)))))
+        return sign + str(round(number, 1 + abs(int(math.log10(number)))))
