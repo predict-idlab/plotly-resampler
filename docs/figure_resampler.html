@@ -855,7 +855,8 @@ work when go.FigureWidget is decorated (after executing the
 <dd class="field-odd"><p><strong>td</strong> (<em>pd.Timedelta</em>) – The timedelta for which the string representation is constructed</p>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The tight string bounds of format ‘$d-$h$m$s.$ms’.</p>
+<dd class="field-even"><p>The tight string bounds of format ‘$d-$h$m$s.$ms’.
+If the timedelta is negative, the string starts with ‘NEG’.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
@@ -867,16 +868,20 @@ work when go.FigureWidget is decorated (after executing the
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.utils.round_td_str">
 <span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.utils.</span></span><span class="sig-name descname"><span class="pre">round_td_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">td</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/utils.html#round_td_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.utils.round_td_str" title="Permalink to this definition">#</a></dt>
 <dd><p>Round a timedelta to the nearest unit and convert to a string.</p>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p><a class="reference internal" href="#plotly_resampler.figure_resampler.utils.timedelta_to_str" title="plotly_resampler.figure_resampler.utils.timedelta_to_str"><code class="xref py py-func docutils literal notranslate"><span class="pre">timedelta_to_str()</span></code></a></p>
-</div>
 <dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>td</strong> (<em>pd.Timedelta</em>) – The timedelta to round.</p>
 </dd>
-<dt class="field-even">Parameters</dt>
-<dd class="field-even"><p><strong>td</strong> (<em>pandas._libs.tslibs.timedeltas.Timedelta</em>) – </p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+</dd>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><em>str</em> – The rounded timedelta as a string.
+If the timedelta is == 0, None is returned.</p></li>
+<li><p><em>.. seealso::</em> – <a class="reference internal" href="#plotly_resampler.figure_resampler.utils.timedelta_to_str" title="plotly_resampler.figure_resampler.utils.timedelta_to_str"><code class="xref py py-func docutils literal notranslate"><span class="pre">timedelta_to_str()</span></code></a></p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -884,12 +889,17 @@ work when go.FigureWidget is decorated (after executing the
 <dl class="py function">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.utils.round_number_str">
 <span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.utils.</span></span><span class="sig-name descname"><span class="pre">round_number_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">number</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/utils.html#round_number_str"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.utils.round_number_str" title="Permalink to this definition">#</a></dt>
-<dd><dl class="field-list simple">
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
+<dd><p>Round a number to the nearest unit and convert to a string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>number</strong> (<em>float</em>) – The number to round.</p>
 </dd>
-<dt class="field-even">Parameters</dt>
-<dd class="field-even"><p><strong>number</strong> (<em>float</em>) – </p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The rounded number as a string.
+If the number is == 0, None is returned.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
 </dd>
 </dl>
 </dd></dl>

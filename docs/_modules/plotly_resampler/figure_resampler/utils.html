@@ -291,6 +291,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    str:</span>
 <span class="sd">        The tight string bounds of format &#39;$d-$h$m$s.$ms&#39;.</span>
+<span class="sd">        If the timedelta is negative, the string starts with &#39;NEG&#39;.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">out_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
@@ -330,8 +331,20 @@
 <div class="viewcode-block" id="round_td_str"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.round_td_str">[docs]</a><span class="k">def</span> <span class="nf">round_td_str</span><span class="p">(</span><span class="n">td</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Round a timedelta to the nearest unit and convert to a string.</span>
 
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    td : pd.Timedelta</span>
+<span class="sd">        The timedelta to round.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The rounded timedelta as a string.</span>
+<span class="sd">        If the timedelta is == 0, None is returned.</span>
+
 <span class="sd">    .. seealso::</span>
 <span class="sd">        :func:`timedelta_to_str`</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">t_s</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;D&quot;</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;min&quot;</span><span class="p">,</span> <span class="s2">&quot;s&quot;</span><span class="p">,</span> <span class="s2">&quot;ms&quot;</span><span class="p">,</span> <span class="s2">&quot;us&quot;</span><span class="p">,</span> <span class="s2">&quot;ns&quot;</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">td</span> <span class="o">&gt;</span> <span class="mf">0.95</span> <span class="o">*</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;1</span><span class="si">{</span><span class="n">t_s</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
@@ -339,13 +352,30 @@
 
 
 <div class="viewcode-block" id="round_number_str"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.round_number_str">[docs]</a><span class="k">def</span> <span class="nf">round_number_str</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Round a number to the nearest unit and convert to a string.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    number : float</span>
+<span class="sd">        The number to round.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The rounded number as a string.</span>
+<span class="sd">        If the number is == 0, None is returned.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">sign</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span> <span class="k">if</span> <span class="n">number</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">number</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">number</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">number</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">unit</span><span class="p">,</span> <span class="n">scaling</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e6</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e3</span><span class="p">))):</span>
             <span class="k">if</span> <span class="n">number</span> <span class="o">/</span> <span class="n">scaling</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">:</span>
                 <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span> <span class="o">/</span> <span class="n">scaling</span><span class="p">)</span><span class="si">}{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
-    <span class="c1"># we have a number &lt; 1 --&gt; round till nearest non-zero digit</span>
-    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">number</span><span class="p">)))))</span></div>
+        <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># avoid log10(0)</span>
+        <span class="c1"># we have a number between 0-0.95 -&gt; round till nearest non-zero digit</span>
+        <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span><span class="p">,</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">number</span><span class="p">)))))</span></div>
 </pre></div>
 
               </article>
