@@ -33,7 +33,7 @@ Flask-Cors = "^3.0.10"
 orjson = "^3.8.0"  # Faster json serialization
 # TODO -> check other werkzeug versions: 2.1.2 and 2.1.1 seem to work.
 # https://github.com/predict-idlab/plotly-resampler/issues/123
-Werkzeug = "<=2.1.2"
+Werkzeug = ">=2.2.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
