@@ -71,6 +71,21 @@ For more information on how to use the trace-updater component together with the
    </div>
    </details>
    <br>
+   <details>
+   <summary>
+      <a><b>My <code>FigureResampler.show_dash</code> keeps hanging (indefinitely) with the error message:<br>&nbsp;&nbsp;&nbsp; <code>OSError: Port already in use</code></b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+Plotly-resampler its ``FigureResampler.show_dash`` method leverages the `jupyterdash <https://github.com/plotly/jupyter-dash>`_ toolkit to easily allow integration of dash apps in notebooks. However, there is a `known issue <https://github.com/plotly/jupyter-dash/pull/105>`_ with jupyterDash that causes the ``FigureResampler.show_dash`` method to hang when the port is already in use. In a future Pull-Request they will hopefully fix this issue.
+
+In the meantime, you can use the following workaround (if you do not care about the `Werkzeug security issue <https://github.com/predict-idlab/plotly-resampler/pull/174>`_): `pip install werkzeug==2.2.3`.
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
       <details>
    <summary>
       <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>

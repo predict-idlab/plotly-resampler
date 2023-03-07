@@ -112,7 +112,7 @@ documentation and [changelog.md](CHANGELOG.md).
 The current listing below gives you the provided steps to regenerate the documentation.
 
 1. Make sure that your python env is active (e.g., by running `poetry shell`)
-2. Navigate to `sphinx/docs` and run from that directory:
+2. Navigate to `docs/sphinx` and run from that directory:
 ```bash
 sphinx-autogen -o _autosummary && make clean html
 ```
