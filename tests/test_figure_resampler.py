@@ -902,7 +902,7 @@ def test_stop_server_inline_persistent():
     proc.terminate()
 
 
-def test__when_port_in_use():
+def test_showdash_not_hanging_when_port_in_use():
     if not_on_linux():
         pytest.skip("This test is currently only supported on linux")
 
