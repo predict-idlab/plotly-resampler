@@ -902,7 +902,10 @@ def test_stop_server_inline_persistent():
     proc.terminate()
 
 
-def test_os_error_when_port_in_use():
+def test__when_port_in_use():
+    if not_on_linux():
+        pytest.skip("This test is currently only supported on linux")
+
     port = 8032
 
     start_fig = "from plotly_resampler import FigureResampler; "
@@ -1361,7 +1364,7 @@ def test_fr_update_layout_axes_range(driver):
 
     if not_on_linux():
         # TODO: eventually we should run this test on Windows & MacOS too
-        return
+        pytest.skip("This test is currently only run on Linux")
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
@@ -1449,7 +1452,7 @@ def test_fr_update_layout_axes_range_no_update(driver):
 
     if not_on_linux():
         # TODO: eventually we should run this test on Windows & MacOS too
-        return
+        pytest.skip("This test is currently only run on Linux")
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
