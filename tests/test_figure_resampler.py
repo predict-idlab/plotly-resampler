@@ -5,6 +5,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import datetime
 import multiprocessing
+import subprocess
 import time
 from typing import List
 
@@ -899,6 +900,30 @@ def test_stop_server_inline_persistent():
     time.sleep(3)
     fr.stop_server()
     proc.terminate()
+
+
+def test_os_error_when_port_in_use():
+    port = 8032
+
+    start_fig = "from plotly_resampler import FigureResampler; "
+    start_fig += (
+        f"FigureResampler().show_dash(mode='external', port={port}, debug=False)"
+    )
+
+    # Start the first figure in another python interpreter
+    p1 = subprocess.Popen(["python", "-c", start_fig])
+    # Wait a little bit
+    time.sleep(3)
+
+    # Start the second figure in the current python interpreter
+    with pytest.raises(SystemExit):
+        # Start the second figure
+        FigureResampler().show_dash(mode="external", port=port)
+        # Wait a little bit
+        time.sleep(3)
+
+    # Stop the first figure
+    p1.kill()
 
 
 def test_manual_jupyterdashpersistentinline():
