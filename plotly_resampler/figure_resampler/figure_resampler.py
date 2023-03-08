@@ -364,7 +364,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 environments, browsers, etc.
 
                 .. note::
-                    This mode requires the ``kaleido``  and ``flask_cors`` package.
+                    This mode requires the ``kaleido`` and ``flask_cors`` package.
+                    Install them : ``pip install plotly_resampler[inline_persistent]``
+                    or ``pip install kaleido flask_cors``.
 
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
