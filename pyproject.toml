@@ -16,6 +16,20 @@ include = [
     {path = "plotly_resampler/aggregation/algorithms/*.so", format = "wheel"},
     {path = "plotly_resampler/aggregation/algorithms/*.pyd", format = "wheel"}
 ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
 build = "build.py"
 
 [tool.poetry.dependencies]
@@ -29,7 +43,6 @@ numpy = [
     { version = ">=1.14", python = "<3.11" },
     { version = ">=1.24", python = ">=3.11" }
 ]
-Flask-Cors = "^3.0.10"
 orjson = "^3.8.0"  # Faster json serialization
 
 [tool.poetry.dev-dependencies]
@@ -47,6 +60,7 @@ ipywidgets = "^7.7.1"
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
 kaleido = "0.2.1"
+Flask-Cors = "^3.0.10"
 ruff = "^0.0.173"
 black = "^22.6.0"
 isort = "^5.10.1"
