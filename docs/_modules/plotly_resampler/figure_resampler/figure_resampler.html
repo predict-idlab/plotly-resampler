@@ -188,13 +188,13 @@
 <span class="n">__author__</span> <span class="o">=</span> <span class="s2">&quot;Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost&quot;</span>
 
 <span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">contextlib</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
 
 <span class="kn">import</span> <span class="nn">dash</span>
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
-<span class="kn">from</span> <span class="nn">flask_cors</span> <span class="kn">import</span> <span class="n">cross_origin</span>
 <span class="kn">from</span> <span class="nn">jupyter_dash</span> <span class="kn">import</span> <span class="n">JupyterDash</span>
 <span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseFigure</span>
 <span class="kn">from</span> <span class="nn">trace_updater</span> <span class="kn">import</span> <span class="n">TraceUpdater</span>
@@ -225,6 +225,11 @@
 <span class="sd">        the :func:`FigureResampler.show_dash &lt;plotly_resampler.figure_resampler.FigureResampler.show_dash&gt;`</span>
 <span class="sd">        method. However, the mode should be passed as ``&quot;inline&quot;`` since this subclass</span>
 <span class="sd">        overwrites the inline behavior.</span>
+
+<span class="sd">    .. Note::</span>
+<span class="sd">        This subclass utilizes the optional ``flask_cors`` package to detect whether the</span>
+<span class="sd">        server is alive or not.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -232,11 +237,14 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_uid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>  <span class="c1"># A new unique id for each app</span>
 
-        <span class="c1"># Mimic the _alive_{token} endpoint but with cors</span>
-        <span class="nd">@self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/_is_alive_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_uid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
-        <span class="nd">@cross_origin</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span> <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">])</span>
-        <span class="k">def</span> <span class="nf">broadcast_alive</span><span class="p">():</span>
-            <span class="k">return</span> <span class="s2">&quot;Alive&quot;</span>
+        <span class="k">with</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">suppress</span><span class="p">(</span><span class="ne">ImportWarning</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
+            <span class="kn">from</span> <span class="nn">flask_cors</span> <span class="kn">import</span> <span class="n">cross_origin</span>
+
+            <span class="c1"># Mimic the _alive_{token} endpoint but with cors</span>
+            <span class="nd">@self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">route</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/_is_alive_</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_uid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;GET&quot;</span><span class="p">])</span>
+            <span class="nd">@cross_origin</span><span class="p">(</span><span class="n">origin</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;*&quot;</span><span class="p">],</span> <span class="n">allow_headers</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">])</span>
+            <span class="k">def</span> <span class="nf">broadcast_alive</span><span class="p">():</span>
+                <span class="k">return</span> <span class="s2">&quot;Alive&quot;</span>
 
     <span class="k">def</span> <span class="nf">_display_inline_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dashboard_url</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Display the dash app persistent inline in the notebook.</span>
@@ -247,6 +255,14 @@
         <span class="c1"># TODO: check whether an error gets logged in case of crash</span>
         <span class="c1"># TODO: add option to opt out of this</span>
         <span class="kn">from</span> <span class="nn">IPython.display</span> <span class="kn">import</span> <span class="n">display</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="kn">import</span> <span class="nn">flask_cors</span>  <span class="c1"># noqa: F401</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ImportError</span><span class="p">,</span> <span class="ne">ModuleNotFoundError</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;flask_cors&#39; is not installed. The persistent inline output will &quot;</span>
+                <span class="o">+</span> <span class="s2">&quot; not be able to detect whether the server is alive or not.&quot;</span>
+            <span class="p">)</span>
 
         <span class="c1"># Get the image from the dashboard and encode it as base64</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">children</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">figure</span>  <span class="c1"># is stored there in the show_dash method</span>
@@ -525,7 +541,9 @@
 <span class="sd">                environments, browsers, etc.</span>
 
 <span class="sd">                .. note::</span>
-<span class="sd">                    This mode requires the ``kaleido`` package.</span>
+<span class="sd">                    This mode requires the ``kaleido`` and ``flask_cors`` package.</span>
+<span class="sd">                    Install them : ``pip install plotly_resampler[inline_persistent]``</span>
+<span class="sd">                    or ``pip install kaleido flask_cors``.</span>
 
 <span class="sd">              * ``&quot;jupyterlab&quot;``: The app will be displayed in a dedicated tab in the</span>
 <span class="sd">                JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``</span>
