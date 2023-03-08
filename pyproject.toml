@@ -45,6 +45,13 @@ numpy = [
     { version = ">=1.24", python = ">=3.11" }
 ]
 orjson = "^3.8.0"  # Faster json serialization
+# Optional dependencies
+kaleido = { version = "^0.2.1", optional = true }
+Flask-Cors = { version = "^3.0.10", optional = true }
+
+[tool.poetry.extras]
+# Optional dependencies
+inline_persistent = ["kaleido", "Flask-Cors"]
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -60,8 +67,6 @@ sphinx-autodoc-typehints = "^1.17.0"
 ipywidgets = "^7.7.1"
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
-kaleido = "0.2.1"
-Flask-Cors = "^3.0.10"
 ruff = "^0.0.173"
 black = "^22.6.0"
 isort = "^5.10.1"
