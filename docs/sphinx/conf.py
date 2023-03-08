@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath("../../plotly_resampler"))
 # -- Project information -----------------------------------------------------
 
 project = "plotly-resampler"
-copyright = "2022, Jonas Van Der Donckt"
+copyright = "2023, Jonas Van Der Donckt"
 author = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 # The full version, including alpha/beta/rc tags
