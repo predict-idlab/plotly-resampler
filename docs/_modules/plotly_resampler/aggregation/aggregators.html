@@ -204,7 +204,7 @@
 
 
 <div class="viewcode-block" id="LTTB"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB">[docs]</a><span class="k">class</span> <span class="nc">LTTB</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Largest Triangle Three Buckets (LTTB) aggregation method.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Largest Triangle Three Buckets (LTTB) aggregation method.</span>
 
 <span class="sd">    .. Tip::</span>
 <span class="sd">        `LTTB` doesn&#39;t scale super-well when moving to really large datasets, so when</span>
@@ -230,7 +230,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        interleave_gaps: bool, optional</span>
@@ -275,7 +275,7 @@
 
 
 <div class="viewcode-block" id="MinMaxOverlapAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator">[docs]</a><span class="k">class</span> <span class="nc">MinMaxOverlapAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Aggregation method which performs binned min-max aggregation over 50% overlapping</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregation method which performs binned min-max aggregation over 50% overlapping</span>
 <span class="sd">    windows.</span>
 
 <span class="sd">    .. image:: _static/minmax_operator.png</span>
@@ -292,7 +292,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        interleave_gaps: bool, optional</span>
@@ -347,7 +347,7 @@
 
 
 <div class="viewcode-block" id="MinMaxAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxAggregator">[docs]</a><span class="k">class</span> <span class="nc">MinMaxAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Aggregation method which performs binned min-max aggregation over fully</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregation method which performs binned min-max aggregation over fully</span>
 <span class="sd">    overlapping windows.</span>
 
 <span class="sd">    .. note::</span>
@@ -359,7 +359,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        interleave_gaps: bool, optional</span>
@@ -424,13 +424,13 @@
 
 
 <div class="viewcode-block" id="EfficientLTTB"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EfficientLTTB">[docs]</a><span class="k">class</span> <span class="nc">EfficientLTTB</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Efficient version off LTTB by first reducing really large datasets with</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Efficient version off LTTB by first reducing really large datasets with</span>
 <span class="sd">    the :class:`MinMaxOverlapAggregator &lt;MinMaxOverlapAggregator&gt;` and then further</span>
 <span class="sd">    aggregating the reduced result with :class:`LTTB &lt;LTTB&gt;`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        interleave_gaps: bool, optional</span>
@@ -473,10 +473,10 @@
 
 
 <div class="viewcode-block" id="EveryNthPoint"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint">[docs]</a><span class="k">class</span> <span class="nc">EveryNthPoint</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every N&#39;th point.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every N&#39;th point.&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        interleave_gaps: bool, optional</span>
@@ -504,7 +504,7 @@
 
 
 <div class="viewcode-block" id="FuncAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.FuncAggregator">[docs]</a><span class="k">class</span> <span class="nc">FuncAggregator</span><span class="p">(</span><span class="n">AbstractSeriesAggregator</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Aggregator instance which uses the passed aggregation func.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Aggregator instance which uses the passed aggregation func.</span>
 
 <span class="sd">    .. attention::</span>
 <span class="sd">        The user has total control which `aggregation_func` is passed to this method,</span>
@@ -520,7 +520,7 @@
         <span class="n">nan_position</span><span class="o">=</span><span class="s2">&quot;end&quot;</span><span class="p">,</span>
         <span class="n">dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        aggregation_func: Callable</span>
@@ -603,7 +603,7 @@
   
   <div class="footer-item">
     <p class="copyright">
-    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+    &copy; Copyright 2023, Jonas Van Der Donckt.<br>
 </p>
   </div>
   

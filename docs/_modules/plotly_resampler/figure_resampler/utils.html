@@ -193,7 +193,7 @@
 
 
 <div class="viewcode-block" id="is_figure"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.is_figure">[docs]</a><span class="k">def</span> <span class="nf">is_figure</span><span class="p">(</span><span class="n">figure</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Check if the figure is a plotly go.Figure or a FigureResampler.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the figure is a plotly go.Figure or a FigureResampler.</span>
 
 <span class="sd">    .. Note::</span>
 <span class="sd">        This method does not use isinstance(figure, go.Figure) as this will not work</span>
@@ -214,7 +214,7 @@
 
 
 <div class="viewcode-block" id="is_figurewidget"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.is_figurewidget">[docs]</a><span class="k">def</span> <span class="nf">is_figurewidget</span><span class="p">(</span><span class="n">figure</span><span class="p">:</span> <span class="n">Any</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Check if the figure is a plotly go.FigureWidget or a FigureWidgetResampler.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the figure is a plotly go.FigureWidget or a FigureWidgetResampler.</span>
 
 <span class="sd">    .. Note::</span>
 <span class="sd">        This method does not use isinstance(figure, go.FigureWidget) as this will not</span>
@@ -235,7 +235,7 @@
 
 
 <div class="viewcode-block" id="is_fr"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.is_fr">[docs]</a><span class="k">def</span> <span class="nf">is_fr</span><span class="p">(</span><span class="n">figure</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Check if the figure is a FigureResampler.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the figure is a FigureResampler.</span>
 
 <span class="sd">    .. Note::</span>
 <span class="sd">        This method will not return True if the figure is a plotly go.Figure.</span>
@@ -256,7 +256,7 @@
 
 
 <div class="viewcode-block" id="is_fwr"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.is_fwr">[docs]</a><span class="k">def</span> <span class="nf">is_fwr</span><span class="p">(</span><span class="n">figure</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Check if the figure is a FigureWidgetResampler.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Check if the figure is a FigureWidgetResampler.</span>
 
 <span class="sd">    .. Note::</span>
 <span class="sd">        This method will not return True if the figure is a plotly go.FigureWidget.</span>
@@ -280,7 +280,7 @@
 
 
 <div class="viewcode-block" id="timedelta_to_str"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.timedelta_to_str">[docs]</a><span class="k">def</span> <span class="nf">timedelta_to_str</span><span class="p">(</span><span class="n">td</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Construct a tight string representation for the given timedelta arg.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Construct a tight string representation for the given timedelta arg.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -315,7 +315,7 @@
     <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">seconds</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">milliseconds</span><span class="p">:</span>
             <span class="n">out_str</span> <span class="o">+=</span> <span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">seconds</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">milliseconds</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">s&quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">seconds</span><span class="si">}</span><span class="s2">.</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">milliseconds</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s1">&#39;0&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">s&quot;</span>
             <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">out_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">c</span><span class="o">.</span><span class="n">seconds</span><span class="si">}</span><span class="s2">s&quot;</span>
@@ -329,7 +329,7 @@
 
 
 <div class="viewcode-block" id="round_td_str"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.round_td_str">[docs]</a><span class="k">def</span> <span class="nf">round_td_str</span><span class="p">(</span><span class="n">td</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Round a timedelta to the nearest unit and convert to a string.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Round a timedelta to the nearest unit and convert to a string.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -352,7 +352,7 @@
 
 
 <div class="viewcode-block" id="round_number_str"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.utils.round_number_str">[docs]</a><span class="k">def</span> <span class="nf">round_number_str</span><span class="p">(</span><span class="n">number</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Round a number to the nearest unit and convert to a string.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Round a number to the nearest unit and convert to a string.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -371,7 +371,7 @@
     <span class="k">if</span> <span class="n">number</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">unit</span><span class="p">,</span> <span class="n">scaling</span> <span class="ow">in</span> <span class="p">((</span><span class="s2">&quot;M&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e6</span><span class="p">)),</span> <span class="p">(</span><span class="s2">&quot;k&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e3</span><span class="p">))):</span>
             <span class="k">if</span> <span class="n">number</span> <span class="o">/</span> <span class="n">scaling</span> <span class="o">&gt;</span> <span class="mf">0.95</span><span class="p">:</span>
-                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span> <span class="o">/</span> <span class="n">scaling</span><span class="p">)</span><span class="si">}{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">scaling</span><span class="p">)</span><span class="si">}{</span><span class="n">unit</span><span class="si">}</span><span class="s2">&quot;</span>
         <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">number</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">number</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># avoid log10(0)</span>
         <span class="c1"># we have a number between 0-0.95 -&gt; round till nearest non-zero digit</span>
@@ -402,7 +402,7 @@
   
   <div class="footer-item">
     <p class="copyright">
-    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+    &copy; Copyright 2023, Jonas Van Der Donckt.<br>
 </p>
   </div>
   

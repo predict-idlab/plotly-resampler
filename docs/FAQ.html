@@ -231,6 +231,15 @@
 </div>
 </details>
 <br>
+<details>
+<summary>
+   <a><b>My <code>FigureResampler.show_dash</code> keeps hanging (indefinitely) with the error message:<br>&nbsp;&nbsp;&nbsp; <code>OSError: Port already in use</code></b></a>
+</summary>
+<div style="margin-left:1em"><p>Plotly-resampler its <code class="docutils literal notranslate"><span class="pre">FigureResampler.show_dash</span></code> method leverages the <a class="reference external" href="https://github.com/plotly/jupyter-dash">jupyterdash</a> toolkit to easily allow integration of dash apps in notebooks. However, there is a <a class="reference external" href="https://github.com/plotly/jupyter-dash/pull/105">known issue</a> with jupyterDash that causes the <code class="docutils literal notranslate"><span class="pre">FigureResampler.show_dash</span></code> method to hang when the port is already in use. In a future Pull-Request they will hopefully fix this issue. We internally track <cite>this issue &lt;https://github.com/predict-idlab/plotly-resampler/issues/123&gt;</cite> as well - please comment there if you want to provide feedback.</p>
+<p>In the meantime, you can use the following workaround (if you do not care about the <a class="reference external" href="https://github.com/predict-idlab/plotly-resampler/pull/174">Werkzeug security issue</a>): <cite>pip install werkzeug==2.1.2</cite>.</p>
+</div>
+</details>
+<br>
    <details>
 <summary>
    <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>
@@ -341,7 +350,7 @@ but if you still experience issues, please open an issue on <a href="https://git
   
   <div class="footer-item">
     <p class="copyright">
-    &copy; Copyright 2022, Jonas Van Der Donckt.<br>
+    &copy; Copyright 2023, Jonas Van Der Donckt.<br>
 </p>
   </div>
   
