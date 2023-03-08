@@ -53,9 +53,9 @@ We use [`poetry`](https://python-poetry.org/) as dependency manager for this pro
 
 To install the requirements
 ```sh
-pip install poetry  # install poetry (if you do use the venv option)
-poetry install      # install all the dependencies
-poetry build        # build the underlying C code
+pip install poetry          # install poetry (if you do use the venv option)
+poetry install --all-extras # install all the dependencies
+poetry build                # build the underlying C code
 ```
 
 <details>

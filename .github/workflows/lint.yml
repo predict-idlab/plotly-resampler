@@ -27,7 +27,7 @@ jobs:
         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-${{ matrix.python-version }}
     - run: poetry --version
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --all-extras
       # Do not use caching (anymore)
 #      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
     - name: Lint
