@@ -2050,12 +2050,12 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
-inline_persistent = ["kaleido", "Flask-Cors"]
+inline_persistent = ["Flask-Cors"]
 
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.1"
-content-hash = "47b9c0fbd089683c6ae1e48a7d7e1f74fa4cac993d253e8be11082ecbc83fb11"
+content-hash = "17a45ddcbcefba84faeb80d73591c24475024590b12c3a5f28850cd6ed08a93f"
 
 [metadata.files]
 alabaster = [

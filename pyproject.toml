@@ -46,8 +46,8 @@ numpy = [
 ]
 orjson = "^3.8.0"  # Faster json serialization
 # Optional dependencies
-kaleido = { version = "^0.2.1", optional = true }
 Flask-Cors = { version = "^3.0.10", optional = true }
+kaleido = {version = "^0.2.1.post1", optional = true}
 
 [tool.poetry.extras]
 # Optional dependencies
@@ -70,6 +70,7 @@ line-profiler = "^4.0"
 ruff = "^0.0.173"
 black = "^22.6.0"
 isort = "^5.10.1"
+# Include the optional dependencies
 # yep = "^0.4"  # c code profiling
 
 # Linting
