@@ -20,8 +20,8 @@ from plotly_resampler import (
 # hyperparameters
 _nb_samples = 10_000
 data_dir = "examples/data/"
-headless = True
-TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
+headless = False
+TESTING_LOCAL = True  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
 
 
 @pytest.fixture

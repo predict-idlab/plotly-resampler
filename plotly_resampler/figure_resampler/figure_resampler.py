@@ -6,6 +6,7 @@ Creates a web-application and uses ``dash`` callbacks to enable dynamic resampli
 
 """
 
+
 from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
@@ -14,6 +15,7 @@ import base64
 import uuid
 import warnings
 from typing import List, Tuple
+
 
 import dash
 import plotly.graph_objects as go
@@ -328,6 +330,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self,
         mode=None,
         config: dict | None = None,
+        testing: bool | None = False,
         graph_properties: dict | None = None,
         **kwargs,
     ):
@@ -390,16 +393,17 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             app = JupyterDash("local_app")
         app.layout = dash.html.Div(
             [
+                dash.dcc.Store(id="visible-indices", data={"visible": [], "invisible": []}),
                 dash.dcc.Graph(
                     id="resample-figure", figure=self, config=config, **graph_properties
                 ),
                 TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
+                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False, verbose=testing
                 ),
                 GraphReporter(id="graph-reporter", gId="resample-figure"),
             ]
         )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
+        self.register_update_graph_callback(app, "resample-figure", "trace-updater", 'visible-indices')
 
         # 2. Run the app
         if mode == "inline" and "height" not in kwargs:
@@ -524,7 +528,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         )
 
         app.callback(
-            dash.dependencies.Output(trace_updater_id, "visibleUpdateData"),
+            dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             # dash.dependencies.State(graph_id, "restyleData"),
             dash.dependencies.State(store_id, "data"),
@@ -533,7 +537,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         app.callback(
             dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
-            # dash.dependencies.Input(trace_updater_id, "visibleUpdateData"),
+            # dash.dependencies.Input(trace_updater_id, "updateData"),
             dash.dependencies.Input(trace_updater_id, "visibleUpdate"),
             dash.dependencies.State(graph_id, "relayoutData"),
             dash.dependencies.State(store_id, "data"),

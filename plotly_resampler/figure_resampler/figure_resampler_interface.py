@@ -1168,7 +1168,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         ---------
         This method is tightly coupled with Dash app callbacks. It takes the front-end
         figure its ``relayoutData`` as input and returns the data which needs to be
-        sent tot the ``TraceUpdater`` its ``visibleUpdateData`` property for that corresponding
+        sent tot the ``TraceUpdater`` its ``updateData`` property for that corresponding
         graph.
 
         Parameters
@@ -1194,7 +1194,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             in each dict.
 
         """
-
         if (
             len(trace_visibility["visible"]) == 0
             and len(trace_visibility["invisible"]) == 0
@@ -1232,9 +1231,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         updated_trace_indices=updated_trace_indices,
                         indices_to_use=visible_trace_idx,
                     )
-                    print(
-                        updated_trace_indices
-                    )  # only contains ints (the indices of the updated traces)
 
             # 2. The user clicked on either autorange | reset axes
             autorange_matches = self._re_matches(
@@ -1290,18 +1286,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # the client front-end can know which trace needs to be updated
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
-        # print(layout_traces_list)
         return layout_traces_list
 
     def construct_invisible_update_data(
         self, visible_update: int, relayout_data, trace_visibility: dict
     ):
         invisible_trace_idx = trace_visibility["invisible"]
-        print(f"invisible_trace_idx: {invisible_trace_idx}")
-        # import json
-        # import datetime
-        # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:
-        #     json.dump({"data": figure['data']}, f)
+
         current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
@@ -1327,7 +1318,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         updated_trace_indices=updated_trace_indices,
                         indices_to_use=invisible_trace_idx,
                     )
-                    # print(updated_trace_indices) #only contains ints (the indices of the updated traces)
 
             # 2. The user clicked on either autorange | reset axes
             autorange_matches = self._re_matches(
@@ -1383,7 +1373,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # the client front-end can know which trace needs to be updated
             trace_reduced.update({"index": idx})
             layout_traces_list.append(trace_reduced)
-        # print(layout_traces_list)
         return layout_traces_list
 
     @staticmethod
