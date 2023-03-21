@@ -31,5 +31,5 @@ def visualize_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampl
             df = df.set_index("timestamp")
 
         for c in df.columns[::-1]:
-            fig.add_trace(go.Scattergl(name=c), hf_x=df.index, hf_y=df[c], row=i, col=1)
+            fig.add_trace(go.Scatter(name=c), hf_x=df.index, hf_y=df[c], row=i, col=1)
     return fig
