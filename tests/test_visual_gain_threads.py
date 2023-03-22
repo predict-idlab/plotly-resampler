@@ -47,7 +47,11 @@ port = 8050
 fr = FigureResamplerGUITests(driver, port=port)
 
 percentages_hidden = np.array([0, 0.2, 0.5, 0.8, 0.9])
-n_traces = [10, 20, 50]
+n_traces = [
+            10, 
+            20, 
+            50
+            ]
 n_datapoints = [
                  100_000,
                  1_000_000,
@@ -102,13 +106,13 @@ try:
                         #start timer
                         # fr.start_timer('zoom')
 
-                        time.sleep(5)
+                        time.sleep(7)
                         fr.reset_axes(testing=True)
                         # fr.start_timer('reset')
-                        time.sleep(5)
+                        time.sleep(7)
                     with open(f'./logs/n{n}_s{s}_t{t}_everynth.json', 'w') as logfile:
-                        for log in driver.get_log('browser'):
-                            logfile.write(json.dumps(log)) 
+                        # for log in driver.get_log('browser'):
+                        logfile.write(json.dumps(driver.get_log('browser'))) 
                     print('done saving log')  
                     # print(logs)
                     # print(type(logs))

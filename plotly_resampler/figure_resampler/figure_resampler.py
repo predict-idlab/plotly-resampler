@@ -20,7 +20,7 @@ from typing import List, Tuple
 import dash
 import plotly.graph_objects as go
 from flask_cors import cross_origin
-from graph_reporter import GraphReporter
+# from graph_reporter import GraphReporter
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
@@ -400,7 +400,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 TraceUpdater(
                     id="trace-updater", gdID="resample-figure", sequentialUpdate=False, verbose=testing
                 ),
-                GraphReporter(id="graph-reporter", gId="resample-figure"),
+                # GraphReporter(id="graph-reporter", gId="resample-figure"),
             ]
         )
         self.register_update_graph_callback(app, "resample-figure", "trace-updater", 'visible-indices')
