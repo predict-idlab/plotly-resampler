@@ -164,10 +164,10 @@ def round_td_str(td: pd.Timedelta) -> str:
 def round_number_str(number: float) -> str:
     if number > 0.95:
         for unit, scaling in [
-            ("T", int(1e12)),
-            ("B", int(1e9)),
-            ("M", int(1e6)),
-            ("k", int(1e3)),
+            ("T", int(1e12)),  # Trillion
+            ("B", int(1e9)),  # Billion
+            ("M", int(1e6)),  # Million
+            ("k", int(1e3)),  # Thousand
         ]:
             if number / scaling > 0.95:
                 return f"{round(number / scaling)}{unit}"

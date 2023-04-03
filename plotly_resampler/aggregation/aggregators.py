@@ -35,7 +35,7 @@ class LTTB(DataPointSelector):
     .. Tip::
         `LTTB` doesn't scale super-well when moving to really large datasets, so when
         dealing with more than 1 million samples, you might consider using
-        :class:`EffientLTTB <EfficientLTTB>`.
+        :class:`MinMaxLTTB <MinMaxLTTB>`.
 
     Note
     ----

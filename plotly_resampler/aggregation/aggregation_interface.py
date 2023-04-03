@@ -38,7 +38,18 @@ class AbstractAggregator(ABC):
 
     @staticmethod
     def _calc_med_diff(x_agg: np.ndarray) -> Tuple[float, np.ndarray]:
-        # ----- divide and conquer heuristic to calculate the median diff ------
+        """Calculate the median diff of the x_agg array.
+
+        As median is more robust to outliers than the mean, the median is used to define
+        the gap threshold.
+
+        This method performs a divide and conquer heuristic to calculate the median;
+        1. divide the array into `n_blocks` blocks (with `n_blocks` = 128)
+        2. calculate the mean of each block
+        3. calculate the median of the means
+        => This proves to be a good approximation of the median of the full array, while
+              being much faster than calculating the median of the full array.
+        """
         # remark: thanks to the prepend -> x_diff.shape === len(s)
         x_diff = np.diff(x_agg, prepend=x_agg[0])
 
