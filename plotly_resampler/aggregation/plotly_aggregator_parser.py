@@ -12,9 +12,10 @@ class PlotlyAggregatorParser:
     def parse_hf_data(hf_data_dict, hf_keys: List[str]):
         # TODO: check overhead --> add this to a hf_data parsing function
         for k in hf_keys:
-            if k in hf_data_dict and isinstance(hf_data_dict[k], pd.Series):
-                # TODO: we can ommit pandas here, by using hasattr - see below
-                hf_data_dict[k] = hf_data_dict[k].values
+            # if k in hf_data_dict and hasattr(hf_data_dict[k], "values"):
+            if k in hf_data_dict and hasattr(hf_data_dict[k], "to_numpy"):
+                # if k in hf_data_dict and isinstance(hf_data_dict[k], (pd.Series)):
+                hf_data_dict[k] = hf_data_dict[k].to_numpy()
 
     @staticmethod
     def to_same_tz(
@@ -70,7 +71,7 @@ class PlotlyAggregatorParser:
 
     @staticmethod
     def aggregate(
-        hf_trace_data,
+        hf_trace_data: dict,
         start_idx: int,
         end_idx: int,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -102,7 +103,7 @@ class PlotlyAggregatorParser:
             indices = downsampler.arg_downsample(
                 hf_x,
                 s_v,
-                hf_trace_data["max_n_samples"],
+                n_out=hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
             # we avoid slicing the default pd.RangeIndex
@@ -119,7 +120,7 @@ class PlotlyAggregatorParser:
             agg_x, agg_y = downsampler.aggregate(
                 hf_x,
                 hf_y,
-                hf_trace_data["max_n_samples"],
+                n_out=hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
             # The indices are just the range of the aggregated data

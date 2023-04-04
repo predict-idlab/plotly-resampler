@@ -48,6 +48,7 @@ def wrap_aggregate(
             "max_n_samples": n_out,
         }
     )
+    PlotlyAggregatorParser.parse_hf_data(hf_trace_data, ["x", "y"])
     return PlotlyAggregatorParser.aggregate(hf_trace_data, 0, len(hf_y))
 
 
