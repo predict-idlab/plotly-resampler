@@ -214,6 +214,7 @@ class DataAggregator(AbstractAggregator, ABC):
 
         Parameters
         ----------
+        x, y: np.ndarray
             The x and y data of the to-be-aggregated series.
             The x array is optional (i.e., if only 1 array is passed, it is assumed to
             be the y array).
