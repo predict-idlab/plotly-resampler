@@ -149,7 +149,7 @@ class PlotlyAggregatorParser:
         if isinstance(agg_x, (pd.DatetimeIndex, pd.TimedeltaIndex)):
             agg_x_view = agg_x.view("int64")
 
-        agg_y, indices = downsampler.insert_gap_none(agg_x_view, agg_y, indices)
+        agg_y, indices = downsampler.insert_none_at_gaps(agg_x_view, agg_y, indices)
         if isinstance(downsampler, DataPointSelector):
             agg_x = hf_x[indices]
         elif isinstance(downsampler, DataAggregator):

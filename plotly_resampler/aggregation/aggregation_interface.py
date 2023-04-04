@@ -74,6 +74,25 @@ class AbstractAggregator(ABC):
 
     @staticmethod
     def _get_gap_mask(x_agg: np.ndarray) -> Optional[np.ndarray]:
+        """Return a boolean mask indicating the indices where there are gaps.
+
+        A gap is *currently* defined as a difference between two consecutive x values,
+        that is larger than 4 times the median difference between two consecutive x
+        values.
+        Note: this is a very naive approach, but it seems to work well.
+
+        Parameters
+        ----------
+        x_agg: np.ndarray
+            The aggregated x array. This is used to determine the gaps.
+
+        Returns
+        -------
+        Optional[np.ndarray]
+            The boolean mask indicating the indices where there are gaps. If no gaps are
+            found, None (i.e., nothing) is returned.
+
+        """
         # ------- INSERT None between gaps / irregularly sampled data -------
         med_diff, s_idx_diff = AbstractAggregator._calc_med_diff(x_agg)
 
@@ -84,12 +103,15 @@ class AbstractAggregator(ABC):
         return gap_mask
 
     @staticmethod
-    def insert_gap_none(
+    def insert_none_at_gaps(
         x_agg: np.ndarray,
         y_agg: np.ndarray,
         idxs: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Insert None values in the y_agg array when there are gaps.
+
+        Gaps are determined by the x_agg array. The `_get_gap_mask` method is used to
+        determine a boolean mask indicating the indices where there are gaps.
 
         Parameters
         ----------
@@ -187,8 +209,11 @@ class AbstractAggregator(ABC):
 class DataAggregator(AbstractAggregator, ABC):
     """Implementation of the AbstractAggregator interface for data aggregation.
 
-    A data aggregator is an aggregator that aggregates the data, and thus doesn't select
-    data points.
+    DataAggregator differs from DataPointSelector in that it doesn't select data points,
+    but rather aggregates the data (e.g., mean).
+    As such, the `_aggregate` method is responsible for aggregating the data, and thus
+    returns a tuple of the aggregated x and y values.
+
     Concrete implementations of this class must implement the `_aggregate` method, and
     have full responsibility on how they deal with other high-frequency properties, such
     as `hovertext`, `marker_size`, 'marker_color`, etc ...
@@ -230,7 +255,7 @@ class DataAggregator(AbstractAggregator, ABC):
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            The aggregated x and y data, respectively
+            The aggregated x and y data, respectively.
 
         """
         # Check n_out
@@ -248,8 +273,10 @@ class DataAggregator(AbstractAggregator, ABC):
 class DataPointSelector(AbstractAggregator, ABC):
     """Implementation of the AbstractAggregator interface for data point selection.
 
-    A data point selector is an aggregator that selects data points, and thus doesn't
-    aggregate the data.
+    DataPointSelector differs from DataAggregator in that they don't aggregate the data
+    (e.g., mean) but instead select data points (e.g., first, last, min, max, etc ...).
+    As such, the `_arg_downsample` method returns the index positions of the selected
+    data points.
 
     This class utilizes the `arg_downsample` method to compute the index positions.
     """
