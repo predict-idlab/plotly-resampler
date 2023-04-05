@@ -33,6 +33,10 @@ class LTTB_core_c:
         np.ndarray
             The indexes of the selected datapoints.
         """
+        xdt = x.dtype
+        if np.issubdtype(xdt, np.datetime64) or np.issubdtype(xdt, np.timedelta64):
+            x = x.view(np.int64)
+
         if x.dtype == np.int64 and y.dtype == np.float64:
             return downsample_int_double(x, y, n_out)
         elif x.dtype == y.dtype == np.int64:

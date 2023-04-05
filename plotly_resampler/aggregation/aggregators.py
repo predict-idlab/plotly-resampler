@@ -7,13 +7,15 @@
 
 """
 
+from __future__ import annotations
+
 __author__ = "Jonas Van Der Donckt"
 
+
 import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
-import pandas as pd
 
 from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
@@ -75,9 +77,9 @@ class LTTB(DataPointSelector):
 
     def _arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **_,
     ) -> np.ndarray:
         # Use the Core interface to perform the downsampling
@@ -116,9 +118,9 @@ class MinMaxOverlapAggregator(DataPointSelector):
 
     def _arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
@@ -176,9 +178,9 @@ class MinMaxAggregator(DataPointSelector):
 
     def _arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
@@ -244,9 +246,9 @@ class MinMaxLTTB(DataPointSelector):
 
     def _arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> np.ndarray:
         size_threshold = 10_000_000
@@ -283,12 +285,13 @@ class EveryNthPoint(DataPointSelector):
 
     def _arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> np.ndarray:
         # TODO: check the "-1" below
+        # TODO: add equidistant version using searchsorted on a linspace
         return np.arange(step=max(1, math.ceil(len(y) / n_out)), stop=len(y) - 1)
 
 
@@ -329,12 +332,11 @@ class FuncAggregator(DataAggregator):
 
     def _aggregate(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
-
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window
         # Note: this can be adjusted to .5 to center the data
@@ -345,13 +347,12 @@ class FuncAggregator(DataAggregator):
             group_size = max(1, np.ceil(len(y) / n_out))
             idxs = (np.arange(n_out) * group_size).astype(int)
         else:
-            x_ = x
-            # TODO: perhaps we can make pandas optional and import it here
-            if isinstance(x, (pd.DatetimeIndex, pd.TimedeltaIndex)):
-                x_ = x_.view("int64")
+            xdt = x.dtype
+            if np.issubdtype(xdt, np.datetime64) or np.issubdtype(xdt, np.timedelta64):
+                x = x.view("int64")
             # Thanks to `linspace`, the data is evenly distributed over the index-range
             # The searchsorted function returns the index positions
-            idxs = np.searchsorted(x_, np.linspace(x_[0], x_[-1], n_out + 1))
+            idxs = np.searchsorted(x, np.linspace(x[0], x[-1], n_out + 1))
 
         y_agg = np.array(
             [

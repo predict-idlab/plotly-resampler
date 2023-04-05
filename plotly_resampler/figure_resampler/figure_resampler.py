@@ -454,7 +454,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             This only works if the dash-app was started with :func:`show_dash`.
         """
         if self._app is not None:
-
             old_server = self._app._server_threads.get((self._host, self._port))
             if old_server:
                 old_server.kill()

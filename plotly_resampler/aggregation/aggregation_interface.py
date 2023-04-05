@@ -1,5 +1,7 @@
 """AbstractSeriesAggregator interface-class, subclassed by concrete aggregators."""
 
+from __future__ import annotations
+
 __author__ = "Jonas Van Der Donckt"
 
 import re
@@ -74,6 +76,25 @@ class AbstractAggregator(ABC):
 
     @staticmethod
     def _get_gap_mask(x_agg: np.ndarray) -> Optional[np.ndarray]:
+        """Return a boolean mask indicating the indices where there are gaps.
+
+        A gap is *currently* defined as a difference between two consecutive x values,
+        that is larger than 4 times the median difference between two consecutive x
+        values.
+        Note: this is a naive approach, but it seems to work well.
+
+        Parameters
+        ----------
+        x_agg: np.ndarray
+            The aggregated x array. This is used to determine the gaps.
+
+        Returns
+        -------
+        Optional[np.ndarray]
+            The boolean mask indicating the indices where there are gaps. If no gaps are
+            found, None (i.e., nothing) is returned.
+
+        """
         # ------- INSERT None between gaps / irregularly sampled data -------
         med_diff, s_idx_diff = AbstractAggregator._calc_med_diff(x_agg)
 
@@ -84,12 +105,15 @@ class AbstractAggregator(ABC):
         return gap_mask
 
     @staticmethod
-    def insert_gap_none(
+    def insert_none_at_gaps(
         x_agg: np.ndarray,
         y_agg: np.ndarray,
         idxs: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Insert None values in the y_agg array when there are gaps.
+
+        Gaps are determined by the x_agg array. The `_get_gap_mask` method is used to
+        determine a boolean mask indicating the indices where there are gaps.
 
         Parameters
         ----------
@@ -136,6 +160,38 @@ class AbstractAggregator(ABC):
         return y_agg_exp_nan, idx_exp_nan
 
     @staticmethod
+    def _check_n_out(n_out: int) -> None:
+        """Check if the n_out is valid."""
+        assert isinstance(n_out, (int, np.integer))
+        assert n_out > 0
+
+    @staticmethod
+    def _process_args(*args) -> Tuple[np.ndarray | None, np.ndarray]:
+        """Process the args into the x and y arrays.
+
+        If only y is passed, x is set to None.
+        """
+        assert len(args) in [1, 2], "Must pass either 1 or 2 arrays"
+        x, y = (None, args[0]) if len(args) == 1 else args
+        return x, y
+
+    @staticmethod
+    def _check_arr(arr: np.ndarray, regex_list: Optional[List[str]] = None):
+        """Check if the array is valid."""
+        assert isinstance(arr, np.ndarray), f"Expected np.ndarray, got {type(arr)}"
+        assert arr.ndim == 1
+        AbstractAggregator._supports_dtype(arr, regex_list)
+
+    def _check_x_y(self, x: np.ndarray | None, y: np.ndarray) -> None:
+        """Check if the x and y arrays are valid."""
+        # Check x (if not None)
+        if x is not None:
+            self._check_arr(x, self.x_dtype_regex_list)
+            assert x.shape == y.shape, "x and y must have the same shape"
+        # Check y
+        self._check_arr(y, self.y_dtype_regex_list)
+
+    @staticmethod
     def _supports_dtype(arr: np.ndarray, dtype_regex_list: Optional[List[str]] = None):
         # base case
         if dtype_regex_list is None:
@@ -153,67 +209,74 @@ class AbstractAggregator(ABC):
 class DataAggregator(AbstractAggregator, ABC):
     """Implementation of the AbstractAggregator interface for data aggregation.
 
-    A data aggregator is an aggregator that aggregates the data, and thus doesn't select
-    data points.
+    DataAggregator differs from DataPointSelector in that it doesn't select data points,
+    but rather aggregates the data (e.g., mean).
+    As such, the `_aggregate` method is responsible for aggregating the data, and thus
+    returns a tuple of the aggregated x and y values.
+
     Concrete implementations of this class must implement the `_aggregate` method, and
     have full responsibility on how they deal with other high-frequency properties, such
     as `hovertext`, `marker_size`, 'marker_color`, etc ...
     """
 
+    @abstractmethod
     def _aggregate(
         self,
-        x: Optional[np.ndarray] = None,
-        y: np.ndarray = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
         raise NotImplementedError
 
     def aggregate(
         self,
-        x: Optional[np.ndarray] = None,
-        y: np.ndarray = None,
-        n_out: int = None,
+        *args,
+        n_out: int,
         **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Aggregate the data.
 
         Parameters
         ----------
-        x : np.ndarray, optional
-            The x-axis data, by default None
-        y : np.ndarray
-            The y-axis data
-        n_out : int, optional
-            The number of output datapoints, by default None
+        x, y: np.ndarray
+            The x and y data of the to-be-aggregated series.
+            The x array is optional (i.e., if only 1 array is passed, it is assumed to
+            be the y array).
+            The array(s) must be 1-dimensional, and have the same length (if x is
+            passed).
+            These cannot be passed as keyword arguments, as they are positional-only.
+        n_out: int
+            The number of samples which the downsampled series should contain.
+            This should be passed as a keyword argument.
         kwargs : dict
             Additional keyword arguments that are passed to the `_aggregate` method.
 
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            The aggregated x and y data, respectively
+            The aggregated x and y data, respectively.
 
         """
+        # Check n_out
         assert n_out is not None
 
-        # assert isinstance(y, np.ndarray)
-        assert y.ndim == 1
-        DataAggregator._supports_dtype(y, self.y_dtype_regex_list)
+        # Get x and y
+        x, y = DataPointSelector._process_args(*args)
 
-        if x is not None:
-            assert x.ndim == 1
-            assert x.shape == y.shape
-            DataAggregator._supports_dtype(x, self.x_dtype_regex_list)
+        # Check x and y
+        self._check_x_y(x, y)
 
-        return self._aggregate(x, y, n_out=n_out, **kwargs)
+        return self._aggregate(x=x, y=y, n_out=n_out, **kwargs)
 
 
 class DataPointSelector(AbstractAggregator, ABC):
     """Implementation of the AbstractAggregator interface for data point selection.
 
-    A data point selector is an aggregator that selects data points, and thus doesn't
-    aggregate the data.
+    DataPointSelector differs from DataAggregator in that they don't aggregate the data
+    (e.g., mean) but instead select data points (e.g., first, last, min, max, etc ...).
+    As such, the `_arg_downsample` method returns the index positions of the selected
+    data points.
 
     This class utilizes the `arg_downsample` method to compute the index positions.
     """
@@ -221,32 +284,35 @@ class DataPointSelector(AbstractAggregator, ABC):
     @abstractmethod
     def _arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: Optional[np.ndarray] = None,
-        n_out: int = None,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
         **kwargs,
     ) -> np.ndarray:
         raise NotImplementedError
 
     def arg_downsample(
         self,
-        x: Optional[np.ndarray] = None,
-        y: np.ndarray = None,
-        n_out: int = None,
+        *args,
+        n_out: int,
         **kwargs,
     ) -> np.ndarray:
         """Compute the index positions for the downsampled representation.
 
         Parameters
         ----------
-        x: Optional[np.ndarray]
-            The time dimension of the to-be-aggregated series
-        y: Optional[np.ndarray]
-            The value dimension of the to-be-aggregated series.
+        x, y: np.ndarray
+            The x and y data of the to-be-aggregated series.
+            The x array is optional (i.e., if only 1 array is passed, it is assumed to
+            be the y array).
+            The array(s) must be 1-dimensional, and have the same length (if x is
+            passed).
+            These cannot be passed as keyword arguments, as they are positional-only.
         n_out: int
             The number of samples which the downsampled series should contain.
+            This should be passed as a keyword argument.
         kwargs : dict
-            Additional keyword arguments
+            Additional keyword arguments that are passed to the `_arg_downsample` method.
 
         Returns
         -------
@@ -254,21 +320,18 @@ class DataPointSelector(AbstractAggregator, ABC):
             The index positions of the selected data points.
 
         """
-        assert n_out is not None
+        # Check n_out
+        DataPointSelector._check_n_out(n_out)
 
-        assert isinstance(y, np.ndarray)
-        assert y.ndim == 1
+        # Get x and y
+        x, y = DataPointSelector._process_args(*args)
+
+        # Check x and y
+        self._check_x_y(x, y)
 
         if len(y) <= n_out:
-            # Fewer samples than n_out -> no data aggregation need to be performed
+            # Fewer samples than n_out -> return all indices
             return np.arange(len(y))
 
-        DataAggregator._supports_dtype(y, self.y_dtype_regex_list)
-
-        if x is not None:
-            assert x.ndim == 1
-            assert x.shape == y.shape
-            DataAggregator._supports_dtype(x, self.x_dtype_regex_list)
-
-        # More samples that n_out -> perform data aggregation
-        return self._arg_downsample(x, y, n_out=n_out, **kwargs)
+        # More samples that n_out -> perform data aggregation (with x=None)
+        return self._arg_downsample(x=x, y=y, n_out=n_out, **kwargs)

@@ -201,6 +201,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "data": [
                 {
                     k: copy(trace[k])
+                    # TODO: why not "text" as well? -> we can use _hf_data_container.fields then
                     for k in set(trace.keys()).difference({"x", "y", "hovertext"})
                 }
                 for trace in self._data
@@ -286,17 +287,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             self._print("hf_data not found")
             return None
 
+        # Parse trace data (necessary when updating the trace data)
+        for k in _hf_data_container._fields:
+            if hasattr(hf_trace_data[k], "values"):
+                # when not a range index or datetime index
+                if not isinstance(hf_trace_data[k], (pd.RangeIndex, pd.DatetimeIndex)):
+                    hf_trace_data[k] = hf_trace_data[k].values
+
         # Also check if the y-data is empty, if so, return an empty trace
         if len(hf_trace_data["y"]) == 0:
             trace["x"] = []
             trace["y"] = []
             trace["name"] = hf_trace_data["name"]
             return trace
-
-        # We first check the traces to ensure that they are still arrays
-        PlotlyAggregatorParser.parse_hf_data(
-            hf_trace_data, ["x", "y", "text", "hovertext"]
-        )
 
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
             hf_trace_data, start, end
@@ -725,14 +728,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return {
             "max_n_samples": max_n_samples,
             "default_n_samples": default_n_samples,
-            "x": dc.x,
-            "y": dc.y,
             "name": trace.name,
             "axis_type": axis_type,
             "downsampler": downsampler,
             "default_downsampler": default_downsampler,
-            "text": dc.text,
-            "hovertext": dc.hovertext,
+            **dc._asdict(),
         }
 
     @staticmethod
@@ -1245,7 +1245,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
+        relevant_keys = list(_hf_data_container._fields) + [
+            "name"
+        ]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
