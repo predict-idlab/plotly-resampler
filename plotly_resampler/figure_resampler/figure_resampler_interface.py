@@ -222,7 +222,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The length of the slice.
         agg_x : np.ndarray
             The x-axis values of the aggregated trace.
-        
+
         Returns
         -------
         str
