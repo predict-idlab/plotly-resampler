@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import bisect
 from typing import Tuple, Union
 
