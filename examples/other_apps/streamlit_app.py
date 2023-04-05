@@ -10,7 +10,7 @@ To run this example execute the following command:
 $ streamlit run streamlit_app.py
 
 Note: to have colored traces in the streamlit app, you should always include the
-follow code: `import plotly.io as pio; pio.templates.default = "plotly"`
+following code: `import plotly.io as pio; pio.templates.default = "plotly"`
 
 """
 
