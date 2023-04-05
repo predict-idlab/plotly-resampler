@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "plotly-resampler"  # Do not forget to update the __init__.py __version__ variable
-version = "0.8.3"
+version = "0.8.3.2"
 description = "Visualizing large time series with plotly"
 authors = ["Jonas Van Der Donckt", "Jeroen Van Der Donckt", "Emiel Deprost"]
 readme = "README.md"
@@ -16,6 +16,21 @@ include = [
     {path = "plotly_resampler/aggregation/algorithms/*.so", format = "wheel"},
     {path = "plotly_resampler/aggregation/algorithms/*.pyd", format = "wheel"}
 ]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
 build = "build.py"
 
 [tool.poetry.dependencies]
@@ -29,11 +44,15 @@ numpy = [
     { version = ">=1.14", python = "<3.11" },
     { version = ">=1.24", python = ">=3.11" }
 ]
-Flask-Cors = "^3.0.10"
 orjson = "^3.8.0"  # Faster json serialization
-# TODO -> check other werkzeug versions: 2.1.2 and 2.1.1 seem to work.
-# https://github.com/predict-idlab/plotly-resampler/issues/123
-Werkzeug = "<=2.1.2"
+# Optional dependencies
+Flask-Cors = { version = "^3.0.10", optional = true }
+# Lock kaleido dependency until https://github.com/plotly/Kaleido/issues/156 is resolved
+kaleido = {version = "0.2.1", optional = true}
+
+[tool.poetry.extras]
+# Optional dependencies
+inline_persistent = ["kaleido", "Flask-Cors"]
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
@@ -49,7 +68,6 @@ sphinx-autodoc-typehints = "^1.17.0"
 ipywidgets = "^7.7.1"
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
-kaleido = "0.2.1"
 ruff = "^0.0.173"
 black = "^22.6.0"
 isort = "^5.10.1"

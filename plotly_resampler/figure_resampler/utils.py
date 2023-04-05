@@ -114,6 +114,7 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
     -------
     str:
         The tight string bounds of format '$d-$h$m$s.$ms'.
+        If the timedelta is negative, the string starts with 'NEG'.
 
     """
     out_str = ""
@@ -153,8 +154,20 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
 def round_td_str(td: pd.Timedelta) -> str:
     """Round a timedelta to the nearest unit and convert to a string.
 
+    Parameters
+    ----------
+    td : pd.Timedelta
+        The timedelta to round.
+
+    Returns
+    -------
+    str
+        The rounded timedelta as a string.
+        If the timedelta is == 0, None is returned.
+
     .. seealso::
         :func:`timedelta_to_str`
+
     """
     for t_s in ("D", "H", "min", "s", "ms", "us", "ns"):
         if td > 0.95 * pd.Timedelta(f"1{t_s}"):
@@ -162,6 +175,22 @@ def round_td_str(td: pd.Timedelta) -> str:
 
 
 def round_number_str(number: float) -> str:
+    """Round a number to the nearest unit and convert to a string.
+
+    Parameters
+    ----------
+    number : float
+        The number to round.
+
+    Returns
+    -------
+    str
+        The rounded number as a string.
+        If the number is == 0, None is returned.
+
+    """
+    sign = "-" if number < 0 else ""
+    number = abs(number)
     if number > 0.95:
         for unit, scaling in [
             ("T", int(1e12)),  # Trillion
@@ -171,6 +200,7 @@ def round_number_str(number: float) -> str:
         ]:
             if number / scaling > 0.95:
                 return f"{round(number / scaling)}{unit}"
-        return str(round(number))
-    # we have a number < 1 --> round till nearest non-zero digit
-    return str(round(number, 1 + abs(int(math.log10(number)))))
+        return sign + str(round(number))
+    if number > 0:  # avoid log10(0)
+        # we have a number between 0-0.95 -> round till nearest non-zero digit
+        return sign + str(round(number, 1 + abs(int(math.log10(number)))))

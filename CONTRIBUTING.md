@@ -53,9 +53,9 @@ We use [`poetry`](https://python-poetry.org/) as dependency manager for this pro
 
 To install the requirements
 ```sh
-pip install poetry  # install poetry (if you do use the venv option)
-poetry install      # install all the dependencies
-poetry build        # build the underlying C code
+pip install poetry          # install poetry (if you do use the venv option)
+poetry install --all-extras # install all the dependencies
+poetry build                # build the underlying C code
 ```
 
 <details>
@@ -112,7 +112,7 @@ documentation and [changelog.md](CHANGELOG.md).
 The current listing below gives you the provided steps to regenerate the documentation.
 
 1. Make sure that your python env is active (e.g., by running `poetry shell`)
-2. Navigate to `sphinx/docs` and run from that directory:
+2. Navigate to `docs/sphinx` and run from that directory:
 ```bash
 sphinx-autogen -o _autosummary && make clean html
 ```

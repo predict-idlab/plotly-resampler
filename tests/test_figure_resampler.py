@@ -5,6 +5,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import datetime
 import multiprocessing
+import subprocess
 import time
 from typing import List
 
@@ -905,6 +906,33 @@ def test_stop_server_inline_persistent():
     proc.terminate()
 
 
+def test_showdash_not_hanging_when_port_in_use():
+    if not_on_linux():
+        pytest.skip("This test is currently only supported on linux")
+
+    port = 8032
+
+    start_fig = "from plotly_resampler import FigureResampler; "
+    start_fig += (
+        f"FigureResampler().show_dash(mode='external', port={port}, debug=False)"
+    )
+
+    # Start the first figure in another python interpreter
+    p1 = subprocess.Popen(["python", "-c", start_fig])
+    # Wait a little bit
+    time.sleep(3)
+
+    # Start the second figure in the current python interpreter
+    with pytest.raises(SystemExit):
+        # Start the second figure
+        FigureResampler().show_dash(mode="external", port=port)
+        # Wait a little bit
+        time.sleep(3)
+
+    # Stop the first figure
+    p1.kill()
+
+
 def test_manual_jupyterdashpersistentinline():
     # Manually call the JupyterDashPersistentInline its method
     # This requires some gimmicky stuff to mimmick the behaviour of a jupyter notebook.
@@ -1340,7 +1368,7 @@ def test_fr_update_layout_axes_range(driver):
 
     if not_on_linux():
         # TODO: eventually we should run this test on Windows & MacOS too
-        return
+        pytest.skip("This test is currently only run on Linux")
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
@@ -1428,7 +1456,7 @@ def test_fr_update_layout_axes_range_no_update(driver):
 
     if not_on_linux():
         # TODO: eventually we should run this test on Windows & MacOS too
-        return
+        pytest.skip("This test is currently only run on Linux")
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))

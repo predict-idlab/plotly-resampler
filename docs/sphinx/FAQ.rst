@@ -71,6 +71,21 @@ For more information on how to use the trace-updater component together with the
    </div>
    </details>
    <br>
+   <details>
+   <summary>
+      <a><b>My <code>FigureResampler.show_dash</code> keeps hanging (indefinitely) with the error message:<br>&nbsp;&nbsp;&nbsp; <code>OSError: Port already in use</code></b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+Plotly-resampler its ``FigureResampler.show_dash`` method leverages the `jupyterdash <https://github.com/plotly/jupyter-dash>`_ toolkit to easily allow integration of dash apps in notebooks. However, there is a `known issue <https://github.com/plotly/jupyter-dash/pull/105>`_ with jupyterDash that causes the ``FigureResampler.show_dash`` method to hang when the port is already in use. In a future Pull-Request they will hopefully fix this issue. We internally track `this issue <https://github.com/predict-idlab/plotly-resampler/issues/123>` as well - please comment there if you want to provide feedback. 
+
+In the meantime, you can use the following workaround (if you do not care about the `Werkzeug security issue <https://github.com/predict-idlab/plotly-resampler/pull/174>`_): `pip install werkzeug==2.1.2`.
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
       <details>
    <summary>
       <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>
@@ -128,6 +143,42 @@ Furthermore combined with holoviews, datashader can also be employed in an inter
    datashade(ndoverlay, cnorm='linear', aggregator=ds.count(), line_width=3).opts(opts)
 
 .. image:: _static/datashader.png
+
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
+   <details>
+   <summary>
+      <a><b>Pandas or numpy datetime works much slower than unix epoch timestamps?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+This stems from the plotly scatter(gl) constructor being much slower for non-numeric data. Plotly performs a different serialization for datetime arrays (which are interpreted as object arrays).
+However, plotly-resampler should not be limited by this - to avoid this issue, add your datetime data as `hf_x` to your plotly-resampler ``FigureResampler.add_trace`` (or ``FigureWidgetResampler.add_trace``) method.
+This avoids adding (& serializing) *all* the data to the scatter object, since  plotly-resampler will pass the aggregated data to the scatter object.
+
+Some illustration:
+
+.. code:: python
+
+   import plotly.graph_objects as go
+   import pandas as pd
+   import numpy as np
+   from plotly_resampler import FigureResampler
+
+   # Create the dummy dataframe
+   y = np.arange(1_000_000)
+   x = pd.date_range(start="2020-01-01", periods=len(y), freq="1s")
+
+   # Create the plotly-resampler figure
+   fig = FigureResampler()
+   # fig.add_trace(go.Scatter(x=x, y=y))  # This is slow
+   fig.add_trace(go.Scatter(), hf_x=x, hf_y=y)  # This is fast
+
+   # ... (add more traces, etc.)
 
 
 .. raw:: html

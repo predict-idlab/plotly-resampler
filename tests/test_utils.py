@@ -86,6 +86,8 @@ def test_timedelta_to_str():
     assert round_td_str(pd.Timedelta("1128.9us")) == "1ms"
     assert round_td_str(pd.Timedelta("128.9us")) == "129us"
     assert round_td_str((pd.Timedelta("14ns"))) == "14ns"
+    # zero should return None
+    assert round_td_str((pd.Timedelta("0ns"))) is None
 
 
 def test_round_int_str():
@@ -115,3 +117,8 @@ def test_round_int_str():
     assert round_number_str(950_001_001_001) == "1T"
     assert round_number_str(1_950_001_001_001) == "2T"
     assert round_number_str(111_950_001_001_001) == "112T"
+    # zero should return None
+    assert round_number_str(0) is None
+    # negative case
+    assert round_number_str(-0.951) == "-1"
+    assert round_number_str(-0.95) == "-0.9"
