@@ -1,5 +1,5 @@
 import bisect
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
