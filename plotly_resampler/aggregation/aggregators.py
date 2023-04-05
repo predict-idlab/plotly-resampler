@@ -32,7 +32,14 @@ except (ImportError, ModuleNotFoundError):
 class LTTB(DataPointSelector):
     """Largest Triangle Three Buckets (LTTB) aggregation method.
 
+    This is arguably the most widely used aggregation method. It is based on the
+    effective area of a triangle (inspired from the line simplification domain).
+    The algorithm has $O(n)$ complexity, however, for large datasets, it can be much
+    slower than other algorithms (e.g. MinMax) due to the higher cost of calculating
+    the areas of triangles.
+
     Thesis: https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf
+    Details on visual representativeness & stability: https://arxiv.org/abs/2304.00900
 
     .. Tip::
         `LTTB` doesn't scale super-well when moving to really large datasets, so when
@@ -96,6 +103,9 @@ class MinMaxOverlapAggregator(DataPointSelector):
     As the windows have 50% overlap and are consecutive, the min & max values are
     calculated on a windows with size (2x bin-size).
 
+    This is *very* similar to the MinMaxAggregator, emperical results showed no
+    observable difference between both approaches.
+
     .. note::
         This method is rather efficient when scaling to large data sizes and can be used
         as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
@@ -154,6 +164,11 @@ class MinMaxOverlapAggregator(DataPointSelector):
 class MinMaxAggregator(DataPointSelector):
     """Aggregation method which performs binned min-max aggregation over fully
     overlapping windows.
+
+    This is arguably the most computational efficient downsampling method, as it only
+    performs (non-expendable) comparisons on the data in a single pass.
+
+    Details on visual representativeness & stability: https://arxiv.org/abs/2304.00900
 
     .. note::
         This method is rather efficient when scaling to large data sizes and can be used
@@ -219,10 +234,15 @@ class MinMaxAggregator(DataPointSelector):
 
 class MinMaxLTTB(DataPointSelector):
     """Efficient version off LTTB by first reducing really large datasets with
-    the :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>` and then further
-    aggregating the reduced result with :class:`LTTB <LTTB>`.
+    the :class:`MinMaxAggregator <MinMaxAggregator>` and then further aggregating the
+    reduced result with :class:`LTTB <LTTB>`.
 
-    Inventor: Jonas & Jeroen Van Der Donckt - 2022
+    Starting from 10M data points, this method performs the MinMax-prefetching of data
+    points to enhance computational efficiency.
+
+    Inventors: Jonas & Jeroen Van Der Donckt - 2022
+
+    Paper: pending
     """
 
     def __init__(self, interleave_gaps: bool = True):
@@ -236,7 +256,7 @@ class MinMaxLTTB(DataPointSelector):
 
         """
         self.lttb = LTTB(interleave_gaps=False)
-        self.minmax = MinMaxOverlapAggregator(interleave_gaps=False)
+        self.minmax = MinMaxAggregator(interleave_gaps=False)
         super().__init__(
             interleave_gaps,
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
@@ -298,6 +318,12 @@ class EveryNthPoint(DataPointSelector):
 class FuncAggregator(DataAggregator):
     """Aggregator instance which uses the passed aggregation func.
 
+    .. warning::
+        The user has total control which `aggregation_func` is passed to this method,
+        hence the user should be careful to not make copies of the data, nor write to
+        the data. Furthermore, the user should beware of performance issues when
+        using more complex aggregation functions.
+
     .. attention::
         The user has total control which `aggregation_func` is passed to this method,
         hence it is the users' responsibility to handle categorical and bool-based
@@ -337,6 +363,27 @@ class FuncAggregator(DataAggregator):
         n_out: int,
         **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
+        """Aggregate the data using the object's aggregation function.
+
+        Parameters
+        ----------
+        x: np.ndarray | None
+            The x-values of the data. Can be None if no x-values are available.
+        y: np.ndarray
+            The y-values of the data.
+        n_out: int
+            The number of output data points.
+        **kwargs
+            Additional keyword arguments, which are passed to the aggregation function.
+
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            The aggregated x & y values.
+            If `x` is None, then the indices of the first element of each bin is
+            returned as x-values.
+
+        """
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window
         # Note: this can be adjusted to .5 to center the data
@@ -364,8 +411,9 @@ class FuncAggregator(DataAggregator):
         if x is not None:
             x_agg = x[idxs[:-1]]
         else:
-            # groupsize * n_out can be larger than the length of the data
-            idxs[-1] -= 1
+            # x is None -> return the indices of the first element of each bin
+            # Note that groupsize * n_out can be larger than the length of the data
+            idxs[-1] = len(y) - 1
             x_agg = idxs
 
         return x_agg, y_agg
