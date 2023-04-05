@@ -38,7 +38,7 @@ python = "^3.7.1"
 jupyter-dash = ">=0.4.2"
 plotly = "^5.5.0"
 dash = "^2.2.0"
-pandas = "*"
+pandas = ">=1"
 trace-updater = ">=0.0.8"
 numpy = [
     { version = ">=1.14", python = "<3.11" },

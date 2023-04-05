@@ -212,7 +212,26 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _parse_trace_name(
         self, hf_trace_data: dict, slice_len: int, agg_x: np.ndarray
     ) -> str:
-        """Parse the trace name and return the in-place updated trace dict."""
+        """Parse the trace name.
+
+        Parameters
+        ----------
+        hf_trace_data : dict
+            The high-frequency trace data dict.
+        slice_len : int
+            The length of the slice.
+        agg_x : np.ndarray
+            The x-axis values of the aggregated trace.
+        
+        Returns
+        -------
+        str
+            The parsed trace name.
+            When no downsampling is needed, the original trace name is returned.
+            When downsampling is needed, the average bin size (expressed in x-units) is
+            added in orange color with a `~` to the trace name.
+
+        """
         if slice_len <= hf_trace_data["max_n_samples"]:  # When no downsampling needed
             return hf_trace_data["name"]
 
