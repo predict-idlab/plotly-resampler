@@ -333,7 +333,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 assert isinstance(
                     hf_trace_data["downsampler"], DataPointSelector
                 ), "Only DataPointSelector can downsample non-data trace array props."
-                print("k_val", k_val)
                 trace[k] = k_val[start_idx + indices]
             elif k_val is not None:
                 trace[k] = k_val
