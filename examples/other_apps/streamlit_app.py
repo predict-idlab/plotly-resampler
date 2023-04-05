@@ -9,9 +9,18 @@ The following thee steps are required;
 To run this example execute the following command:
 $ streamlit run streamlit_app.py
 
+Note: to have colored traces in the streamlit app, you should always include the
+following code: `import plotly.io as pio; pio.templates.default = "plotly"`
+
 """
 
 __author__ = "Jeroen Van Der Donckt"
+
+# Explicitely set pio.templates in order to have colored traces in the streamlit app!
+# -> https://discuss.streamlit.io/t/streamlit-overrides-colours-of-plotly-chart/34943/5
+import plotly.io as pio
+
+pio.templates.default = "plotly"
 
 # 0. Create a noisy sine wave
 import numpy as np
