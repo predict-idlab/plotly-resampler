@@ -198,7 +198,7 @@ def test_func_aggregator_categorical_time_data(cat_series):
     for n in np.random.randint(100, len(cat_series), 3):
         agg_x, agg_y = FuncAggregator(
             interleave_gaps=False, aggregation_func=cat_count
-        ).aggregate(cat_series.index.values, cat_series.values, n_out=n)
+        ).aggregate(cat_series.index.values, cat_series.values.codes, n_out=n)
         assert not np.isnan(agg_y).any()
         assert len(agg_x) <= n + 1
 
@@ -212,7 +212,7 @@ def test_func_aggregator_invalid_input_data(cat_series):
     with pytest.raises(TypeError):
         FuncAggregator(
             interleave_gaps=True, aggregation_func=treat_string_as_numeric_data
-        ).aggregate(cat_series.index.values, cat_series.values, n_out=n)
+        ).aggregate(cat_series.index.values, cat_series.to_numpy(), n_out=n)
 
 
 def test_funcAggregator_no_x():
