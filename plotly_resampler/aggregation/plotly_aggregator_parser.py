@@ -9,7 +9,9 @@ from .aggregation_interface import DataAggregator, DataPointSelector
 
 class PlotlyAggregatorParser:
     @staticmethod
-    def parse_hf_data(hf_data: np.ndarray | pd.Categorical | pd.Series | pd.Index):
+    def parse_hf_data(
+        hf_data: np.ndarray | pd.Categorical | pd.Series | pd.Index,
+    ) -> np.ndarray | pd.Categorical:
         """Parse the high-frequency data to a numpy array."""
         # Categorical data (pandas)
         #   - pd.Series with categorical dtype -> calling .values will returns a
