@@ -201,6 +201,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "data": [
                 {
                     k: copy(trace[k])
+                    # TODO: why not "text" as well? -> we can use _hf_data_container.fields then
                     for k in set(trace.keys()).difference({"x", "y", "hovertext"})
                 }
                 for trace in self._data
@@ -287,7 +288,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             return None
 
         # Parse trace data (necessary when updating the trace data)
-        for k in ["x", "y"]:
+        for k in _hf_data_container._fields:
             if hasattr(hf_trace_data[k], "values"):
                 # when not a range index or datetime index
                 if not isinstance(hf_trace_data[k], (pd.RangeIndex, pd.DatetimeIndex)):
@@ -332,6 +333,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 assert isinstance(
                     hf_trace_data["downsampler"], DataPointSelector
                 ), "Only DataPointSelector can downsample non-data trace array props."
+                print("k_val", k_val)
                 trace[k] = k_val[start_idx + indices]
             elif k_val is not None:
                 trace[k] = k_val
@@ -727,14 +729,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return {
             "max_n_samples": max_n_samples,
             "default_n_samples": default_n_samples,
-            "x": dc.x,
-            "y": dc.y,
             "name": trace.name,
             "axis_type": axis_type,
             "downsampler": downsampler,
             "default_downsampler": default_downsampler,
-            "text": dc.text,
-            "hovertext": dc.hovertext,
+            **dc._asdict(),
         }
 
     @staticmethod
@@ -1247,7 +1246,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
+        relevant_keys = list(_hf_data_container._fields) + [
+            "name"
+        ]  # TODO - marker color
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
