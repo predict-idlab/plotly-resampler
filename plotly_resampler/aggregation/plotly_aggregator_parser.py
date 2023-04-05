@@ -5,6 +5,7 @@ from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
+import pytz
 
 from .aggregation_interface import DataAggregator, DataPointSelector
 
@@ -27,7 +28,7 @@ class PlotlyAggregatorParser:
 
     @staticmethod
     def to_same_tz(
-        ts: Union[pd.Timestamp, None], reference_tz
+        ts: Union[pd.Timestamp, None], reference_tz: Union[pytz.BaseTzInfo, None]
     ) -> Union[pd.Timestamp, None]:
         """Adjust `ts` its timezone to the `reference_tz`."""
         if ts is None:
@@ -90,6 +91,9 @@ class PlotlyAggregatorParser:
             - y: the aggregated y-values
             - indices: the indices of the hf_data data that were aggregated
 
+            These indices are useful to select the corresponding hf_data from
+            non `x` and `y` data (e.g. `text`, `marker_size`, `marker_color`).
+
         """
         hf_x = hf_trace_data["x"][start_idx:end_idx]
         hf_y = hf_trace_data["y"][start_idx:end_idx]
@@ -103,6 +107,7 @@ class PlotlyAggregatorParser:
         hf_x_parsed = PlotlyAggregatorParser.parse_hf_data(hf_x)
         hf_y_parsed = PlotlyAggregatorParser.parse_hf_data(hf_y)
 
+        # TODO: move this aggregator-specific code to
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y_parsed
             if str(s_v.dtype) == "category":  # pd.Categorical (has no .values)
@@ -133,7 +138,10 @@ class PlotlyAggregatorParser:
             # The indices are just the range of the aggregated data
             indices = np.arange(len(agg_x))
         else:
-            raise ValueError("Invalid downsampler instance")
+            raise ValueError(
+                "Invalid downsampler instance, must be either a "
+                + f"DataAggregator or a DataPointSelector, got {type(downsampler)}"
+            )
 
         # TODO check for trace mode (markers, lines, etc.) and only perform the
         # gap insertion methodology when the mode is lines.
