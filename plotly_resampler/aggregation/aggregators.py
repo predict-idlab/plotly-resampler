@@ -291,6 +291,7 @@ class EveryNthPoint(DataPointSelector):
         **kwargs,
     ) -> np.ndarray:
         # TODO: check the "-1" below
+        # TODO: add equidistant version using searchsorted on a linspace
         return np.arange(step=max(1, math.ceil(len(y) / n_out)), stop=len(y) - 1)
 
 
@@ -346,14 +347,12 @@ class FuncAggregator(DataAggregator):
             group_size = max(1, np.ceil(len(y) / n_out))
             idxs = (np.arange(n_out) * group_size).astype(int)
         else:
-            x_ = x
-            if np.issubdtype(x.dtype, np.datetime64) or np.issubdtype(
-                x.dtype, np.timedelta64
-            ):
-                x_ = x_.view("int64")
+            xdt = x.dtype
+            if np.issubdtype(xdt, np.datetime64) or np.issubdtype(xdt, np.timedelta64):
+                x = x.view("int64")
             # Thanks to `linspace`, the data is evenly distributed over the index-range
             # The searchsorted function returns the index positions
-            idxs = np.searchsorted(x_, np.linspace(x_[0], x_[-1], n_out + 1))
+            idxs = np.searchsorted(x, np.linspace(x[0], x[-1], n_out + 1))
 
         y_agg = np.array(
             [
