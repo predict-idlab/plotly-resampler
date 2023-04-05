@@ -94,7 +94,7 @@ class PlotlyAggregatorParser:
 
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y
-            if isinstance(hf_y, pd.Series):
+            if hasattr(hf_y, "values"):
                 # TODO: this line should not be needed here as we perform the
                 # parsing in the `parse_hf_data` function
                 s_v = hf_y.values
@@ -146,7 +146,9 @@ class PlotlyAggregatorParser:
         # View the data as an int64 when we have a DatetimeIndex
         # We only want to detect gaps, so we only want to compare values.
         agg_x_view = agg_x
-        if isinstance(agg_x, (pd.DatetimeIndex, pd.TimedeltaIndex)):
+        if np.issubdtype(agg_x.dtype, np.timedelta64) or np.issubdtype(
+            agg_x.dtype, np.datetime64
+        ):
             agg_x_view = agg_x.view("int64")
 
         agg_y, indices = downsampler.insert_none_at_gaps(agg_x_view, agg_y, indices)

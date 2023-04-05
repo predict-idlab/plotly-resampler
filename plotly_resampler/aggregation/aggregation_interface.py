@@ -1,5 +1,7 @@
 """AbstractSeriesAggregator interface-class, subclassed by concrete aggregators."""
 
+from __future__ import annotations
+
 __author__ = "Jonas Van Der Donckt"
 
 import re
@@ -79,7 +81,7 @@ class AbstractAggregator(ABC):
         A gap is *currently* defined as a difference between two consecutive x values,
         that is larger than 4 times the median difference between two consecutive x
         values.
-        Note: this is a very naive approach, but it seems to work well.
+        Note: this is a naive approach, but it seems to work well.
 
         Parameters
         ----------
@@ -170,10 +172,11 @@ class AbstractAggregator(ABC):
         If only y is passed, x is set to None.
         """
         assert len(args) in [1, 2], "Must pass either 1 or 2 arrays"
-        if len(args) == 1:
-            # only y is passed
-            return None, args[0]
-        return args  # x, y
+        x, y = (None, args[0]) if len(args) == 1 else args
+        if hasattr(y, "values"):
+            y = y.values
+        # TODO -> what to do with the x index?
+        return x, y
 
     @staticmethod
     def _check_arr(arr: np.ndarray, regex_list: Optional[List[str]] = None):

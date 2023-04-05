@@ -7,10 +7,13 @@
 
 """
 
+from __future__ import annotations
+
 __author__ = "Jonas Van Der Donckt"
 
+
 import math
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 
@@ -333,7 +336,6 @@ class FuncAggregator(DataAggregator):
         n_out: int,
         **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
-
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window
         # Note: this can be adjusted to .5 to center the data
