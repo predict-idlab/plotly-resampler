@@ -293,6 +293,34 @@ Furthermore, datashader outputs a <strong>rasterized image/array</strong> encomp
 <br>
 <details>
 <summary>
+   <a><b>Pandas or numpy datetime works much slower than unix epoch timestamps?</b></a>
+</summary>
+<div style="margin-left:1em"><p>This stems from the plotly scatter(gl) constructor being much slower for non-numeric data. Plotly performs a different serialization for datetime arrays (which are interpreted as object arrays).
+However, plotly-resampler should not be limited by this - to avoid this issue, add your datetime data as <cite>hf_x</cite> to your plotly-resampler <code class="docutils literal notranslate"><span class="pre">FigureResampler.add_trace</span></code> (or <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler.add_trace</span></code>) method.
+This avoids adding (&amp; serializing) <em>all</em> the data to the scatter object, since  plotly-resampler will pass the aggregated data to the scatter object.</p>
+<p>Some illustration:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
+
+<span class="c1"># Create the dummy dataframe</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1_000_000</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="n">start</span><span class="o">=</span><span class="s2">&quot;2020-01-01&quot;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">freq</span><span class="o">=</span><span class="s2">&quot;1s&quot;</span><span class="p">)</span>
+
+<span class="c1"># Create the plotly-resampler figure</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">()</span>
+<span class="c1"># fig.add_trace(go.Scatter(x=x, y=y))  # This is slow</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Scatter</span><span class="p">(),</span> <span class="n">hf_x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">hf_y</span><span class="o">=</span><span class="n">y</span><span class="p">)</span>  <span class="c1"># This is fast</span>
+
+<span class="c1"># ... (add more traces, etc.)</span>
+</pre></div>
+</div>
+</div>
+</details>
+<br>
+<details>
+<summary>
    <a><b>I get errors such as:</b><br><ul><li>
       <code>RuntimeError: module compiled against API version 0x10 but this version of numpy is 0xe</code></li>
       <li><code>ImportError: numpy.core.multiarray failed to import</code></li>

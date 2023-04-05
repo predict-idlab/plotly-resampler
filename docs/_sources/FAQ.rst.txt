@@ -152,6 +152,42 @@ Furthermore combined with holoviews, datashader can also be employed in an inter
    <br>
    <details>
    <summary>
+      <a><b>Pandas or numpy datetime works much slower than unix epoch timestamps?</b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+This stems from the plotly scatter(gl) constructor being much slower for non-numeric data. Plotly performs a different serialization for datetime arrays (which are interpreted as object arrays).
+However, plotly-resampler should not be limited by this - to avoid this issue, add your datetime data as `hf_x` to your plotly-resampler ``FigureResampler.add_trace`` (or ``FigureWidgetResampler.add_trace``) method.
+This avoids adding (& serializing) *all* the data to the scatter object, since  plotly-resampler will pass the aggregated data to the scatter object.
+
+Some illustration:
+
+.. code:: python
+
+   import plotly.graph_objects as go
+   import pandas as pd
+   import numpy as np
+   from plotly_resampler import FigureResampler
+
+   # Create the dummy dataframe
+   y = np.arange(1_000_000)
+   x = pd.date_range(start="2020-01-01", periods=len(y), freq="1s")
+
+   # Create the plotly-resampler figure
+   fig = FigureResampler()
+   # fig.add_trace(go.Scatter(x=x, y=y))  # This is slow
+   fig.add_trace(go.Scatter(), hf_x=x, hf_y=y)  # This is fast
+
+   # ... (add more traces, etc.)
+
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
+   <details>
+   <summary>
       <a><b>I get errors such as:</b><br><ul><li>
          <code>RuntimeError: module compiled against API version 0x10 but this version of numpy is 0xe</code></li>  
          <li><code>ImportError: numpy.core.multiarray failed to import</code></li>
