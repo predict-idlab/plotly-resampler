@@ -158,7 +158,7 @@ Furthermore combined with holoviews, datashader can also be employed in an inter
 
 This stems from the plotly scatter(gl) constructor being much slower for non-numeric data. Plotly performs a different serialization for datetime arrays (which are interpreted as object arrays).
 However, plotly-resampler should not be limited by this - to avoid this issue, add your datetime data as `hf_x` to your plotly-resampler ``FigureResampler.add_trace`` (or ``FigureWidgetResampler.add_trace``) method.
-This avoids adding (& serializing) *all* the data to the scatter object. Now plotly-resampler will only add the necessary resampled data to the scatter object.
+This avoids adding (& serializing) *all* the data to the scatter object, since  plotly-resampler will pass the aggregated data to the scatter object.
 
 Some illustration:
 
