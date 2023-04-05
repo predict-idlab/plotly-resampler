@@ -286,17 +286,19 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             self._print("hf_data not found")
             return None
 
+        # Parse trace data (necessary when updating the trace data)
+        for k in ["x", "y"]:
+            if hasattr(hf_trace_data[k], "values"):
+                # when not a range index or datetime index
+                if not isinstance(hf_trace_data[k], (pd.RangeIndex, pd.DatetimeIndex)):
+                    hf_trace_data[k] = hf_trace_data[k].values
+
         # Also check if the y-data is empty, if so, return an empty trace
         if len(hf_trace_data["y"]) == 0:
             trace["x"] = []
             trace["y"] = []
             trace["name"] = hf_trace_data["name"]
             return trace
-
-        # We first check the traces to ensure that they are still arrays
-        PlotlyAggregatorParser.parse_hf_data(
-            hf_trace_data, ["x", "y", "text", "hovertext"]
-        )
 
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
             hf_trace_data, start, end

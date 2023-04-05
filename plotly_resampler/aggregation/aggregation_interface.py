@@ -173,9 +173,6 @@ class AbstractAggregator(ABC):
         """
         assert len(args) in [1, 2], "Must pass either 1 or 2 arrays"
         x, y = (None, args[0]) if len(args) == 1 else args
-        if hasattr(y, "values"):
-            y = y.values
-        # TODO -> what to do with the x index?
         return x, y
 
     @staticmethod

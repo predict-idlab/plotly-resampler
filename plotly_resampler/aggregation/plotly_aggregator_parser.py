@@ -9,13 +9,17 @@ from .aggregation_interface import DataAggregator, DataPointSelector
 
 class PlotlyAggregatorParser:
     @staticmethod
-    def parse_hf_data(hf_data_dict, hf_keys: List[str]):
-        # TODO: check overhead --> add this to a hf_data parsing function
-        for k in hf_keys:
-            # if k in hf_data_dict and hasattr(hf_data_dict[k], "values"):
-            if k in hf_data_dict and hasattr(hf_data_dict[k], "to_numpy"):
-                # if k in hf_data_dict and isinstance(hf_data_dict[k], (pd.Series)):
-                hf_data_dict[k] = hf_data_dict[k].to_numpy()
+    def parse_hf_data(hf_data: np.ndarray | pd.Categorical | pd.Series | pd.Index):
+        """Parse the high-frequency data to a numpy array."""
+        # Categorical data (pandas)
+        #   - pd.Series with categorical dtype -> calling .values will returns a
+        #       pd.Categorical
+        #   - pd.CategoricalIndex -> calling .values returns a pd.Categorical
+        #   - pd.Categorical: has no .values attribute -> will not be parsed
+        if isinstance(hf_data, (pd.Series, pd.Index)):
+            # TODO: range index
+            return hf_data.values
+        return hf_data
 
     @staticmethod
     def to_same_tz(
@@ -92,16 +96,15 @@ class PlotlyAggregatorParser:
 
         downsampler = hf_trace_data["downsampler"]
 
+        hf_x_parsed = PlotlyAggregatorParser.parse_hf_data(hf_x)
+        hf_y_parsed = PlotlyAggregatorParser.parse_hf_data(hf_y)
+
         if isinstance(downsampler, DataPointSelector):
-            s_v = hf_y
-            if hasattr(hf_y, "values"):
-                # TODO: this line should not be needed here as we perform the
-                # parsing in the `parse_hf_data` function
-                s_v = hf_y.values
-            if str(s_v.dtype) == "category":
+            s_v = hf_y_parsed
+            if str(s_v.dtype) == "category":  # pd.Categorical (has no .values)
                 s_v = s_v.codes
             indices = downsampler.arg_downsample(
-                hf_x,
+                hf_x_parsed,
                 s_v,
                 n_out=hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
@@ -118,8 +121,8 @@ class PlotlyAggregatorParser:
             agg_y = hf_y[indices]
         elif isinstance(downsampler, DataAggregator):
             agg_x, agg_y = downsampler.aggregate(
-                hf_x,
-                hf_y,
+                hf_x_parsed,
+                hf_y_parsed,
                 n_out=hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
@@ -145,13 +148,12 @@ class PlotlyAggregatorParser:
         # Interleave the gaps`
         # View the data as an int64 when we have a DatetimeIndex
         # We only want to detect gaps, so we only want to compare values.
-        agg_x_view = agg_x
-        if np.issubdtype(agg_x.dtype, np.timedelta64) or np.issubdtype(
-            agg_x.dtype, np.datetime64
-        ):
-            agg_x_view = agg_x.view("int64")
+        agg_x_parsed = PlotlyAggregatorParser.parse_hf_data(agg_x)
+        xdt = agg_x_parsed.dtype
+        if np.issubdtype(xdt, np.timedelta64) or np.issubdtype(xdt, np.datetime64):
+            agg_x_parsed = agg_x_parsed.view("int64")
 
-        agg_y, indices = downsampler.insert_none_at_gaps(agg_x_view, agg_y, indices)
+        agg_y, indices = downsampler.insert_none_at_gaps(agg_x_parsed, agg_y, indices)
         if isinstance(downsampler, DataPointSelector):
             agg_x = hf_x[indices]
         elif isinstance(downsampler, DataAggregator):
