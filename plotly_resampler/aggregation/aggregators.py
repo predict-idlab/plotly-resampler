@@ -92,8 +92,6 @@ class LTTB(DataPointSelector):
     ) -> np.ndarray:
         # Use the Core interface to perform the downsampling
         # return LTTB_core.downsample(x, y, n_out)
-        if x is None:
-            return LTTBDownsampler().downsample(y, n_out=n_out)
         return LTTBDownsampler().downsample(x, y, n_out=n_out)
 
 
@@ -202,8 +200,6 @@ class MinMaxAggregator(DataPointSelector):
         n_out: int,
         **kwargs,
     ) -> np.ndarray:
-        if x is None:
-            return MinMaxDownsampler().downsample(y, n_out=n_out)
         return MinMaxDownsampler().downsample(x, y, n_out=n_out)
 
 
@@ -246,14 +242,12 @@ class MinMaxLTTB(DataPointSelector):
         n_out: int,
         **kwargs,
     ) -> np.ndarray:
-        size_threshold = 10_000_000
+        # TODO -> investigate timings and alter the heuristic
+        # how do we factor in the `parallel` parameter?
         ratio_threshold = 100
         downsampler = LTTBDownsampler()
-        if y.shape[0] > size_threshold and y.shape[0] / n_out > ratio_threshold:
+        if y.shape[0] / n_out > ratio_threshold:
             downsampler = MinMaxLTTBDownsampler()
-
-        if x is None:
-            return downsampler.downsample(y, n_out=n_out)
         return downsampler.downsample(x, y, n_out=n_out)
 
 
