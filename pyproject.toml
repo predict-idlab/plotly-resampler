@@ -31,7 +31,6 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
 ]
-build = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"
@@ -97,11 +96,5 @@ force_grid_wrap = 0
 combine_as_imports = true
 
 [build-system]
-requires = [
-    "setuptools",
-    "poetry-core>=1.1.0a6",
-    "wheel",
-    # https://github.com/scipy/oldest-supported-numpy
-    "oldest-supported-numpy; python_version>='3.7'",
-]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

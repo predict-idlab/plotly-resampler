@@ -55,23 +55,7 @@ To install the requirements
 ```sh
 pip install poetry          # install poetry (if you do use the venv option)
 poetry install --all-extras # install all the dependencies
-poetry build                # build the underlying C code
 ```
-
-<details>
-   <summary>
-      <b>How to resolve the following error when running build.py:</b><br>
-      <code>Unable to build the "plotly_resampler.aggregation.algorithms.lttbc" C extension; will use the slower python fallback. <br>
-      command 'x86_64-linux-gnu-gcc' failed: No such file or directory
-      </code>
-   </summary>
-
-   To resolve this error we suggest to install some additional packages as no gcc (C compiler was found on your PC):
-   ```sh
-   sudo apt-get install build-essential libssl-dev libffi-dev python-dev
-   ```
-
-</details>
 
 ### Formatting the code
 
