@@ -16,7 +16,12 @@ import math
 from typing import Tuple
 
 import numpy as np
-from tsdownsample import LTTBDownsampler, MinMaxDownsampler, MinMaxLTTBDownsampler
+from tsdownsample import (
+    EveryNthDownsampler,
+    LTTBDownsampler,
+    MinMaxDownsampler,
+    MinMaxLTTBDownsampler,
+)
 
 from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
@@ -47,6 +52,7 @@ class LTTB(DataPointSelector):
         dealing with more than 1 million samples, you might consider using
         :class:`MinMaxLTTB <MinMaxLTTB>`.
 
+
     Note
     ----
     * This class is mainly designed to operate on numerical data as LTTB calculates
@@ -63,6 +69,7 @@ class LTTB(DataPointSelector):
         >>> s = pd.Series(["a", "b", "c", "a"])
         >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
         >>> s_cat = s.astype(cat_type)
+    * `LTTB` has no downsample kwargs, as it cannot be paralellized.
 
     """
 
@@ -82,18 +89,14 @@ class LTTB(DataPointSelector):
             + ["category", "bool"],
         )
         self.downsampler = LTTBDownsampler()
-        # TODO: when integrating with tsdownsample add x & y dtype regex list
 
     def _arg_downsample(
         self,
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
-        return self.downsampler.downsample(
-            *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
-        )
+        return self.downsampler.downsample(*_to_tsdownsample_args(x, y), n_out=n_out)
 
 
 class MinMaxOverlapAggregator(DataPointSelector):
@@ -110,9 +113,10 @@ class MinMaxOverlapAggregator(DataPointSelector):
     observable difference between both approaches.
 
     .. note::
-        This method is rather efficient when scaling to large data sizes and can be used
-        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does.
+        This method is implemented in Python (leveraging numpy for vecotrization), but
+        is **significantly slower than the MinMaxAggregator** (which is implemented in
+        the tsdownsample toolkit in Rust). |br|
+        As such, this class does not support any downsample kwargs.
 
     """
 
@@ -134,7 +138,6 @@ class MinMaxOverlapAggregator(DataPointSelector):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
         # to ensure that the block_size * n_out / 2 < len(x)
@@ -181,7 +184,7 @@ class MinMaxAggregator(DataPointSelector):
 
     """
 
-    def __init__(self, interleave_gaps: bool = True):
+    def __init__(self, interleave_gaps: bool = True, **downsample_kwargs):
         """
         Parameters
         ----------
@@ -189,10 +192,13 @@ class MinMaxAggregator(DataPointSelector):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        **downsample_kwargs
+            Keyword arguments passed to the :class:`MinMaxDownsampler`.
+            - The `parallel` argument is set to False by default.
 
         """
         # this downsampler supports all dtypes
-        super().__init__(interleave_gaps)
+        super().__init__(interleave_gaps, **downsample_kwargs)
         self.downsampler = MinMaxDownsampler()
 
     def _arg_downsample(
@@ -200,10 +206,9 @@ class MinMaxAggregator(DataPointSelector):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
         return self.downsampler.downsample(
-            *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
+            *_to_tsdownsample_args(x, y), n_out=n_out, **self.downsample_kwargs
         )
 
 
@@ -220,7 +225,7 @@ class MinMaxLTTB(DataPointSelector):
     Paper: pending
     """
 
-    def __init__(self, interleave_gaps: bool = True):
+    def __init__(self, interleave_gaps: bool = True, **downsample_kwargs):
         """
         Parameters
         ----------
@@ -228,6 +233,11 @@ class MinMaxLTTB(DataPointSelector):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        **downsample_kwargs
+            Keyword arguments passed to the :class:`MinMaxLTTBDownsampler`.
+            - The `parallel` argument is set to False by default.
+            - The `minmax_ratio` argument is set to 30 by default, whic was empirically
+              proven to be a good default.
 
         """
         self.lttb = LTTB(interleave_gaps=False)
@@ -236,6 +246,7 @@ class MinMaxLTTB(DataPointSelector):
             interleave_gaps,
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
+            **downsample_kwargs,
         )
         # TODO: when integrating with tsdownsample add x & y dtype regex list
         self.lttb_downsampler = LTTBDownsampler()
@@ -246,14 +257,16 @@ class MinMaxLTTB(DataPointSelector):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
-        # TODO -> investigate timings and alter the heuristic
-        # how do we factor in the `parallel` parameter?
         ratio_threshold = 100
-        downsampler = self.lttb_downsampler
-        if y.shape[0] / n_out > ratio_threshold:
-            downsampler = self.minmaxlttb_downsampler
+
+        downsampler = self.minmaxlttb_downsampler
+        kwargs = self.downsample_kwargs.copy()
+
+        # when n to n_out ratio is below the threshold, use the LTTB downsampler
+        if y.shape[0] / n_out < ratio_threshold:
+            downsampler = self.lttb_downsampler
+            kwargs.pop("minmax_ratio", None)
         return downsampler.downsample(
             *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
         )
@@ -280,11 +293,8 @@ class EveryNthPoint(DataPointSelector):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
-        # TODO: check the "-1" below
-        # TODO: add equidistant version using searchsorted on a linspace
-        return np.arange(step=max(1, math.ceil(len(y) / n_out)), stop=len(y) - 1)
+        return EveryNthDownsampler().downsample(y, n_out=n_out)
 
 
 class FuncAggregator(DataAggregator):
@@ -309,6 +319,7 @@ class FuncAggregator(DataAggregator):
         interleave_gaps: bool = True,
         x_dtype_regex_list=None,
         y_dtype_regex_list=None,
+        **downsample_kwargs,
     ):
         """
         Parameters
@@ -326,6 +337,7 @@ class FuncAggregator(DataAggregator):
             interleave_gaps,
             x_dtype_regex_list=x_dtype_regex_list,
             y_dtype_regex_list=y_dtype_regex_list,
+            **downsample_kwargs,
         )
 
     def _aggregate(
@@ -333,7 +345,6 @@ class FuncAggregator(DataAggregator):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Aggregate the data using the object's aggregation function.
 
@@ -375,7 +386,7 @@ class FuncAggregator(DataAggregator):
 
         y_agg = np.array(
             [
-                self.aggregation_func(y[t0:t1], **kwargs)
+                self.aggregation_func(y[t0:t1], **self.downsample_kwargs)
                 for t0, t1 in zip(idxs[:-1], idxs[1:])
             ]
         )
