@@ -20,14 +20,14 @@ from tsdownsample import LTTBDownsampler, MinMaxDownsampler, MinMaxLTTBDownsampl
 
 from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
-try:
-    # The efficient c version of the LTTB algorithm
-    from .algorithms.lttb_c import LTTB_core_c as LTTB_core
-except (ImportError, ModuleNotFoundError):
-    import warnings
 
-    warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
-    from .algorithms.lttb_py import LTTB_core_py as LTTB_core
+def _to_tsdownsample_args(
+    x: np.ndarray | None, y: np.ndarray
+) -> Tuple[np.ndarray, ...]:
+    """Converts x & y to the arguments expected by tsdownsample."""
+    if x is None:
+        return (y,)
+    return (x, y)
 
 
 class LTTB(DataPointSelector):
@@ -81,6 +81,7 @@ class LTTB(DataPointSelector):
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
+        self.downsampler = LTTBDownsampler()
         # TODO: when integrating with tsdownsample add x & y dtype regex list
 
     def _arg_downsample(
@@ -88,11 +89,11 @@ class LTTB(DataPointSelector):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **_,
+        **kwargs,
     ) -> np.ndarray:
-        # Use the Core interface to perform the downsampling
-        # return LTTB_core.downsample(x, y, n_out)
-        return LTTBDownsampler().downsample(x, y, n_out=n_out)
+        return self.downsampler.downsample(
+            *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
+        )
 
 
 class MinMaxOverlapAggregator(DataPointSelector):
@@ -192,6 +193,7 @@ class MinMaxAggregator(DataPointSelector):
         """
         # this downsampler supports all dtypes
         super().__init__(interleave_gaps)
+        self.downsampler = MinMaxDownsampler()
 
     def _arg_downsample(
         self,
@@ -200,7 +202,9 @@ class MinMaxAggregator(DataPointSelector):
         n_out: int,
         **kwargs,
     ) -> np.ndarray:
-        return MinMaxDownsampler().downsample(x, y, n_out=n_out)
+        return self.downsampler.downsample(
+            *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
+        )
 
 
 class MinMaxLTTB(DataPointSelector):
@@ -234,6 +238,8 @@ class MinMaxLTTB(DataPointSelector):
             + ["category", "bool"],
         )
         # TODO: when integrating with tsdownsample add x & y dtype regex list
+        self.lttb_downsampler = LTTBDownsampler()
+        self.minmaxlttb_downsampler = MinMaxLTTBDownsampler()
 
     def _arg_downsample(
         self,
@@ -245,10 +251,12 @@ class MinMaxLTTB(DataPointSelector):
         # TODO -> investigate timings and alter the heuristic
         # how do we factor in the `parallel` parameter?
         ratio_threshold = 100
-        downsampler = LTTBDownsampler()
+        downsampler = self.lttb_downsampler
         if y.shape[0] / n_out > ratio_threshold:
-            downsampler = MinMaxLTTBDownsampler()
-        return downsampler.downsample(x, y, n_out=n_out)
+            downsampler = self.minmaxlttb_downsampler
+        return downsampler.downsample(
+            *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
+        )
 
 
 class EveryNthPoint(DataPointSelector):
