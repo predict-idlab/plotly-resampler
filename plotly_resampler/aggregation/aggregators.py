@@ -16,6 +16,7 @@ import math
 from typing import Tuple
 
 import numpy as np
+from tsdownsample import LTTBDownsampler, MinMaxDownsampler, MinMaxLTTBDownsampler
 
 from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
@@ -90,7 +91,10 @@ class LTTB(DataPointSelector):
         **_,
     ) -> np.ndarray:
         # Use the Core interface to perform the downsampling
-        return LTTB_core.downsample(x, y, n_out)
+        # return LTTB_core.downsample(x, y, n_out)
+        if x is None:
+            return LTTBDownsampler().downsample(y, n_out=n_out)
+        return LTTBDownsampler().downsample(x, y, n_out=n_out)
 
 
 class MinMaxOverlapAggregator(DataPointSelector):
@@ -198,38 +202,9 @@ class MinMaxAggregator(DataPointSelector):
         n_out: int,
         **kwargs,
     ) -> np.ndarray:
-        # The block size 2x the bin size we also perform the ceil-operation
-        # to ensure that the block_size * n_out / 2 < len(x)
-        block_size = math.ceil(y.shape[0] / n_out * 2)
-
-        # Calculate the offset range which will be added to the argmin and argmax pos
-        offset = np.arange(0, stop=y.shape[0] - block_size, step=block_size)
-
-        # Calculate the argmin & argmax on the reshaped view of `s` &
-        # add the corresponding offset
-        argmin = (
-            y[: block_size * offset.shape[0]].reshape(-1, block_size).argmin(axis=1)
-            + offset
-        )
-        argmax = (
-            y[: block_size * offset.shape[0]].reshape(-1, block_size).argmax(axis=1)
-            + offset
-        )
-
-        # Note: the implementation below flips the array to search from
-        # right-to left (as min or max will always use the first same minimum item,
-        # i.e. the most left item)
-        # This however creates a large computational overhead -> we do not use this
-        # implementation and suggest using the minmaxaggregator.
-        # argmax = (
-        #     (block_size - 1)
-        #     - np.fliplr(
-        #         s[: block_size * offset.shape[0]].values.reshape(-1, block_size)
-        #     ).argmax(axis=1)
-        # ) + offset
-
-        # Sort the argmin & argmax (where we append the first and last index item)
-        return np.unique(np.concatenate((argmin, argmax, [0, y.shape[0] - 1])))
+        if x is None:
+            return MinMaxDownsampler().downsample(y, n_out=n_out)
+        return MinMaxDownsampler().downsample(x, y, n_out=n_out)
 
 
 class MinMaxLTTB(DataPointSelector):
@@ -273,18 +248,13 @@ class MinMaxLTTB(DataPointSelector):
     ) -> np.ndarray:
         size_threshold = 10_000_000
         ratio_threshold = 100
-
-        # TODO -> test this with a move of the .so file
-        if LTTB_core.__name__ == "LTTB_core_py":
-            size_threshold = 1_000_000
-
+        downsampler = LTTBDownsampler()
         if y.shape[0] > size_threshold and y.shape[0] / n_out > ratio_threshold:
-            # TODO: add argument for 30 when the paper is published
-            idxs = self.minmax._arg_downsample(x, y, n_out * 30)
-            y = y[idxs]
-            if x is not None:
-                x = x[idxs]
-        return self.lttb._arg_downsample(x, y, n_out)
+            downsampler = MinMaxLTTBDownsampler()
+
+        if x is None:
+            return downsampler.downsample(y, n_out=n_out)
+        return downsampler.downsample(x, y, n_out=n_out)
 
 
 class EveryNthPoint(DataPointSelector):

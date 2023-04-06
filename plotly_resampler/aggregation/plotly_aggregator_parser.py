@@ -21,6 +21,8 @@ class PlotlyAggregatorParser:
         #       pd.Categorical
         #   - pd.CategoricalIndex -> calling .values returns a pd.Categorical
         #   - pd.Categorical: has no .values attribute -> will not be parsed
+        if isinstance(hf_data, pd.RangeIndex):
+            return None
         if isinstance(hf_data, (pd.Series, pd.Index)):
             # TODO: range index
             return hf_data.values
@@ -110,7 +112,7 @@ class PlotlyAggregatorParser:
         # TODO: move this aggregator-specific code to
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y_parsed
-            if str(s_v.dtype) == "category":  # pd.Categorical (has no .values)
+            if isinstance(s_v, pd.Categorical):  # pd.Categorical (has no .values)
                 s_v = s_v.codes
             indices = downsampler.arg_downsample(
                 hf_x_parsed,

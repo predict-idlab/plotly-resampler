@@ -34,6 +34,8 @@ from .utils import construct_index, wrap_aggregate
 @pytest.mark.parametrize("interleave_gaps", [True, False])
 def test_arg_downsample_no_x(series, downsampler, interleave_gaps):
     for n in np.random.randint(100, len(series), 6):
+        # make sure n is even (required for MinMax downsampler)
+        n = n - (n % 2)
         indices = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
             series.values, n_out=n
         )
@@ -57,6 +59,8 @@ def test_arg_downsample_x(series, downsampler, interleave_gaps, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
     for n in np.random.randint(100, len(series), 6):
+        # make sure n is even (required for MinMax downsampler)
+        n = n - (n % 2)
         indices = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
             series.index.values, series.values, n_out=n
         )
@@ -108,6 +112,8 @@ def test_wrap_aggregate(downsampler, series, interleave_gaps, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
     for n in np.random.randint(100, len(series), 6):
+        # make sure n is even (required for MinMax downsampler)
+        n = n - (n % 2)
         x_agg, y_agg, indices = wrap_aggregate(
             hf_x=series.index,
             hf_y=series.values,
