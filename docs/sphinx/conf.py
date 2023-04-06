@@ -65,8 +65,10 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 todo_include_todos = True
 
-autoclass_content = "both"
+# autoclass_content = "both"
 autodoc_typehints = "description"
+# Don't show class signature with the class' name.
+autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"
 autosummary_generate = True
 

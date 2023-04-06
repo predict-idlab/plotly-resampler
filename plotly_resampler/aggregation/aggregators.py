@@ -179,7 +179,7 @@ class MinMaxAggregator(DataPointSelector):
     .. note::
         This method is rather efficient when scaling to large data sizes and can be used
         as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the
+        algorithm, as :class:`MinMaxLTTB <MinMaxLTTB>` does with the
         :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>`.
 
     """
