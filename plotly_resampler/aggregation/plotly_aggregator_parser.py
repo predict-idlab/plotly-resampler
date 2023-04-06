@@ -63,7 +63,9 @@ class PlotlyAggregatorParser:
         if isinstance(hf_trace_data["x"], pd.RangeIndex):
             x_start = hf_trace_data["x"].start
             x_step = hf_trace_data["x"].step
-            return max((start - x_start) // x_step, 0), (end - x_start) // x_step
+            start_idx = int(max((start - x_start) // x_step, 0))
+            end_idx = int((end - x_start) // x_step)
+            return start_idx, end_idx
         # NOTE: this can be performed as-well for a fixed frequency range-index w/ freq
 
         if hf_trace_data["axis_type"] == "date":
