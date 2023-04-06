@@ -159,8 +159,7 @@ Paper (preprint): https://arxiv.org/abs/2206.08703
 
 - [x] Support `.add_traces()` (currently only `.add_trace` is supported)
 - [ ] Support `hf_color` and `hf_markersize`, see [#148](https://github.com/predict-idlab/plotly-resampler/pull/148)
-- [x] Create C bindings for our EfficientLTTB algorithm.
-- [ ] Integrate with [tsdownsample](https://github.com/predict-idlab/tsdownsample) :racehorse:
+- [x] Integrate with [tsdownsample](https://github.com/predict-idlab/tsdownsample) :racehorse:
 
 <br>
 
