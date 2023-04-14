@@ -31,7 +31,6 @@ classifiers = [
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
 ]
-build = "build.py"
 
 [tool.poetry.dependencies]
 python = "^3.7.1"
@@ -49,6 +48,7 @@ orjson = "^3.8.0"  # Faster json serialization
 Flask-Cors = { version = "^3.0.10", optional = true }
 # Lock kaleido dependency until https://github.com/plotly/Kaleido/issues/156 is resolved
 kaleido = {version = "0.2.1", optional = true}
+tsdownsample = "0.1.2a1"
 
 [tool.poetry.extras]
 # Optional dependencies
@@ -63,7 +63,7 @@ webdriver-manager = "^3.5.2"
 selenium-wire = "^5.0"
 pyarrow = "^10.0"
 Sphinx = "^4.4.0"
-pydata-sphinx-theme = "^0.9.0"
+pydata-sphinx-theme = "^0.13.3"
 sphinx-autodoc-typehints = "^1.17.0"
 ipywidgets = "^7.7.1"
 memory-profiler = "^0.60.0"
@@ -96,11 +96,5 @@ force_grid_wrap = 0
 combine_as_imports = true
 
 [build-system]
-requires = [
-    "setuptools",
-    "poetry-core>=1.1.0a6",
-    "wheel",
-    # https://github.com/scipy/oldest-supported-numpy
-    "oldest-supported-numpy; python_version>='3.7'",
-]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

@@ -21,6 +21,8 @@ class PlotlyAggregatorParser:
         #       pd.Categorical
         #   - pd.CategoricalIndex -> calling .values returns a pd.Categorical
         #   - pd.Categorical: has no .values attribute -> will not be parsed
+        if isinstance(hf_data, pd.RangeIndex):
+            return None
         if isinstance(hf_data, (pd.Series, pd.Index)):
             # TODO: range index
             return hf_data.values
@@ -61,7 +63,9 @@ class PlotlyAggregatorParser:
         if isinstance(hf_trace_data["x"], pd.RangeIndex):
             x_start = hf_trace_data["x"].start
             x_step = hf_trace_data["x"].step
-            return max((start - x_start) // x_step, 0), (end - x_start) // x_step
+            start_idx = int(max((start - x_start) // x_step, 0))
+            end_idx = int((end - x_start) // x_step)
+            return start_idx, end_idx
         # NOTE: this can be performed as-well for a fixed frequency range-index w/ freq
 
         if hf_trace_data["axis_type"] == "date":
@@ -110,7 +114,7 @@ class PlotlyAggregatorParser:
         # TODO: move this aggregator-specific code to
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y_parsed
-            if str(s_v.dtype) == "category":  # pd.Categorical (has no .values)
+            if isinstance(s_v, pd.Categorical):  # pd.Categorical (has no .values)
                 s_v = s_v.codes
             indices = downsampler.arg_downsample(
                 hf_x_parsed,

@@ -17,6 +17,7 @@ class AbstractAggregator(ABC):
         interleave_gaps: bool = True,
         x_dtype_regex_list: Optional[List[str]] = None,
         y_dtype_regex_list: Optional[List[str]] = None,
+        **downsample_kwargs,
     ):
         """Constructor of AbstractSeriesAggregator.
 
@@ -32,11 +33,14 @@ class AbstractAggregator(ABC):
         y_dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes for the y array,
             by default None.
+        downsample_kwargs: dict
+            Additional kwargs passed to the downsample method.
 
         """
         self.interleave_gaps = interleave_gaps
         self.x_dtype_regex_list = x_dtype_regex_list
         self.y_dtype_regex_list = y_dtype_regex_list
+        self.downsample_kwargs = downsample_kwargs
 
     @staticmethod
     def _calc_med_diff(x_agg: np.ndarray) -> Tuple[float, np.ndarray]:
@@ -225,7 +229,6 @@ class DataAggregator(AbstractAggregator, ABC):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
         raise NotImplementedError
 
@@ -233,7 +236,6 @@ class DataAggregator(AbstractAggregator, ABC):
         self,
         *args,
         n_out: int,
-        **kwargs,
     ) -> Tuple[np.ndarray, np.ndarray]:
         """Aggregate the data.
 
@@ -249,8 +251,6 @@ class DataAggregator(AbstractAggregator, ABC):
         n_out: int
             The number of samples which the downsampled series should contain.
             This should be passed as a keyword argument.
-        kwargs : dict
-            Additional keyword arguments that are passed to the `_aggregate` method.
 
         Returns
         -------
@@ -267,7 +267,7 @@ class DataAggregator(AbstractAggregator, ABC):
         # Check x and y
         self._check_x_y(x, y)
 
-        return self._aggregate(x=x, y=y, n_out=n_out, **kwargs)
+        return self._aggregate(x=x, y=y, n_out=n_out)
 
 
 class DataPointSelector(AbstractAggregator, ABC):
@@ -287,15 +287,14 @@ class DataPointSelector(AbstractAggregator, ABC):
         x: np.ndarray | None,
         y: np.ndarray,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
+        # Note: this method can utilize the self.downsample_kwargs property
         raise NotImplementedError
 
     def arg_downsample(
         self,
         *args,
         n_out: int,
-        **kwargs,
     ) -> np.ndarray:
         """Compute the index positions for the downsampled representation.
 
@@ -311,8 +310,6 @@ class DataPointSelector(AbstractAggregator, ABC):
         n_out: int
             The number of samples which the downsampled series should contain.
             This should be passed as a keyword argument.
-        kwargs : dict
-            Additional keyword arguments that are passed to the `_arg_downsample` method.
 
         Returns
         -------
@@ -334,4 +331,4 @@ class DataPointSelector(AbstractAggregator, ABC):
             return np.arange(len(y))
 
         # More samples that n_out -> perform data aggregation (with x=None)
-        return self._arg_downsample(x=x, y=y, n_out=n_out, **kwargs)
+        return self._arg_downsample(x=x, y=y, n_out=n_out)

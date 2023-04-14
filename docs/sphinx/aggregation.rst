@@ -21,3 +21,15 @@ Aggregator classes
     :members:
     :undoc-members:
     :show-inheritance:
+
+----------
+
+^^^^^^^^^^^^^^^^^^
+Aggregator parsing
+^^^^^^^^^^^^^^^^^^
+
+.. automodule:: plotly_resampler.aggregation.plotly_aggregator_parser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
