@@ -48,7 +48,7 @@ orjson = "^3.8.0"  # Faster json serialization
 Flask-Cors = { version = "^3.0.10", optional = true }
 # Lock kaleido dependency until https://github.com/plotly/Kaleido/issues/156 is resolved
 kaleido = {version = "0.2.1", optional = true}
-tsdownsample = "^0.1.1"
+tsdownsample = "0.1.2a1"
 
 [tool.poetry.extras]
 # Optional dependencies

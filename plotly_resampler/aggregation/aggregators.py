@@ -225,7 +225,9 @@ class MinMaxLTTB(DataPointSelector):
     Paper: pending
     """
 
-    def __init__(self, interleave_gaps: bool = True, **downsample_kwargs):
+    def __init__(
+        self, interleave_gaps: bool = True, minmax_ratio: int = 4, **downsample_kwargs
+    ):
         """
         Parameters
         ----------
@@ -233,6 +235,9 @@ class MinMaxLTTB(DataPointSelector):
             Whether None values should be added when there are gaps / irregularly
             sampled data. A quantile-based approach is used to determine the gaps /
             irregularly sampled data. By default, True.
+        minmax_ratio: int, optional
+            The ratio between the number of data points in the MinMax-prefetching and
+            the number of data points that will be outputted by LTTB. By default, 4.
         **downsample_kwargs
             Keyword arguments passed to the :class:`MinMaxLTTBDownsampler`.
             - The `parallel` argument is set to False by default.
@@ -240,17 +245,16 @@ class MinMaxLTTB(DataPointSelector):
               proven to be a good default.
 
         """
-        self.lttb = LTTB(interleave_gaps=False)
-        self.minmax = MinMaxAggregator(interleave_gaps=False)
+        self.lttb = LTTBDownsampler()
+        self.minmaxlttb = MinMaxLTTBDownsampler()
+        self.minmax_ratio = minmax_ratio
+
         super().__init__(
             interleave_gaps,
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
             **downsample_kwargs,
         )
-        # TODO: when integrating with tsdownsample add x & y dtype regex list
-        self.lttb_downsampler = LTTBDownsampler()
-        self.minmaxlttb_downsampler = MinMaxLTTBDownsampler()
 
     def _arg_downsample(
         self,
@@ -258,17 +262,16 @@ class MinMaxLTTB(DataPointSelector):
         y: np.ndarray,
         n_out: int,
     ) -> np.ndarray:
-        ratio_threshold = 100
-
-        downsampler = self.minmaxlttb_downsampler
-        kwargs = self.downsample_kwargs.copy()
-
         # when n to n_out ratio is below the threshold, use the LTTB downsampler
-        if y.shape[0] / n_out < ratio_threshold:
-            downsampler = self.lttb_downsampler
-            kwargs.pop("minmax_ratio", None)
-        return downsampler.downsample(
-            *_to_tsdownsample_args(x, y), n_out=n_out, **kwargs
+        if y.shape[0] / n_out < (20 * self.minmax_ratio):
+            return self.lttb.downsample(
+                *_to_tsdownsample_args(x, y), n_out=n_out, **self.downsample_kwargs
+            )
+        return self.minmaxlttb.downsample(
+            *_to_tsdownsample_args(x, y),
+            n_out=n_out,
+            minmax_ratio=self.minmax_ratio,
+            **self.downsample_kwargs,
         )
 
 
