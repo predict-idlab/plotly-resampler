@@ -44,7 +44,7 @@ class LTTB(DataPointSelector):
     slower than other algorithms (e.g. MinMax) due to the higher cost of calculating
     the areas of triangles.
 
-    Thesis: https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf
+    Thesis: https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf |br|
     Details on visual representativeness & stability: https://arxiv.org/abs/2304.00900
 
     .. Tip::
@@ -69,7 +69,9 @@ class LTTB(DataPointSelector):
         >>> s = pd.Series(["a", "b", "c", "a"])
         >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
         >>> s_cat = s.astype(cat_type)
-    * `LTTB` has no downsample kwargs, as it cannot be paralellized.
+    * `LTTB` has no downsample kwargs, as it cannot be paralellized. Instead, you can
+      use the :class:`MinMaxLTTB <MinMaxLTTB>` downsampler, which performs
+      minmax preselection (in parallel if configured so), followed by LTTB.
 
     """
 

@@ -65,6 +65,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 todo_include_todos = True
 
+# Commented out because it shows typehints in the signature.
 # autoclass_content = "both"
 autodoc_typehints = "description"
 # Don't show class signature with the class' name.
