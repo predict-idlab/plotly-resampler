@@ -237,8 +237,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             An instance which implements the AbstractAggregator interface and
             will be used as default downsampler, by default ``MinMaxLTTB`` with
             _interleave_gaps_ set to True. ``MinMaxLTTB`` is a heuristic to the LTTB
-            algorithm that uses pre-fecthing of min-max values (default 30 per bin) to
-            speed up LTTB (as now only 30 values per bin should be compared).\n
+            algorithm that uses pre-selection of min-max values (default 4 per bin) to
+            speed up LTTB (as now only 4 values per bin should be compared). This
+            min-max ratio of 4 can be changed by initializing ``MinMaxLTTB`` with a
+            different value for the ``minmax_ratio`` parameter. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which

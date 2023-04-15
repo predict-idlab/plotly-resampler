@@ -660,7 +660,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
                 except ValueError:
-                    # TODO: would be great if we could omit pandas here
                     hf_y = pd.Series(data=hf_y, copy=False, dtype="category").values
 
             assert len(hf_x) == len(hf_y), "x and y have different length!"
@@ -1261,9 +1260,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = list(_hf_data_container._fields) + [
-            "name"
-        ]  # TODO - marker color
+        relevant_keys = list(_hf_data_container._fields) + ["name"]
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
@@ -1301,7 +1298,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _is_no_update(update_data: Union[List[dict], dash.no_update]) -> bool:
         return update_data is dash.no_update
 
-    # --------------- Magic methods (to use plotly.py words :grin:) -----------------
+    # ------------------------------- Magic methods ---------------------------------
 
     def _get_pr_props_keys(self) -> List[str]:
         """Returns the keys (i.e., the names) of the plotly-resampler properties.
