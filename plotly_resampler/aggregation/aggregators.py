@@ -174,7 +174,7 @@ class MinMaxAggregator(DataPointSelector):
     overlapping windows.
 
     This is arguably the most computational efficient downsampling method, as it only
-    performs (non-expendable) comparisons on the data in a single pass.
+    performs (non-expensive) comparisons on the data in a single pass.
 
     Details on visual representativeness & stability: https://arxiv.org/abs/2304.00900
 
