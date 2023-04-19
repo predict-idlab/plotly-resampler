@@ -378,9 +378,8 @@ class FuncAggregator(DataAggregator):
         # Multiply it with the group size to get the real index-position
         # TODO: add option to select start / middle / end as index
         if x is None:
-            # no time index -> use the every nth heuristic
-            group_size = max(1, np.ceil(len(y) / n_out))
-            idxs = (np.arange(n_out) * group_size).astype(int)
+            # equidistant index
+            idxs = np.linspace(0, len(y), n_out + 1).astype(int)
         else:
             xdt = x.dtype
             if np.issubdtype(xdt, np.datetime64) or np.issubdtype(xdt, np.timedelta64):
@@ -400,8 +399,6 @@ class FuncAggregator(DataAggregator):
             x_agg = x[idxs[:-1]]
         else:
             # x is None -> return the indices of the first element of each bin
-            # Note that groupsize * n_out can be larger than the length of the data
-            idxs[-1] = len(y) - 1
-            x_agg = idxs
+            x_agg = idxs[:-1]
 
         return x_agg, y_agg

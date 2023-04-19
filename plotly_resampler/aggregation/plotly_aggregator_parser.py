@@ -120,8 +120,9 @@ class PlotlyAggregatorParser:
                 n_out=hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
-            # we avoid slicing the default pd.RangeIndex
             if isinstance(hf_trace_data["x"], pd.RangeIndex):
+                # we avoid slicing the default pd.RangeIndex (as this is not an
+                # in-memory array) - this proves to be faster than slicing the index.
                 agg_x = (
                     start_idx
                     + hf_trace_data["x"].start
@@ -137,6 +138,14 @@ class PlotlyAggregatorParser:
                 n_out=hf_trace_data["max_n_samples"],
                 **hf_trace_data.get("downsampler_kwargs", {}),
             )
+            if isinstance(hf_trace_data["x"], pd.RangeIndex):
+                # we avoid slicing the default pd.RangeIndex (as this is not an
+                # in-memory array) - this proves to be faster than slicing the index.
+                agg_x = (
+                    start_idx
+                    + hf_trace_data["x"].start
+                    + agg_x * hf_trace_data["x"].step
+                )
             # The indices are just the range of the aggregated data
             indices = np.arange(len(agg_x))
         else:

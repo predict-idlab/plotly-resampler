@@ -52,7 +52,9 @@ def test_arg_downsample_no_x(series, downsampler, interleave_gaps):
 )
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
 @pytest.mark.parametrize("interleave_gaps", [True, False])
-@pytest.mark.parametrize("index_type", ["datetime", "timedelta", "float", "int"])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
 def test_arg_downsample_x(series, downsampler, interleave_gaps, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
@@ -71,7 +73,9 @@ def test_arg_downsample_x(series, downsampler, interleave_gaps, index_type):
 )
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
 @pytest.mark.parametrize("interleave_gaps", [True, False])
-@pytest.mark.parametrize("index_type", ["datetime", "timedelta", "float", "int"])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
 def test_arg_downsample_empty_series(downsampler, series, interleave_gaps, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
@@ -105,7 +109,9 @@ def test_arg_downsample_no_x_empty_series(downsampler, series, interleave_gaps):
     [lf("float_series"), lf("cat_series"), lf("bool_series")],
 )
 @pytest.mark.parametrize("interleave_gaps", [True, False])
-@pytest.mark.parametrize("index_type", ["datetime", "timedelta", "float", "int"])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
 def test_wrap_aggregate(downsampler, series, interleave_gaps, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
@@ -129,7 +135,9 @@ def test_wrap_aggregate(downsampler, series, interleave_gaps, index_type):
 )
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
 @pytest.mark.parametrize("interleave_gaps", [True, False])
-@pytest.mark.parametrize("index_type", ["datetime", "timedelta", "float", "int"])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
 def test_wrap_aggregate_empty_series(downsampler, series, interleave_gaps, index_type):
     empty_series = series.copy()
     empty_series.index = construct_index(empty_series, index_type)
@@ -169,11 +177,32 @@ def test_wrap_aggregate_x_gaps(downsampler, series):
     assert pd.Series(y_agg).isna().sum() == 3
 
 
+@pytest.mark.parametrize(
+    "downsampler", [EveryNthPoint, LTTB, MinMaxLTTB, MinMaxOverlapAggregator]
+)
+@pytest.mark.parametrize(
+    "series", [lf("float_series"), lf("bool_series"), lf("cat_series")]
+)
+def test_wrap_aggregate_range_index_data_point_selection(downsampler, series):
+    series = series.copy()
+    series.index = pd.RangeIndex(start=-20_000, stop=-20_000 + len(series))
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        hf_y=series.values,
+        downsampler=downsampler(),
+        n_out=100,
+    )
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert x_agg[0] == -20_000
+
+
 # # ------------------------------- DataAggregator -------------------------------
 @pytest.mark.parametrize("agg_func", [np.mean])  # np.median, sum])
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
 @pytest.mark.parametrize("interleave_gaps", [False, True])
-@pytest.mark.parametrize("index_type", ["datetime", "timedelta", "float", "int"])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
 def test_func_aggregator_float_time_data(series, interleave_gaps, index_type, agg_func):
     # TIME indexed data -> resampled output should be same size as n_out
     series = series.copy()
@@ -227,6 +256,26 @@ def test_funcAggregator_no_x():
     fa = FuncAggregator(np.mean, interleave_gaps=False)
     for n_out in np.random.randint(500, 1_000, size=3):
         fa.aggregate(y, n_out=n_out)
+
+
+@pytest.mark.parametrize(
+    "series",
+    [
+        lf("float_series"),
+        lf("bool_series"),
+    ],  # , lf("cat_series")] # TODO: not supported yet
+)
+def test_wrap_aggregate_range_index_func_aggregator(series):
+    series = series.copy()
+    series.index = pd.RangeIndex(start=-20_000, stop=-20_000 + len(series))
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        hf_y=series.values,
+        downsampler=FuncAggregator(np.median),
+        n_out=100,
+    )
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert x_agg[0] == -20_000
 
 
 # ------------------------------- MinMaxLTTB -------------------------------

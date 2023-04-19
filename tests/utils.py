@@ -57,8 +57,10 @@ def construct_index(series: pd.Series, index_type: str) -> pd.Index:
     series: pd.Series
         The series to construct an index for
     index_type: str
-        One of "datetime", "timedelta", "float", or "int"
+        One of "range", "datetime", "timedelta", "float", or "int"
     """
+    if index_type == "range":
+        return pd.RangeIndex(len(series))
     if index_type == "datetime":
         return pd.date_range("1/1/2020", periods=len(series), freq="1ms")
     if index_type == "timedelta":
