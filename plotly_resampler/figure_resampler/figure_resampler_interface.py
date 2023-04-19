@@ -1046,7 +1046,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Convert the data properties
         if isinstance(max_n_samples, (int, np.integer)) or max_n_samples is None:
             max_n_samples = [max_n_samples] * len(data)
-        if isinstance(downsamplers, DataPointSelector) or downsamplers is None:
+        if isinstance(downsamplers, AbstractAggregator) or downsamplers is None:
             downsamplers = [downsamplers] * len(data)
         if isinstance(limit_to_views, bool):
             limit_to_views = [limit_to_views] * len(data)
