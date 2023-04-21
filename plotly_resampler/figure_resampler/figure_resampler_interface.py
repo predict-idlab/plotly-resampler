@@ -308,10 +308,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # Parse trace data (necessary when updating the trace data)
         for k in _hf_data_container._fields:
+            if isinstance(
+                hf_trace_data[k], (np.ndarray, pd.RangeIndex, pd.DatetimeIndex)
+            ):
+                # is faster to escape the loop here than check inside the hasattr if
+                continue
             if hasattr(hf_trace_data[k], "values"):
                 # when not a range index or datetime index
-                if not isinstance(hf_trace_data[k], (pd.RangeIndex, pd.DatetimeIndex)):
-                    hf_trace_data[k] = hf_trace_data[k].values
+                hf_trace_data[k] = hf_trace_data[k].values
 
         # Also check if the y-data is empty, if so, return an empty trace
         if len(hf_trace_data["y"]) == 0:
