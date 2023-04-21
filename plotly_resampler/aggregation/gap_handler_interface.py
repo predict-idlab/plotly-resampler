@@ -1,3 +1,9 @@
+"""AbstractGapHandler interface-class, subclassed by concrete gap handlers."""
+
+from __future__ import annotations
+
+__author__ = "Jeroen Van Der Donckt"
+
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple
 

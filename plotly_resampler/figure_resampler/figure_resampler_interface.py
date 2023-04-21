@@ -25,9 +25,9 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure, BaseTraceType
 
-from ..aggregation import AbstractAggregator, MinMaxLTTB
+from ..aggregation import AbstractAggregator, MedDiffGapHandler, MinMaxLTTB
 from ..aggregation.aggregation_interface import DataPointSelector
-from ..aggregation.gap_handler import AbstractGapHandler, MedDiffGapHandler
+from ..aggregation.gap_handler_interface import AbstractGapHandler
 from ..aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 from .utils import round_number_str, round_td_str
 

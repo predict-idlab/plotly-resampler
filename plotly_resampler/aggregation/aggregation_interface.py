@@ -1,4 +1,4 @@
-"""AbstractSeriesAggregator interface-class, subclassed by concrete aggregators."""
+"""AbstractAggregator interface-class, subclassed by concrete aggregators."""
 
 from __future__ import annotations
 

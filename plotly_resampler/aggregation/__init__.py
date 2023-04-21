@@ -16,7 +16,8 @@ from .aggregators import (
     MinMaxLTTB,
     MinMaxOverlapAggregator,
 )
-from .gap_handler import AbstractGapHandler, MedDiffGapHandler, NoGapHandler
+from .gap_handler_interface import AbstractGapHandler
+from .gap_handlers import MedDiffGapHandler, NoGapHandler
 from .plotly_aggregator_parser import PlotlyAggregatorParser
 
 __all__ = [

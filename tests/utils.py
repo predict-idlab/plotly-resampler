@@ -5,15 +5,12 @@ import sys
 import numpy as np
 import pandas as pd
 
-from plotly_resampler.aggregation import MinMaxLTTB
+from plotly_resampler.aggregation import MedDiffGapHandler, MinMaxLTTB
 from plotly_resampler.aggregation.aggregation_interface import (
     DataAggregator,
     DataPointSelector,
 )
-from plotly_resampler.aggregation.gap_handler import (
-    AbstractGapHandler,
-    MedDiffGapHandler,
-)
+from plotly_resampler.aggregation.gap_handler_interface import AbstractGapHandler
 from plotly_resampler.aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 
 
