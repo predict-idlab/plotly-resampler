@@ -27,6 +27,7 @@ from plotly.basedatatypes import BaseFigure, BaseTraceType
 
 from ..aggregation import AbstractAggregator, MinMaxLTTB
 from ..aggregation.aggregation_interface import DataPointSelector
+from ..aggregation.gap_handler import AbstractGapHandler, MedDiffGapHandler
 from ..aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 from .utils import round_number_str, round_td_str
 
@@ -44,6 +45,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -76,6 +78,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             will be used as default downsampler, by default ``EfficientLTTB`` with
             _interleave_gaps_ set to True. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
+        default_gap_handler: GapHandler
+            An instance which implements the AbstractGapHandler interface and will be
+            used as default gap handler, by default ``MedDiffGapHandler``. \n
+            .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its legend-name when a resampled version of the
@@ -103,6 +109,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         self._prefix, self._suffix = resampled_trace_prefix_suffix
 
         self._global_downsampler = default_downsampler
+        self._global_gap_handler = default_gap_handler
 
         # Given figure should always be a BaseFigure that is not wrapped by
         # a plotly-resampler class
@@ -690,6 +697,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         dc: _hf_data_container,
         trace: BaseTraceType,
         downsampler: AbstractAggregator | None,
+        gap_handler: AbstractGapHandler | None,
         max_n_samples: int | None,
         offset=0,
     ) -> dict:
@@ -703,6 +711,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The trace.
         downsampler : AbstractAggregator | None
             The downsampler which will be used.
+        gap_handler : AbstractGapHandler | None
+            The gap handler which will be used.
         max_n_samples : int | None
             The max number of output samples.
 
@@ -744,6 +754,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             default_downsampler = True
             downsampler = self._global_downsampler
 
+        default_gap_handler = False
+        if gap_handler is None:
+            default_gap_handler = True
+            gap_handler = self._global_gap_handler
+
         # TODO -> can't we just store the DC here (might be less duplication of
         #  code knowledge, because now, you need to know all the eligible hf_keys in
         #  dc
@@ -754,6 +769,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "axis_type": axis_type,
             "downsampler": downsampler,
             "default_downsampler": default_downsampler,
+            "gap_handler": gap_handler,
+            "default_gap_handler": default_gap_handler,
             **dc._asdict(),
         }
 
@@ -778,6 +795,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         trace: Union[BaseTraceType, dict],
         max_n_samples: int = None,
         downsampler: AbstractAggregator = None,
+        gap_handler: AbstractGapHandler = None,
         limit_to_view: bool = False,
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
@@ -811,6 +829,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The abstract series downsampler method.\n
             .. note::
                 If this variable is not set, ``_global_downsampler`` will be used.
+        gap_handler: AbstractGapHandler, optional
+            The abstract series gap handler method.\n
+            .. note::
+                If this variable is not set, ``_global_gap_handler`` will be used.
         limit_to_view: boolean, optional
             If set to True, the trace's datapoints will be cut to the corresponding
             front-end view, even if the total number of samples is lower than
@@ -925,6 +947,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     dc,
                     trace=trace,
                     downsampler=downsampler,
+                    gap_handler=gap_handler,
                     max_n_samples=max_n_samples,
                 )
 
@@ -963,6 +986,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         data: List[BaseTraceType | dict] | BaseTraceType | Dict,
         max_n_samples: None | List[int] | int = None,
         downsamplers: None | List[AbstractAggregator] | AbstractAggregator = None,
+        gap_handlers: None | List[AbstractAggregator] | AbstractAggregator = None,
         limit_to_views: List[bool] | bool = False,
         check_nans: List[bool] | bool = True,
         **traces_kwargs,
@@ -998,6 +1022,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The downsampler that will be used to aggregate the traces. If a single
             aggregator is passed, all traces will use this aggregator.
             If this variable is not set, ``_global_downsampler`` will be used.
+        gap_handlers : None | List[AbstractAggregator] | AbstractAggregator, optional
+            The gap handler that will be used to aggregate the traces. If a single
+            gap handler is passed, all traces will use this gap handler.
+            If this variable is not set, ``_global_gap_handler`` will be used.
         limit_to_views : None | List[bool] | bool, optional
             List of limit_to_view booleans for the added traces. If set to True the
             trace's datapoints will be cut to the corresponding front-end view, even if
@@ -1052,13 +1080,29 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             max_n_samples = [max_n_samples] * len(data)
         if isinstance(downsamplers, AbstractAggregator) or downsamplers is None:
             downsamplers = [downsamplers] * len(data)
+        if isinstance(gap_handlers, AbstractGapHandler) or gap_handlers is None:
+            gap_handlers = [gap_handlers] * len(data)
         if isinstance(limit_to_views, bool):
             limit_to_views = [limit_to_views] * len(data)
         if isinstance(check_nans, bool):
             check_nans = [check_nans] * len(data)
 
-        for i, (trace, max_out, downsampler, limit_to_view, check_nan) in enumerate(
-            zip(data, max_n_samples, downsamplers, limit_to_views, check_nans)
+        for i, (
+            trace,
+            max_out,
+            downsampler,
+            gap_handler,
+            limit_to_view,
+            check_nan,
+        ) in enumerate(
+            zip(
+                data,
+                max_n_samples,
+                downsamplers,
+                gap_handlers,
+                limit_to_views,
+                check_nans,
+            )
         ):
             if (
                 trace.type.lower() not in self._high_frequency_traces
@@ -1075,6 +1119,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 dc,
                 trace=trace,
                 downsampler=downsampler,
+                gap_handler=gap_handler,
                 max_n_samples=max_out,
                 offset=i,
             )
@@ -1126,6 +1171,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             for hf_props in hf_data_cp.values():
                 if hf_props.get("default_downsampler", False):
                     hf_props["downsampler"] = self._global_downsampler
+                if hf_props.get("default_gap_handler", False):
+                    hf_props["gap_handler"] = self._global_gap_handler
                 if hf_props.get("default_n_samples", False):
                     hf_props["max_n_samples"] = self._global_n_shown_samples
 

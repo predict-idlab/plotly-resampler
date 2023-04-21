@@ -106,6 +106,7 @@ class PlotlyAggregatorParser:
             return hf_x, hf_y, np.arange(len(hf_y))
 
         downsampler = hf_trace_data["downsampler"]
+        gap_handler = hf_trace_data["gap_handler"]
 
         hf_x_parsed = PlotlyAggregatorParser.parse_hf_data(hf_x)
         hf_y_parsed = PlotlyAggregatorParser.parse_hf_data(hf_y)
@@ -176,7 +177,7 @@ class PlotlyAggregatorParser:
         if np.issubdtype(xdt, np.timedelta64) or np.issubdtype(xdt, np.datetime64):
             agg_x_parsed = agg_x_parsed.view("int64")
 
-        agg_y, indices = downsampler.insert_none_at_gaps(agg_x_parsed, agg_y, indices)
+        agg_y, indices = gap_handler.insert_none_at_gaps(agg_x_parsed, agg_y, indices)
         if isinstance(downsampler, DataPointSelector):
             agg_x = hf_x[indices]
         elif isinstance(downsampler, DataAggregator):

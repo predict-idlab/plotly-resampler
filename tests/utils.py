@@ -10,6 +10,10 @@ from plotly_resampler.aggregation.aggregation_interface import (
     DataAggregator,
     DataPointSelector,
 )
+from plotly_resampler.aggregation.gap_handler import (
+    AbstractGapHandler,
+    MedDiffGapHandler,
+)
 from plotly_resampler.aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 
 
@@ -28,6 +32,7 @@ def construct_hf_data_dict(hf_x, hf_y, **kwargs):
         "y": hf_y,
         "axis_type": "date" if isinstance(hf_x, pd.DatetimeIndex) else "linear",
         "downsampler": MinMaxLTTB(),
+        "gap_handler": MedDiffGapHandler(),
         "max_n_samples": 1_000,
     }
     hf_data_dict.update(kwargs)
@@ -38,6 +43,7 @@ def wrap_aggregate(
     hf_x: np.ndarray | None = None,
     hf_y: pd.Series | np.ndarray = None,
     downsampler: DataPointSelector | DataAggregator = None,
+    gap_handler: AbstractGapHandler = None,
     n_out: int = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     hf_trace_data = construct_hf_data_dict(
@@ -45,6 +51,7 @@ def wrap_aggregate(
             "hf_x": hf_x,
             "hf_y": hf_y,
             "downsampler": downsampler,
+            "gap_handler": gap_handler,
             "max_n_samples": n_out,
         }
     )
