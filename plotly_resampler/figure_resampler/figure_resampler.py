@@ -251,8 +251,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         default_gap_handler: AbstractGapHandler, optional
             An instance which implements the AbstractGapHandler interface and
             will be used as default gap handler, by default ``MedDiffGapHandler``.
-            ``MedDiffGapHandler`` will determine gaps by first calculating the median 
-            aggregated x difference and then thresholding the aggregated x delta on a 
+            ``MedDiffGapHandler`` will determine gaps by first calculating the median
+            aggregated x difference and then thresholding the aggregated x delta on a
             multiple of this median difference.  \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
