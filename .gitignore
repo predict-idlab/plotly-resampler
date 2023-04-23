@@ -156,3 +156,12 @@ cython_debug/
 # sphinx-docs
 sphinx/_build
 sphinx/_autosummary
+
+#provisional testing stuff
+logs/
+selectionbox_layout_data
+14_coarse_fine*
+001_interactive*
+callback_utils.js
+21_rangeslider.py
+tests/log_processing.ipynb
