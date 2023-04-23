@@ -22,7 +22,12 @@ from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
-from ..aggregation import AbstractAggregator, MinMaxLTTB
+from ..aggregation import (
+    AbstractAggregator,
+    AbstractGapHandler,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+)
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
 
@@ -205,6 +210,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -241,6 +247,13 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             speed up LTTB (as now only 4 values per bin should be compared). This
             min-max ratio of 4 can be changed by initializing ``MinMaxLTTB`` with a
             different value for the ``minmax_ratio`` parameter. \n
+            .. note:: This can be overridden within the :func:`add_trace` method.
+        default_gap_handler: AbstractGapHandler, optional
+            An instance which implements the AbstractGapHandler interface and
+            will be used as default gap handler, by default ``MedDiffGapHandler``.
+            ``MedDiffGapHandler`` will determine gaps by first calculating the median 
+            aggregated x difference and then thresholding the aggregated x delta on a 
+            multiple of this median difference.  \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
@@ -315,6 +328,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
+            default_gap_handler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
             convert_traces_kwargs,

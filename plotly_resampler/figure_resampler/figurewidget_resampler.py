@@ -15,7 +15,12 @@ from typing import Tuple
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
 
-from ..aggregation import AbstractAggregator, MinMaxLTTB
+from ..aggregation import (
+    AbstractAggregator,
+    AbstractGapHandler,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+)
 from .figure_resampler_interface import AbstractFigureAggregator
 
 
@@ -44,6 +49,7 @@ class FigureWidgetResampler(
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
         default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -92,6 +98,7 @@ class FigureWidgetResampler(
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
+            default_gap_handler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
             convert_traces_kwargs,

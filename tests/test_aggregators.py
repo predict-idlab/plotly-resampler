@@ -7,9 +7,11 @@ from plotly_resampler.aggregation import (
     LTTB,
     EveryNthPoint,
     FuncAggregator,
+    MedDiffGapHandler,
     MinMaxAggregator,
     MinMaxLTTB,
     MinMaxOverlapAggregator,
+    NoGapHandler,
 )
 
 from .utils import construct_index, wrap_aggregate
@@ -104,6 +106,7 @@ def test_arg_downsample_no_x_empty_series(downsampler, series, interleave_gaps):
     "downsampler",
     [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
 )
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
 @pytest.mark.parametrize(
     "series",
     [lf("float_series"), lf("cat_series"), lf("bool_series")],
@@ -112,7 +115,7 @@ def test_arg_downsample_no_x_empty_series(downsampler, series, interleave_gaps):
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_wrap_aggregate(downsampler, series, interleave_gaps, index_type):
+def test_wrap_aggregate(downsampler, gap_handler, series, interleave_gaps, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
     for n in np.random.randint(100, len(series), 6):
@@ -122,6 +125,7 @@ def test_wrap_aggregate(downsampler, series, interleave_gaps, index_type):
             hf_x=series.index,
             hf_y=series.values,
             downsampler=downsampler(interleave_gaps=interleave_gaps),
+            gap_handler=gap_handler(),
             n_out=n,
         )
         assert not pd.Series(y_agg).isna().any()
@@ -133,12 +137,15 @@ def test_wrap_aggregate(downsampler, series, interleave_gaps, index_type):
     "downsampler",
     [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
 )
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
 @pytest.mark.parametrize("interleave_gaps", [True, False])
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_wrap_aggregate_empty_series(downsampler, series, interleave_gaps, index_type):
+def test_wrap_aggregate_empty_series(
+    downsampler, gap_handler, series, interleave_gaps, index_type
+):
     empty_series = series.copy()
     empty_series.index = construct_index(empty_series, index_type)
     empty_series = empty_series.iloc[0:0]
@@ -146,6 +153,7 @@ def test_wrap_aggregate_empty_series(downsampler, series, interleave_gaps, index
         hf_x=empty_series.index,
         hf_y=empty_series.values,
         downsampler=downsampler(interleave_gaps=interleave_gaps),
+        gap_handler=gap_handler(),
         n_out=1000,
     )
     assert len(x_agg) == len(y_agg) == len(indices) == 0
@@ -171,6 +179,7 @@ def test_wrap_aggregate_x_gaps(downsampler, series):
         hf_x=series.index,
         hf_y=series.values,
         downsampler=downsampler(interleave_gaps=True),
+        gap_handler=MedDiffGapHandler(),
         n_out=100,
     )
     assert len(x_agg) == len(y_agg) == len(indices)
@@ -180,16 +189,20 @@ def test_wrap_aggregate_x_gaps(downsampler, series):
 @pytest.mark.parametrize(
     "downsampler", [EveryNthPoint, LTTB, MinMaxLTTB, MinMaxOverlapAggregator]
 )
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
 @pytest.mark.parametrize(
     "series", [lf("float_series"), lf("bool_series"), lf("cat_series")]
 )
-def test_wrap_aggregate_range_index_data_point_selection(downsampler, series):
+def test_wrap_aggregate_range_index_data_point_selection(
+    downsampler, gap_handler, series
+):
     series = series.copy()
     series.index = pd.RangeIndex(start=-20_000, stop=-20_000 + len(series))
     x_agg, y_agg, indices = wrap_aggregate(
         hf_x=series.index,
         hf_y=series.values,
         downsampler=downsampler(),
+        gap_handler=gap_handler(),
         n_out=100,
     )
     assert len(x_agg) == len(y_agg) == len(indices)
@@ -214,6 +227,7 @@ def test_func_aggregator_float_time_data(series, interleave_gaps, index_type, ag
             downsampler=FuncAggregator(
                 interleave_gaps=interleave_gaps, aggregation_func=agg_func
             ),
+            gap_handler=NoGapHandler(),
             n_out=100,
         )
         assert not pd.Series(y_agg).isna().any()
