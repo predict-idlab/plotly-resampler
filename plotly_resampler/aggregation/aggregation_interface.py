@@ -209,5 +209,5 @@ class DataPointSelector(AbstractAggregator, ABC):
             # Fewer samples than n_out -> return all indices
             return np.arange(len(y))
 
-        # More samples that n_out -> perform data aggregation (with x=None)
+        # More samples that n_out -> perform data aggregation
         return self._arg_downsample(x=x, y=y, n_out=n_out)
