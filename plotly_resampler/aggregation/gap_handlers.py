@@ -1,11 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Compatible implementation for various gap handling methods.
-
-.. |br| raw:: html
-
-   <br>
-
-"""
+"""Compatible implementation for various gap handling methods."""
 
 from __future__ import annotations
 
@@ -56,7 +50,7 @@ class MedDiffGapHandler(AbstractGapHandler):
             # convert the index series index diff into a reshaped view (i.e., sid_v)
             sid_v: np.ndarray = x_diff[: blck_size * n_blocks].reshape(n_blocks, -1)
 
-            # calculate the min and max and calculate the median on that
+            # calculate the mean fore each block and then the median of those means
             med_diff = np.median(np.mean(sid_v, axis=1))
         else:
             med_diff = np.median(x_diff)
