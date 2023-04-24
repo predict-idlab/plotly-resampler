@@ -243,11 +243,10 @@ class MinMaxLTTB(DataPointSelector):
         **downsample_kwargs
             Keyword arguments passed to the :class:`MinMaxLTTBDownsampler`.
             - The `parallel` argument is set to False by default.
-            - The `minmax_ratio` argument is set to 30 by default, whic was empirically
+            - The `minmax_ratio` argument is set to 4 by default, whic was empirically
               proven to be a good default.
 
         """
-        self.lttb = LTTBDownsampler()
         self.minmaxlttb = MinMaxLTTBDownsampler()
         self.minmax_ratio = minmax_ratio
 
@@ -264,11 +263,6 @@ class MinMaxLTTB(DataPointSelector):
         y: np.ndarray,
         n_out: int,
     ) -> np.ndarray:
-        # when n to n_out ratio is below the threshold, use the LTTB downsampler
-        if y.shape[0] / n_out < (20 * self.minmax_ratio):
-            return self.lttb.downsample(
-                *_to_tsdownsample_args(x, y), n_out=n_out, **self.downsample_kwargs
-            )
         return self.minmaxlttb.downsample(
             *_to_tsdownsample_args(x, y),
             n_out=n_out,
