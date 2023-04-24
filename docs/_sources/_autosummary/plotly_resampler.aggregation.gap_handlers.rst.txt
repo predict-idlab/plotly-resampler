@@ -1,0 +1,30 @@
+plotly\_resampler.aggregation.gap\_handlers
+===========================================
+
+.. automodule:: plotly_resampler.aggregation.gap_handlers
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      MedDiffGapHandler
+      NoGapHandler
+   
+   
+
+   
+   
+   
+
+
+

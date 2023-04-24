@@ -17,7 +17,9 @@ plotly\_resampler.aggregation.aggregation\_interface
 
    .. autosummary::
    
-      AbstractSeriesAggregator
+      AbstractAggregator
+      DataAggregator
+      DataPointSelector
    
    
 

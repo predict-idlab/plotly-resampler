@@ -17,11 +17,11 @@ plotly\_resampler.aggregation.aggregators
 
    .. autosummary::
    
-      EfficientLTTB
       EveryNthPoint
       FuncAggregator
       LTTB
       MinMaxAggregator
+      MinMaxLTTB
       MinMaxOverlapAggregator
    
    

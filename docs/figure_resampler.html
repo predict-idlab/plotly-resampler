@@ -1,214 +1,418 @@
 
+
 <!DOCTYPE html>
 
-<html lang="en">
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
     <title>AbstractFigureAggregator &#8212; plotly-resampler &#34;0.8.3.2&#34; documentation</title>
-<script>
-  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
-</script>
-
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
-<link href="_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+  <link href="_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
-
-  <link rel="stylesheet"
-    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+  <link rel="preload" as="script" href="_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = 'figure_resampler';</script>
     <link rel="shortcut icon" href="_static/icon.png"/>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="docsearch:language" content="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
   
   
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
-    <div class="bd-header-announcement container-fluid" id="banner">
-      
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
-    </div>
-
-    
-    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
-
-  <div id="navbar-start">
-    
-    
   
-
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
 
 <a class="navbar-brand logo" href="index.html">
   
   
   
   
-    <img src="_static/logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="_static/logo.png" class="logo__image only-dark" alt="Logo image">
+    
+    
+      
+    
+    
+    <img src="_static/logo.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="_static/logo.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
   
   
-</a>
+</a></div>
     
   </div>
-
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="fas fa-bars"></span>
-  </button>
-
   
-  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
-    <div id="navbar-center" class="mr-auto">
-      
-      <div class="navbar-center-item">
-        <ul id="navbar-main-elements" class="navbar-nav">
-    <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="getting_started.html">
-  Get started 🚀
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="dash_app_integration.html">
-  Dash apps 🤝
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="api_reference.html">
-  API 📖
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="FAQ.html">
-  FAQ ❓
- </a>
-</li>
-
+  
+  <div class="col-lg-9 navbar-header-items">
     
-</ul>
-      </div>
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="getting_started.html">
+                        Get started 🚀
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="dash_app_integration.html">
+                        Dash apps 🤝
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api_reference.html">
+                        API 📖
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="FAQ.html">
+                        FAQ ❓
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
       
     </div>
-
-    <div id="navbar-end">
+    
+    
+    <div class="navbar-header-items__end">
       
-      <div class="navbar-end-item">
-        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
-    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
-    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
-    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
-</span>
-      </div>
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
       
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
         <li class="nav-item">
-          <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/predict-idlab/plotly-resampler" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
-      </ul>
-      </div>
+</ul></div>
       
-      <div class="navbar-end-item">
-        <form class="bd-search d-flex align-items-center" action="search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form>
-      </div>
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
       
     </div>
+    
   </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+    <label class="sidebar-toggle secondary-toggle" for="__secondary">
+      <span class="fa-solid fa-outdent"></span>
+    </label>
+  
 </div>
+
     </nav>
-    
-
-    <div class="bd-container container-xl">
-      <div class="bd-container__inner row">
-          
-
-<div class="sidebar-primary col-12 col-md-1 col-xl-2 bd-sidebar no-sidebar"></div>
-
-
-          
-
-
-<div class="bd-sidebar-secondary d-none d-md-block col-md-2 bd-toc">
   
-    
-    <div class="toc-item">
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
       
-<div class="tocsection onthispage mt-5 pt-1 pb-3">
-    <i class="fas fa-list"></i> On this page
-</div>
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
 
-<nav id="bd-toc-nav">
-    <ul class="visible nav section-nav flex-column">
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#">
-   AbstractFigureAggregator
-  </a>
- </li>
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#figureresampler">
-   FigureResampler
-  </a>
- </li>
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#figurewidgetresampler">
-   FigureWidgetResampler
-  </a>
- </li>
- <li class="toc-h1 nav-item toc-entry">
-  <a class="reference internal nav-link" href="#module-plotly_resampler.figure_resampler.utils">
-   utility functions
-  </a>
- </li>
-</ul>
-
-</nav>
-    </div>
-    
-    <div class="toc-item">
-      
-    </div>
-    
   
-</div>
-
-
-          
-          
-          <div class="bd-content col-12 col-md-9 col-xl-8">
-              
-              <article class="bd-article" role="main">
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="getting_started.html">
+                        Get started 🚀
+                      </a>
+                    </li>
                 
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="dash_app_integration.html">
+                        Dash apps 🤝
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="api_reference.html">
+                        API 📖
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="FAQ.html">
+                        FAQ ❓
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/predict-idlab/plotly-resampler" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    <li class="breadcrumb-item active" aria-current="page">AbstractFigureAggregator</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
   <section id="abstractfigureaggregator">
 <h1>AbstractFigureAggregator<a class="headerlink" href="#abstractfigureaggregator" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractFigureAggregator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractFigureAggregator</span></span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.basedatatypes.BaseFigure</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <p>Abstract interface for data aggregation functionality for plotly figures.</p>
-<p>Instantiate a resampling data mirror.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.MinMaxLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_gap_handler=&lt;plotly_resampler.aggregation.gap_handlers.MedDiffGapHandler</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Instantiate a resampling data mirror.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -229,7 +433,7 @@ the data will <em>not</em> be aggregated.</p></li>
 </ul>
 </div>
 </p></li>
-<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
+<li><p><strong>default_downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
 will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
 _interleave_gaps_ set to True.</p>
 <div class="admonition note">
@@ -237,9 +441,16 @@ _interleave_gaps_ set to True.</p>
 <p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
 </div>
 </p></li>
+<li><p><strong>default_gap_handler</strong> (<em>GapHandler</em>) – <p>An instance which implements the AbstractGapHandler interface and will be
+used as default gap handler, by default <code class="docutils literal notranslate"><span class="pre">MedDiffGapHandler</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
+</div>
+</p></li>
 <li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
 will be added to the trace its legend-name when a resampled version of the
-trace is shown. By default a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
+trace is shown. By default, a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
 (no suffix is shown).</p></li>
 <li><p><strong>show_mean_aggregation_size</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the mean aggregation bin size will be added as a suffix to the trace
 its legend-name, by default True.</p></li>
@@ -255,6 +466,8 @@ will be used to convert the existing traces.</p>
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
 <dl class="py property">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.hf_data">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hf_data</span></span><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.hf_data" title="Permalink to this definition">#</a></dt>
@@ -264,9 +477,11 @@ will be used to convert the existing traces.</p>
 <p>The user has full responsibility to adjust <code class="docutils literal notranslate"><span class="pre">hf_data</span></code> properly.</p>
 </div>
 <p class="rubric">Example</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">())</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">plotly_resampler</span> <span class="kn">import</span> <span class="n">FigureResampler</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span> <span class="o">=</span> <span class="n">FigureResampler</span><span class="p">(</span><span class="n">go</span><span class="o">.</span><span class="n">Figure</span><span class="p">())</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">add_trace</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">hf_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">s</span> <span class="o">**</span> <span class="mi">2</span>  <span class="c1"># adjust the y-property of the trace added above</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># Adjust the y property of the above added trace</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">hf_data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span> <span class="n">s</span> <span class="o">**</span> <span class="mi">2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">fig</span><span class="o">.</span><span class="n">hf_data</span>
 <span class="go">[</span>
 <span class="go">    {</span>
@@ -285,7 +500,7 @@ will be used to convert the existing traces.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace">
-<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">add_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">trace</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsampler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_handler</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_view</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_text</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hf_hovertext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">trace_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="Permalink to this definition">#</a></dt>
 <dd><p>Add a trace to the figure.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -313,10 +528,16 @@ of the specified trace type.</p></li>
 <p>If this variable is not set; <code class="docutils literal notranslate"><span class="pre">_global_n_shown_samples</span></code> will be used.</p>
 </div>
 </p></li>
-<li><p><strong>downsampler</strong> (<em>AbstractSeriesDownsampler</em><em>, </em><em>optional</em>) – <p>The abstract series downsampler method.</p>
+<li><p><strong>downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a><em>, </em><em>optional</em>) – <p>The abstract series downsampler method.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_downsampler</span></code> will be used.</p>
+</div>
+</p></li>
+<li><p><strong>gap_handler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler" title="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler"><em>AbstractGapHandler</em></a><em>, </em><em>optional</em>) – <p>The abstract series gap handler method.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_gap_handler</span></code> will be used.</p>
 </div>
 </p></li>
 <li><p><strong>limit_to_view</strong> (<em>boolean</em><em>, </em><em>optional</em>) – <p>If set to True, the trace’s datapoints will be cut to the corresponding
@@ -407,7 +628,7 @@ also storing the low-frequency series in the back-end.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces">
-<span class="sig-name descname"><span class="pre">add_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsamplers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_views</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">traces_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces" title="Permalink to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">add_traces</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n_samples</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">downsamplers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gap_handlers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit_to_views</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">check_nans</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">traces_kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler_interface.html#AbstractFigureAggregator.add_traces"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces" title="Permalink to this definition">#</a></dt>
 <dd><p>Add traces to the figure.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -441,9 +662,12 @@ of the specified trace type.</p></li>
 <li><p><strong>max_n_samples</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><em>int</em><em>] </em><em>| </em><em>int</em><em>, </em><em>optional</em>) – The maximum number of samples that will be shown for each trace.
 If a single integer is passed, all traces will use this number. If this
 variable is not set; <code class="docutils literal notranslate"><span class="pre">_global_n_shown_samples</span></code> will be used.</p></li>
-<li><p><strong>downsamplers</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractSeriesAggregator"><em>AbstractSeriesAggregator</em></a><em>] </em><em>| </em><a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><em>AbstractFigureAggregator</em></a><em>, </em><em>optional</em>) – The downsampler that will be used to aggregate the traces. If a single
+<li><p><strong>downsamplers</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a><em>] </em><em>| </em><a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a><em>, </em><em>optional</em>) – The downsampler that will be used to aggregate the traces. If a single
 aggregator is passed, all traces will use this aggregator.
 If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_downsampler</span></code> will be used.</p></li>
+<li><p><strong>gap_handlers</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler" title="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler"><em>AbstractGapHandler</em></a><em>] </em><em>| </em><a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler" title="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler"><em>AbstractGapHandler</em></a><em>, </em><em>optional</em>) – The gap handler that will be used to aggregate the traces. If a single
+gap handler is passed, all traces will use this gap handler.
+If this variable is not set, <code class="docutils literal notranslate"><span class="pre">_global_gap_handler</span></code> will be used.</p></li>
 <li><p><strong>limit_to_views</strong> (<em>None</em><em> | </em><em>List</em><em>[</em><em>bool</em><em>] </em><em>| </em><em>bool</em><em>, </em><em>optional</em>) – <p>List of limit_to_view booleans for the added traces. If set to True the
 trace’s datapoints will be cut to the corresponding front-end view, even if
 the total number of samples is lower than <code class="docutils literal notranslate"><span class="pre">max_n_samples</span></code>.
@@ -530,10 +754,13 @@ in each dict.</p>
 <h1>FigureResampler<a class="headerlink" href="#figureresampler" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_dash_kwargs=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureResampler</span></span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figure.Figure</span></code></p>
 <p>Data aggregation functionality for <code class="docutils literal notranslate"><span class="pre">go.Figures</span></code>.</p>
-<p>Initialize a dynamic aggregation data mirror using a dash web app.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.MinMaxLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_gap_handler=&lt;plotly_resampler.aggregation.gap_handlers.MedDiffGapHandler</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_dash_kwargs=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Initialize a dynamic aggregation data mirror using a dash web app.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -554,9 +781,23 @@ the data will <em>not</em> be aggregated.</p></li>
 </ul>
 </div>
 </p></li>
-<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
-will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
-_interleave_gaps_ set to True.</p>
+<li><p><strong>default_downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a><em>, </em><em>optional</em>) – <p>An instance which implements the AbstractAggregator interface and
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> with
+_interleave_gaps_ set to True. <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> is a heuristic to the LTTB
+algorithm that uses pre-selection of min-max values (default 4 per bin) to
+speed up LTTB (as now only 4 values per bin should be compared). This
+min-max ratio of 4 can be changed by initializing <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> with a
+different value for the <code class="docutils literal notranslate"><span class="pre">minmax_ratio</span></code> parameter.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
+</div>
+</p></li>
+<li><p><strong>default_gap_handler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler" title="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler"><em>AbstractGapHandler</em></a><em>, </em><em>optional</em>) – <p>An instance which implements the AbstractGapHandler interface and
+will be used as default gap handler, by default <code class="docutils literal notranslate"><span class="pre">MedDiffGapHandler</span></code>.
+<code class="docutils literal notranslate"><span class="pre">MedDiffGapHandler</span></code> will determine gaps by first calculating the median
+aggregated x difference and then thresholding the aggregated x delta on a
+multiple of this median difference.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
@@ -582,6 +823,8 @@ Note that the passed kwargs will be take precedence over these defaults.</p></li
 </ul>
 </dd>
 </dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureResampler.show_dash">
 <span class="sig-name descname"><span class="pre">show_dash</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_properties</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figure_resampler.html#FigureResampler.show_dash"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureResampler.show_dash" title="Permalink to this definition">#</a></dt>
@@ -674,7 +917,7 @@ front-end.</p></li>
 <h1>FigureWidgetResampler<a class="headerlink" href="#figurewidgetresampler" title="Permalink to this headline">#</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureWidgetResampler">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureWidgetResampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.EfficientLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figurewidget_resampler.html#FigureWidgetResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureWidgetResampler" title="Permalink to this definition">#</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.figure_resampler.</span></span><span class="sig-name descname"><span class="pre">FigureWidgetResampler</span></span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figurewidget_resampler.html#FigureWidgetResampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureWidgetResampler" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator"><code class="xref py py-class docutils literal notranslate"><span class="pre">plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">plotly.graph_objs._figurewidget.FigureWidget</span></code></p>
 <p>Data aggregation functionality wrapper for <code class="docutils literal notranslate"><span class="pre">go.FigureWidgets</span></code>.</p>
 <div class="admonition attention">
@@ -686,7 +929,10 @@ front-end.</p></li>
 you should just output the <code class="docutils literal notranslate"><span class="pre">FigureWidgetResampler</span></code> object in a cell.</p></li>
 </ul>
 </div>
-<p>Instantiate a resampling data mirror.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureWidgetResampler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">figure=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_existing_traces=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_n_shown_samples=1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_downsampler=&lt;plotly_resampler.aggregation.aggregators.MinMaxLTTB</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default_gap_handler=&lt;plotly_resampler.aggregation.gap_handlers.MedDiffGapHandler</span> <span class="pre">object&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">resampled_trace_prefix_suffix=('&lt;b</span> <span class="pre">style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt;</span> <span class="pre">'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">'')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show_mean_aggregation_size=True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">convert_traces_kwargs=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose=False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figurewidget_resampler.html#FigureWidgetResampler.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureWidgetResampler.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Instantiate a resampling data mirror.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
@@ -707,7 +953,7 @@ the data will <em>not</em> be aggregated.</p></li>
 </ul>
 </div>
 </p></li>
-<li><p><strong>default_downsampler</strong> (<em>AbstractSeriesDownsampler</em>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
+<li><p><strong>default_downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
 will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
 _interleave_gaps_ set to True.</p>
 <div class="admonition note">
@@ -715,9 +961,16 @@ _interleave_gaps_ set to True.</p>
 <p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
 </div>
 </p></li>
+<li><p><strong>default_gap_handler</strong> (<em>GapHandler</em>) – <p>An instance which implements the AbstractGapHandler interface and will be
+used as default gap handler, by default <code class="docutils literal notranslate"><span class="pre">MedDiffGapHandler</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
+</div>
+</p></li>
 <li><p><strong>resampled_trace_prefix_suffix</strong> (<em>str</em><em>, </em><em>optional</em>) – A tuple which contains the <code class="docutils literal notranslate"><span class="pre">prefix</span></code> and <code class="docutils literal notranslate"><span class="pre">suffix</span></code>, respectively, which
 will be added to the trace its legend-name when a resampled version of the
-trace is shown. By default a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
+trace is shown. By default, a bold, orange <code class="docutils literal notranslate"><span class="pre">[R]</span></code> is shown as prefix
 (no suffix is shown).</p></li>
 <li><p><strong>show_mean_aggregation_size</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether the mean aggregation bin size will be added as a suffix to the trace
 its legend-name, by default True.</p></li>
@@ -730,14 +983,11 @@ will be used to convert the existing traces.</p>
 </div>
 </p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whether some verbose messages will be printed or not, by default False.</p></li>
-<li><p><strong>args</strong> (<em>Any</em>) – </p></li>
-<li><p><strong>kwargs</strong> (<em>Any</em>) – </p></li>
 </ul>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p><em>Any</em></p>
-</dd>
 </dl>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes">
 <span class="sig-name descname"><span class="pre">reset_axes</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/figure_resampler/figurewidget_resampler.html#FigureWidgetResampler.reset_axes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes" title="Permalink to this definition">#</a></dt>
@@ -909,41 +1159,100 @@ If the number is == 0, None is returned.</p>
 </section>
 
 
-              </article>
+                </article>
               
-
               
-              <footer class="bd-footer-article">
-                  <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-</div>
-              </footer>
               
-          </div>
-          
-      </div>
-    </div>
-
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
   
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+                <div class="bd-sidebar-secondary bd-toc"><div class="sidebar-secondary-items sidebar-secondary__inner">
+
+  <div class="sidebar-secondary-item">
+  <div class="page-toc tocsection onthispage">
+    <i class="fa-solid fa-list"></i> On this page
+  </div>
+  <nav class="bd-toc-nav page-toc">
+    <ul class="visible nav section-nav flex-column">
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">AbstractFigureAggregator</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#figureresampler">FigureResampler</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#figurewidgetresampler">FigureWidgetResampler</a></li>
+<li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#module-plotly_resampler.figure_resampler.utils">utility functions</a></li>
+</ul>
+
+  </nav></div>
+
+  <div class="sidebar-secondary-item">
+  <div class="tocsection sourcelink">
+    <a href="_sources/figure_resampler.rst.txt">
+      <i class="fa-solid fa-file-lines"></i> Show Source
+    </a>
+  </div>
+</div>
+
+</div></div>
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+  <script src="_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-<footer class="bd-footer"><div class="bd-footer__inner container">
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
   
-  <div class="footer-item">
-    <p class="copyright">
-    &copy; Copyright 2023, Jonas Van Der Donckt.<br>
-</p>
-  </div>
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Jonas Van Der Donckt.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
   
-  <div class="footer-item">
-    <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
-</p>
-  </div>
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
   
 </div>
-</footer>
+
+  </footer>
   </body>
 </html>

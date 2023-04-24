@@ -1,0 +1,29 @@
+plotly\_resampler.aggregation.plotly\_aggregator\_parser
+========================================================
+
+.. automodule:: plotly_resampler.aggregation.plotly_aggregator_parser
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      PlotlyAggregatorParser
+   
+   
+
+   
+   
+   
+
+
+

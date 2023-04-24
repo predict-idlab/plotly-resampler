@@ -1,0 +1,666 @@
+
+
+<!DOCTYPE html>
+
+
+<html lang="en" >
+
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>plotly_resampler.aggregation.plotly_aggregator_parser &#8212; plotly-resampler &#34;0.8.3.2&#34; documentation</title>
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+
+  
+  <link href="../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
+
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+  
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
+
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/plotly_resampler/aggregation/plotly_aggregator_parser';</script>
+    <link rel="shortcut icon" href="../../../_static/icon.png"/>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
+  </head>
+  
+  
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
+
+  
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
+
+<a class="navbar-brand logo" href="../../../index.html">
+  
+  
+  
+  
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../../_static/logo.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
+  
+  
+</a></div>
+    
+  </div>
+  
+  
+  <div class="col-lg-9 navbar-header-items">
+    
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../getting_started.html">
+                        Get started 🚀
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../dash_app_integration.html">
+                        Dash apps 🤝
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../api_reference.html">
+                        API 📖
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../FAQ.html">
+                        FAQ ❓
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+      
+    </div>
+    
+    
+    <div class="navbar-header-items__end">
+      
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
+      
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/predict-idlab/plotly-resampler" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+      
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+      
+    </div>
+    
+  </div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
+
+  
+</div>
+
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
+
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../getting_started.html">
+                        Get started 🚀
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../dash_app_integration.html">
+                        Dash apps 🤝
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../api_reference.html">
+                        API 📖
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../FAQ.html">
+                        FAQ ❓
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/predict-idlab/plotly-resampler" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">plotly_resampler.aggregation.plotly_aggregator_parser</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
+  <h1>Source code for plotly_resampler.aggregation.plotly_aggregator_parser</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">bisect</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">pytz</span>
+
+<span class="kn">from</span> <span class="nn">.aggregation_interface</span> <span class="kn">import</span> <span class="n">DataAggregator</span><span class="p">,</span> <span class="n">DataPointSelector</span>
+<span class="kn">from</span> <span class="nn">.gap_handler_interface</span> <span class="kn">import</span> <span class="n">AbstractGapHandler</span>
+
+
+<div class="viewcode-block" id="PlotlyAggregatorParser"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.plotly_aggregator_parser.PlotlyAggregatorParser">[docs]</a><span class="k">class</span> <span class="nc">PlotlyAggregatorParser</span><span class="p">:</span>
+<div class="viewcode-block" id="PlotlyAggregatorParser.parse_hf_data"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.plotly_aggregator_parser.PlotlyAggregatorParser.parse_hf_data">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">parse_hf_data</span><span class="p">(</span>
+        <span class="n">hf_data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the high-frequency data to a numpy array.&quot;&quot;&quot;</span>
+        <span class="c1"># Categorical data (pandas)</span>
+        <span class="c1">#   - pd.Series with categorical dtype -&gt; calling .values will returns a</span>
+        <span class="c1">#       pd.Categorical</span>
+        <span class="c1">#   - pd.CategoricalIndex -&gt; calling .values returns a pd.Categorical</span>
+        <span class="c1">#   - pd.Categorical: has no .values attribute -&gt; will not be parsed</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_data</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)):</span>
+            <span class="k">return</span> <span class="n">hf_data</span><span class="o">.</span><span class="n">values</span>
+        <span class="k">return</span> <span class="n">hf_data</span></div>
+
+<div class="viewcode-block" id="PlotlyAggregatorParser.to_same_tz"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.plotly_aggregator_parser.PlotlyAggregatorParser.to_same_tz">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">to_same_tz</span><span class="p">(</span>
+        <span class="n">ts</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">reference_tz</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pytz</span><span class="o">.</span><span class="n">BaseTzInfo</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjust `ts` its timezone to the `reference_tz`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">reference_tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">assert</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span><span class="o">.</span><span class="n">zone</span> <span class="o">==</span> <span class="n">reference_tz</span><span class="o">.</span><span class="n">zone</span>
+                <span class="k">return</span> <span class="n">ts</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># localize -&gt; time remains the same</span>
+                <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="n">reference_tz</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">reference_tz</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ts</span></div>
+
+<div class="viewcode-block" id="PlotlyAggregatorParser.get_start_end_indices"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.plotly_aggregator_parser.PlotlyAggregatorParser.get_start_end_indices">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">get_start_end_indices</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the start &amp; end indices of the high-frequency data.&quot;&quot;&quot;</span>
+        <span class="c1"># Base case: no hf data, or both start &amp; end are None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span>
+
+        <span class="c1"># NOTE: as we use bisect right for the end index, we do not need to add a</span>
+        <span class="c1">#      small epsilon to the end value</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">end</span>
+
+        <span class="c1"># We can compute the start &amp; end indices directly when it is a RangeIndex</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">):</span>
+            <span class="n">x_start</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+            <span class="n">x_step</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span>
+            <span class="n">start_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">max</span><span class="p">((</span><span class="n">start</span> <span class="o">-</span> <span class="n">x_start</span><span class="p">)</span> <span class="o">//</span> <span class="n">x_step</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">end_idx</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">end</span> <span class="o">-</span> <span class="n">x_start</span><span class="p">)</span> <span class="o">//</span> <span class="n">x_step</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span>
+        <span class="c1"># TODO: this can be performed as-well for a fixed frequency range-index w/ freq</span>
+
+        <span class="k">if</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;axis_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
+            <span class="c1"># convert start &amp; end to the same timezone</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">):</span>
+                <span class="n">tz</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tz</span>
+                <span class="k">assert</span> <span class="n">start</span><span class="o">.</span><span class="n">tz</span> <span class="o">==</span> <span class="n">end</span><span class="o">.</span><span class="n">tz</span>
+                <span class="n">start</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">to_same_tz</span><span class="p">(</span><span class="n">start</span><span class="p">,</span> <span class="n">tz</span><span class="p">)</span>
+                <span class="n">end</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">to_same_tz</span><span class="p">(</span><span class="n">end</span><span class="p">,</span> <span class="n">tz</span><span class="p">)</span>
+
+        <span class="c1"># Search the index-positions</span>
+        <span class="n">start_idx</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_left</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">start</span><span class="p">)</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">end</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span></div>
+
+<div class="viewcode-block" id="PlotlyAggregatorParser.aggregate"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.plotly_aggregator_parser.PlotlyAggregatorParser.aggregate">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span>
+        <span class="n">hf_trace_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">start_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">end_idx</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Aggregate the data in `hf_trace_data` between `start_idx` and `end_idx`.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - x: the aggregated x-values</span>
+<span class="sd">            - y: the aggregated y-values</span>
+<span class="sd">            - indices: the indices of the hf_data data that were aggregated</span>
+
+<span class="sd">            These indices are useful to select the corresponding hf_data from</span>
+<span class="sd">            non `x` and `y` data (e.g. `text`, `marker_size`, `marker_color`).</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hf_x</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+        <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
+
+        <span class="c1"># No downsampling needed ; we show the raw data as is, no gap detection</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">end_idx</span> <span class="o">-</span> <span class="n">start_idx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="n">hf_x</span><span class="p">,</span> <span class="n">hf_y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">))</span>
+
+        <span class="n">downsampler</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">]</span>
+        <span class="n">gap_handler</span><span class="p">:</span> <span class="n">AbstractGapHandler</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;gap_handler&quot;</span><span class="p">]</span>
+
+        <span class="n">hf_x_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span>
+        <span class="n">hf_y_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataPointSelector</span><span class="p">):</span>
+            <span class="n">s_v</span> <span class="o">=</span> <span class="n">hf_y_parsed</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">s_v</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">):</span>  <span class="c1"># pd.Categorical (has no .values)</span>
+                <span class="n">s_v</span> <span class="o">=</span> <span class="n">s_v</span><span class="o">.</span><span class="n">codes</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">downsampler</span><span class="o">.</span><span class="n">arg_downsample</span><span class="p">(</span>
+                <span class="n">hf_x_parsed</span><span class="p">,</span>
+                <span class="n">s_v</span><span class="p">,</span>
+                <span class="n">n_out</span><span class="o">=</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">],</span>
+                <span class="o">**</span><span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;downsampler_kwargs&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">):</span>
+                <span class="c1"># we avoid slicing the default pd.RangeIndex (as this is not an</span>
+                <span class="c1"># in-memory array) - this proves to be faster than slicing the index.</span>
+                <span class="n">agg_x</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">start_idx</span>
+                    <span class="o">+</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+                    <span class="o">+</span> <span class="n">indices</span> <span class="o">*</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">agg_x</span> <span class="o">=</span> <span class="n">hf_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+            <span class="n">agg_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataAggregator</span><span class="p">):</span>
+            <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span> <span class="o">=</span> <span class="n">downsampler</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+                <span class="n">hf_x_parsed</span><span class="p">,</span>
+                <span class="n">hf_y_parsed</span><span class="p">,</span>
+                <span class="n">n_out</span><span class="o">=</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">],</span>
+                <span class="o">**</span><span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;downsampler_kwargs&quot;</span><span class="p">,</span> <span class="p">{}),</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">):</span>
+                <span class="c1"># we avoid slicing the default pd.RangeIndex (as this is not an</span>
+                <span class="c1"># in-memory array) - this proves to be faster than slicing the index.</span>
+                <span class="n">agg_x</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">start_idx</span>
+                    <span class="o">+</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">start</span>
+                    <span class="o">+</span> <span class="n">agg_x</span> <span class="o">*</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">step</span>
+                <span class="p">)</span>
+            <span class="c1"># The indices are just the range of the aggregated data</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">agg_x</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Invalid downsampler instance, must be either a &quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;DataAggregator or a DataPointSelector, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">downsampler</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="c1"># TODO check for trace mode (markers, lines, etc.) and only perform the</span>
+        <span class="c1"># gap insertion methodology when the mode is lines.</span>
+        <span class="c1"># if trace.get(&quot;connectgaps&quot;) != True and</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="ow">not</span> <span class="n">downsampler</span><span class="o">.</span><span class="n">interleave_gaps</span>
+            <span class="c1"># rangeIndex | datetimeIndex with freq -&gt; equally spaced x; so no gaps</span>
+            <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
+
+        <span class="c1"># Interleave the gaps`</span>
+        <span class="c1"># View the data as an int64 when we have a DatetimeIndex</span>
+        <span class="c1"># We only want to detect gaps, so we only want to compare values.</span>
+        <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">agg_x</span><span class="p">)</span>
+        <span class="n">xdt</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
+            <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+        <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">gap_handler</span><span class="o">.</span><span class="n">insert_none_between_gaps</span><span class="p">(</span>
+            <span class="n">agg_x_parsed</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataPointSelector</span><span class="p">):</span>
+            <span class="n">agg_x</span> <span class="o">=</span> <span class="n">hf_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataAggregator</span><span class="p">):</span>
+            <span class="c1"># The indices are in this case a repeat</span>
+            <span class="n">agg_x</span> <span class="o">=</span> <span class="n">agg_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span></div></div>
+</pre></div>
+
+                </article>
+              
+              
+              
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
+  
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
+
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
+  
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Jonas Van Der Donckt.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
+  
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
+  
+</div>
+
+  </footer>
+  </body>
+</html>

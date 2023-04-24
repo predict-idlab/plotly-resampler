@@ -1,0 +1,29 @@
+plotly\_resampler.aggregation.gap\_handler\_interface
+=====================================================
+
+.. automodule:: plotly_resampler.aggregation.gap_handler_interface
+
+   
+   
+   
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Classes
+
+   .. autosummary::
+   
+      AbstractGapHandler
+   
+   
+
+   
+   
+   
+
+
+

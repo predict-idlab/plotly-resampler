@@ -1,179 +1,405 @@
 
+
 <!DOCTYPE html>
 
-<html lang="en">
+
+<html lang="en" >
+
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>plotly_resampler.figure_resampler.figure_resampler_interface &#8212; plotly-resampler &#34;0.8.3.2&#34; documentation</title>
-<script>
-  document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
-  document.documentElement.dataset.theme = localStorage.getItem("theme") || "light"
-</script>
-
+  
+  
+  
+  <script data-cfasync="false">
+    document.documentElement.dataset.mode = localStorage.getItem("mode") || "";
+    document.documentElement.dataset.theme = localStorage.getItem("theme") || "light";
+  </script>
+  
   <!-- Loaded before other Sphinx assets -->
-  <link href="../../../_static/styles/theme.css?digest=92025949c220c2e29695" rel="stylesheet">
-<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=92025949c220c2e29695" rel="stylesheet">
+  <link href="../../../_static/styles/theme.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/bootstrap.css?digest=e353d410970836974a52" rel="stylesheet" />
+<link href="../../../_static/styles/pydata-sphinx-theme.css?digest=e353d410970836974a52" rel="stylesheet" />
 
-
-  <link rel="stylesheet"
-    href="../../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
-  <link rel="preload" as="font" type="font/woff2" crossorigin
-    href="../../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+  
+  <link href="../../../_static/vendor/fontawesome/6.1.2/css/all.min.css?digest=e353d410970836974a52" rel="stylesheet" />
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-solid-900.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-brands-400.woff2" />
+<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../_static/vendor/fontawesome/6.1.2/webfonts/fa-regular-400.woff2" />
 
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
-
+  
   <!-- Pre-loaded scripts that we'll load fully later -->
-  <link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695">
+  <link rel="preload" as="script" href="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52" />
+<link rel="preload" as="script" href="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52" />
 
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/plotly_resampler/figure_resampler/figure_resampler_interface';</script>
     <link rel="shortcut icon" href="../../../_static/icon.png"/>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<meta name="docsearch:language" content="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="docsearch:language" content="en"/>
   </head>
   
   
-  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="180" data-default-mode="">
-    <div class="bd-header-announcement container-fluid" id="banner">
-      
+  <body data-bs-spy="scroll" data-bs-target=".bd-toc-nav" data-offset="180" data-bs-root-margin="0px 0px -60%" data-default-mode="">
 
-    </div>
-
-    
-    <nav class="bd-header navbar navbar-light navbar-expand-lg bg-light fixed-top bd-navbar" id="navbar-main"><div class="bd-header__inner container-xl">
-
-  <div id="navbar-start">
-    
-    
   
-
+  
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__primary"
+          id="__primary"/>
+  <label class="overlay overlay-primary" for="__primary"></label>
+  
+  <input type="checkbox"
+          class="sidebar-toggle"
+          name="__secondary"
+          id="__secondary"/>
+  <label class="overlay overlay-secondary" for="__secondary"></label>
+  
+  <div class="search-button__wrapper">
+    <div class="search-button__overlay"></div>
+    <div class="search-button__search-container">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+  </div>
+  
+    <nav class="bd-header navbar navbar-expand-lg bd-navbar">
+<div class="bd-header__inner bd-page-width">
+  <label class="sidebar-toggle primary-toggle" for="__primary">
+    <span class="fa-solid fa-bars"></span>
+  </label>
+  
+  <div class="navbar-header-items__start">
+    
+      <div class="navbar-item">
+  
 
 <a class="navbar-brand logo" href="../../../index.html">
   
   
   
   
-    <img src="../../../_static/logo.png" class="logo__image only-light" alt="Logo image">
-    <img src="../../../_static/logo.png" class="logo__image only-dark" alt="Logo image">
+    
+    
+      
+    
+    
+    <img src="../../../_static/logo.png" class="logo__image only-light" alt="Logo image"/>
+    <script>document.write(`<img src="../../../_static/logo.png" class="logo__image only-dark" alt="Logo image"/>`);</script>
   
   
-</a>
+</a></div>
     
   </div>
-
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar-collapsible" aria-controls="navbar-collapsible" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="fas fa-bars"></span>
-  </button>
-
   
-  <div id="navbar-collapsible" class="col-lg-9 collapse navbar-collapse">
-    <div id="navbar-center" class="mr-auto">
-      
-      <div class="navbar-center-item">
-        <ul id="navbar-main-elements" class="navbar-nav">
-    <li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../../getting_started.html">
-  Get started 🚀
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../../dash_app_integration.html">
-  Dash apps 🤝
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../../api_reference.html">
-  API 📖
- </a>
-</li>
-
-<li class="toctree-l1 nav-item">
- <a class="reference internal nav-link" href="../../../FAQ.html">
-  FAQ ❓
- </a>
-</li>
-
+  
+  <div class="col-lg-9 navbar-header-items">
     
-</ul>
-      </div>
+    <div class="me-auto navbar-header-items__center">
+      
+        <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../getting_started.html">
+                        Get started 🚀
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../dash_app_integration.html">
+                        Dash apps 🤝
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../api_reference.html">
+                        API 📖
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../FAQ.html">
+                        FAQ ❓
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
       
     </div>
-
-    <div id="navbar-end">
+    
+    
+    <div class="navbar-header-items__end">
       
-      <div class="navbar-end-item">
-        <span id="theme-switch" class="btn btn-sm btn-outline-primary navbar-btn rounded-circle">
-    <a class="theme-switch" data-mode="light"><i class="fas fa-sun"></i></a>
-    <a class="theme-switch" data-mode="dark"><i class="far fa-moon"></i></a>
-    <a class="theme-switch" data-mode="auto"><i class="fas fa-adjust"></i></a>
-</span>
-      </div>
+        <div class="navbar-item navbar-persistent--container">
+          
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+        </div>
       
-      <div class="navbar-end-item">
-        <ul id="navbar-icon-links" class="navbar-nav" aria-label="Icon Links">
+      
+        <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+      
+        <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
         <li class="nav-item">
-          <a class="nav-link" href="https://github.com/predict-idlab/plotly-resampler" rel="noopener" target="_blank" title="GitHub"><span><i class="fab fa-github-square"></i></span>
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/predict-idlab/plotly-resampler" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square"></i></span>
             <label class="sr-only">GitHub</label></a>
         </li>
-      </ul>
-      </div>
+</ul></div>
       
-      <div class="navbar-end-item">
-        <form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form>
-      </div>
+        <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
       
     </div>
-  </div>
-</div>
-    </nav>
-    
-
-    <div class="bd-container container-xl">
-      <div class="bd-container__inner row">
-          
-
-<!-- Only show if we have sidebars configured, else just a small margin  -->
-<div class="bd-sidebar-primary col-12 col-md-3 bd-sidebar">
-  <div class="sidebar-start-items"><form class="bd-search d-flex align-items-center" action="../../../search.html" method="get">
-  <i class="icon fas fa-search"></i>
-  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search the docs ..." aria-label="Search the docs ..." autocomplete="off" >
-</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main navigation">
-  <div class="bd-toc-item active">
     
   </div>
-</nav>
-  </div>
-  <div class="sidebar-end-items">
-  </div>
-</div>
+  
+  
+    <div class="navbar-persistent--mobile">
+<script>
+document.write(`
+  <button class="btn btn-sm navbar-btn search-button search-button__button" title="Search" aria-label="Search" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <i class="fa-solid fa-magnifying-glass"></i>
+  </button>
+`);
+</script>
+    </div>
+  
 
-
-          
-
-
-<div class="bd-sidebar-secondary d-none d-xl-block col-xl-2 bd-toc">
   
 </div>
 
+    </nav>
+  
+  <div class="bd-container">
+    <div class="bd-container__inner bd-page-width">
+      
+      <div class="bd-sidebar-primary bd-sidebar hide-on-wide">
+        
 
-          
-          
-          <div class="bd-content col-12 col-md-9 col-xl-7">
-              
-              <article class="bd-article" role="main">
+  
+  <div class="sidebar-header-items sidebar-primary__section">
+    
+    
+      <div class="sidebar-header-items__center">
+        
+          <div class="navbar-item"><nav class="navbar-nav">
+  <p class="sidebar-header-items__title"
+     role="heading"
+     aria-level="1"
+     aria-label="Site Navigation">
+    Site Navigation
+  </p>
+  <ul class="bd-navbar-elements navbar-nav">
+    
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../getting_started.html">
+                        Get started 🚀
+                      </a>
+                    </li>
                 
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../dash_app_integration.html">
+                        Dash apps 🤝
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../api_reference.html">
+                        API 📖
+                      </a>
+                    </li>
+                
+
+                    <li class="nav-item">
+                      <a class="nav-link nav-internal" href="../../../FAQ.html">
+                        FAQ ❓
+                      </a>
+                    </li>
+                
+  </ul>
+</nav></div>
+        
+      </div>
+    
+    
+    
+      <div class="sidebar-header-items__end">
+        
+          <div class="navbar-item">
+<script>
+document.write(`
+  <button class="theme-switch-button btn btn-sm btn-outline-primary navbar-btn rounded-circle" title="light/dark" aria-label="light/dark" data-bs-placement="bottom" data-bs-toggle="tooltip">
+    <span class="theme-switch" data-mode="light"><i class="fa-solid fa-sun"></i></span>
+    <span class="theme-switch" data-mode="dark"><i class="fa-solid fa-moon"></i></span>
+    <span class="theme-switch" data-mode="auto"><i class="fa-solid fa-circle-half-stroke"></i></span>
+  </button>
+`);
+</script></div>
+        
+          <div class="navbar-item"><ul class="navbar-icon-links navbar-nav"
+    aria-label="Icon Links">
+        <li class="nav-item">
+          
+          
+          
+          
+          
+          
+          
+          
+          <a href="https://github.com/predict-idlab/plotly-resampler" title="GitHub" class="nav-link" rel="noopener" target="_blank" data-bs-toggle="tooltip" data-bs-placement="bottom"><span><i class="fab fa-github-square"></i></span>
+            <label class="sr-only">GitHub</label></a>
+        </li>
+</ul></div>
+        
+          <div class="navbar-item">
+<form class="bd-search d-flex align-items-center"
+      action="../../../search.html"
+      method="get">
+  <i class="fa-solid fa-magnifying-glass"></i>
+  <input type="search"
+         class="form-control"
+         name="q"
+         id="search-input"
+         placeholder="Search the docs ..."
+         aria-label="Search the docs ..."
+         autocomplete="off"
+         autocorrect="off"
+         autocapitalize="off"
+         spellcheck="false"/>
+  <span class="search-button__kbd-shortcut"><kbd class="kbd-shortcut__modifier">Ctrl</kbd>+<kbd>K</kbd></span>
+</form></div>
+        
+      </div>
+    
+  </div>
+  
+  
+  <div class="sidebar-primary-items__end sidebar-primary__section">
+  </div>
+  
+  <div id="rtd-footer-container"></div>
+
+
+      </div>
+      
+      <main id="main-content" class="bd-main">
+        
+        
+          <div class="bd-content">
+            <div class="bd-article-container">
+              
+              <div class="bd-header-article">
+<div class="header-article-items header-article__inner">
+  
+    <div class="header-article-items__start">
+      
+        <div class="header-article-item">
+
+
+
+<nav aria-label="Breadcrumbs">
+  <ul class="bd-breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    
+    <li class="breadcrumb-item breadcrumb-home">
+      <a href="../../../index.html" class="nav-link" aria-label="Home">
+        <i class="fa-solid fa-home"></i>
+      </a>
+    </li>
+    
+    <li class="breadcrumb-item"><a href="../../index.html" class="nav-link">Module code</a></li>
+    
+    <li class="breadcrumb-item active" aria-current="page">plotly_resampler.figure_resampler.figure_resampler_interface</li>
+  </ul>
+</nav>
+</div>
+      
+    </div>
+  
+  
+</div>
+</div>
+              
+              
+              
+                
+<div id="searchbox"></div>
+                <article class="bd-article" role="main">
+                  
   <h1>Source code for plotly_resampler.figure_resampler.figure_resampler_interface</h1><div class="highlight"><pre>
 <span></span><span class="c1"># -*- coding: utf-8 -*-</span>
 <span class="sd">&quot;&quot;&quot;</span>
@@ -202,7 +428,10 @@
 <span class="kn">import</span> <span class="nn">plotly.graph_objects</span> <span class="k">as</span> <span class="nn">go</span>
 <span class="kn">from</span> <span class="nn">plotly.basedatatypes</span> <span class="kn">import</span> <span class="n">BaseFigure</span><span class="p">,</span> <span class="n">BaseTraceType</span>
 
-<span class="kn">from</span> <span class="nn">..aggregation</span> <span class="kn">import</span> <span class="n">AbstractSeriesAggregator</span><span class="p">,</span> <span class="n">EfficientLTTB</span>
+<span class="kn">from</span> <span class="nn">..aggregation</span> <span class="kn">import</span> <span class="n">AbstractAggregator</span><span class="p">,</span> <span class="n">MedDiffGapHandler</span><span class="p">,</span> <span class="n">MinMaxLTTB</span>
+<span class="kn">from</span> <span class="nn">..aggregation.aggregation_interface</span> <span class="kn">import</span> <span class="n">DataPointSelector</span>
+<span class="kn">from</span> <span class="nn">..aggregation.gap_handler_interface</span> <span class="kn">import</span> <span class="n">AbstractGapHandler</span>
+<span class="kn">from</span> <span class="nn">..aggregation.plotly_aggregator_parser</span> <span class="kn">import</span> <span class="n">PlotlyAggregatorParser</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">round_number_str</span><span class="p">,</span> <span class="n">round_td_str</span>
 
 <span class="n">_hf_data_container</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;DataContainer&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">])</span>
@@ -213,12 +442,13 @@
 
     <span class="n">_high_frequency_traces</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;scatter&quot;</span><span class="p">,</span> <span class="s2">&quot;scattergl&quot;</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+<div class="viewcode-block" id="AbstractFigureAggregator.__init__"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">figure</span><span class="p">:</span> <span class="n">BaseFigure</span><span class="p">,</span>
         <span class="n">convert_existing_traces</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">default_n_shown_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">,</span>
-        <span class="n">default_downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="n">EfficientLTTB</span><span class="p">(),</span>
+        <span class="n">default_downsampler</span><span class="p">:</span> <span class="n">AbstractAggregator</span> <span class="o">=</span> <span class="n">MinMaxLTTB</span><span class="p">(),</span>
+        <span class="n">default_gap_handler</span><span class="p">:</span> <span class="n">AbstractGapHandler</span> <span class="o">=</span> <span class="n">MedDiffGapHandler</span><span class="p">(),</span>
         <span class="n">resampled_trace_prefix_suffix</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s1">&#39;&lt;b style=&quot;color:sandybrown&quot;&gt;[R]&lt;/b&gt; &#39;</span><span class="p">,</span>
             <span class="s2">&quot;&quot;</span><span class="p">,</span>
@@ -246,15 +476,19 @@
 <span class="sd">                * This can be overridden within the :func:`add_trace` method.</span>
 <span class="sd">                * If a trace withholds fewer datapoints than this parameter,</span>
 <span class="sd">                  the data will *not* be aggregated.</span>
-<span class="sd">        default_downsampler: AbstractSeriesDownsampler</span>
+<span class="sd">        default_downsampler: AbstractAggregator</span>
 <span class="sd">            An instance which implements the AbstractSeriesDownsampler interface and</span>
 <span class="sd">            will be used as default downsampler, by default ``EfficientLTTB`` with</span>
 <span class="sd">            _interleave_gaps_ set to True. \n</span>
 <span class="sd">            .. note:: This can be overridden within the :func:`add_trace` method.</span>
+<span class="sd">        default_gap_handler: GapHandler</span>
+<span class="sd">            An instance which implements the AbstractGapHandler interface and will be</span>
+<span class="sd">            used as default gap handler, by default ``MedDiffGapHandler``. \n</span>
+<span class="sd">            .. note:: This can be overridden within the :func:`add_trace` method.</span>
 <span class="sd">        resampled_trace_prefix_suffix: str, optional</span>
 <span class="sd">            A tuple which contains the ``prefix`` and ``suffix``, respectively, which</span>
 <span class="sd">            will be added to the trace its legend-name when a resampled version of the</span>
-<span class="sd">            trace is shown. By default a bold, orange ``[R]`` is shown as prefix</span>
+<span class="sd">            trace is shown. By default, a bold, orange ``[R]`` is shown as prefix</span>
 <span class="sd">            (no suffix is shown).</span>
 <span class="sd">        show_mean_aggregation_size: bool, optional</span>
 <span class="sd">            Whether the mean aggregation bin size will be added as a suffix to the trace</span>
@@ -278,6 +512,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="o">=</span> <span class="n">resampled_trace_prefix_suffix</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span> <span class="o">=</span> <span class="n">default_downsampler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_global_gap_handler</span> <span class="o">=</span> <span class="n">default_gap_handler</span>
 
         <span class="c1"># Given figure should always be a BaseFigure that is not wrapped by</span>
         <span class="c1"># a plotly-resampler class</span>
@@ -328,7 +563,7 @@
                 <span class="n">axis</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;autorange&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
                 <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_list</span>
             <span class="p">}</span>
-        <span class="p">)</span>
+        <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper method for printing if ``verbose`` is set to True.&quot;&quot;&quot;</span>
@@ -376,12 +611,57 @@
             <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
                 <span class="p">{</span>
                     <span class="n">k</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+                    <span class="c1"># TODO: why not &quot;text&quot; as well? -&gt; we can use _hf_data_container.fields then</span>
                     <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">({</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">})</span>
                 <span class="p">}</span>
                 <span class="k">for</span> <span class="n">trace</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data</span>
             <span class="p">],</span>
             <span class="s2">&quot;layout&quot;</span><span class="p">:</span> <span class="n">copy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_layout</span><span class="p">),</span>
         <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_parse_trace_name</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">hf_trace_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">slice_len</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">agg_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse the trace name.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        hf_trace_data : dict</span>
+<span class="sd">            The high-frequency trace data dict.</span>
+<span class="sd">        slice_len : int</span>
+<span class="sd">            The length of the slice.</span>
+<span class="sd">        agg_x : np.ndarray</span>
+<span class="sd">            The x-axis values of the aggregated trace.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        str</span>
+<span class="sd">            The parsed trace name.</span>
+<span class="sd">            When no downsampling is needed, the original trace name is returned.</span>
+<span class="sd">            When downsampling is needed, the average bin size (expressed in x-units) is</span>
+<span class="sd">            added in orange color with a `~` to the trace name.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">slice_len</span> <span class="o">&lt;=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]:</span>  <span class="c1"># When no downsampling needed</span>
+            <span class="k">return</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+
+        <span class="c1"># The data is downsampled, so we add the downsampling information to the name</span>
+        <span class="n">agg_prefix</span><span class="p">,</span> <span class="n">agg_suffix</span> <span class="o">=</span> <span class="s1">&#39; &lt;i style=&quot;color:#fc9944&quot;&gt;~&#39;</span><span class="p">,</span> <span class="s2">&quot;&lt;/i&gt;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">+</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span>
+
+        <span class="c1"># Add the mean aggregation bin size to the trace name</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_show_mean_aggregation_size</span><span class="p">:</span>
+            <span class="c1"># Base case ...</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">agg_x</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">name</span>
+
+            <span class="n">mean_bin_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">agg_x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">agg_x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">agg_x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># mean bin size</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mean_bin_size</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">)):</span>
+                <span class="n">mean_bin_size</span> <span class="o">=</span> <span class="n">round_td_str</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">mean_bin_size</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mean_bin_size</span> <span class="o">=</span> <span class="n">round_number_str</span><span class="p">(</span><span class="n">mean_bin_size</span><span class="p">)</span>
+            <span class="n">name</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agg_prefix</span><span class="si">}{</span><span class="n">mean_bin_size</span><span class="si">}{</span><span class="n">agg_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">return</span> <span class="n">name</span>
 
     <span class="k">def</span> <span class="nf">_check_update_trace_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -431,93 +711,66 @@
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hf_trace_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_hf_data</span><span class="p">(</span><span class="n">trace</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">hf_trace_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">axis_type</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;axis_type&quot;</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">axis_type</span> <span class="o">==</span> <span class="s2">&quot;date&quot;</span><span class="p">:</span>
-                <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">start</span><span class="p">),</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
-                <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_slice_time</span><span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]),</span>
-                    <span class="n">start</span><span class="p">,</span>
-                    <span class="n">end</span><span class="p">,</span>
-                <span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_series</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-                    <span class="n">start</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">start</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">start</span>
-                    <span class="n">end</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">end</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">end</span>
-                    <span class="k">if</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
-                        <span class="n">start</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">start</span><span class="p">)</span>
-                        <span class="n">end</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
 
-                    <span class="c1"># Search the index-positions</span>
-                    <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">searchsorted</span><span class="p">(</span><span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="p">[</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">])</span>
-                    <span class="n">hf_series</span> <span class="o">=</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
-
-            <span class="c1"># Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t</span>
-            <span class="c1"># contain any data in the current view</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_series</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">start</span><span class="p">]</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-                <span class="k">return</span> <span class="n">trace</span>
-
-            <span class="c1"># Downsample the data and store it in the trace-fields</span>
-            <span class="n">downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">]</span>
-            <span class="n">s_res</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span> <span class="o">=</span> <span class="n">downsampler</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
-                <span class="n">hf_series</span><span class="p">,</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]</span>
-            <span class="p">)</span>
-            <span class="c1"># Also parse the data types to an orjson compatible format</span>
-            <span class="c1"># Note this can be removed once orjson supports f16</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_dtype_orjson</span><span class="p">(</span><span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_dtype_orjson</span><span class="p">(</span><span class="n">s_res</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-            <span class="c1"># todo -&gt; first draft &amp; not MP safe</span>
-
-            <span class="n">agg_prefix</span><span class="p">,</span> <span class="n">agg_suffix</span> <span class="o">=</span> <span class="s1">&#39; &lt;i style=&quot;color:#fc9944&quot;&gt;~&#39;</span><span class="p">,</span> <span class="s2">&quot;&lt;/i&gt;&quot;</span>
-            <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">agg_prefix</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_series</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]:</span>
-                <span class="n">name</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;&quot;</span> <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span> <span class="o">+</span> <span class="n">name</span>
-                <span class="n">name</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">)</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
-                <span class="c1"># Add the mean aggregation bin size to the trace name</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_show_mean_aggregation_size</span><span class="p">:</span>
-                    <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">):</span>
-                        <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">round_td_str</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Timedelta</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">))</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">agg_mean</span> <span class="o">=</span> <span class="n">round_number_str</span><span class="p">(</span><span class="n">agg_mean</span><span class="p">)</span>
-                    <span class="n">name</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">agg_prefix</span><span class="si">}{</span><span class="n">agg_mean</span><span class="si">}{</span><span class="n">agg_suffix</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># When not resampled: trim prefix and/or suffix if necessary</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span> <span class="ow">and</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">):</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">)</span> <span class="p">:]</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">):</span>
-                    <span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="p">[:</span> <span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">)]</span>
-            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
-
-            <span class="c1"># Check if text also needs to be resampled</span>
-            <span class="n">text</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;text&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
-                <span class="c1"># TODO -&gt; extra logic is necessary for the detection and processing of</span>
-                <span class="c1"># non data-point selection downsamplers</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">text</span><span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
-                    <span class="n">s_res</span><span class="o">.</span><span class="n">index</span>
-                <span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">text</span>
-
-            <span class="c1"># Check if hovertext also needs to be resampled</span>
-            <span class="n">hovertext</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hovertext&quot;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hovertext</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span>
-                    <span class="n">x</span><span class="o">=</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">y</span><span class="o">=</span><span class="n">hovertext</span>
-                <span class="p">)</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">s_res</span><span class="o">.</span><span class="n">index</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hovertext</span>
-            <span class="k">return</span> <span class="n">trace</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">hf_trace_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s2">&quot;hf_data not found&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Parse trace data (necessary when updating the trace data)</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_hf_data_container</span><span class="o">.</span><span class="n">_fields</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                <span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="c1"># is faster to escape the loop here than check inside the hasattr if</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">):</span>
+                <span class="c1"># when not a range index or datetime index</span>
+                <span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="c1"># Also check if the y-data is empty, if so, return an empty trace</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">trace</span>
+
+        <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">get_start_end_indices</span><span class="p">(</span>
+            <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t</span>
+        <span class="c1"># contain any data in the current view</span>
+        <span class="k">if</span> <span class="n">end_idx</span> <span class="o">==</span> <span class="n">start_idx</span><span class="p">:</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">trace</span>
+
+        <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span>
+            <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span>
+        <span class="p">)</span>
+
+        <span class="c1"># -------------------- Set the hf_trace_data_props -------------------</span>
+        <span class="c1"># Parse the data types to an orjson compatible format</span>
+        <span class="c1"># NOTE: this can be removed once orjson supports f16</span>
+        <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_dtype_orjson</span><span class="p">(</span><span class="n">agg_x</span><span class="p">)</span>
+        <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_dtype_orjson</span><span class="p">(</span><span class="n">agg_y</span><span class="p">)</span>
+        <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_trace_name</span><span class="p">(</span>
+            <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">-</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">agg_x</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Check if (hover)text also needs to be downsampled</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">]:</span>
+            <span class="n">k_val</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k_val</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
+                <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
+                    <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">],</span> <span class="n">DataPointSelector</span>
+                <span class="p">),</span> <span class="s2">&quot;Only DataPointSelector can downsample non-data trace array props.&quot;</span>
+                <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_val</span><span class="p">[</span><span class="n">start_idx</span> <span class="o">+</span> <span class="n">indices</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="n">k_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_val</span>
+
+        <span class="k">return</span> <span class="n">trace</span>
 
     <span class="k">def</span> <span class="nf">_check_update_figure_dict</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -650,57 +903,6 @@
 
         <span class="k">return</span> <span class="n">_get_plotly_constr</span><span class="p">(</span><span class="n">constr</span><span class="p">)</span>
 
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_slice_time</span><span class="p">(</span>
-        <span class="n">hf_series</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
-        <span class="n">t_start</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">t_stop</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Slice the time-indexed ``hf_series`` for the passed pd.Timestamps.</span>
-
-<span class="sd">        Note</span>
-<span class="sd">        ----</span>
-<span class="sd">        This returns a **view** of ``hf_series``!</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        hf_series: pd.Series</span>
-<span class="sd">            The **datetime-indexed** series, which will be sliced.</span>
-<span class="sd">        t_start: pd.Timestamp, optional</span>
-<span class="sd">            The lower-time-bound of the slice, if set to None, no lower-bound threshold</span>
-<span class="sd">            will be applied, by default None.</span>
-<span class="sd">        t_stop:  pd.Timestamp, optional</span>
-<span class="sd">            The upper time-bound of the slice, if set to None, no upper-bound threshold</span>
-<span class="sd">            will be applied, by default None.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        pd.Series</span>
-<span class="sd">            The sliced **view** of the series.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="k">def</span> <span class="nf">to_same_tz</span><span class="p">(</span>
-            <span class="n">ts</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span> <span class="n">reference_tz</span><span class="o">=</span><span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tz</span>
-        <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">pd</span><span class="o">.</span><span class="n">Timestamp</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-<span class="w">            </span><span class="sd">&quot;&quot;&quot;Adjust `ts` its timezone to the `reference_tz`.&quot;&quot;&quot;</span>
-            <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">None</span>
-            <span class="k">elif</span> <span class="n">reference_tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">assert</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span><span class="o">.</span><span class="n">zone</span> <span class="o">==</span> <span class="n">reference_tz</span><span class="o">.</span><span class="n">zone</span>
-                    <span class="k">return</span> <span class="n">ts</span>
-                <span class="k">else</span><span class="p">:</span>  <span class="c1"># localize -&gt; time remains the same</span>
-                    <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="n">reference_tz</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="n">reference_tz</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">ts</span>
-
-        <span class="k">if</span> <span class="n">t_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">t_stop</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">t_start</span><span class="o">.</span><span class="n">tz</span> <span class="o">==</span> <span class="n">t_stop</span><span class="o">.</span><span class="n">tz</span>
-
-        <span class="k">return</span> <span class="n">hf_series</span><span class="p">[</span><span class="n">to_same_tz</span><span class="p">(</span><span class="n">t_start</span><span class="p">)</span> <span class="p">:</span> <span class="n">to_same_tz</span><span class="p">(</span><span class="n">t_stop</span><span class="p">)]</span>
-
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">hf_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Property to adjust the `data` component of the current graph</span>
@@ -710,9 +912,11 @@
 
 
 <span class="sd">        Example:</span>
+<span class="sd">            &gt;&gt;&gt; from plotly_resampler import FigureResampler</span>
 <span class="sd">            &gt;&gt;&gt; fig = FigureResampler(go.Figure())</span>
 <span class="sd">            &gt;&gt;&gt; fig.add_trace(...)</span>
-<span class="sd">            &gt;&gt;&gt; fig.hf_data[-1][&quot;y&quot;] = - s ** 2  # adjust the y-property of the trace added above</span>
+<span class="sd">            &gt;&gt;&gt; # Adjust the y property of the above added trace</span>
+<span class="sd">            &gt;&gt;&gt; fig.hf_data[-1][&quot;y&quot;] = - s ** 2</span>
 <span class="sd">            &gt;&gt;&gt; fig.hf_data</span>
 <span class="sd">            [</span>
 <span class="sd">                {</span>
@@ -727,42 +931,6 @@
 <span class="sd">            ]</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Construct the hf-series.</span>
-
-<span class="sd">        By constructing the hf-series this way, users can dynamically adjust the hf</span>
-<span class="sd">        series argument.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        x : np.ndarray</span>
-<span class="sd">            The hf_series index</span>
-<span class="sd">        y : np.ndarray</span>
-<span class="sd">            The hf_series values</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        pd.Series</span>
-<span class="sd">            The constructed hf_series</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Note this is the same behavior as plotly support</span>
-        <span class="c1"># i.e. it also used the `values` property of the `x` and `y` parameters when</span>
-        <span class="c1"># these are pd.Series</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
-
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">):</span>
-            <span class="n">y</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">values</span>
-
-        <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
-            <span class="n">data</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
-            <span class="n">index</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
-            <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;category&quot;</span> <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span> <span class="k">else</span> <span class="n">y</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_parse_get_trace_props</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -817,7 +985,9 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">))</span>
             <span class="k">else</span> <span class="n">hf_y</span>
         <span class="p">)</span>
-        <span class="n">hf_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
+        <span class="c1"># NOTE: the if will not be triggered for a categorical series its values</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="s2">&quot;dtype&quot;</span><span class="p">):</span>
+            <span class="n">hf_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
 
         <span class="n">hf_text</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">hf_text</span>
@@ -896,7 +1066,7 @@
             <span class="c1"># when y argument is used for the trace constructor instead of hf_y), we</span>
             <span class="c1"># transform it to type string as such it will be sent as categorical data</span>
             <span class="c1"># to the downsampling algorithm</span>
-            <span class="k">if</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span> <span class="ow">or</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">str_</span><span class="p">:</span>
                 <span class="c1"># But first, we try to parse to a numeric dtype (as this is the</span>
                 <span class="c1"># behavior that plotly supports)</span>
                 <span class="c1"># Note that a bool array of type object will remain a bool array (and</span>
@@ -904,8 +1074,7 @@
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">hf_y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">to_numeric</span><span class="p">(</span><span class="n">hf_y</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s2">&quot;raise&quot;</span><span class="p">)</span>
                 <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_y</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;str&quot;</span><span class="p">)</span>
-
+                    <span class="n">hf_y</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>  <span class="c1"># TODO: ordered=True?</span>
             <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">),</span> <span class="s2">&quot;x and y have different length!&quot;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;trace </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> is not a high-frequency trace&quot;</span><span class="p">)</span>
@@ -929,7 +1098,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">dc</span><span class="p">:</span> <span class="n">_hf_data_container</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="n">BaseTraceType</span><span class="p">,</span>
-        <span class="n">downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">downsampler</span><span class="p">:</span> <span class="n">AbstractAggregator</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_handler</span><span class="p">:</span> <span class="n">AbstractGapHandler</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">max_n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -941,8 +1111,10 @@
 <span class="sd">            The hf_data container, withholding the parsed hf-data.</span>
 <span class="sd">        trace : BaseTraceType</span>
 <span class="sd">            The trace.</span>
-<span class="sd">        downsampler : AbstractSeriesAggregator | None</span>
+<span class="sd">        downsampler : AbstractAggregator | None</span>
 <span class="sd">            The downsampler which will be used.</span>
+<span class="sd">        gap_handler : AbstractGapHandler | None</span>
+<span class="sd">            The gap handler which will be used.</span>
 <span class="sd">        max_n_samples : int | None</span>
 <span class="sd">            The max number of output samples.</span>
 
@@ -951,17 +1123,16 @@
 <span class="sd">        dict</span>
 <span class="sd">            The hf_data dict.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># We will re-create this each time as hf_x and hf_y withholds</span>
-        <span class="c1"># high-frequency data and can be adjusted on the fly with the public hf_data</span>
-        <span class="c1"># property.</span>
-        <span class="n">hf_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_to_hf_series</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">dc</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
-
         <span class="c1"># Checking this now avoids less interpretable `KeyError` when resampling</span>
-        <span class="k">assert</span> <span class="n">hf_series</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">is_monotonic_increasing</span><span class="p">,</span> <span class="p">(</span>
+        <span class="n">assert_text</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s2">&quot;In order to perform time series aggregation, the data must be &quot;</span>
             <span class="s2">&quot;sorted in time; i.e., the x-data must be (non-strictly) &quot;</span>
             <span class="s2">&quot;monotonically increasing.&quot;</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">):</span>
+            <span class="k">assert</span> <span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">is_monotonic_increasing</span><span class="p">,</span> <span class="n">assert_text</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">is_monotonic_increasing</span><span class="p">,</span> <span class="n">assert_text</span>
 
         <span class="c1"># As we support prefix-suffixing of downsampled data, we assure that</span>
         <span class="c1"># each trace has a name</span>
@@ -985,19 +1156,24 @@
             <span class="n">default_downsampler</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="n">downsampler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span>
 
+        <span class="n">default_gap_handler</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">gap_handler</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">default_gap_handler</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">gap_handler</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_gap_handler</span>
+
         <span class="c1"># TODO -&gt; can&#39;t we just store the DC here (might be less duplication of</span>
         <span class="c1">#  code knowledge, because now, you need to know all the eligible hf_keys in</span>
         <span class="c1">#  dc</span>
         <span class="k">return</span> <span class="p">{</span>
             <span class="s2">&quot;max_n_samples&quot;</span><span class="p">:</span> <span class="n">max_n_samples</span><span class="p">,</span>
             <span class="s2">&quot;default_n_samples&quot;</span><span class="p">:</span> <span class="n">default_n_samples</span><span class="p">,</span>
-            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">dc</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
-            <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">dc</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">trace</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
             <span class="s2">&quot;axis_type&quot;</span><span class="p">:</span> <span class="n">axis_type</span><span class="p">,</span>
             <span class="s2">&quot;downsampler&quot;</span><span class="p">:</span> <span class="n">downsampler</span><span class="p">,</span>
             <span class="s2">&quot;default_downsampler&quot;</span><span class="p">:</span> <span class="n">default_downsampler</span><span class="p">,</span>
-            <span class="s2">&quot;text&quot;</span><span class="p">:</span> <span class="n">dc</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
-            <span class="s2">&quot;hovertext&quot;</span><span class="p">:</span> <span class="n">dc</span><span class="o">.</span><span class="n">hovertext</span><span class="p">,</span>
+            <span class="s2">&quot;gap_handler&quot;</span><span class="p">:</span> <span class="n">gap_handler</span><span class="p">,</span>
+            <span class="s2">&quot;default_gap_handler&quot;</span><span class="p">:</span> <span class="n">default_gap_handler</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">dc</span><span class="o">.</span><span class="n">_asdict</span><span class="p">(),</span>
         <span class="p">}</span>
 
     <span class="nd">@staticmethod</span>
@@ -1020,7 +1196,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">trace</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">BaseTraceType</span><span class="p">,</span> <span class="nb">dict</span><span class="p">],</span>
         <span class="n">max_n_samples</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">downsampler</span><span class="p">:</span> <span class="n">AbstractSeriesAggregator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">downsampler</span><span class="p">:</span> <span class="n">AbstractAggregator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_handler</span><span class="p">:</span> <span class="n">AbstractGapHandler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">limit_to_view</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="c1"># Use these if you want some speedups (and are working with really large data)</span>
         <span class="n">hf_x</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -1050,10 +1227,14 @@
 <span class="sd">            The maximum number of samples that will be shown by the trace.\n</span>
 <span class="sd">            .. note::</span>
 <span class="sd">                If this variable is not set; ``_global_n_shown_samples`` will be used.</span>
-<span class="sd">        downsampler: AbstractSeriesDownsampler, optional</span>
+<span class="sd">        downsampler: AbstractAggregator, optional</span>
 <span class="sd">            The abstract series downsampler method.\n</span>
 <span class="sd">            .. note::</span>
 <span class="sd">                If this variable is not set, ``_global_downsampler`` will be used.</span>
+<span class="sd">        gap_handler: AbstractGapHandler, optional</span>
+<span class="sd">            The abstract series gap handler method.\n</span>
+<span class="sd">            .. note::</span>
+<span class="sd">                If this variable is not set, ``_global_gap_handler`` will be used.</span>
 <span class="sd">        limit_to_view: boolean, optional</span>
 <span class="sd">            If set to True, the trace&#39;s datapoints will be cut to the corresponding</span>
 <span class="sd">            front-end view, even if the total number of samples is lower than</span>
@@ -1168,6 +1349,7 @@
                     <span class="n">dc</span><span class="p">,</span>
                     <span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span>
                     <span class="n">downsampler</span><span class="o">=</span><span class="n">downsampler</span><span class="p">,</span>
+                    <span class="n">gap_handler</span><span class="o">=</span><span class="n">gap_handler</span><span class="p">,</span>
                     <span class="n">max_n_samples</span><span class="o">=</span><span class="n">max_n_samples</span><span class="p">,</span>
                 <span class="p">)</span>
 
@@ -1192,11 +1374,8 @@
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[i] NOT resampling </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - len=</span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="c1"># TODO: can be made more generic</span>
-                <span class="n">trace</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">x</span>
-                <span class="n">trace</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">y</span>
-                <span class="n">trace</span><span class="o">.</span><span class="n">text</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">text</span>
-                <span class="n">trace</span><span class="o">.</span><span class="n">hovertext</span> <span class="o">=</span> <span class="n">dc</span><span class="o">.</span><span class="n">hovertext</span>
+                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dc</span><span class="o">.</span><span class="n">_fields</span><span class="p">:</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dc</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
                 <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
                     <span class="p">[</span><span class="n">trace</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">trace_kwargs</span><span class="p">)</span>
                 <span class="p">)</span>
@@ -1208,9 +1387,8 @@
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">data</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">BaseTraceType</span> <span class="o">|</span> <span class="nb">dict</span><span class="p">]</span> <span class="o">|</span> <span class="n">BaseTraceType</span> <span class="o">|</span> <span class="n">Dict</span><span class="p">,</span>
         <span class="n">max_n_samples</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="nb">int</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-        <span class="n">downsamplers</span><span class="p">:</span> <span class="kc">None</span>
-        <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="n">AbstractSeriesAggregator</span><span class="p">]</span>
-        <span class="o">|</span> <span class="n">AbstractFigureAggregator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">downsamplers</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="n">AbstractAggregator</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractAggregator</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">gap_handlers</span><span class="p">:</span> <span class="kc">None</span> <span class="o">|</span> <span class="n">List</span><span class="p">[</span><span class="n">AbstractGapHandler</span><span class="p">]</span> <span class="o">|</span> <span class="n">AbstractGapHandler</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">limit_to_views</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">check_nans</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">|</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="o">**</span><span class="n">traces_kwargs</span><span class="p">,</span>
@@ -1242,10 +1420,14 @@
 <span class="sd">              The maximum number of samples that will be shown for each trace.</span>
 <span class="sd">              If a single integer is passed, all traces will use this number. If this</span>
 <span class="sd">              variable is not set; ``_global_n_shown_samples`` will be used.</span>
-<span class="sd">        downsamplers : None | List[AbstractSeriesAggregator] | AbstractFigureAggregator, optional</span>
+<span class="sd">        downsamplers : None | List[AbstractAggregator] | AbstractAggregator, optional</span>
 <span class="sd">            The downsampler that will be used to aggregate the traces. If a single</span>
 <span class="sd">            aggregator is passed, all traces will use this aggregator.</span>
 <span class="sd">            If this variable is not set, ``_global_downsampler`` will be used.</span>
+<span class="sd">        gap_handlers : None | List[AbstractGapHandler] | AbstractGapHandler, optional</span>
+<span class="sd">            The gap handler that will be used to aggregate the traces. If a single</span>
+<span class="sd">            gap handler is passed, all traces will use this gap handler.</span>
+<span class="sd">            If this variable is not set, ``_global_gap_handler`` will be used.</span>
 <span class="sd">        limit_to_views : None | List[bool] | bool, optional</span>
 <span class="sd">            List of limit_to_view booleans for the added traces. If set to True the</span>
 <span class="sd">            trace&#39;s datapoints will be cut to the corresponding front-end view, even if</span>
@@ -1298,16 +1480,22 @@
         <span class="c1"># Convert the data properties</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">max_n_samples</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">))</span> <span class="ow">or</span> <span class="n">max_n_samples</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">max_n_samples</span> <span class="o">=</span> <span class="p">[</span><span class="n">max_n_samples</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsamplers</span><span class="p">,</span> <span class="n">AbstractSeriesAggregator</span><span class="p">)</span> <span class="ow">or</span> <span class="n">downsamplers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsamplers</span><span class="p">,</span> <span class="n">AbstractAggregator</span><span class="p">)</span> <span class="ow">or</span> <span class="n">downsamplers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">downsamplers</span> <span class="o">=</span> <span class="p">[</span><span class="n">downsamplers</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">gap_handlers</span><span class="p">,</span> <span class="n">AbstractGapHandler</span><span class="p">)</span> <span class="ow">or</span> <span class="n">gap_handlers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">gap_handlers</span> <span class="o">=</span> <span class="p">[</span><span class="n">gap_handlers</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">limit_to_views</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
             <span class="n">limit_to_views</span> <span class="o">=</span> <span class="p">[</span><span class="n">limit_to_views</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">check_nans</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
             <span class="n">check_nans</span> <span class="o">=</span> <span class="p">[</span><span class="n">check_nans</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">max_out</span><span class="p">,</span> <span class="n">downsampler</span><span class="p">,</span> <span class="n">limit_to_view</span><span class="p">,</span> <span class="n">check_nan</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
-            <span class="nb">zip</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">max_n_samples</span><span class="p">,</span> <span class="n">downsamplers</span><span class="p">,</span> <span class="n">limit_to_views</span><span class="p">,</span> <span class="n">check_nans</span><span class="p">)</span>
-        <span class="p">):</span>
+        <span class="n">zipped</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span>
+            <span class="n">data</span><span class="p">,</span> <span class="n">max_n_samples</span><span class="p">,</span> <span class="n">downsamplers</span><span class="p">,</span> <span class="n">gap_handlers</span><span class="p">,</span> <span class="n">limit_to_views</span><span class="p">,</span> <span class="n">check_nans</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="p">(</span>
+            <span class="n">i</span><span class="p">,</span>
+            <span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">max_out</span><span class="p">,</span> <span class="n">downsampler</span><span class="p">,</span> <span class="n">gap_handler</span><span class="p">,</span> <span class="n">limit_to_view</span><span class="p">,</span> <span class="n">check_nan</span><span class="p">),</span>
+        <span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">zipped</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span>
                 <span class="n">trace</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_high_frequency_traces</span>
                 <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">uid</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
@@ -1323,6 +1511,7 @@
                 <span class="n">dc</span><span class="p">,</span>
                 <span class="n">trace</span><span class="o">=</span><span class="n">trace</span><span class="p">,</span>
                 <span class="n">downsampler</span><span class="o">=</span><span class="n">downsampler</span><span class="p">,</span>
+                <span class="n">gap_handler</span><span class="o">=</span><span class="n">gap_handler</span><span class="p">,</span>
                 <span class="n">max_n_samples</span><span class="o">=</span><span class="n">max_out</span><span class="p">,</span>
                 <span class="n">offset</span><span class="o">=</span><span class="n">i</span><span class="p">,</span>
             <span class="p">)</span>
@@ -1339,7 +1528,7 @@
         <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">traces_kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_clear_figure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the current figure object it&#39;s data and layout.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear the current figure object its data and layout.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_hf_data</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_data</span> <span class="o">=</span> <span class="p">[]</span>
@@ -1374,6 +1563,8 @@
             <span class="k">for</span> <span class="n">hf_props</span> <span class="ow">in</span> <span class="n">hf_data_cp</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">hf_props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;default_downsampler&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                     <span class="n">hf_props</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span>
+                <span class="k">if</span> <span class="n">hf_props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;default_gap_handler&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                    <span class="n">hf_props</span><span class="p">[</span><span class="s2">&quot;gap_handler&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_gap_handler</span>
                 <span class="k">if</span> <span class="n">hf_props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;default_n_samples&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                     <span class="n">hf_props</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_global_n_shown_samples</span>
 
@@ -1399,6 +1590,27 @@
             <span class="n">default_downsampler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span><span class="p">,</span>
             <span class="n">resampled_trace_prefix_suffix</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">),</span>
         <span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_parse_relayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relayout_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Update the relayout object so that the autorange will be set to None when</span>
+<span class="sd">        there are xy-matches.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        relayout_dict : dict</span>
+<span class="sd">            The relayout dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Create a new dict with additional layout updates for the front-end</span>
+        <span class="n">extra_layout_updates</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c1"># 1.1. Set autorange to False for each layout item with a specified x-range</span>
+        <span class="n">xy_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span>
+            <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[xy]axis\d*.range\[\d+]&quot;</span><span class="p">),</span> <span class="n">relayout_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">range_change_axis</span> <span class="ow">in</span> <span class="n">xy_matches</span><span class="p">:</span>
+            <span class="n">axis</span> <span class="o">=</span> <span class="n">range_change_axis</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">extra_layout_updates</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">.autorange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">extra_layout_updates</span>
 
 <div class="viewcode-block" id="AbstractFigureAggregator.construct_update_data"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data">[docs]</a>    <span class="k">def</span> <span class="nf">construct_update_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1435,7 +1647,7 @@
         <span class="k">if</span> <span class="n">relayout_data</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">100</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;changed layout&quot;</span><span class="p">,</span> <span class="n">relayout_data</span><span class="p">)</span>
 
-            <span class="n">cl_k</span> <span class="o">=</span> <span class="n">relayout_data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">cl_k</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">relayout_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
             <span class="c1"># ------------------ HF DATA aggregation ---------------------</span>
             <span class="c1"># 1. Base case - there is an x-range specified in the front-end</span>
@@ -1487,23 +1699,15 @@
             <span class="k">return</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span>
 
         <span class="c1"># -------------------- construct callback data --------------------------</span>
-        <span class="n">layout_traces_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the data</span>
-
-        <span class="c1"># 1. Create a new dict with additional layout updates for the front-end</span>
-        <span class="n">extra_layout_updates</span> <span class="o">=</span> <span class="p">{}</span>
-
-        <span class="c1"># 1.1. Set autorange to False for each layout item with a specified x-range</span>
-        <span class="n">xy_matches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_re_matches</span><span class="p">(</span><span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;[xy]axis\d*.range\[\d+]&quot;</span><span class="p">),</span> <span class="n">cl_k</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">range_change_axis</span> <span class="ow">in</span> <span class="n">xy_matches</span><span class="p">:</span>
-            <span class="n">axis</span> <span class="o">=</span> <span class="n">range_change_axis</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">extra_layout_updates</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">axis</span><span class="si">}</span><span class="s2">.autorange&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">layout_traces_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">extra_layout_updates</span><span class="p">)</span>
+        <span class="c1"># 1. Create the layout data for the front-end</span>
+        <span class="n">layout_traces_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">relayout_data</span><span class="p">]</span>
 
         <span class="c1"># 2. Create the additional trace data for the frond-end</span>
-        <span class="n">relevant_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">]</span>  <span class="c1"># TODO - marker color</span>
+        <span class="n">relevant_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_hf_data_container</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
         <span class="c1"># Note that only updated trace-data will be sent to the client</span>
         <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">updated_trace_indices</span><span class="p">:</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">current_graph</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
+            <span class="c1"># TODO: check if we can reduce even more</span>
             <span class="n">trace_reduced</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">relevant_keys</span> <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">trace</span><span class="p">}</span>
 
             <span class="c1"># Store the index into the corresponding to-be-sent trace-data so</span>
@@ -1537,7 +1741,7 @@
     <span class="k">def</span> <span class="nf">_is_no_update</span><span class="p">(</span><span class="n">update_data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">],</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">update_data</span> <span class="ow">is</span> <span class="n">dash</span><span class="o">.</span><span class="n">no_update</span>
 
-    <span class="c1">## Magic methods (to use plotly.py words :grin:)</span>
+    <span class="c1"># ------------------------------- Magic methods ---------------------------------</span>
 
     <span class="k">def</span> <span class="nf">_get_pr_props_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the keys (i.e., the names) of the plotly-resampler properties.</span>
@@ -1577,41 +1781,74 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="p">(</span><span class="n">props</span><span class="p">,)</span>  <span class="c1"># (props,) to comply with plotly magic</span></div>
 </pre></div>
 
-              </article>
+                </article>
               
-
               
-              <footer class="bd-footer-article">
-                  <!-- Previous / next buttons -->
-<div class='prev-next-area'>
-</div>
-              </footer>
               
-          </div>
-          
-      </div>
-    </div>
-
+                <footer class="bd-footer-article">
+                  
+<div class="footer-article-items footer-article__inner">
   
+    <div class="footer-article-item"><!-- Previous / next buttons -->
+<div class="prev-next-area">
+</div></div>
+  
+</div>
+
+                </footer>
+              
+            </div>
+            
+            
+              
+            
+          </div>
+          <footer class="bd-footer-content">
+            
+          </footer>
+        
+      </main>
+    </div>
+  </div>
   
   <!-- Scripts loaded after <body> so the DOM is not blocked -->
-  <script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=92025949c220c2e29695"></script>
+  <script src="../../../_static/scripts/bootstrap.js?digest=e353d410970836974a52"></script>
+<script src="../../../_static/scripts/pydata-sphinx-theme.js?digest=e353d410970836974a52"></script>
 
-<footer class="bd-footer"><div class="bd-footer__inner container">
+  <footer class="bd-footer">
+<div class="bd-footer__inner bd-page-width">
   
-  <div class="footer-item">
-    <p class="copyright">
-    &copy; Copyright 2023, Jonas Van Der Donckt.<br>
-</p>
-  </div>
+    <div class="footer-items__start">
+      
+        <div class="footer-item">
+  <p class="copyright">
+    
+      © Copyright 2023, Jonas Van Der Donckt.
+      <br/>
+    
+  </p>
+</div>
+      
+        <div class="footer-item">
+  <p class="sphinx-version">
+    Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 4.5.0.
+    <br/>
+  </p>
+</div>
+      
+    </div>
   
-  <div class="footer-item">
-    <p class="sphinx-version">
-Created using <a href="http://sphinx-doc.org/">Sphinx</a> 4.5.0.<br>
-</p>
-  </div>
+  
+    <div class="footer-items__end">
+      
+        <div class="footer-item"><p class="theme-version">
+  Built with the <a href="https://pydata-sphinx-theme.readthedocs.io/en/stable/index.html">PyData Sphinx Theme</a> 0.13.3.
+</p></div>
+      
+    </div>
   
 </div>
-</footer>
+
+  </footer>
   </body>
 </html>

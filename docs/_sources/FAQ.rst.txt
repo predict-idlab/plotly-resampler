@@ -186,33 +186,3 @@ Some illustration:
    </div>
    </details>
    <br>
-   <details>
-   <summary>
-      <a><b>I get errors such as:</b><br><ul><li>
-         <code>RuntimeError: module compiled against API version 0x10 but this version of numpy is 0xe</code></li>  
-         <li><code>ImportError: numpy.core.multiarray failed to import</code></li>
-         </ul>
-      </a>
-   </summary>
-   <div style="margin-left:1em">
-
-   Plotly-resampler uses compiled C code (which uses the NumPy C API) to speed up the LTTB data-aggregation algorithm. This C code gets compiled during the building stage of the package (which might be before you install the package).<br><br>
-   If this C extension was build against a more recent NumPy version than your local version, you obtain a 
-   <a href="https://numpy.org/devdocs/user/troubleshooting-importerror.html#c-api-incompatibility"><i>NumPy C-API incompatibility</i></a> 
-   and the above error will be raised.<br><br>
-
-   These above mentioned errors can thus be resolved by running<br>
-   &nbsp;&nbsp;&nbsp;&nbsp;<code>pip install --upgrade numpy</code><br>
-   and reinstalling plotly-resampler afterwards.<br><br>
-
-   For more information about compatibility and building upon NumPy, you can consult 
-   <a href="https://numpy.org/doc/stable/user/depending_on_numpy.html?highlight=compiled#for-downstream-package-authors">NumPy's docs for downstream package authors</a>.
-
-   We aim to limit this issue as much as possible (by for example using <a href="https://github.com/scipy/oldest-supported-numpy">oldest-supported-numpy</a> in our build.py), 
-   but if you still experience issues, please open an issue on <a href="https://github.com/predict-idlab/plotly-resampler/issues">GitHub</a>.
-
-.. raw:: html
-
-   </div>
-   </details>
-   <br>
