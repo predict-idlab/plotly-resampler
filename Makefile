@@ -1,15 +1,13 @@
 black = black plotly_resampler examples tests
-isort = isort plotly_resampler examples tests
 
 .PHONY: format
 format:
-	$(isort)
+	ruff --fix plotly_resampler tests
 	$(black)
 
 .PHONY: lint
 lint:
 	poetry run ruff plotly_resampler tests
-	poetry run $(isort) --check-only --df
 	poetry run $(black) --check --diff
 
 .PHONY: test
