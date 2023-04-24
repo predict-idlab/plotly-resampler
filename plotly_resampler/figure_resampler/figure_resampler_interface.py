@@ -985,7 +985,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         data: List[BaseTraceType | dict] | BaseTraceType | Dict,
         max_n_samples: None | List[int] | int = None,
         downsamplers: None | List[AbstractAggregator] | AbstractAggregator = None,
-        gap_handlers: None | List[AbstractAggregator] | AbstractAggregator = None,
+        gap_handlers: None | List[AbstractGapHandler] | AbstractGapHandler = None,
         limit_to_views: List[bool] | bool = False,
         check_nans: List[bool] | bool = True,
         **traces_kwargs,
@@ -1021,7 +1021,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The downsampler that will be used to aggregate the traces. If a single
             aggregator is passed, all traces will use this aggregator.
             If this variable is not set, ``_global_downsampler`` will be used.
-        gap_handlers : None | List[AbstractAggregator] | AbstractAggregator, optional
+        gap_handlers : None | List[AbstractGapHandler] | AbstractGapHandler, optional
             The gap handler that will be used to aggregate the traces. If a single
             gap handler is passed, all traces will use this gap handler.
             If this variable is not set, ``_global_gap_handler`` will be used.
@@ -1086,23 +1086,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if isinstance(check_nans, bool):
             check_nans = [check_nans] * len(data)
 
-        for i, (
-            trace,
-            max_out,
-            downsampler,
-            gap_handler,
-            limit_to_view,
-            check_nan,
-        ) in enumerate(
-            zip(
-                data,
-                max_n_samples,
-                downsamplers,
-                gap_handlers,
-                limit_to_views,
-                check_nans,
-            )
-        ):
+        zipped = zip(
+            data, max_n_samples, downsamplers, gap_handlers, limit_to_views, check_nans
+        )
+        for (
+            i,
+            (trace, max_out, downsampler, gap_handler, limit_to_view, check_nan),
+        ) in enumerate(zipped):
             if (
                 trace.type.lower() not in self._high_frequency_traces
                 or self._hf_data.get(trace.uid) is not None
