@@ -2,7 +2,7 @@
 
 import contextlib
 
-from .aggregation import LTTB, EfficientLTTB, EveryNthPoint
+from .aggregation import LTTB, EveryNthPoint, MinMaxLTTB
 from .figure_resampler import FigureResampler, FigureWidgetResampler
 from .registering import register_plotly_resampler, unregister_plotly_resampler
 
@@ -14,7 +14,7 @@ __all__ = [
     "__version__",
     "FigureResampler",
     "FigureWidgetResampler",
-    "EfficientLTTB",
+    "MinMaxLTTB",
     "LTTB",
     "EveryNthPoint",
     "register_plotly_resampler",

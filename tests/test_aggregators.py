@@ -1,554 +1,238 @@
 import numpy as np
 import pandas as pd
 import pytest
+from pytest_lazyfixture import lazy_fixture as lf
 
 from plotly_resampler.aggregation import (
     LTTB,
-    EfficientLTTB,
     EveryNthPoint,
     FuncAggregator,
+    MedDiffGapHandler,
     MinMaxAggregator,
+    MinMaxLTTB,
     MinMaxOverlapAggregator,
+    NoGapHandler,
 )
-from plotly_resampler.aggregation.algorithms.lttb_c import LTTB_core_c
-from plotly_resampler.aggregation.algorithms.lttb_py import LTTB_core_py
+
+from .utils import construct_index, wrap_aggregate
 
 
-# --------------------------------- EveryNthPoint ------------------------------------
-def test_every_nth_point_float_time_data(float_series):
-    float_series.index = pd.date_range(
-        "1/1/2020", periods=len(float_series), freq="1ms"
+# ------------------------------- DatapointSelector ----------------------------------
+@pytest.mark.parametrize(
+    "downsampler",
+    [
+        # NOTE:-> the current LTTB based aggregators need an `x`
+        # LTTB,  MinMaxLTTB,
+        EveryNthPoint,
+        MinMaxAggregator,
+        MinMaxOverlapAggregator,
+    ],
+)
+# NOTE: -> categorical series it's values is not of dtype array; but the
+# PlotlyAggregatorParser is able to deal with this
+@pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
+@pytest.mark.parametrize("interleave_gaps", [True, False])
+def test_arg_downsample_no_x(series, downsampler, interleave_gaps):
+    for n in np.random.randint(100, len(series), 6):
+        # make sure n is even (required for MinMax downsampler)
+        n = n - (n % 2)
+        indices = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
+            series.values, n_out=n
+        )
+        assert len(indices) <= n + (n % 2)
+
+
+@pytest.mark.parametrize(
+    "downsampler",
+    [
+        LTTB,
+        MinMaxLTTB,
+        EveryNthPoint,
+        MinMaxAggregator,
+        MinMaxOverlapAggregator,
+    ],
+)
+@pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
+@pytest.mark.parametrize("interleave_gaps", [True, False])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
+def test_arg_downsample_x(series, downsampler, interleave_gaps, index_type):
+    series = series.copy()
+    series.index = construct_index(series, index_type)
+    for n in np.random.randint(100, len(series), 6):
+        # make sure n is even (required for MinMax downsampler)
+        n = n - (n % 2)
+        indices = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
+            series.index.values, series.values, n_out=n
+        )
+        assert len(indices) <= n + (n % 2)
+
+
+@pytest.mark.parametrize(
+    "downsampler",
+    [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
+)
+@pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
+@pytest.mark.parametrize("interleave_gaps", [True, False])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
+def test_arg_downsample_empty_series(downsampler, series, interleave_gaps, index_type):
+    series = series.copy()
+    series.index = construct_index(series, index_type)
+    empty_series = series.iloc[0:0]
+    idxs = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
+        empty_series.index.values, empty_series.values, n_out=1_000
     )
-    for n in np.random.randint(100, len(float_series), 3):
-        out = EveryNthPoint(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = EveryNthPoint(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
+    assert len(idxs) == 0
 
 
-def test_every_nth_point_float_sequence_data(float_series):
-    float_series.index = np.arange(len(float_series), dtype="uint32")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = EveryNthPoint(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = EveryNthPoint(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_every_nth_point_categorical_time_data(cat_series):
-    cat_series.index = pd.date_range("1/1/2023", periods=len(cat_series), freq="10us")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = EveryNthPoint(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = EveryNthPoint(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_every_nth_point_categorical_sequence_data(cat_series):
-    cat_series.index = np.arange(len(cat_series), dtype="uint32")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = EveryNthPoint(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = EveryNthPoint(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-
-def test_every_nth_point_bool_time_data(bool_series):
-    bool_series.index = pd.date_range("1/1/2020", periods=len(bool_series), freq="1ms")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = EveryNthPoint(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = EveryNthPoint(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-
-def test_every_nth_point_bool_sequence_data(bool_series):
-    bool_series.index = np.arange(len(bool_series), dtype="uint32")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = EveryNthPoint(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = EveryNthPoint(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_every_nth_point_empty_series():
-    empty_series = pd.Series(name="empty", dtype="float32")
-    out = EveryNthPoint(interleave_gaps=True).aggregate(empty_series, n_out=1_000)
-    assert out.equals(empty_series)
-
-
-# ---------------- EveryNthPoint ----------- test nan_position
-def test_every_nth_point_nan_position(float_series):
-    fs = float_series.copy()
-    fs[100:200] = None
-    fs = fs.dropna()
-
-    # BEGIN
-    nan_idx = fs.index[
-        EveryNthPoint(nan_position="begin")._replace_gap_end_none(fs.copy()).isna()
-    ].values
-    assert len(nan_idx) == 1
-    assert nan_idx[0] == 99
-
-    # END
-    nan_idx = fs.index[
-        EveryNthPoint(nan_position="end")._replace_gap_end_none(fs.copy()).isna()
-    ].values
-    assert len(nan_idx) == 1
-    assert nan_idx[0] == 200
-
-    # BOTH
-    nan_idx = fs.index[
-        EveryNthPoint(nan_position="both")._replace_gap_end_none(fs.copy()).isna()
-    ].values
-    assert len(nan_idx) == 2
-    assert nan_idx[0] == 99
-    assert nan_idx[1] == 200
-
-    # DEFAULT argument -> end
-    nan_idx = fs.index[EveryNthPoint()._replace_gap_end_none(fs.copy()).isna()].values
-    assert len(nan_idx) == 1
-    assert nan_idx[0] == 200
-
-
-# --------------------------------- MinMAxOverlap ------------------------------------
-def test_mmo_float_time_data(float_series):
-    float_series.index = pd.date_range(
-        "1/1/2020", periods=len(float_series), freq="1ms"
+@pytest.mark.parametrize(
+    "downsampler",
+    [EveryNthPoint, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
+)
+@pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
+@pytest.mark.parametrize("interleave_gaps", [True, False])
+def test_arg_downsample_no_x_empty_series(downsampler, series, interleave_gaps):
+    empty_series = series.iloc[0:0]
+    idxs = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
+        empty_series.values, n_out=1_000
     )
-    for n in np.random.randint(100, len(float_series), 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=False).aggregate(
-            float_series, n_out=n
+    assert len(idxs) == 0
+
+
+@pytest.mark.parametrize(
+    "downsampler",
+    [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
+)
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
+@pytest.mark.parametrize(
+    "series",
+    [lf("float_series"), lf("cat_series"), lf("bool_series")],
+)
+@pytest.mark.parametrize("interleave_gaps", [True, False])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
+def test_wrap_aggregate(downsampler, gap_handler, series, interleave_gaps, index_type):
+    series = series.copy()
+    series.index = construct_index(series, index_type)
+    for n in np.random.randint(100, len(series), 6):
+        # make sure n is even (required for MinMax downsampler)
+        n = n - (n % 2)
+        x_agg, y_agg, indices = wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series.values,
+            downsampler=downsampler(interleave_gaps=interleave_gaps),
+            gap_handler=gap_handler(),
+            n_out=n,
         )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-            float_series, n_out=n
-        )
-        assert sum(out.notna()) <= n + 1
+        assert not pd.Series(y_agg).isna().any()
+        assert len(x_agg) == len(y_agg) == len(indices)
+        assert len(y_agg) <= n + (n % 2)
 
 
-def test_mmo_float_sequence_data(float_series):
-    float_series.index = np.arange(len(float_series), dtype="uint32")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=False).aggregate(
-            float_series, n_out=n
-        )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-            float_series, n_out=n
-        )
-        assert sum(out.notna()) <= n + 1
-
-
-def test_mmo_categorical_time_data(cat_series):
-    cat_series.index = pd.date_range("1/1/2023", periods=len(cat_series), freq="10us")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=False).aggregate(
-            cat_series, n_out=n
-        )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-            cat_series, n_out=n
-        )
-        assert sum(out.notna()) <= n + 1
-
-
-def test_mmo_categorical_sequence_data(cat_series):
-    cat_series.index = np.arange(len(cat_series), dtype="uint32")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=False).aggregate(
-            cat_series, n_out=n
-        )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(cat_series) / 30, 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-            cat_series, n_out=n
-        )
-        assert not out[2:-2].isna().any()
-        assert len(out) <= n + 1
-
-
-def test_mmo_bool_time_data(bool_series):
-    bool_series.index = pd.date_range("1/1/2020", periods=len(bool_series), freq="1ms")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=False).aggregate(
-            bool_series, n_out=n
-        )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-            bool_series, n_out=n
-        )
-        assert not out[2:-2].isna().any()
-        assert len(out) <= n + 1
-
-
-def test_mmo_bool_sequence_data(bool_series):
-    bool_series.index = np.arange(len(bool_series), dtype="uint32")
-    for n in np.random.randint(200, len(bool_series), 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=False).aggregate(
-            bool_series, n_out=n
-        )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(200, len(bool_series) / 3, 3):
-        out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-            bool_series, n_out=n
-        )
-        assert not out[2:-2].isna().any()
-        assert sum(out.notna()) <= n + 1
-
-
-def test_mmo_empty_series():
-    empty_series = pd.Series(name="empty", dtype="float32")
-    out = MinMaxOverlapAggregator(interleave_gaps=True).aggregate(
-        empty_series, n_out=1_000
+@pytest.mark.parametrize(
+    "downsampler",
+    [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
+)
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
+@pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
+@pytest.mark.parametrize("interleave_gaps", [True, False])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
+def test_wrap_aggregate_empty_series(
+    downsampler, gap_handler, series, interleave_gaps, index_type
+):
+    empty_series = series.copy()
+    empty_series.index = construct_index(empty_series, index_type)
+    empty_series = empty_series.iloc[0:0]
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=empty_series.index,
+        hf_y=empty_series.values,
+        downsampler=downsampler(interleave_gaps=interleave_gaps),
+        gap_handler=gap_handler(),
+        n_out=1000,
     )
-    assert out.equals(empty_series)
+    assert len(x_agg) == len(y_agg) == len(indices) == 0
 
 
-# ------------------------------ MinMAxAggregator ----------------------------------
-def test_mm_float_time_data(float_series):
-    float_series.index = pd.date_range(
-        "1/1/2020", periods=len(float_series), freq="1ms"
+@pytest.mark.parametrize(
+    "downsampler",
+    [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
+)
+@pytest.mark.parametrize(
+    "series", [lf("float_series"), lf("bool_series"), lf("cat_series")]
+)
+def test_wrap_aggregate_x_gaps(downsampler, series):
+    series = series.copy()
+    # Create a range-index with some gaps in it
+    idx = np.arange(len(series))
+    idx[1000:] += 1000
+    idx[2000:] += 1500
+    idx[8000:] += 2500
+    series.index = idx
+
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        hf_y=series.values,
+        downsampler=downsampler(interleave_gaps=True),
+        gap_handler=MedDiffGapHandler(),
+        n_out=100,
     )
-    for n in np.random.randint(100, len(float_series), 3):
-        out = MinMaxAggregator(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = MinMaxAggregator(interleave_gaps=True).aggregate(float_series, n_out=n)
-        # assert not out[2:-2].isna().any()
-        assert sum(out.notna()) <= n + 1
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert pd.Series(y_agg).isna().sum() == 3
 
 
-def test_mm_float_sequence_data(float_series):
-    float_series.index = np.arange(len(float_series), dtype="uint32")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = MinMaxAggregator(interleave_gaps=False).aggregate(float_series, n_out=n)
-        # assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = MinMaxAggregator(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
-
-
-def test_mm_categorical_time_data(cat_series):
-    cat_series.index = pd.date_range("1/1/2023", periods=len(cat_series), freq="10us")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = MinMaxAggregator(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = MinMaxAggregator(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
-
-
-def test_mm_categorical_sequence_data(cat_series):
-    cat_series.index = np.arange(len(cat_series), dtype="uint32")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = MinMaxAggregator(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(cat_series) / 5, 3):
-        out = MinMaxAggregator(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        # assert not out[2:-2].isna().any()
-        assert len(out) <= n + 1
-
-
-def test_mm_bool_time_data(bool_series):
-    bool_series.index = pd.date_range("1/1/2020", periods=len(bool_series), freq="1ms")
-    for n in np.random.randint(200, len(bool_series), 3):
-        out = MinMaxAggregator(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(200, len(bool_series) / 5, 3):
-        out = MinMaxAggregator(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert not out[2:-2].isna().any()
-        assert len(out) <= n + 1
-
-
-def test_mm_bool_sequence_data(bool_series):
-    bool_series.index = np.arange(len(bool_series), dtype="uint32")
-    for n in np.random.randint(200, len(bool_series), 3):
-        out = MinMaxAggregator(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(200, len(bool_series) / 3, 3):
-        out = MinMaxAggregator(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
-
-
-# -------------------------------------- LTTB --------------------------------------
-def test_lttb_float_time_data(float_series):
-    float_series.index = pd.date_range(
-        "1/1/2020", periods=len(float_series), freq="1ms"
+@pytest.mark.parametrize(
+    "downsampler", [EveryNthPoint, LTTB, MinMaxLTTB, MinMaxOverlapAggregator]
+)
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
+@pytest.mark.parametrize(
+    "series", [lf("float_series"), lf("bool_series"), lf("cat_series")]
+)
+def test_wrap_aggregate_range_index_data_point_selection(
+    downsampler, gap_handler, series
+):
+    series = series.copy()
+    series.index = pd.RangeIndex(start=-20_000, stop=-20_000 + len(series))
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        hf_y=series.values,
+        downsampler=downsampler(),
+        gap_handler=gap_handler(),
+        n_out=100,
     )
-    for n in np.random.randint(100, len(float_series), 3):
-        out = LTTB(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = LTTB(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert x_agg[0] == -20_000
 
 
-def test_lttb_float_sequence_data(float_series):
-    float_series.index = np.arange(len(float_series), dtype="uint32")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = LTTB(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = LTTB(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_lttb_categorical_time_data(cat_series):
-    cat_series.index = pd.date_range("1/5/2022", periods=len(cat_series), freq="10s")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = LTTB(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = LTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        # LTTB uses the first and last value by default -> so it might add a none
-        # between these two positions when not a lot of samples are chosen
-        assert sum(out.notna()) <= n
-
-
-def test_lttb_categorical_sequence_data(cat_series):
-    cat_series.index = np.arange(len(cat_series), dtype="uint32")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = LTTB(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = LTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        # LTTB uses the first and last value by default -> so it might add a none
-        # between these two positions when not a lot of samples are chosen
-        # Since we changed the insert NAN to the replace NAN position -> the notna
-        # sum must be <= `n`
-        assert sum(out.notna()) <= n
-
-
-def test_lttb_bool_time_data(bool_series):
-    bool_series.index = pd.date_range("1/1/2020", periods=len(bool_series), freq="1s")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = LTTB(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = LTTB(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_lttb_bool_sequence_data(bool_series):
-    bool_series.index = np.arange(len(bool_series), dtype="uint32")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = LTTB(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = LTTB(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_lttb_invalid_input_data():
-    # string data
-    nb_samples = 10_000
-    string_arr = ["a", "bdc", "ef", "gh", "ijklkm", "nopq"]
-    s = pd.Series(data=string_arr * (nb_samples // len(string_arr)))
-    with pytest.raises(ValueError):
-        LTTB(interleave_gaps=False).aggregate(s, n_out=100)
-
-    # time data
-    time_arr = pd.date_range("1/1/2020", periods=nb_samples, freq="1s")
-    s = pd.Series(data=time_arr)
-    with pytest.raises(ValueError):
-        LTTB(interleave_gaps=False).aggregate(s, n_out=100)
-
-
-# TODO - also tests for time series, time-series with gaps
-
-
-# ---------------------------------- EfficientLTTB ----------------------------------
-def test_efficient_lttb_float_time_data(float_series):
-    float_series.index = pd.date_range(
-        "1/1/2020", periods=len(float_series), freq="1ms"
-    )
-    for n in np.random.randint(100, len(float_series), 3):
-        out = EfficientLTTB(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = EfficientLTTB(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_efficient_lttb_float_sequence_data(float_series):
-    float_series.index = np.arange(len(float_series), dtype="uint32")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = EfficientLTTB(interleave_gaps=False).aggregate(float_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = EfficientLTTB(interleave_gaps=True).aggregate(float_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_efficient_lttb_categorical_time_data(cat_series):
-    cat_series.index = pd.date_range("1/5/2022", periods=len(cat_series), freq="10s")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = EfficientLTTB(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = EfficientLTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        # EfficientLTTB uses the first and last value by default -> so it might add a none
-        # between these two positions when not a lot of samples are chosen
-        assert sum(out.notna()) <= n
-
-
-def test_efficient_lttb_categorical_sequence_data(cat_series):
-    cat_series.index = np.arange(len(cat_series), dtype="uint32")
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = EfficientLTTB(interleave_gaps=False).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = EfficientLTTB(interleave_gaps=True).aggregate(cat_series, n_out=n)
-        # EfficientLTTB uses the first and last value by default -> so it might add a none
-        # between these two positions when not a lot of samples are chosen
-        # Since we changed the insert NAN to the replace NAN position -> the notna
-        # sum must be <= `n`
-        assert sum(out.notna()) <= n
-
-
-def test_efficient_lttb_bool_time_data(bool_series):
-    bool_series.index = pd.date_range("1/1/2020", periods=len(bool_series), freq="1s")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = EfficientLTTB(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = EfficientLTTB(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_efficient_lttb_bool_sequence_data(bool_series):
-    bool_series.index = np.arange(len(bool_series), dtype="uint32")
-    for n in np.random.randint(100, len(bool_series), 3):
-        out = EfficientLTTB(interleave_gaps=False).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) == n
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = EfficientLTTB(interleave_gaps=True).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n
-
-
-def test_efficient_lttb_invalid_input_data():
-    # string data
-    nb_samples = 10_000
-    string_arr = ["a", "bdc", "ef", "gh", "ijklkm", "nopq"]
-    s = pd.Series(data=string_arr * (nb_samples // len(string_arr)))
-    with pytest.raises(ValueError):
-        EfficientLTTB(interleave_gaps=False).aggregate(s, n_out=100)
-
-    # time data
-    time_arr = pd.date_range("1/1/2020", periods=nb_samples, freq="1s")
-    s = pd.Series(data=time_arr)
-    with pytest.raises(ValueError):
-        EfficientLTTB(interleave_gaps=False).aggregate(s, n_out=100)
-
-
-# TODO - also tests for time series, time-series with gaps
-
-# ------------------------------- AggregationDownsampler -------------------------------
-def test_func_aggregator_float_time_data(float_series):
+# # ------------------------------- DataAggregator -------------------------------
+@pytest.mark.parametrize("agg_func", [np.mean])  # np.median, sum])
+@pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
+@pytest.mark.parametrize("interleave_gaps", [False, True])
+@pytest.mark.parametrize(
+    "index_type", ["range", "datetime", "timedelta", "float", "int"]
+)
+def test_func_aggregator_float_time_data(series, interleave_gaps, index_type, agg_func):
     # TIME indexed data -> resampled output should be same size as n_out
-    float_series.index = pd.date_range("1/1/2020", periods=len(float_series), freq="1s")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = FuncAggregator(interleave_gaps=False, aggregation_func=sum).aggregate(
-            float_series, n_out=n
+    series = series.copy()
+    series.index = construct_index(series, index_type)
+    for n in np.random.randint(100, len(series), 6):
+        x_agg, y_agg, indices = wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series.values,
+            downsampler=FuncAggregator(
+                interleave_gaps=interleave_gaps, aggregation_func=agg_func
+            ),
+            gap_handler=NoGapHandler(),
+            n_out=100,
         )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = FuncAggregator(interleave_gaps=True, aggregation_func=np.mean).aggregate(
-            float_series, n_out=n
-        )
-        assert sum(out.notna()) <= n + 1
-
-
-def test_func_aggregator_float_sequence_data(float_series):
-    # No time-index => we use every nth heuristic
-    float_series.index = np.arange(len(float_series), dtype="uint32")
-    for n in np.random.randint(100, len(float_series), 3):
-        out = FuncAggregator(interleave_gaps=False, aggregation_func=sum).aggregate(
-            float_series, n_out=n
-        )
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(float_series) / 3, 3):
-        out = FuncAggregator(interleave_gaps=True, aggregation_func=np.mean).aggregate(
-            float_series, n_out=n
-        )
-        assert sum(out.notna()) <= n + 1
+        assert not pd.Series(y_agg).isna().any()
+        assert len(x_agg) == len(y_agg) == len(indices)
+        assert len(y_agg) <= n + (n % 2)
 
 
 def test_func_aggregator_categorical_time_data(cat_series):
@@ -559,122 +243,61 @@ def test_func_aggregator_categorical_time_data(cat_series):
         return len(np.unique(x))
 
     for n in np.random.randint(100, len(cat_series), 3):
-        out = FuncAggregator(
+        agg_x, agg_y = FuncAggregator(
             interleave_gaps=False, aggregation_func=cat_count
-        ).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = FuncAggregator(
-            interleave_gaps=True, aggregation_func=cat_count
-        ).aggregate(cat_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
-
-
-def test_func_aggregator_categorical_sequence_data(cat_series):
-    # TIME indexed data -> resampled output should be same size as n_out
-    cat_series.index = np.arange(len(cat_series), dtype="uint32")
-    cat_series = cat_series[: len(cat_series) // 4]
-    # note this method takes a long time - so we only test a small number of samples
-    def most_common(x):
-        return x.value_counts().index.values[0]
-
-    for n in np.random.randint(100, len(cat_series), 3):
-        out = FuncAggregator(
-            interleave_gaps=False, aggregation_func=most_common
-        ).aggregate(cat_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(cat_series) / 3, 3):
-        out = FuncAggregator(
-            interleave_gaps=True, aggregation_func=most_common
-        ).aggregate(cat_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
-
-
-def test_func_aggregator_bool_time_data(bool_series):
-    bool_series.index = pd.date_range("1/1/2020", periods=len(bool_series), freq="1s")
-
-    def most_common(x):
-        return sum(x) / len(x) >= 0.5
-
-    for n in np.random.randint(100, len(bool_series) / 2, 3):
-        out = FuncAggregator(
-            interleave_gaps=False, aggregation_func=most_common
-        ).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = FuncAggregator(
-            interleave_gaps=True, aggregation_func=most_common
-        ).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
-
-
-def test_func_aggregator_bool_sequence_data(bool_series):
-    bool_series.index = np.arange(len(bool_series), step=1, dtype="uint32")
-
-    def most_common(x):
-        return sum(x) / len(x) >= 0.5
-
-    for n in np.random.randint(100, len(bool_series) / 2, 3):
-        out = FuncAggregator(
-            interleave_gaps=False, aggregation_func=most_common
-        ).aggregate(bool_series, n_out=n)
-        assert not out.isna().any()
-        assert len(out) <= n + 1
-
-    for n in np.random.randint(100, len(bool_series) / 3, 3):
-        out = FuncAggregator(
-            interleave_gaps=True, aggregation_func=most_common
-        ).aggregate(bool_series, n_out=n)
-        assert sum(out.notna()) <= n + 1
+        ).aggregate(cat_series.index.values, cat_series.values.codes, n_out=n)
+        assert not np.isnan(agg_y).any()
+        assert len(agg_x) <= n + 1
 
 
 def test_func_aggregator_invalid_input_data(cat_series):
     # note: it is the user's responsibility to ensure that the input data is valid
     def treat_string_as_numeric_data(x):
-        return np.sum(x)
+        return np.mean(x)
 
     n = np.random.randint(100, len(cat_series) / 3)
     with pytest.raises(TypeError):
         FuncAggregator(
             interleave_gaps=True, aggregation_func=treat_string_as_numeric_data
-        ).aggregate(cat_series, n_out=n)
+        ).aggregate(cat_series.index.values, cat_series.to_numpy(), n_out=n)
 
 
-# ------------------------------- LTTB_Bindings -------------------------------
-def test_lttb_bindings():
-    # Test whether both algorithms produce the same results with different types of
-    # input data
-    n = np.random.randint(low=1_000_000, high=2_000_000)
-    x_int = np.arange(n, dtype="int64")
-    x_double = x_int.astype("float64")
-    y_double = np.sin(x_int / 300) + np.random.randn(n)
-    y_float = y_double.astype("float32")
-    y_int = (100 * y_double).astype("int64")
-    y_bool = (x_int % 250).astype("bool")
+def test_funcAggregator_no_x():
+    n = 1_000_000
+    x = np.arange(n)
+    y = np.sin(x / (x.shape[0] / 30)) + np.random.randn(n)
 
-    for n_out in np.random.randint(500, 2000, size=3):
-        sampled_x_c = LTTB_core_c.downsample(x_int, y_double, n_out)
-        sampled_x_py = LTTB_core_py.downsample(x_int, y_double, n_out)
-        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+    fa = FuncAggregator(np.mean, interleave_gaps=False)
+    for n_out in np.random.randint(500, 1_000, size=3):
+        fa.aggregate(y, n_out=n_out)
 
-        sampled_x_c = LTTB_core_c.downsample(x_int, y_float, n_out)
-        sampled_x_py = LTTB_core_py.downsample(x_int, y_float, n_out)
-        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
 
-        sampled_x_c = LTTB_core_c.downsample(x_int, y_int, n_out)
-        sampled_x_py = LTTB_core_py.downsample(x_int, y_int, n_out)
-        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+@pytest.mark.parametrize(
+    "series",
+    [
+        lf("float_series"),
+        lf("bool_series"),
+    ],  # , lf("cat_series")] # TODO: not supported yet
+)
+def test_wrap_aggregate_range_index_func_aggregator(series):
+    series = series.copy()
+    series.index = pd.RangeIndex(start=-20_000, stop=-20_000 + len(series))
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        hf_y=series.values,
+        downsampler=FuncAggregator(np.median),
+        n_out=100,
+    )
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert x_agg[0] == -20_000
 
-        sampled_x_c = LTTB_core_c.downsample(x_int, y_bool, n_out)
-        sampled_x_py = LTTB_core_py.downsample(x_int, y_bool, n_out)
-        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
 
-        sampled_x_c = LTTB_core_c.downsample(x_double, y_double, n_out)
-        sampled_x_py = LTTB_core_py.downsample(x_double, y_double, n_out)
-        assert sum(sampled_x_c == sampled_x_py) / len(sampled_x_c) > 0.995
+# ------------------------------- MinMaxLTTB -------------------------------
+def test_MinMaxLTTB_size():
+    # This test was made to certainly trigger the threshold for the MinMaxLTTB algorithm
+    n = 12_000_000
+    x = np.arange(n)
+    y = np.sin(x / (x.shape[0] / 30)) + np.random.randn(n)
+    mmltb = MinMaxLTTB(interleave_gaps=False)
+    for n_out in np.random.randint(500, 1_000, size=3):
+        assert n_out == mmltb._arg_downsample(x, y, n_out).shape[0]
