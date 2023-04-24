@@ -671,8 +671,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 try:
                     hf_y = pd.to_numeric(hf_y, errors="raise")
                 except ValueError:
-                    hf_y = pd.Series(data=hf_y, copy=False, dtype="category").values
-
+                    hf_y = pd.Categorical(hf_y)  # TODO: ordered=True?
             assert len(hf_x) == len(hf_y), "x and y have different length!"
         else:
             self._print(f"trace {trace['type']} is not a high-frequency trace")
