@@ -155,3 +155,10 @@ cython_debug/
 # sphinx-docs
 sphinx/_build
 sphinx/_autosummary
+
+#testing stuff
+logs/
+selectionbox_layout_data/
+examples/dash_apps/**/*coarse_fine*
+examples/dash_apps/2*
+examples/dash_apps/00*
