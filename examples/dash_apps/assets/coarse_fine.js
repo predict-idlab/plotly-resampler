@@ -26,7 +26,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			};
 
 
-			if (selectedData.range) {
+			if (selectedData) {
 				console.warn("starting: coarse -> main");
 				main_graphDiv = getGraphDiv(mainFigID);
 				coarse_graphDiv= getGraphDiv(coarseFigID);
@@ -58,6 +58,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				
 				// console.log("selected data:");
 				// console.log(selectedData.range.x.toString());
+				// console.log(selectedData);
 				// console.log("layout:")
 				// console.log(grapDiv.layout.xaxis.range.toString());
 				// console.log(graphDiv.layout.xaxis.range[0]);
@@ -83,6 +84,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					}
 					);
 				}
+			}
+			else{
+				console.log('selectedData null? -> ' + selectedData);
+				Plotly.relayout(main_graphDiv, {
+					'xaxis.autorange': true, 'xaxis.showspikes': false,
+					'yaxis.autorange': true, 'yaxis.showspikes': false,
+				}
+				);
 			}
 			return mainFigID;
 		},
@@ -121,7 +130,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			let syrange = [];
 			
 			// console.log(currentSelections);
-			if(currentSelections){
+			if(currentSelections && currentSelections.length > 0){
 				sxrange = [currentSelections[0].x0, currentSelections[0].x1].sort();
 				syrange = [currentSelections[0].y0, currentSelections[0].y1].sort();
 			}
@@ -133,9 +142,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				yrange = coarse_graphDiv.layout.yaxis.range;
 			}
 			console.log("relayout", mainFigRelayout);
-			console.log("xrange", xrange);
+			// console.log("xrange", xrange);
 			console.log("sxrange", sxrange);
-			console.log("yrange", yrange);
+			// console.log("yrange", yrange);
 			console.log("syrange", syrange);
 			
 			// console(external_scripts.compareArrays(sxrange, xrange));
