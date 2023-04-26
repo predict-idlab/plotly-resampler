@@ -243,7 +243,7 @@ class MinMaxLTTB(DataPointSelector):
         **downsample_kwargs
             Keyword arguments passed to the :class:`MinMaxLTTBDownsampler`.
             - The `parallel` argument is set to False by default.
-            - The `minmax_ratio` argument is set to 4 by default, whic was empirically
+            - The `minmax_ratio` argument is set to 4 by default, which was empirically
               proven to be a good default.
 
         """
