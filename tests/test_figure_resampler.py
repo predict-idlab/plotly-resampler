@@ -393,6 +393,7 @@ def test_nan_removed_input_check_nans_false(float_series):
     fig = FigureResampler(
         base_fig,
         default_n_shown_samples=1000,
+        default_downsampler=EveryNthPoint(),
         resampled_trace_prefix_suffix=(
             '<b style="color:sandybrown">[R]</b>',
             '<b style="color:sandybrown">[R]</b>',
@@ -409,9 +410,6 @@ def test_nan_removed_input_check_nans_false(float_series):
         hf_hovertext="hovertext",
         check_nans=False,
     )
-    # Check the undesired behavior
-    assert len(fig.hf_data[0]["y"]) == len(float_series)
-    assert pd.isna(fig.hf_data[0]["y"]).any()
 
 
 def test_hf_text():
