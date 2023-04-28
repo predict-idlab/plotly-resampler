@@ -75,8 +75,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                   the data will *not* be aggregated.
         default_downsampler: AbstractAggregator
             An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``EfficientLTTB`` with
-            _interleave_gaps_ set to True. \n
+            will be used as default downsampler, by default ``MinMaxLTTB``. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         default_gap_handler: GapHandler
             An instance which implements the AbstractGapHandler interface and will be

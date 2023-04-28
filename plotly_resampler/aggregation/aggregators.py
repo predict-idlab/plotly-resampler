@@ -75,18 +75,8 @@ class LTTB(DataPointSelector):
 
     """
 
-    def __init__(self, interleave_gaps: bool = True):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-
-        """
+    def __init__(self):
         super().__init__(
-            interleave_gaps,
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
@@ -120,20 +110,10 @@ class MinMaxOverlapAggregator(DataPointSelector):
         the tsdownsample toolkit in Rust). |br|
         As such, this class does not support any downsample kwargs.
 
+    .. note::
+        This downsampler supports all dtypes.
+
     """
-
-    def __init__(self, interleave_gaps: bool = True):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-
-        """
-        # this downsampler supports all dtypes
-        super().__init__(interleave_gaps)
 
     def _arg_downsample(
         self,
@@ -186,21 +166,17 @@ class MinMaxAggregator(DataPointSelector):
 
     """
 
-    def __init__(self, interleave_gaps: bool = True, **downsample_kwargs):
+    def __init__(self, **downsample_kwargs):
         """
         Parameters
         ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
         **downsample_kwargs
             Keyword arguments passed to the :class:`MinMaxDownsampler`.
             - The `parallel` argument is set to False by default.
 
         """
         # this downsampler supports all dtypes
-        super().__init__(interleave_gaps, **downsample_kwargs)
+        super().__init__(**downsample_kwargs)
         self.downsampler = MinMaxDownsampler()
 
     def _arg_downsample(
@@ -227,16 +203,10 @@ class MinMaxLTTB(DataPointSelector):
     Paper: pending
     """
 
-    def __init__(
-        self, interleave_gaps: bool = True, minmax_ratio: int = 4, **downsample_kwargs
-    ):
+    def __init__(self, minmax_ratio: int = 4, **downsample_kwargs):
         """
         Parameters
         ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
         minmax_ratio: int, optional
             The ratio between the number of data points in the MinMax-prefetching and
             the number of data points that will be outputted by LTTB. By default, 4.
@@ -251,7 +221,6 @@ class MinMaxLTTB(DataPointSelector):
         self.minmax_ratio = minmax_ratio
 
         super().__init__(
-            interleave_gaps,
             y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
             **downsample_kwargs,
@@ -272,20 +241,11 @@ class MinMaxLTTB(DataPointSelector):
 
 
 class EveryNthPoint(DataPointSelector):
-    """Naive (but fast) aggregator method which returns every N'th point."""
+    """Naive (but fast) aggregator method which returns every N'th point.
 
-    def __init__(self, interleave_gaps: bool = True):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-
-        """
-        # this downsampler supports all dtypes
-        super().__init__(interleave_gaps)
+    .. note::
+        This downsampler supports all dtypes.
+    """
 
     def _arg_downsample(
         self,
@@ -315,7 +275,6 @@ class FuncAggregator(DataAggregator):
     def __init__(
         self,
         aggregation_func,
-        interleave_gaps: bool = True,
         x_dtype_regex_list=None,
         y_dtype_regex_list=None,
         **downsample_kwargs,
@@ -325,19 +284,10 @@ class FuncAggregator(DataAggregator):
         ----------
         aggregation_func: Callable
             The aggregation function which will be applied on each pin.
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
 
         """
         self.aggregation_func = aggregation_func
-        super().__init__(
-            interleave_gaps,
-            x_dtype_regex_list=x_dtype_regex_list,
-            y_dtype_regex_list=y_dtype_regex_list,
-            **downsample_kwargs,
-        )
+        super().__init__(x_dtype_regex_list, y_dtype_regex_list, **downsample_kwargs)
 
     def _aggregate(
         self,

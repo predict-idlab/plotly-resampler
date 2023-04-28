@@ -9,6 +9,7 @@ import pytz
 
 from .aggregation_interface import DataAggregator, DataPointSelector
 from .gap_handler_interface import AbstractGapHandler
+from .gap_handlers import NoGapHandler
 
 
 class PlotlyAggregatorParser:
@@ -160,7 +161,7 @@ class PlotlyAggregatorParser:
         # gap insertion methodology when the mode is lines.
         # if trace.get("connectgaps") != True and
         if (
-            not downsampler.interleave_gaps
+            isinstance(gap_handler, NoGapHandler)
             # rangeIndex | datetimeIndex with freq -> equally spaced x; so no gaps
             or isinstance(hf_trace_data["x"], pd.RangeIndex)
             or (
@@ -170,7 +171,7 @@ class PlotlyAggregatorParser:
         ):
             return agg_x, agg_y, indices
 
-        # Interleave the gaps`
+        # Interleave the gaps
         # View the data as an int64 when we have a DatetimeIndex
         # We only want to detect gaps, so we only want to compare values.
         agg_x_parsed = PlotlyAggregatorParser.parse_hf_data(agg_x)
