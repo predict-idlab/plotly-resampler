@@ -31,14 +31,11 @@ from .utils import construct_index, wrap_aggregate
 # NOTE: -> categorical series it's values is not of dtype array; but the
 # PlotlyAggregatorParser is able to deal with this
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
-@pytest.mark.parametrize("interleave_gaps", [True, False])
-def test_arg_downsample_no_x(series, downsampler, interleave_gaps):
+def test_arg_downsample_no_x(series, downsampler):
     for n in np.random.randint(100, len(series), 6):
         # make sure n is even (required for MinMax downsampler)
         n = n - (n % 2)
-        indices = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
-            series.values, n_out=n
-        )
+        indices = downsampler().arg_downsample(series.values, n_out=n)
         assert len(indices) <= n + (n % 2)
 
 
@@ -53,20 +50,19 @@ def test_arg_downsample_no_x(series, downsampler, interleave_gaps):
     ],
 )
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
-@pytest.mark.parametrize("interleave_gaps", [True, False])
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_arg_downsample_x(series, downsampler, interleave_gaps, index_type):
+def test_arg_downsample_x(series, downsampler, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
-    for n in np.random.randint(100, len(series), 6):
+    for n_out in np.random.randint(100, len(series), 6):
         # make sure n is even (required for MinMax downsampler)
-        n = n - (n % 2)
-        indices = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
-            series.index.values, series.values, n_out=n
+        n_out = n_out - (n_out % 2)
+        indices = downsampler().arg_downsample(
+            series.index.values, series.values, n_out=n_out
         )
-        assert len(indices) <= n + (n % 2)
+        assert len(indices) <= n_out + (n_out % 2)
 
 
 @pytest.mark.parametrize(
@@ -74,15 +70,14 @@ def test_arg_downsample_x(series, downsampler, interleave_gaps, index_type):
     [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
 )
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
-@pytest.mark.parametrize("interleave_gaps", [True, False])
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_arg_downsample_empty_series(downsampler, series, interleave_gaps, index_type):
+def test_arg_downsample_empty_series(downsampler, series, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
     empty_series = series.iloc[0:0]
-    idxs = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
+    idxs = downsampler().arg_downsample(
         empty_series.index.values, empty_series.values, n_out=1_000
     )
     assert len(idxs) == 0
@@ -93,12 +88,9 @@ def test_arg_downsample_empty_series(downsampler, series, interleave_gaps, index
     [EveryNthPoint, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
 )
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
-@pytest.mark.parametrize("interleave_gaps", [True, False])
-def test_arg_downsample_no_x_empty_series(downsampler, series, interleave_gaps):
+def test_arg_downsample_no_x_empty_series(downsampler, series):
     empty_series = series.iloc[0:0]
-    idxs = downsampler(interleave_gaps=interleave_gaps).arg_downsample(
-        empty_series.values, n_out=1_000
-    )
+    idxs = downsampler().arg_downsample(empty_series.values, n_out=1_000)
     assert len(idxs) == 0
 
 
@@ -111,11 +103,10 @@ def test_arg_downsample_no_x_empty_series(downsampler, series, interleave_gaps):
     "series",
     [lf("float_series"), lf("cat_series"), lf("bool_series")],
 )
-@pytest.mark.parametrize("interleave_gaps", [True, False])
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_wrap_aggregate(downsampler, gap_handler, series, interleave_gaps, index_type):
+def test_wrap_aggregate(downsampler, gap_handler, series, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
     for n in np.random.randint(100, len(series), 6):
@@ -124,7 +115,7 @@ def test_wrap_aggregate(downsampler, gap_handler, series, interleave_gaps, index
         x_agg, y_agg, indices = wrap_aggregate(
             hf_x=series.index,
             hf_y=series.values,
-            downsampler=downsampler(interleave_gaps=interleave_gaps),
+            downsampler=downsampler(),
             gap_handler=gap_handler(),
             n_out=n,
         )
@@ -139,20 +130,17 @@ def test_wrap_aggregate(downsampler, gap_handler, series, interleave_gaps, index
 )
 @pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
-@pytest.mark.parametrize("interleave_gaps", [True, False])
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_wrap_aggregate_empty_series(
-    downsampler, gap_handler, series, interleave_gaps, index_type
-):
+def test_wrap_aggregate_empty_series(downsampler, gap_handler, series, index_type):
     empty_series = series.copy()
     empty_series.index = construct_index(empty_series, index_type)
     empty_series = empty_series.iloc[0:0]
     x_agg, y_agg, indices = wrap_aggregate(
         hf_x=empty_series.index,
         hf_y=empty_series.values,
-        downsampler=downsampler(interleave_gaps=interleave_gaps),
+        downsampler=downsampler(),
         gap_handler=gap_handler(),
         n_out=1000,
     )
@@ -178,7 +166,7 @@ def test_wrap_aggregate_x_gaps(downsampler, series):
     x_agg, y_agg, indices = wrap_aggregate(
         hf_x=series.index,
         hf_y=series.values,
-        downsampler=downsampler(interleave_gaps=True),
+        downsampler=downsampler(),
         gap_handler=MedDiffGapHandler(),
         n_out=100,
     )
@@ -212,11 +200,10 @@ def test_wrap_aggregate_range_index_data_point_selection(
 # # ------------------------------- DataAggregator -------------------------------
 @pytest.mark.parametrize("agg_func", [np.mean])  # np.median, sum])
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])
-@pytest.mark.parametrize("interleave_gaps", [False, True])
 @pytest.mark.parametrize(
     "index_type", ["range", "datetime", "timedelta", "float", "int"]
 )
-def test_func_aggregator_float_time_data(series, interleave_gaps, index_type, agg_func):
+def test_func_aggregator_float_time_data(series, index_type, agg_func):
     # TIME indexed data -> resampled output should be same size as n_out
     series = series.copy()
     series.index = construct_index(series, index_type)
@@ -224,9 +211,7 @@ def test_func_aggregator_float_time_data(series, interleave_gaps, index_type, ag
         x_agg, y_agg, indices = wrap_aggregate(
             hf_x=series.index,
             hf_y=series.values,
-            downsampler=FuncAggregator(
-                interleave_gaps=interleave_gaps, aggregation_func=agg_func
-            ),
+            downsampler=FuncAggregator(aggregation_func=agg_func),
             gap_handler=NoGapHandler(),
             n_out=100,
         )
@@ -243,9 +228,9 @@ def test_func_aggregator_categorical_time_data(cat_series):
         return len(np.unique(x))
 
     for n in np.random.randint(100, len(cat_series), 3):
-        agg_x, agg_y = FuncAggregator(
-            interleave_gaps=False, aggregation_func=cat_count
-        ).aggregate(cat_series.index.values, cat_series.values.codes, n_out=n)
+        agg_x, agg_y = FuncAggregator(aggregation_func=cat_count).aggregate(
+            cat_series.index.values, cat_series.values.codes, n_out=n
+        )
         assert not np.isnan(agg_y).any()
         assert len(agg_x) <= n + 1
 
@@ -257,9 +242,9 @@ def test_func_aggregator_invalid_input_data(cat_series):
 
     n = np.random.randint(100, len(cat_series) / 3)
     with pytest.raises(TypeError):
-        FuncAggregator(
-            interleave_gaps=True, aggregation_func=treat_string_as_numeric_data
-        ).aggregate(cat_series.index.values, cat_series.to_numpy(), n_out=n)
+        FuncAggregator(aggregation_func=treat_string_as_numeric_data).aggregate(
+            cat_series.index.values, cat_series.to_numpy(), n_out=n
+        )
 
 
 def test_funcAggregator_no_x():
@@ -267,7 +252,7 @@ def test_funcAggregator_no_x():
     x = np.arange(n)
     y = np.sin(x / (x.shape[0] / 30)) + np.random.randn(n)
 
-    fa = FuncAggregator(np.mean, interleave_gaps=False)
+    fa = FuncAggregator(np.mean)
     for n_out in np.random.randint(500, 1_000, size=3):
         fa.aggregate(y, n_out=n_out)
 
@@ -298,6 +283,6 @@ def test_MinMaxLTTB_size():
     n = 12_000_000
     x = np.arange(n)
     y = np.sin(x / (x.shape[0] / 30)) + np.random.randn(n)
-    mmltb = MinMaxLTTB(interleave_gaps=False)
+    mmltb = MinMaxLTTB()
     for n_out in np.random.randint(500, 1_000, size=3):
         assert n_out == mmltb._arg_downsample(x, y, n_out).shape[0]
