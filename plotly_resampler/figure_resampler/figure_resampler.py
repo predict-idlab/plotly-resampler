@@ -244,7 +244,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             will be used as default downsampler, by default ``MinMaxLTTB`` with
             ``MinMaxLTTB`` is a heuristic to the LTTB algorithm that uses pre-selection
             of min-max values (default 4 per bin) to speed up LTTB (as now only 4 values
-            per bin should be compared). This min-max ratio of 4 can be changed by
+            per bin are considered by LTTB). This min-max ratio of 4 can be changed by
             initializing ``MinMaxLTTB`` with a different value for the ``minmax_ratio``
             parameter. \n
             .. note:: This can be overridden within the :func:`add_trace` method.
