@@ -202,12 +202,12 @@ Use-cases
   * ``limit_to_view`` = True
 
 .. Note::
-    For, **irregularly sampled traces** which are **filled** (e.g. *colored background* signal quality trace of the skin conductance example), it is important that you set ``interleave_gaps`` to ``False`` for that trace it's aggregator.
+    For, **irregularly sampled traces** which are **filled** (e.g. *colored background* signal quality trace of the skin conductance example), it is important that you set ``gap_handler`` to ``NoGapHandler`` for that trace.
 
-    Otherwise, when you leave ``interleave_gaps`` to ``True``, you may get weird background shapes such as ⬇️:
+    Otherwise, when you leave ``gap_handler`` to ``MedDiffGapHandler``, you may get weird background shapes such as ⬇️:
 
     .. image:: _static/skin_conductance_interleave_gaps_true.png
 
-    When ``interleave_gaps`` is set to ``False`` you get ⬇️:
+    When ``gap_handler`` is set to ``NoGapHandler`` you get ⬇️:
 
     .. image:: _static/skin_conductance_interleave_gaps_false.png

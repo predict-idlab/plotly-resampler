@@ -149,7 +149,7 @@ def example_figure() -> FigureResampler:
         ),
         hf_hovertext="mean last hour: "
         + df_gusb_pool.rolling("1h").mean().astype(int).astype(str),
-        downsampler=EveryNthPoint(interleave_gaps=False),
+        downsampler=EveryNthPoint(),
         row=1,
         col=1,
     )
@@ -175,7 +175,7 @@ def example_figure() -> FigureResampler:
             hf_y=df_data_pc[c].astype(np.float32),
             row=2,
             col=1,
-            downsampler=LTTB(interleave_gaps=True),
+            downsampler=LTTB(),
         )
 
     fig.update_layout(height=600)
@@ -224,7 +224,7 @@ def example_figure_fig() -> go.Figure:
             hovertext="mean last hour: "
             + df_gusb_pool.rolling("1h").mean().astype(int).astype(str),
         ),
-        # downsampler=EveryNthPoint(interleave_gaps=False),
+        # downsampler=EveryNthPoint(),
         row=1,
         col=1,
     )
@@ -374,7 +374,7 @@ def gsr_figure() -> FigureResampler:
                 showlegend=False,
             ),
             max_n_samples=len(df_grouped) + 1,
-            downsampler=EveryNthPoint(interleave_gaps=False),
+            downsampler=EveryNthPoint(),
             limit_to_view=True,
             secondary_y=True,
         )

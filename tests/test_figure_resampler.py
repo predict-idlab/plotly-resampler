@@ -35,7 +35,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     kwarg_space_list = [
         {},
         {
-            "default_downsampler": LTTB(interleave_gaps=True),
+            "default_downsampler": LTTB(),
             "resampled_trace_prefix_suffix": tuple(["<b>[r]</b>", "~~"]),
             "verbose": True,
         },
@@ -65,7 +65,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
             go.Scattergl(text="text", name="cat_series"),
             row=2,
             col=1,
-            downsampler=EveryNthPoint(interleave_gaps=True),
+            downsampler=EveryNthPoint(),
             hf_x=cat_series.index,
             hf_y=cat_series,
             limit_to_view=True,

@@ -14,7 +14,6 @@ import numpy as np
 class AbstractAggregator(ABC):
     def __init__(
         self,
-        interleave_gaps: bool = True,
         x_dtype_regex_list: Optional[List[str]] = None,
         y_dtype_regex_list: Optional[List[str]] = None,
         **downsample_kwargs,
@@ -23,10 +22,6 @@ class AbstractAggregator(ABC):
 
         Parameters
         ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. An x-range based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
         x_dtype_regex_list: List[str], optional
             List containing the regex matching the supported datatypes for the x array,
             by default None.
@@ -37,7 +32,6 @@ class AbstractAggregator(ABC):
             Additional kwargs passed to the downsample method.
 
         """
-        self.interleave_gaps = interleave_gaps
         self.x_dtype_regex_list = x_dtype_regex_list
         self.y_dtype_regex_list = y_dtype_regex_list
         self.downsample_kwargs = downsample_kwargs
