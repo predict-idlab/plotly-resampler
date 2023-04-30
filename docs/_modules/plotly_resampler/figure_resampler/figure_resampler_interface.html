@@ -478,8 +478,7 @@ document.write(`
 <span class="sd">                  the data will *not* be aggregated.</span>
 <span class="sd">        default_downsampler: AbstractAggregator</span>
 <span class="sd">            An instance which implements the AbstractSeriesDownsampler interface and</span>
-<span class="sd">            will be used as default downsampler, by default ``EfficientLTTB`` with</span>
-<span class="sd">            _interleave_gaps_ set to True. \n</span>
+<span class="sd">            will be used as default downsampler, by default ``MinMaxLTTB``. \n</span>
 <span class="sd">            .. note:: This can be overridden within the :func:`add_trace` method.</span>
 <span class="sd">        default_gap_handler: GapHandler</span>
 <span class="sd">            An instance which implements the AbstractGapHandler interface and will be</span>

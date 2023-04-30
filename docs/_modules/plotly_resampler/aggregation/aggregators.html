@@ -478,18 +478,8 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="LTTB.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="LTTB.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.LTTB.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">interleave_gaps</span><span class="p">,</span>
             <span class="n">y_dtype_regex_list</span><span class="o">=</span><span class="p">[</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">\d*&quot;</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;uint&quot;</span><span class="p">)]</span>
             <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">],</span>
         <span class="p">)</span>
@@ -523,20 +513,10 @@ document.write(`
 <span class="sd">        the tsdownsample toolkit in Rust). |br|</span>
 <span class="sd">        As such, this class does not support any downsample kwargs.</span>
 
+<span class="sd">    .. note::</span>
+<span class="sd">        This downsampler supports all dtypes.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
-
-<div class="viewcode-block" id="MinMaxOverlapAggregator.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxOverlapAggregator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># this downsampler supports all dtypes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_arg_downsample</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -589,21 +569,17 @@ document.write(`
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MinMaxAggregator.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxAggregator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="MinMaxAggregator.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxAggregator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
 <span class="sd">        **downsample_kwargs</span>
 <span class="sd">            Keyword arguments passed to the :class:`MinMaxDownsampler`.</span>
 <span class="sd">            - The `parallel` argument is set to False by default.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># this downsampler supports all dtypes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">,</span> <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">downsampler</span> <span class="o">=</span> <span class="n">MinMaxDownsampler</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_arg_downsample</span><span class="p">(</span>
@@ -630,32 +606,24 @@ document.write(`
 <span class="sd">    Paper: pending</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MinMaxLTTB.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxLTTB.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">minmax_ratio</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">downsample_kwargs</span>
-    <span class="p">):</span>
+<div class="viewcode-block" id="MinMaxLTTB.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.MinMaxLTTB.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">minmax_ratio</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
 <span class="sd">        minmax_ratio: int, optional</span>
 <span class="sd">            The ratio between the number of data points in the MinMax-prefetching and</span>
 <span class="sd">            the number of data points that will be outputted by LTTB. By default, 4.</span>
 <span class="sd">        **downsample_kwargs</span>
 <span class="sd">            Keyword arguments passed to the :class:`MinMaxLTTBDownsampler`.</span>
 <span class="sd">            - The `parallel` argument is set to False by default.</span>
-<span class="sd">            - The `minmax_ratio` argument is set to 30 by default, whic was empirically</span>
+<span class="sd">            - The `minmax_ratio` argument is set to 4 by default, which was empirically</span>
 <span class="sd">              proven to be a good default.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span> <span class="o">=</span> <span class="n">LTTBDownsampler</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">minmaxlttb</span> <span class="o">=</span> <span class="n">MinMaxLTTBDownsampler</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">minmax_ratio</span> <span class="o">=</span> <span class="n">minmax_ratio</span>
 
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">interleave_gaps</span><span class="p">,</span>
             <span class="n">y_dtype_regex_list</span><span class="o">=</span><span class="p">[</span><span class="sa">rf</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">dtype</span><span class="si">}</span><span class="s2">\d*&quot;</span> <span class="k">for</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;float&quot;</span><span class="p">,</span> <span class="s2">&quot;int&quot;</span><span class="p">,</span> <span class="s2">&quot;uint&quot;</span><span class="p">)]</span>
             <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;category&quot;</span><span class="p">,</span> <span class="s2">&quot;bool&quot;</span><span class="p">],</span>
             <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">,</span>
@@ -667,11 +635,6 @@ document.write(`
         <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">n_out</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
-        <span class="c1"># when n to n_out ratio is below the threshold, use the LTTB downsampler</span>
-        <span class="k">if</span> <span class="n">y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">n_out</span> <span class="o">&lt;</span> <span class="p">(</span><span class="mi">20</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">minmax_ratio</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lttb</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span>
-                <span class="o">*</span><span class="n">_to_tsdownsample_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">n_out</span><span class="o">=</span><span class="n">n_out</span><span class="p">,</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">downsample_kwargs</span>
-            <span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">minmaxlttb</span><span class="o">.</span><span class="n">downsample</span><span class="p">(</span>
             <span class="o">*</span><span class="n">_to_tsdownsample_args</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span>
             <span class="n">n_out</span><span class="o">=</span><span class="n">n_out</span><span class="p">,</span>
@@ -681,20 +644,11 @@ document.write(`
 
 
 <div class="viewcode-block" id="EveryNthPoint"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint">[docs]</a><span class="k">class</span> <span class="nc">EveryNthPoint</span><span class="p">(</span><span class="n">DataPointSelector</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every N&#39;th point.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Naive (but fast) aggregator method which returns every N&#39;th point.</span>
 
-<div class="viewcode-block" id="EveryNthPoint.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.EveryNthPoint.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># this downsampler supports all dtypes</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interleave_gaps</span><span class="p">)</span></div>
+<span class="sd">    .. note::</span>
+<span class="sd">        This downsampler supports all dtypes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">_arg_downsample</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -724,7 +678,6 @@ document.write(`
 <div class="viewcode-block" id="FuncAggregator.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregators.FuncAggregator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">aggregation_func</span><span class="p">,</span>
-        <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">x_dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">y_dtype_regex_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">,</span>
@@ -734,19 +687,10 @@ document.write(`
 <span class="sd">        ----------</span>
 <span class="sd">        aggregation_func: Callable</span>
 <span class="sd">            The aggregation function which will be applied on each pin.</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. A quantile-based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">aggregation_func</span> <span class="o">=</span> <span class="n">aggregation_func</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-            <span class="n">interleave_gaps</span><span class="p">,</span>
-            <span class="n">x_dtype_regex_list</span><span class="o">=</span><span class="n">x_dtype_regex_list</span><span class="p">,</span>
-            <span class="n">y_dtype_regex_list</span><span class="o">=</span><span class="n">y_dtype_regex_list</span><span class="p">,</span>
-            <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">,</span>
-        <span class="p">)</span></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">x_dtype_regex_list</span><span class="p">,</span> <span class="n">y_dtype_regex_list</span><span class="p">,</span> <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_aggregate</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>

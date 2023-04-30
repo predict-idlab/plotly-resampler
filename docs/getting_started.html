@@ -598,10 +598,10 @@ manually calling either:</p>
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For, <strong>irregularly sampled traces</strong> which are <strong>filled</strong> (e.g. <em>colored background</em> signal quality trace of the skin conductance example), it is important that you set <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> to <code class="docutils literal notranslate"><span class="pre">False</span></code> for that trace it’s aggregator.</p>
-<p>Otherwise, when you leave <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>, you may get weird background shapes such as ⬇️:</p>
+<p>For, <strong>irregularly sampled traces</strong> which are <strong>filled</strong> (e.g. <em>colored background</em> signal quality trace of the skin conductance example), it is important that you set <code class="docutils literal notranslate"><span class="pre">gap_handler</span></code> to <code class="docutils literal notranslate"><span class="pre">NoGapHandler</span></code> for that trace.</p>
+<p>Otherwise, when you leave <code class="docutils literal notranslate"><span class="pre">gap_handler</span></code> to <code class="docutils literal notranslate"><span class="pre">MedDiffGapHandler</span></code>, you may get weird background shapes such as ⬇️:</p>
 <img alt="_images/skin_conductance_interleave_gaps_true.png" src="_images/skin_conductance_interleave_gaps_true.png" />
-<p>When <code class="docutils literal notranslate"><span class="pre">interleave_gaps</span></code> is set to <code class="docutils literal notranslate"><span class="pre">False</span></code> you get ⬇️:</p>
+<p>When <code class="docutils literal notranslate"><span class="pre">gap_handler</span></code> is set to <code class="docutils literal notranslate"><span class="pre">NoGapHandler</span></code> you get ⬇️:</p>
 <img alt="_images/skin_conductance_interleave_gaps_false.png" src="_images/skin_conductance_interleave_gaps_false.png" />
 </div>
 </section>

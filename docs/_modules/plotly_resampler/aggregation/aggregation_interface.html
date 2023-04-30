@@ -417,7 +417,6 @@ document.write(`
 <div class="viewcode-block" id="AbstractAggregator"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator">[docs]</a><span class="k">class</span> <span class="nc">AbstractAggregator</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
 <div class="viewcode-block" id="AbstractAggregator.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
-        <span class="n">interleave_gaps</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="n">x_dtype_regex_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">y_dtype_regex_list</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="o">**</span><span class="n">downsample_kwargs</span><span class="p">,</span>
@@ -426,10 +425,6 @@ document.write(`
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        interleave_gaps: bool, optional</span>
-<span class="sd">            Whether None values should be added when there are gaps / irregularly</span>
-<span class="sd">            sampled data. An x-range based approach is used to determine the gaps /</span>
-<span class="sd">            irregularly sampled data. By default, True.</span>
 <span class="sd">        x_dtype_regex_list: List[str], optional</span>
 <span class="sd">            List containing the regex matching the supported datatypes for the x array,</span>
 <span class="sd">            by default None.</span>
@@ -440,7 +435,6 @@ document.write(`
 <span class="sd">            Additional kwargs passed to the downsample method.</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">interleave_gaps</span> <span class="o">=</span> <span class="n">interleave_gaps</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x_dtype_regex_list</span> <span class="o">=</span> <span class="n">x_dtype_regex_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y_dtype_regex_list</span> <span class="o">=</span> <span class="n">y_dtype_regex_list</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">downsample_kwargs</span> <span class="o">=</span> <span class="n">downsample_kwargs</span></div>

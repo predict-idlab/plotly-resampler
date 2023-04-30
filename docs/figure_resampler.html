@@ -434,8 +434,7 @@ the data will <em>not</em> be aggregated.</p></li>
 </div>
 </p></li>
 <li><p><strong>default_downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
-will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
-_interleave_gaps_ set to True.</p>
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This can be overridden within the <a class="reference internal" href="#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace" title="plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code></a> method.</p>
@@ -783,11 +782,11 @@ the data will <em>not</em> be aggregated.</p></li>
 </p></li>
 <li><p><strong>default_downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a><em>, </em><em>optional</em>) – <p>An instance which implements the AbstractAggregator interface and
 will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> with
-_interleave_gaps_ set to True. <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> is a heuristic to the LTTB
-algorithm that uses pre-selection of min-max values (default 4 per bin) to
-speed up LTTB (as now only 4 values per bin should be compared). This
-min-max ratio of 4 can be changed by initializing <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> with a
-different value for the <code class="docutils literal notranslate"><span class="pre">minmax_ratio</span></code> parameter.</p>
+<code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> is a heuristic to the LTTB algorithm that uses pre-selection
+of min-max values (default 4 per bin) to speed up LTTB (as now only 4 values
+per bin are considered by LTTB). This min-max ratio of 4 can be changed by
+initializing <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code> with a different value for the <code class="docutils literal notranslate"><span class="pre">minmax_ratio</span></code>
+parameter.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
@@ -954,8 +953,7 @@ the data will <em>not</em> be aggregated.</p></li>
 </div>
 </p></li>
 <li><p><strong>default_downsampler</strong> (<a class="reference internal" href="aggregation.html#plotly_resampler.aggregation.aggregation_interface.AbstractAggregator" title="plotly_resampler.aggregation.aggregation_interface.AbstractAggregator"><em>AbstractAggregator</em></a>) – <p>An instance which implements the AbstractSeriesDownsampler interface and
-will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">EfficientLTTB</span></code> with
-_interleave_gaps_ set to True.</p>
+will be used as default downsampler, by default <code class="docutils literal notranslate"><span class="pre">MinMaxLTTB</span></code>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This can be overridden within the <code class="xref py py-func docutils literal notranslate"><span class="pre">add_trace()</span></code> method.</p>
