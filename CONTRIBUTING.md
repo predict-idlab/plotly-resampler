@@ -59,7 +59,7 @@ poetry install --all-extras # install all the dependencies
 
 ### Formatting the code
 
-We use [`black`](https://github.com/psf/black) and [`isort`](https://github.com/PyCQA/isort) to format the code.
+We use [`black`](https://github.com/psf/black) and [`ruff`](https://github.com/charliermarsh/ruff) to format the code.
 
 To format the code, run the following command (more details in the [`Makefile`](Makefile)):
 ```sh
