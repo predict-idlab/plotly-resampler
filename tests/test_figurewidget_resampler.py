@@ -27,7 +27,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     kwarg_space_list = [
         {},
         {
-            "default_downsampler": MinMaxLTTB(interleave_gaps=True),
+            "default_downsampler": MinMaxLTTB(),
             "resampled_trace_prefix_suffix": tuple(["<b>[r]</b>", "~~"]),
             "verbose": True,
         },
@@ -57,7 +57,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
             go.Scattergl(text="text", name="cat_series"),
             row=2,
             col=1,
-            downsampler=EveryNthPoint(interleave_gaps=True),
+            downsampler=EveryNthPoint(),
             hf_x=cat_series.index,
             hf_y=cat_series,
             limit_to_view=True,
@@ -308,6 +308,7 @@ def test_nan_removed_input_check_nans_false(float_series):
     fig = FigureWidgetResampler(
         base_fig,
         default_n_shown_samples=1000,
+        default_downsampler=EveryNthPoint(),
         resampled_trace_prefix_suffix=(
             '<b style="color:sandybrown">[R]</b>',
             '<b style="color:sandybrown">[R]</b>',

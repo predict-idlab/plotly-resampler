@@ -78,7 +78,8 @@ class MedDiffGapHandler(AbstractGapHandler):
         med_diff, x_diff = self._calc_med_diff(x_agg)
 
         # TODO: this 4 was revealed to me in a dream, but it seems to work well
-        gap_mask = x_diff > 4 * med_diff
+        # After some consideration, we altered this to a 4.1
+        gap_mask = x_diff > 4.1 * med_diff
         if not any(gap_mask):
             return
         return gap_mask
