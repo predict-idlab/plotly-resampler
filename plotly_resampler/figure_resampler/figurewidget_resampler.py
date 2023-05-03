@@ -15,7 +15,12 @@ from typing import Tuple
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
 
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..aggregation import (
+    AbstractAggregator,
+    AbstractGapHandler,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+)
 from .figure_resampler_interface import AbstractFigureAggregator
 
 
@@ -43,7 +48,8 @@ class FigureWidgetResampler(
         figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -92,6 +98,7 @@ class FigureWidgetResampler(
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
+            default_gap_handler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
             convert_traces_kwargs,
@@ -184,7 +191,7 @@ class FigureWidgetResampler(
 
             with self.batch_update():
                 # First update the layout (first item of update_data)
-                self.layout.update(update_data[0])
+                self.layout.update(self._parse_relayout(update_data[0]))
 
                 for xaxis_str in self._xaxis_list:
                     if "showspikes" in layout[xaxis_str]:
@@ -255,7 +262,7 @@ class FigureWidgetResampler(
             with self.batch_update():
                 # First update the layout (first item of update_data)
                 if not force_update:
-                    self.layout.update(update_data[0])
+                    self.layout.update(self._parse_relayout(update_data[0]))
 
                 # Also:  Remove the showspikes from the layout, otherwise the autorange
                 # will not work as intended (it will not be triggered again)

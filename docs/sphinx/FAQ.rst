@@ -71,6 +71,21 @@ For more information on how to use the trace-updater component together with the
    </div>
    </details>
    <br>
+   <details>
+   <summary>
+      <a><b>My <code>FigureResampler.show_dash</code> keeps hanging (indefinitely) with the error message:<br>&nbsp;&nbsp;&nbsp; <code>OSError: Port already in use</code></b></a>
+   </summary>
+   <div style="margin-left:1em">
+
+Plotly-resampler its ``FigureResampler.show_dash`` method leverages the `jupyterdash <https://github.com/plotly/jupyter-dash>`_ toolkit to easily allow integration of dash apps in notebooks. However, there is a `known issue <https://github.com/plotly/jupyter-dash/pull/105>`_ with jupyterDash that causes the ``FigureResampler.show_dash`` method to hang when the port is already in use. In a future Pull-Request they will hopefully fix this issue. We internally track `this issue <https://github.com/predict-idlab/plotly-resampler/issues/123>` as well - please comment there if you want to provide feedback. 
+
+In the meantime, you can use the following workaround (if you do not care about the `Werkzeug security issue <https://github.com/predict-idlab/plotly-resampler/pull/174>`_): `pip install werkzeug==2.1.2`.
+
+.. raw:: html
+
+   </div>
+   </details>
+   <br>
       <details>
    <summary>
       <a><b>What is the difference in approach between plotly-resampler and datashader?</b></a>
@@ -137,28 +152,34 @@ Furthermore combined with holoviews, datashader can also be employed in an inter
    <br>
    <details>
    <summary>
-      <a><b>I get errors such as:</b><br><ul><li>
-         <code>RuntimeError: module compiled against API version 0x10 but this version of numpy is 0xe</code></li>  
-         <li><code>ImportError: numpy.core.multiarray failed to import</code></li>
-         </ul>
-      </a>
+      <a><b>Pandas or numpy datetime works much slower than unix epoch timestamps?</b></a>
    </summary>
    <div style="margin-left:1em">
 
-   Plotly-resampler uses compiled C code (which uses the NumPy C API) to speed up the LTTB data-aggregation algorithm. This C code gets compiled during the building stage of the package (which might be before you install the package).<br><br>
-   If this C extension was build against a more recent NumPy version than your local version, you obtain a 
-   <a href="https://numpy.org/devdocs/user/troubleshooting-importerror.html#c-api-incompatibility"><i>NumPy C-API incompatibility</i></a> 
-   and the above error will be raised.<br><br>
+This stems from the plotly scatter(gl) constructor being much slower for non-numeric data. Plotly performs a different serialization for datetime arrays (which are interpreted as object arrays).
+However, plotly-resampler should not be limited by this - to avoid this issue, add your datetime data as `hf_x` to your plotly-resampler ``FigureResampler.add_trace`` (or ``FigureWidgetResampler.add_trace``) method.
+This avoids adding (& serializing) *all* the data to the scatter object, since  plotly-resampler will pass the aggregated data to the scatter object.
 
-   These above mentioned errors can thus be resolved by running<br>
-   &nbsp;&nbsp;&nbsp;&nbsp;<code>pip install --upgrade numpy</code><br>
-   and reinstalling plotly-resampler afterwards.<br><br>
+Some illustration:
 
-   For more information about compatibility and building upon NumPy, you can consult 
-   <a href="https://numpy.org/doc/stable/user/depending_on_numpy.html?highlight=compiled#for-downstream-package-authors">NumPy's docs for downstream package authors</a>.
+.. code:: python
 
-   We aim to limit this issue as much as possible (by for example using <a href="https://github.com/scipy/oldest-supported-numpy">oldest-supported-numpy</a> in our build.py), 
-   but if you still experience issues, please open an issue on <a href="https://github.com/predict-idlab/plotly-resampler/issues">GitHub</a>.
+   import plotly.graph_objects as go
+   import pandas as pd
+   import numpy as np
+   from plotly_resampler import FigureResampler
+
+   # Create the dummy dataframe
+   y = np.arange(1_000_000)
+   x = pd.date_range(start="2020-01-01", periods=len(y), freq="1s")
+
+   # Create the plotly-resampler figure
+   fig = FigureResampler()
+   # fig.add_trace(go.Scatter(x=x, y=y))  # This is slow
+   fig.add_trace(go.Scatter(), hf_x=x, hf_y=y)  # This is fast
+
+   # ... (add more traces, etc.)
+
 
 .. raw:: html
 

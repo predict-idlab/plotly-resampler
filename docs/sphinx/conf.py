@@ -20,7 +20,7 @@ sys.path.append(os.path.abspath("../../plotly_resampler"))
 # -- Project information -----------------------------------------------------
 
 project = "plotly-resampler"
-copyright = "2022, Jonas Van Der Donckt"
+copyright = "2023, Jonas Van Der Donckt"
 author = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 # The full version, including alpha/beta/rc tags
@@ -65,8 +65,11 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 todo_include_todos = True
 
-autoclass_content = "both"
+# Commented out because it shows typehints in the signature.
+# autoclass_content = "both"
 autodoc_typehints = "description"
+# Don't show class signature with the class' name.
+autodoc_class_signature = "separated"
 autodoc_member_order = "bysource"
 autosummary_generate = True
 

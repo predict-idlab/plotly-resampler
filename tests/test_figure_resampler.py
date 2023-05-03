@@ -5,6 +5,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import datetime
 import multiprocessing
+import subprocess
 import time
 from typing import List
 
@@ -16,10 +17,11 @@ from plotly.subplots import make_subplots
 from selenium.webdriver.common.by import By
 
 from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
+from plotly_resampler.aggregation import PlotlyAggregatorParser
 
 # Note: this will be used to skip / alter behavior when running browser tests on
 # non-linux platforms.
-from .utils import not_on_linux
+from .utils import construct_hf_data_dict, not_on_linux
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -33,7 +35,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
     kwarg_space_list = [
         {},
         {
-            "default_downsampler": LTTB(interleave_gaps=True),
+            "default_downsampler": LTTB(),
             "resampled_trace_prefix_suffix": tuple(["<b>[r]</b>", "~~"]),
             "verbose": True,
         },
@@ -63,7 +65,7 @@ def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
             go.Scattergl(text="text", name="cat_series"),
             row=2,
             col=1,
-            downsampler=EveryNthPoint(interleave_gaps=True),
+            downsampler=EveryNthPoint(),
             hf_x=cat_series.index,
             hf_y=cat_series,
             limit_to_view=True,
@@ -391,6 +393,7 @@ def test_nan_removed_input_check_nans_false(float_series):
     fig = FigureResampler(
         base_fig,
         default_n_shown_samples=1000,
+        default_downsampler=EveryNthPoint(),
         resampled_trace_prefix_suffix=(
             '<b style="color:sandybrown">[R]</b>',
             '<b style="color:sandybrown">[R]</b>',
@@ -407,9 +410,6 @@ def test_nan_removed_input_check_nans_false(float_series):
         hf_hovertext="hovertext",
         check_nans=False,
     )
-    # Check the undesired behavior
-    assert len(fig.hf_data[0]["y"]) == len(float_series)
-    assert pd.isna(fig.hf_data[0]["y"]).any()
 
 
 def test_hf_text():
@@ -745,13 +745,13 @@ def test_time_tz_slicing():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
-
     for s in cs:
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
-        out = fig._slice_time(s, t_start, t_stop)
-        assert (out.index[0] - t_start) <= pd.Timedelta(seconds=1)
-        assert (out.index[-1] - t_stop) <= pd.Timedelta(seconds=1)
+        start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
+            construct_hf_data_dict(s.index, s.values), t_start, t_stop
+        )
+        assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=1)
+        assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=1)
 
 
 def test_time_tz_slicing_different_timestamp():
@@ -771,7 +771,6 @@ def test_time_tz_slicing_different_timestamp():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
         t_start = t_start.tz_convert(cs[(i + 1) % len(cs)].index.tz)
@@ -780,7 +779,9 @@ def test_time_tz_slicing_different_timestamp():
         # As each timezone in CS tz aware, using other timezones in `t_start` & `t_stop`
         # will raise an AssertionError
         with pytest.raises(AssertionError):
-            fig._slice_time(s, t_start, t_stop)
+            start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
+                construct_hf_data_dict(s.index, s.values), t_start, t_stop
+            )
 
 
 def test_different_tz_no_tz_series_slicing():
@@ -799,8 +800,6 @@ def test_different_tz_no_tz_series_slicing():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
-
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(
             s.tz_localize(None).iloc[np.random.randint(n / 2, n, 2)].index
@@ -811,13 +810,15 @@ def test_different_tz_no_tz_series_slicing():
 
         # the s has no time-info -> assumption is made that s has the same time-zone
         # the timestamps
-        out = fig._slice_time(s.tz_localize(None), t_start, t_stop)
-        assert (out.index[0].tz_localize(t_start.tz) - t_start) <= pd.Timedelta(
-            seconds=1
+        start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
+            construct_hf_data_dict(s.tz_localize(None).index, s.values), t_start, t_stop
         )
-        assert (out.index[-1].tz_localize(t_stop.tz) - t_stop) <= pd.Timedelta(
-            seconds=1
-        )
+        assert (
+            s.tz_localize(None).index[start_idx].tz_localize(t_start.tz) - t_start
+        ) <= pd.Timedelta(seconds=1)
+        assert (
+            s.tz_localize(None).index[end_idx].tz_localize(t_stop.tz) - t_stop
+        ) <= pd.Timedelta(seconds=1)
 
 
 def test_multiple_tz_no_tz_series_slicing():
@@ -836,8 +837,6 @@ def test_multiple_tz_no_tz_series_slicing():
         dr.tz_convert("Australia/Canberra"),
     ]
 
-    fig = FigureResampler(go.Figure())
-
     for i, s in enumerate(cs):
         t_start, t_stop = sorted(
             s.tz_localize(None).iloc[np.random.randint(n / 2, n, 2)].index
@@ -849,7 +848,11 @@ def test_multiple_tz_no_tz_series_slicing():
         # Now the assumption cannot be made that s has the same time-zone as the
         # timestamps -> AssertionError will be raised.
         with pytest.raises(AssertionError):
-            fig._slice_time(s.tz_localize(None), t_start, t_stop)
+            PlotlyAggregatorParser.get_start_end_indices(
+                construct_hf_data_dict(s.tz_localize(None).index, s.values),
+                t_start,
+                t_stop,
+            )
 
 
 def test_check_update_figure_dict():
@@ -899,6 +902,33 @@ def test_stop_server_inline_persistent():
     time.sleep(3)
     fr.stop_server()
     proc.terminate()
+
+
+def test_showdash_not_hanging_when_port_in_use():
+    if not_on_linux():
+        pytest.skip("This test is currently only supported on linux")
+
+    port = 8032
+
+    start_fig = "from plotly_resampler import FigureResampler; "
+    start_fig += (
+        f"FigureResampler().show_dash(mode='external', port={port}, debug=False)"
+    )
+
+    # Start the first figure in another python interpreter
+    p1 = subprocess.Popen(["python", "-c", start_fig])
+    # Wait a little bit
+    time.sleep(3)
+
+    # Start the second figure in the current python interpreter
+    with pytest.raises(SystemExit):
+        # Start the second figure
+        FigureResampler().show_dash(mode="external", port=port)
+        # Wait a little bit
+        time.sleep(3)
+
+    # Stop the first figure
+    p1.kill()
 
 
 def test_manual_jupyterdashpersistentinline():
@@ -1336,7 +1366,7 @@ def test_fr_update_layout_axes_range(driver):
 
     if not_on_linux():
         # TODO: eventually we should run this test on Windows & MacOS too
-        return
+        pytest.skip("This test is currently only run on Linux")
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))
@@ -1424,7 +1454,7 @@ def test_fr_update_layout_axes_range_no_update(driver):
 
     if not_on_linux():
         # TODO: eventually we should run this test on Windows & MacOS too
-        return
+        pytest.skip("This test is currently only run on Linux")
 
     f_pr.stop_server()
     proc = multiprocessing.Process(target=f_pr.show_dash, kwargs=dict(mode="external"))

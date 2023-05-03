@@ -2,19 +2,19 @@
 
 import contextlib
 
-from .aggregation import LTTB, EfficientLTTB, EveryNthPoint
+from .aggregation import LTTB, EveryNthPoint, MinMaxLTTB
 from .figure_resampler import FigureResampler, FigureWidgetResampler
 from .registering import register_plotly_resampler, unregister_plotly_resampler
 
 __docformat__ = "numpy"
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
-__version__ = "0.8.3"
+__version__ = "0.9.0rc0"
 
 __all__ = [
     "__version__",
     "FigureResampler",
     "FigureWidgetResampler",
-    "EfficientLTTB",
+    "MinMaxLTTB",
     "LTTB",
     "EveryNthPoint",
     "register_plotly_resampler",

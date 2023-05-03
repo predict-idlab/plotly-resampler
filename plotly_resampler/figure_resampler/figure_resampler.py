@@ -11,18 +11,23 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import base64
+import contextlib
 import uuid
 import warnings
 from typing import List, Tuple
 
 import dash
 import plotly.graph_objects as go
-from flask_cors import cross_origin
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..aggregation import (
+    AbstractAggregator,
+    AbstractGapHandler,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+)
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
 
@@ -48,6 +53,11 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>`
         method. However, the mode should be passed as ``"inline"`` since this subclass
         overwrites the inline behavior.
+
+    .. Note::
+        This subclass utilizes the optional ``flask_cors`` package to detect whether the
+        server is alive or not.
+
     """
 
     def __init__(self, *args, **kwargs):
@@ -55,11 +65,14 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
 
         self._uid = str(uuid.uuid4())  # A new unique id for each app
 
-        # Mimic the _alive_{token} endpoint but with cors
-        @self.server.route(f"/_is_alive_{self._uid}", methods=["GET"])
-        @cross_origin(origin=["*"], allow_headers=["Content-Type"])
-        def broadcast_alive():
-            return "Alive"
+        with contextlib.suppress(ImportWarning, ModuleNotFoundError):
+            from flask_cors import cross_origin
+
+            # Mimic the _alive_{token} endpoint but with cors
+            @self.server.route(f"/_is_alive_{self._uid}", methods=["GET"])
+            @cross_origin(origin=["*"], allow_headers=["Content-Type"])
+            def broadcast_alive():
+                return "Alive"
 
     def _display_inline_output(self, dashboard_url, width, height):
         """Display the dash app persistent inline in the notebook.
@@ -70,6 +83,14 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
         # TODO: check whether an error gets logged in case of crash
         # TODO: add option to opt out of this
         from IPython.display import display
+
+        try:
+            import flask_cors  # noqa: F401
+        except (ImportError, ModuleNotFoundError):
+            warnings.warn(
+                "'flask_cors' is not installed. The persistent inline output will "
+                + " not be able to detect whether the server is alive or not."
+            )
 
         # Get the image from the dashboard and encode it as base64
         fig = self.layout.children[0].figure  # is stored there in the show_dash method
@@ -188,7 +209,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -217,10 +239,21 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 * This can be overridden within the :func:`add_trace` method.
                 * If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
-        default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``EfficientLTTB`` with
-            _interleave_gaps_ set to True. \n
+        default_downsampler: AbstractAggregator, optional
+            An instance which implements the AbstractAggregator interface and
+            will be used as default downsampler, by default ``MinMaxLTTB`` with
+            ``MinMaxLTTB`` is a heuristic to the LTTB algorithm that uses pre-selection
+            of min-max values (default 4 per bin) to speed up LTTB (as now only 4 values
+            per bin are considered by LTTB). This min-max ratio of 4 can be changed by
+            initializing ``MinMaxLTTB`` with a different value for the ``minmax_ratio``
+            parameter. \n
+            .. note:: This can be overridden within the :func:`add_trace` method.
+        default_gap_handler: AbstractGapHandler, optional
+            An instance which implements the AbstractGapHandler interface and
+            will be used as default gap handler, by default ``MedDiffGapHandler``.
+            ``MedDiffGapHandler`` will determine gaps by first calculating the median
+            aggregated x difference and then thresholding the aggregated x delta on a
+            multiple of this median difference.  \n
             .. note:: This can be overridden within the :func:`add_trace` method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
@@ -295,6 +328,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
+            default_gap_handler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
             convert_traces_kwargs,
@@ -348,7 +382,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 environments, browsers, etc.
 
                 .. note::
-                    This mode requires the ``kaleido`` package.
+                    This mode requires the ``kaleido`` and ``flask_cors`` package.
+                    Install them : ``pip install plotly_resampler[inline_persistent]``
+                    or ``pip install kaleido flask_cors``.
 
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
@@ -394,7 +430,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             if not self._is_no_update(update_data):  # when there is an update
                 with self.batch_update():
                     # First update the layout (first item of update_data)
-                    self.layout.update(update_data[0])
+                    self.layout.update(self._parse_relayout(update_data[0]))
 
                     # Then update the data
                     for updated_trace in update_data[1:]:
@@ -452,7 +488,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             This only works if the dash-app was started with :func:`show_dash`.
         """
         if self._app is not None:
-
             old_server = self._app._server_threads.get((self._host, self._port))
             if old_server:
                 old_server.kill()
