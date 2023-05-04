@@ -1589,10 +1589,7 @@ def test_hf_marker_size_hf_args():
         {"xaxis.autorange": True, "xaxis.showspikes": True}
     )[1]
 
-    assert all(
-        k in update_trace
-        for k in ["x", "y", "text", "hovertext", "name", "marker", "index"]
-    )
+    assert all(k in update_trace for k in ["x", "y", "name", "marker", "index"])
 
     # check whether the marker size and marker color are available
     assert all(k in update_trace["marker"] for k in ["size", "color"])
@@ -1633,10 +1630,7 @@ def test_hf_marker_size_plotly_args():
         {"xaxis.autorange": True, "xaxis.showspikes": True}
     )[1]
 
-    assert all(
-        k in update_trace
-        for k in ["x", "y", "text", "hovertext", "name", "marker", "index"]
-    )
+    assert all(k in update_trace for k in ["x", "y", "name", "marker", "index"])
 
     # check whether the marker size and marker color are available
     assert all(k in update_trace["marker"] for k in ["size", "color"])

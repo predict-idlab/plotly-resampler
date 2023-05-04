@@ -361,14 +361,24 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             hf_trace_data, end_idx - start_idx, agg_x
         )
 
+        def _nest_dict_rec(k, v, out):
+            k, *rest = k.split("_", 1)
+            if rest:
+                _nest_dict_rec(rest[0], v, out.setdefault(k, {}))
+            else:
+                out[k] = v
+
         # Check if (hover)text also needs to be downsampled
-        for k in ["text", "hovertext"]:
+        for k in ["text", "hovertext", "marker_size", "marker_color"]:
             k_val = hf_trace_data.get(k)
             if isinstance(k_val, (np.ndarray, pd.Series)):
                 assert isinstance(
                     hf_trace_data["downsampler"], DataPointSelector
                 ), "Only DataPointSelector can downsample non-data trace array props."
-                trace[k] = k_val[start_idx + indices]
+                if "_" not in k:
+                    trace[k] = k_val[start_idx + indices]
+                else:
+                    _nest_dict_rec(k, k_val[start_idx + indices], trace)
             elif k_val is not None:
                 trace[k] = k_val
 
@@ -716,6 +726,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             if hasattr(trace, "hovertext"):
                 trace["hovertext"] = hf_hovertext
+            if hasattr(trace, "marker"):
+                if hasattr(trace.marker, "size"):
+                    trace.marker.size = hf_marker_size
+                if hasattr(trace.marker, "color"):
+                    trace.marker.color = hf_marker_color
 
         return _hf_data_container(
             hf_x, hf_y, hf_text, hf_hovertext, hf_marker_size, hf_marker_color
@@ -995,6 +1010,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
                 trace = trace._props  # convert the trace into a dict
+                # TODO -> do not use this difference -> and use a list of keys
                 trace = {
                     k: trace[k] for k in set(trace.keys()).difference(set(dc._fields))
                 }
@@ -1339,7 +1355,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = list(_hf_data_container._fields) + ["name"]
+        relevant_keys = list(_hf_data_container._fields) + ["name", "marker"]
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
