@@ -1010,8 +1010,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 )
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
-                for k in dc._fields:
-                    setattr(trace, k, getattr(dc, k))
+                trace._process_kwargs(**{k: getattr(dc, k) for k in dc._fields})
                 return super(AbstractFigureAggregator, self).add_traces(
                     [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
                 )
