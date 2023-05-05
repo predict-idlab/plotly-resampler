@@ -32,9 +32,10 @@ from ..aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 from .utils import round_number_str, round_td_str
 
 # A high-frequency data container
-# NOTE: the attributes must all be valid trace dict attributes as the
+# NOTE: the attributes must all be valid trace attributes, with attribute levels
+# separated by an '_' (e.g., 'marker_color' is valid) as the
 # `_hf_data_container._asdict()` function is used in
-# `AbstractFigureAggregator._construct_hf_data_dict`.
+#  `AbstractFigureAggregator._construct_hf_data_dict`.
 _hf_data_container = namedtuple(
     "DataContainer", ["x", "y", "text", "hovertext", "marker_size", "marker_color"]
 )
@@ -361,7 +362,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             hf_trace_data, end_idx - start_idx, agg_x
         )
 
-        def _nest_dict_rec(k, v, out):
+        def _nest_dict_rec(k: str, v: any, out: dict) -> None:
+            """Recursively nest a dict based on the key whose '_' indicates level."""
             k, *rest = k.split("_", 1)
             if rest:
                 _nest_dict_rec(rest[0], v, out.setdefault(k, {}))
@@ -375,10 +377,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 assert isinstance(
                     hf_trace_data["downsampler"], DataPointSelector
                 ), "Only DataPointSelector can downsample non-data trace array props."
-                if "_" not in k:
-                    trace[k] = k_val[start_idx + indices]
-                else:
-                    _nest_dict_rec(k, k_val[start_idx + indices], trace)
+                _nest_dict_rec(k, k_val[start_idx + indices], trace)
             elif k_val is not None:
                 trace[k] = k_val
 
@@ -549,7 +548,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         trace: BaseTraceType,
         hf_x: Iterable = None,
         hf_y: Iterable = None,
-        # TODO -> are these type hints correct
         hf_text: Iterable = None,
         hf_hovertext: Iterable = None,
         hf_marker_size: Iterable = None,
@@ -898,6 +896,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
             trace its ```hovertext`` argument.
+        hf_marker_size: Iterable, optional
+            The original high frequency marker size. If set, this has priority over the
+            trace its ``marker.size`` argument.
+        hf_marker_color: Iterable, optional
+            The original high frequency marker color. If set, this has priority over the
+            trace its ``marker.color`` argument.
         check_nans: boolean, optional
             If set to True, the trace's data will be checked for NaNs - which will be
             removed. By default True.
