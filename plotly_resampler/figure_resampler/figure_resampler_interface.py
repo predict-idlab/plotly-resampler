@@ -1244,7 +1244,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             convert_existing_traces=convert_existing_traces,
             default_n_shown_samples=self._global_n_shown_samples,
             default_downsampler=self._global_downsampler,
+            default_gap_handler=self._global_gap_handler,
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
+            show_mean_aggregation_size=self._show_mean_aggregation_size,
+            verbose=self._print_verbose,
         )
 
     def _parse_relayout(self, relayout_dict: dict) -> dict:

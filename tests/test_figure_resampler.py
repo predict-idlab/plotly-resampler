@@ -17,7 +17,7 @@ from plotly.subplots import make_subplots
 from selenium.webdriver.common.by import By
 
 from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
-from plotly_resampler.aggregation import PlotlyAggregatorParser
+from plotly_resampler.aggregation import NoGapHandler, PlotlyAggregatorParser
 
 # Note: this will be used to skip / alter behavior when running browser tests on
 # non-linux platforms.
@@ -327,6 +327,30 @@ def test_replace_figure(float_series):
     # the orig float series data must still be the orig shape (we passed a view so
     # we must check this)
     assert len(go_fig.data[0]["x"]) == len(float_series)
+
+
+def test_replace_properties(float_series):
+    resampled_trace_prefix_suffix = ("a", "b")
+    verbose = True
+    default_n_shown_samples = 1050
+    default_gap_handler = NoGapHandler()
+    default_downsampler = EveryNthPoint()
+    fr_fig = FigureResampler(
+        default_n_shown_samples=default_n_shown_samples,
+        verbose=verbose,
+        resampled_trace_prefix_suffix=resampled_trace_prefix_suffix,
+        default_gap_handler=default_gap_handler,
+        default_downsampler=default_downsampler,
+    )
+
+    fr_fig.add_trace(go.Scattergl(x=float_series.index, y=float_series, name="fs"))
+    fr_fig.replace(go.Figure())
+
+    assert fr_fig._global_n_shown_samples == default_n_shown_samples
+    assert fr_fig._print_verbose == verbose
+    assert (fr_fig._prefix, fr_fig._suffix) == resampled_trace_prefix_suffix
+    assert fr_fig._global_gap_handler == default_gap_handler
+    assert fr_fig._global_downsampler == default_downsampler
 
 
 def test_nan_removed_input(float_series):
