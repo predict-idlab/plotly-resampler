@@ -1418,7 +1418,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "_prefix",
             "_suffix",
             "_global_downsampler",
-            "_global_gap_handler"
+            "_global_gap_handler",
         ]
 
     def __reduce__(self):
