@@ -57,7 +57,9 @@ def plot_graph(n_clicks):
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         # Note how the replace method is used here on the global figure object
         global fig
-        fig.replace(go.Figure())
+        if len(fig.data):
+            # Replace the figure with an empty one to clear the graph
+            fig.replace(go.Figure())
         fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * 0.9999995**x)
         fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002**x)
         return fig

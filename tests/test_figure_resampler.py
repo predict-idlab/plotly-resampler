@@ -17,7 +17,7 @@ from plotly.subplots import make_subplots
 from selenium.webdriver.common.by import By
 
 from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
-from plotly_resampler.aggregation import PlotlyAggregatorParser
+from plotly_resampler.aggregation import NoGapHandler, PlotlyAggregatorParser
 
 # Note: this will be used to skip / alter behavior when running browser tests on
 # non-linux platforms.
@@ -327,6 +327,30 @@ def test_replace_figure(float_series):
     # the orig float series data must still be the orig shape (we passed a view so
     # we must check this)
     assert len(go_fig.data[0]["x"]) == len(float_series)
+
+
+def test_replace_properties(float_series):
+    resampled_trace_prefix_suffix = ("a", "b")
+    verbose = True
+    default_n_shown_samples = 1050
+    default_gap_handler = NoGapHandler()
+    default_downsampler = EveryNthPoint()
+    fr_fig = FigureResampler(
+        default_n_shown_samples=default_n_shown_samples,
+        verbose=verbose,
+        resampled_trace_prefix_suffix=resampled_trace_prefix_suffix,
+        default_gap_handler=default_gap_handler,
+        default_downsampler=default_downsampler,
+    )
+
+    fr_fig.add_trace(go.Scattergl(x=float_series.index, y=float_series, name="fs"))
+    fr_fig.replace(go.Figure())
+
+    assert fr_fig._global_n_shown_samples == default_n_shown_samples
+    assert fr_fig._print_verbose == verbose
+    assert (fr_fig._prefix, fr_fig._suffix) == resampled_trace_prefix_suffix
+    assert fr_fig._global_gap_handler == default_gap_handler
+    assert fr_fig._global_downsampler == default_downsampler
 
 
 def test_nan_removed_input(float_series):
@@ -1559,3 +1583,84 @@ def test_fr_copy_grid():
     assert fr._grid_ref == f_dict.get("_grid_ref")
     assert fr._grid_str is not None
     assert fr._grid_str == f_dict.get("_grid_str")
+
+
+# Testing HF marker_size and color arguments
+def test_hf_marker_size_hf_args():
+    # create dummy data
+    n = 100_000
+    y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
+
+    # construct the figure via hf kwargs
+    fr = FigureResampler()
+    fr.add_trace(
+        go.Scattergl(mode="markers"),
+        hf_y=y,
+        hf_marker_size=(3 + 20 * np.abs(y)).astype(int),
+        hf_marker_color=np.abs(y) / np.max(np.abs(y)),
+    )
+
+    # Perform asserts on the hf_data part of the figure
+    hf_trace = fr.hf_data[0]
+    assert "marker_size" in hf_trace
+    assert "marker_color" in hf_trace
+
+    assert len(hf_trace["marker_size"] == len(y))
+    assert len(hf_trace["marker_color"] == len(y))
+
+    # perform some asserts on the to-be constructed update data
+    update_trace = fr.construct_update_data(
+        {"xaxis.autorange": True, "xaxis.showspikes": True}
+    )[1]
+
+    assert all(k in update_trace for k in ["x", "y", "name", "marker", "index"])
+
+    # check whether the marker size and marker color are available
+    assert all(k in update_trace["marker"] for k in ["size", "color"])
+    assert len(update_trace["marker"]["size"]) == len(update_trace["x"])
+    assert np.allclose(
+        update_trace["marker"]["color"],
+        (np.abs(update_trace["y"]) / np.max(np.abs(y))),
+        rtol=1e-3,
+    )
+
+
+def test_hf_marker_size_plotly_args():
+    # create dummy data
+    n = 100_000
+    y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
+
+    # construct the figure via hf kwargs
+    fr = FigureResampler()
+    fr.add_trace(
+        go.Scattergl(
+            mode="markers",
+            marker_size=(3 + 20 * np.abs(y)).astype(int),
+            marker_color=np.abs(y) / np.max(np.abs(y)),
+        ),
+        hf_y=y,
+    )
+
+    # Perform asserts on the hf_data part of the figure
+    hf_trace = fr.hf_data[0]
+    assert "marker_size" in hf_trace
+    assert "marker_color" in hf_trace
+
+    assert len(hf_trace["marker_size"] == len(y))
+    assert len(hf_trace["marker_color"] == len(y))
+
+    # perform some asserts on the to-be constructed update data
+    update_trace = fr.construct_update_data(
+        {"xaxis.autorange": True, "xaxis.showspikes": True}
+    )[1]
+
+    assert all(k in update_trace for k in ["x", "y", "name", "marker", "index"])
+
+    # check whether the marker size and marker color are available
+    assert all(k in update_trace["marker"] for k in ["size", "color"])
+    assert len(update_trace["marker"]["size"]) == len(update_trace["x"])
+    assert np.allclose(
+        update_trace["marker"]["color"],
+        (np.abs(update_trace["y"]) / np.max(np.abs(y))),
+        rtol=1e-3,
+    )

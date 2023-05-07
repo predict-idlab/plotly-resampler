@@ -31,7 +31,14 @@ from ..aggregation.gap_handler_interface import AbstractGapHandler
 from ..aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 from .utils import round_number_str, round_td_str
 
-_hf_data_container = namedtuple("DataContainer", ["x", "y", "text", "hovertext"])
+# A high-frequency data container
+# NOTE: the attributes must all be valid trace attributes, with attribute levels
+# separated by an '_' (e.g., 'marker_color' is valid) as the
+# `_hf_data_container._asdict()` function is used in
+#  `AbstractFigureAggregator._construct_hf_data_dict`.
+_hf_data_container = namedtuple(
+    "DataContainer", ["x", "y", "text", "hovertext", "marker_size", "marker_color"]
+)
 
 
 class AbstractFigureAggregator(BaseFigure, ABC):
@@ -355,14 +362,22 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             hf_trace_data, end_idx - start_idx, agg_x
         )
 
+        def _nest_dict_rec(k: str, v: any, out: dict) -> None:
+            """Recursively nest a dict based on the key whose '_' indicates level."""
+            k, *rest = k.split("_", 1)
+            if rest:
+                _nest_dict_rec(rest[0], v, out.setdefault(k, {}))
+            else:
+                out[k] = v
+
         # Check if (hover)text also needs to be downsampled
-        for k in ["text", "hovertext"]:
+        for k in ["text", "hovertext", "marker_size", "marker_color"]:
             k_val = hf_trace_data.get(k)
             if isinstance(k_val, (np.ndarray, pd.Series)):
                 assert isinstance(
                     hf_trace_data["downsampler"], DataPointSelector
                 ), "Only DataPointSelector can downsample non-data trace array props."
-                trace[k] = k_val[start_idx + indices]
+                _nest_dict_rec(k, k_val[start_idx + indices], trace)
             elif k_val is not None:
                 trace[k] = k_val
 
@@ -535,6 +550,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y: Iterable = None,
         hf_text: Iterable = None,
         hf_hovertext: Iterable = None,
+        hf_marker_size: Iterable = None,
+        hf_marker_color: Iterable = None,
         check_nans: bool = True,
     ) -> _hf_data_container:
         """Parse and capture the possibly high-frequency trace-props in a datacontainer.
@@ -599,6 +616,26 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else trace["hovertext"]
             if hasattr(trace, "hovertext") and trace["hovertext"] is not None
             else None
+        )
+
+        hf_marker_size = (
+            trace["marker"]["size"]
+            if (
+                hf_marker_size is None
+                and hasattr(trace, "marker")
+                and "size" in trace["marker"]
+            )
+            else hf_marker_size
+        )
+
+        hf_marker_color = (
+            trace["marker"]["color"]
+            if (
+                hf_marker_color is None
+                and hasattr(trace, "marker")
+                and "color" in trace["marker"]
+            )
+            else hf_marker_color
         )
 
         if trace["type"].lower() in self._high_frequency_traces:
@@ -687,8 +724,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             if hasattr(trace, "hovertext"):
                 trace["hovertext"] = hf_hovertext
+            if hasattr(trace, "marker"):
+                if hasattr(trace.marker, "size"):
+                    trace.marker.size = hf_marker_size
+                if hasattr(trace.marker, "color"):
+                    trace.marker.color = hf_marker_color
 
-        return _hf_data_container(hf_x, hf_y, hf_text, hf_hovertext)
+        return _hf_data_container(
+            hf_x, hf_y, hf_text, hf_hovertext, hf_marker_size, hf_marker_color
+        )
 
     def _construct_hf_data_dict(
         self,
@@ -800,6 +844,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y: Iterable = None,
         hf_text: Union[str, Iterable] = None,
         hf_hovertext: Union[str, Iterable] = None,
+        hf_marker_size: Union[str, Iterable] = None,
+        hf_marker_color: Union[str, Iterable] = None,
         check_nans: bool = True,
         **trace_kwargs,
     ):
@@ -850,6 +896,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext: Iterable, optional
             The original high frequency hovertext. If set, this has priority over the
             trace its ```hovertext`` argument.
+        hf_marker_size: Iterable, optional
+            The original high frequency marker size. If set, this has priority over the
+            trace its ``marker.size`` argument.
+        hf_marker_color: Iterable, optional
+            The original high frequency marker color. If set, this has priority over the
+            trace its ``marker.color`` argument.
         check_nans: boolean, optional
             If set to True, the trace's data will be checked for NaNs - which will be
             removed. By default True.
@@ -929,7 +981,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # construct the hf_data_container
         # TODO in future version -> maybe regex on kwargs which start with `hf_`
         dc = self._parse_get_trace_props(
-            trace, hf_x, hf_y, hf_text, hf_hovertext, check_nans
+            trace,
+            hf_x,
+            hf_y,
+            hf_text,
+            hf_hovertext,
+            hf_marker_size,
+            hf_marker_color,
+            check_nans,
         )
 
         # These traces will determine the autoscale its RANGE!
@@ -955,6 +1014,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
                 trace = trace._props  # convert the trace into a dict
+                # NOTE: there is no need to store `marker` property here.
+                # If needed, it will be added  to `trace` via `check_update_trace_data`
                 trace = {
                     k: trace[k] for k in set(trace.keys()).difference(set(dc._fields))
                 }
@@ -970,12 +1031,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 )
             else:
                 self._print(f"[i] NOT resampling {trace['name']} - len={n_samples}")
-                for k in dc._fields:
-                    setattr(trace, k, getattr(dc, k))
+                trace._process_kwargs(**{k: getattr(dc, k) for k in dc._fields})
                 return super(AbstractFigureAggregator, self).add_traces(
                     [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
                 )
-        return super(AbstractFigureAggregator, self).add_traces(
+
+        return super(self._figure_class, self).add_traces(
             [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
         )
 
@@ -1184,7 +1245,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             convert_existing_traces=convert_existing_traces,
             default_n_shown_samples=self._global_n_shown_samples,
             default_downsampler=self._global_downsampler,
+            default_gap_handler=self._global_gap_handler,
             resampled_trace_prefix_suffix=(self._prefix, self._suffix),
+            show_mean_aggregation_size=self._show_mean_aggregation_size,
+            verbose=self._print_verbose,
         )
 
     def _parse_relayout(self, relayout_dict: dict) -> dict:
@@ -1299,7 +1363,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = list(_hf_data_container._fields) + ["name"]
+        relevant_keys = list(_hf_data_container._fields) + ["name", "marker"]
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
@@ -1355,6 +1419,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "_prefix",
             "_suffix",
             "_global_downsampler",
+            "_global_gap_handler",
         ]
 
     def __reduce__(self):
