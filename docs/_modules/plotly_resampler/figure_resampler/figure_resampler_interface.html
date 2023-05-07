@@ -434,7 +434,14 @@ document.write(`
 <span class="kn">from</span> <span class="nn">..aggregation.plotly_aggregator_parser</span> <span class="kn">import</span> <span class="n">PlotlyAggregatorParser</span>
 <span class="kn">from</span> <span class="nn">.utils</span> <span class="kn">import</span> <span class="n">round_number_str</span><span class="p">,</span> <span class="n">round_td_str</span>
 
-<span class="n">_hf_data_container</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;DataContainer&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">])</span>
+<span class="c1"># A high-frequency data container</span>
+<span class="c1"># NOTE: the attributes must all be valid trace attributes, with attribute levels</span>
+<span class="c1"># separated by an &#39;_&#39; (e.g., &#39;marker_color&#39; is valid) as the</span>
+<span class="c1"># `_hf_data_container._asdict()` function is used in</span>
+<span class="c1">#  `AbstractFigureAggregator._construct_hf_data_dict`.</span>
+<span class="n">_hf_data_container</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
+    <span class="s2">&quot;DataContainer&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">,</span> <span class="s2">&quot;marker_size&quot;</span><span class="p">,</span> <span class="s2">&quot;marker_color&quot;</span><span class="p">]</span>
+<span class="p">)</span>
 
 
 <div class="viewcode-block" id="AbstractFigureAggregator"><a class="viewcode-back" href="../../../figure_resampler.html#plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator">[docs]</a><span class="k">class</span> <span class="nc">AbstractFigureAggregator</span><span class="p">(</span><span class="n">BaseFigure</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
@@ -758,14 +765,22 @@ document.write(`
             <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">-</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">agg_x</span>
         <span class="p">)</span>
 
+        <span class="k">def</span> <span class="nf">_nest_dict_rec</span><span class="p">(</span><span class="n">k</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">v</span><span class="p">:</span> <span class="nb">any</span><span class="p">,</span> <span class="n">out</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Recursively nest a dict based on the key whose &#39;_&#39; indicates level.&quot;&quot;&quot;</span>
+            <span class="n">k</span><span class="p">,</span> <span class="o">*</span><span class="n">rest</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">rest</span><span class="p">:</span>
+                <span class="n">_nest_dict_rec</span><span class="p">(</span><span class="n">rest</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">v</span><span class="p">,</span> <span class="n">out</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="p">{}))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
         <span class="c1"># Check if (hover)text also needs to be downsampled</span>
-        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;text&quot;</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">,</span> <span class="s2">&quot;marker_size&quot;</span><span class="p">,</span> <span class="s2">&quot;marker_color&quot;</span><span class="p">]:</span>
             <span class="n">k_val</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">k_val</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)):</span>
                 <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span>
                     <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">],</span> <span class="n">DataPointSelector</span>
                 <span class="p">),</span> <span class="s2">&quot;Only DataPointSelector can downsample non-data trace array props.&quot;</span>
-                <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_val</span><span class="p">[</span><span class="n">start_idx</span> <span class="o">+</span> <span class="n">indices</span><span class="p">]</span>
+                <span class="n">_nest_dict_rec</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">k_val</span><span class="p">[</span><span class="n">start_idx</span> <span class="o">+</span> <span class="n">indices</span><span class="p">],</span> <span class="n">trace</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">k_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">k_val</span>
 
@@ -938,6 +953,8 @@ document.write(`
         <span class="n">hf_y</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">hf_text</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">hf_hovertext</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hf_marker_size</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hf_marker_color</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">check_nans</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">_hf_data_container</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Parse and capture the possibly high-frequency trace-props in a datacontainer.</span>
@@ -1002,6 +1019,26 @@ document.write(`
             <span class="k">else</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
             <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+
+        <span class="n">hf_marker_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">][</span><span class="s2">&quot;size&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">hf_marker_size</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;marker&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="s2">&quot;size&quot;</span> <span class="ow">in</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">else</span> <span class="n">hf_marker_size</span>
+        <span class="p">)</span>
+
+        <span class="n">hf_marker_color</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">][</span><span class="s2">&quot;color&quot;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">hf_marker_color</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;marker&quot;</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="s2">&quot;color&quot;</span> <span class="ow">in</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;marker&quot;</span><span class="p">]</span>
+            <span class="p">)</span>
+            <span class="k">else</span> <span class="n">hf_marker_color</span>
         <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_high_frequency_traces</span><span class="p">:</span>
@@ -1090,8 +1127,15 @@ document.write(`
 
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;hovertext&quot;</span><span class="p">):</span>
                 <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;hovertext&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_hovertext</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;marker&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="p">,</span> <span class="s2">&quot;size&quot;</span><span class="p">):</span>
+                    <span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">hf_marker_size</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="p">,</span> <span class="s2">&quot;color&quot;</span><span class="p">):</span>
+                    <span class="n">trace</span><span class="o">.</span><span class="n">marker</span><span class="o">.</span><span class="n">color</span> <span class="o">=</span> <span class="n">hf_marker_color</span>
 
-        <span class="k">return</span> <span class="n">_hf_data_container</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">hf_y</span><span class="p">,</span> <span class="n">hf_text</span><span class="p">,</span> <span class="n">hf_hovertext</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_hf_data_container</span><span class="p">(</span>
+            <span class="n">hf_x</span><span class="p">,</span> <span class="n">hf_y</span><span class="p">,</span> <span class="n">hf_text</span><span class="p">,</span> <span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">hf_marker_size</span><span class="p">,</span> <span class="n">hf_marker_color</span>
+        <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_construct_hf_data_dict</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
@@ -1203,6 +1247,8 @@ document.write(`
         <span class="n">hf_y</span><span class="p">:</span> <span class="n">Iterable</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">hf_text</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">hf_hovertext</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hf_marker_size</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">hf_marker_color</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
         <span class="n">check_nans</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
         <span class="o">**</span><span class="n">trace_kwargs</span><span class="p">,</span>
     <span class="p">):</span>
@@ -1253,6 +1299,12 @@ document.write(`
 <span class="sd">        hf_hovertext: Iterable, optional</span>
 <span class="sd">            The original high frequency hovertext. If set, this has priority over the</span>
 <span class="sd">            trace its ```hovertext`` argument.</span>
+<span class="sd">        hf_marker_size: Iterable, optional</span>
+<span class="sd">            The original high frequency marker size. If set, this has priority over the</span>
+<span class="sd">            trace its ``marker.size`` argument.</span>
+<span class="sd">        hf_marker_color: Iterable, optional</span>
+<span class="sd">            The original high frequency marker color. If set, this has priority over the</span>
+<span class="sd">            trace its ``marker.color`` argument.</span>
 <span class="sd">        check_nans: boolean, optional</span>
 <span class="sd">            If set to True, the trace&#39;s data will be checked for NaNs - which will be</span>
 <span class="sd">            removed. By default True.</span>
@@ -1332,7 +1384,14 @@ document.write(`
         <span class="c1"># construct the hf_data_container</span>
         <span class="c1"># TODO in future version -&gt; maybe regex on kwargs which start with `hf_`</span>
         <span class="n">dc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_get_trace_props</span><span class="p">(</span>
-            <span class="n">trace</span><span class="p">,</span> <span class="n">hf_x</span><span class="p">,</span> <span class="n">hf_y</span><span class="p">,</span> <span class="n">hf_text</span><span class="p">,</span> <span class="n">hf_hovertext</span><span class="p">,</span> <span class="n">check_nans</span>
+            <span class="n">trace</span><span class="p">,</span>
+            <span class="n">hf_x</span><span class="p">,</span>
+            <span class="n">hf_y</span><span class="p">,</span>
+            <span class="n">hf_text</span><span class="p">,</span>
+            <span class="n">hf_hovertext</span><span class="p">,</span>
+            <span class="n">hf_marker_size</span><span class="p">,</span>
+            <span class="n">hf_marker_color</span><span class="p">,</span>
+            <span class="n">check_nans</span><span class="p">,</span>
         <span class="p">)</span>
 
         <span class="c1"># These traces will determine the autoscale its RANGE!</span>
@@ -1358,6 +1417,8 @@ document.write(`
                 <span class="c1"># We copy (by reference) all the non-data properties of the trace in</span>
                 <span class="c1"># the new trace.</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">_props</span>  <span class="c1"># convert the trace into a dict</span>
+                <span class="c1"># NOTE: there is no need to store `marker` property here.</span>
+                <span class="c1"># If needed, it will be added  to `trace` via `check_update_trace_data`</span>
                 <span class="n">trace</span> <span class="o">=</span> <span class="p">{</span>
                     <span class="n">k</span><span class="p">:</span> <span class="n">trace</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">trace</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dc</span><span class="o">.</span><span class="n">_fields</span><span class="p">))</span>
                 <span class="p">}</span>
@@ -1373,12 +1434,12 @@ document.write(`
                 <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;[i] NOT resampling </span><span class="si">{</span><span class="n">trace</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> - len=</span><span class="si">{</span><span class="n">n_samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dc</span><span class="o">.</span><span class="n">_fields</span><span class="p">:</span>
-                    <span class="nb">setattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dc</span><span class="p">,</span> <span class="n">k</span><span class="p">))</span>
+                <span class="n">trace</span><span class="o">.</span><span class="n">_process_kwargs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">dc</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dc</span><span class="o">.</span><span class="n">_fields</span><span class="p">})</span>
                 <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
                     <span class="p">[</span><span class="n">trace</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">trace_kwargs</span><span class="p">)</span>
                 <span class="p">)</span>
-        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">AbstractFigureAggregator</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
+
+        <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_figure_class</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">add_traces</span><span class="p">(</span>
             <span class="p">[</span><span class="n">trace</span><span class="p">],</span> <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_trace_to_add_traces_kwargs</span><span class="p">(</span><span class="n">trace_kwargs</span><span class="p">)</span>
         <span class="p">)</span></div>
 
@@ -1587,7 +1648,10 @@ document.write(`
             <span class="n">convert_existing_traces</span><span class="o">=</span><span class="n">convert_existing_traces</span><span class="p">,</span>
             <span class="n">default_n_shown_samples</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_global_n_shown_samples</span><span class="p">,</span>
             <span class="n">default_downsampler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_global_downsampler</span><span class="p">,</span>
+            <span class="n">default_gap_handler</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_global_gap_handler</span><span class="p">,</span>
             <span class="n">resampled_trace_prefix_suffix</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_suffix</span><span class="p">),</span>
+            <span class="n">show_mean_aggregation_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_show_mean_aggregation_size</span><span class="p">,</span>
+            <span class="n">verbose</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_print_verbose</span><span class="p">,</span>
         <span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_parse_relayout</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relayout_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
@@ -1702,7 +1766,7 @@ document.write(`
         <span class="n">layout_traces_list</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">relayout_data</span><span class="p">]</span>
 
         <span class="c1"># 2. Create the additional trace data for the frond-end</span>
-        <span class="n">relevant_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_hf_data_container</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
+        <span class="n">relevant_keys</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">_hf_data_container</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;marker&quot;</span><span class="p">]</span>
         <span class="c1"># Note that only updated trace-data will be sent to the client</span>
         <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">updated_trace_indices</span><span class="p">:</span>
             <span class="n">trace</span> <span class="o">=</span> <span class="n">current_graph</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="n">idx</span><span class="p">]</span>
@@ -1758,6 +1822,7 @@ document.write(`
             <span class="s2">&quot;_prefix&quot;</span><span class="p">,</span>
             <span class="s2">&quot;_suffix&quot;</span><span class="p">,</span>
             <span class="s2">&quot;_global_downsampler&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_global_gap_handler&quot;</span><span class="p">,</span>
         <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__reduce__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
