@@ -1014,7 +1014,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 # We copy (by reference) all the non-data properties of the trace in
                 # the new trace.
                 trace = trace._props  # convert the trace into a dict
-                # TODO -> do not use this difference -> and use a list of keys
+                # NOTE: there is no need to store `marker` property here.
+                # If needed, it will be added  to `trace` via `check_update_trace_data`
                 trace = {
                     k: trace[k] for k in set(trace.keys()).difference(set(dc._fields))
                 }
