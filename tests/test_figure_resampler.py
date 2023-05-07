@@ -771,8 +771,9 @@ def test_time_tz_slicing():
 
     for s in cs:
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
+        hf_data_dict = construct_hf_data_dict(s.index, s.values)
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-            construct_hf_data_dict(s.index, s.values), t_start, t_stop
+            hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
         )
         assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=1)
         assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=1)
@@ -803,8 +804,9 @@ def test_time_tz_slicing_different_timestamp():
         # As each timezone in CS tz aware, using other timezones in `t_start` & `t_stop`
         # will raise an AssertionError
         with pytest.raises(AssertionError):
+            hf_data_dict = construct_hf_data_dict(s.index, s.values)
             start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-                construct_hf_data_dict(s.index, s.values), t_start, t_stop
+                hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
             )
 
 
@@ -834,8 +836,9 @@ def test_different_tz_no_tz_series_slicing():
 
         # the s has no time-info -> assumption is made that s has the same time-zone
         # the timestamps
+        hf_data_dict = construct_hf_data_dict(s.tz_localize(None).index, s.values)
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-            construct_hf_data_dict(s.tz_localize(None).index, s.values), t_start, t_stop
+            hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
         )
         assert (
             s.tz_localize(None).index[start_idx].tz_localize(t_start.tz) - t_start
@@ -872,10 +875,9 @@ def test_multiple_tz_no_tz_series_slicing():
         # Now the assumption cannot be made that s has the same time-zone as the
         # timestamps -> AssertionError will be raised.
         with pytest.raises(AssertionError):
+            hf_data_dict = construct_hf_data_dict(s.tz_localize(None).index, s.values)
             PlotlyAggregatorParser.get_start_end_indices(
-                construct_hf_data_dict(s.tz_localize(None).index, s.values),
-                t_start,
-                t_stop,
+                hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
             )
 
 
