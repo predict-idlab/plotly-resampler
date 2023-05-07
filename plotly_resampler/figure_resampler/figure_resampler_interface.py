@@ -338,7 +338,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             return trace
 
         # Leverage the axis type to get the start and end indices
-        # TODO: verify whether we need to use `axis`of anchor as key to determing axis 
+        # TODO: verify whether we need to use `axis`of anchor as key to determing axis
         # type
         axis = trace.get("xaxis", "x")
         axis_type = self.layout._props.get(axis[:1] + "axis" + axis[1:], {}).get(
