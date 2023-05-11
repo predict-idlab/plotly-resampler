@@ -326,7 +326,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             ):
                 # is faster to escape the loop here than check inside the hasattr if
                 continue
-            if hasattr(hf_trace_data[k], "values"):
+            elif pd.core.dtypes.common.is_datetime64_any_dtype(hf_trace_data[k]):
+                hf_trace_data[k] = pd.Index(hf_trace_data[k])
+            elif hasattr(hf_trace_data[k], "values"):
                 # when not a range index or datetime index
                 hf_trace_data[k] = hf_trace_data[k].values
 
