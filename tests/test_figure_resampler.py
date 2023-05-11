@@ -529,6 +529,7 @@ def test_hf_text_and_hf_hovertext():
 def test_multiple_timezones():
     n = 5_050
 
+    # NOTE: date-range returns a (tz-aware) DatetimeIndex
     dr = pd.date_range("2022-02-14", freq="s", periods=n, tz="UTC")
     dr_v = np.random.randn(n)
 
@@ -538,6 +539,12 @@ def test_multiple_timezones():
         dr.tz_convert("Europe/Brussels"),
         dr.tz_convert("Australia/Perth"),
         dr.tz_convert("Australia/Canberra"),
+        # NOTE: this pd.Series tests the functionality of a Pandas series with (tz-aware) DatetimeIndex
+        pd.Series(dr),
+        pd.Series(dr.tz_localize(None).tz_localize("Europe/Amsterdam")),
+        pd.Series(dr.tz_convert("Europe/Brussels")),
+        pd.Series(dr.tz_convert("Australia/Perth")),
+        pd.Series(dr.tz_convert("Australia/Canberra")),
     ]
 
     plain_plotly_fig = make_subplots(rows=len(cs), cols=1, shared_xaxes=True)
@@ -564,7 +571,7 @@ def test_multiple_timezones():
             col=1,
         )
         # Assert that the time parsing is exactly the same
-        assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
+        assert plain_plotly_fig.data[i-1].x[0] == fr_fig.data[i-1].x[0]
 
 
 def test_datetime_hf_x_no_index():
