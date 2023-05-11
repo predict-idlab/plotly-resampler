@@ -792,7 +792,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Determine (1) the axis type and (2) the downsampler instance
         # & (3) store a hf_data entry for the corresponding trace,
         # identified by its UUID
-        axis_type = "date" if isinstance(dc.x, pd.DatetimeIndex) else "linear"
+        axis_type = (
+            "date"
+            if isinstance(dc.x, pd.DatetimeIndex)
+            or pd.core.dtypes.common.is_datetime64_any_dtype(dc.x)
+            else "linear"
+        )
 
         default_n_samples = False
         if max_n_samples is None:

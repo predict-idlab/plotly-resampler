@@ -567,6 +567,35 @@ def test_multiple_timezones():
         assert plain_plotly_fig.data[0].x[0] == fr_fig.data[0].x[0]
 
 
+def test_datetime_hf_x_no_index():
+    df = pd.DataFrame(
+        {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
+    )
+    df["value"] = np.random.randn(len(df))
+
+    # add via hf_x kwargs
+    fr = FigureResampler()
+    fr.add_trace({}, hf_x=df.timestamp, hf_y=df.value)
+    output = fr.construct_update_data(
+        {
+            "xaxis.range[0]": "2020-01-01 00:00:00",
+            "xaxis.range[1]": "2020-01-01 00:00:20",
+        }
+    )
+    assert len(output) == 2
+
+    # add via scatter kwargs
+    fr = FigureResampler()
+    fr.add_trace(go.Scatter(x=df.timestamp, y=df.value))
+    output = fr.construct_update_data(
+        {
+            "xaxis.range[0]": "2020-01-01 00:00:00",
+            "xaxis.range[1]": "2020-01-01 00:00:20",
+        }
+    )
+    assert len(output) == 2
+
+
 def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
     # TODO: can be improved with pytest parametrize
     y = np.arange(20)
