@@ -571,7 +571,31 @@ def test_multiple_timezones():
             col=1,
         )
         # Assert that the time parsing is exactly the same
-        assert plain_plotly_fig.data[i-1].x[0] == fr_fig.data[i-1].x[0]
+        assert plain_plotly_fig.data[i - 1].x[0] == fr_fig.data[i - 1].x[0]
+
+
+def test_set_hfx_tz_aware_series():
+    df = pd.DataFrame(
+        {
+            "timestamp": pd.date_range(
+                "2020-01-01", "2020-01-02", freq="1s"
+            ).tz_localize("Asia/Seoul")
+        }
+    )
+    df["value"] = np.random.randn(len(df))
+
+    fr = FigureResampler()
+    fr.add_trace({}, hf_x=pd.Index(df.timestamp), hf_y=df.value)
+    assert isinstance(fr.hf_data[0]["x"], pd.DatetimeIndex)
+    # Now we set the pd.Series as hf_x
+    fr.hf_data[0]["x"] = df.timestamp
+    assert not isinstance(fr.hf_data[0]["x"], pd.DatetimeIndex)
+    # perform an update
+    out = fr.construct_update_data({"xaxis.autorange": True, "xaxis.showspikes": False})
+    assert len(out) == 2
+    # assert that the update was performed correctly
+    assert isinstance(fr.hf_data[0]["x"], pd.DatetimeIndex)
+    assert all(fr.hf_data[0]["x"] == pd.DatetimeIndex(df.timestamp))
 
 
 def test_datetime_hf_x_no_index():
