@@ -598,7 +598,7 @@ def test_set_hfx_tz_aware_series():
     assert all(fr.hf_data[0]["x"] == pd.DatetimeIndex(df.timestamp))
 
 
-def test_datetime_hf_x_no_index():
+def test_datetime_hf_x_no_index_():
     df = pd.DataFrame(
         {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
     )
