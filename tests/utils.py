@@ -27,7 +27,10 @@ def construct_hf_data_dict(hf_x, hf_y, **kwargs):
     hf_data_dict = {
         "x": hf_x,
         "y": hf_y,
-        "axis_type": "date" if isinstance(hf_x, pd.DatetimeIndex) else "linear",
+        "axis_type": "date"
+        if isinstance(hf_x, pd.DatetimeIndex)
+        or pd.core.dtypes.common.is_datetime64_any_dtype(hf_x)
+        else "linear",
         "downsampler": MinMaxLTTB(),
         "gap_handler": MedDiffGapHandler(),
         "max_n_samples": 1_000,
