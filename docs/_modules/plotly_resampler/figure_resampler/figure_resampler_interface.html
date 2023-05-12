@@ -729,7 +729,11 @@ document.write(`
             <span class="p">):</span>
                 <span class="c1"># is faster to escape the loop here than check inside the hasattr if</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">):</span>
+            <span class="k">elif</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">is_datetime64tz_dtype</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">]):</span>
+                <span class="c1"># When we use the .values method, timezone information is lost</span>
+                <span class="c1"># so convert it to pd.DatetimeIndex, which preserves the tz-info</span>
+                <span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s2">&quot;values&quot;</span><span class="p">):</span>
                 <span class="c1"># when not a range index or datetime index</span>
                 <span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
@@ -985,13 +989,17 @@ document.write(`
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">hf_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="c1"># fmt: off</span>
             <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">])</span> <span class="k">if</span> <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">trace</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">hf_x</span> <span class="ow">is</span> <span class="kc">None</span>
-            <span class="k">else</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">values</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
-            <span class="k">else</span> <span class="n">hf_x</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span>
+            <span class="c1"># If we cast a tz-aware datetime64 array to `.values` we lose the tz-info </span>
+            <span class="c1"># and the UTC time will be displayed instead of the tz-localized time, </span>
+            <span class="c1"># hence we cast to a pd.DatetimeIndex, which preserves the tz-info</span>
+            <span class="k">else</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span> <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">dtypes</span><span class="o">.</span><span class="n">common</span><span class="o">.</span><span class="n">is_datetime64tz_dtype</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">hf_x</span><span class="o">.</span><span class="n">values</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">)</span>
+            <span class="k">else</span> <span class="n">hf_x</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">Index</span><span class="p">)</span>
             <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span>
+            <span class="c1"># fmt: on</span>
         <span class="p">)</span>
 
         <span class="n">hf_y</span> <span class="o">=</span> <span class="p">(</span>
