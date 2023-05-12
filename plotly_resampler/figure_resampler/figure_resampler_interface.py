@@ -326,7 +326,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             ):
                 # is faster to escape the loop here than check inside the hasattr if
                 continue
-            if hasattr(hf_trace_data[k], "values"):
+            elif pd.core.dtypes.common.is_datetime64tz_dtype(hf_trace_data[k]):
+                # When we use the .values method, timezone information is lost
+                # so convert it to pd.DatetimeIndex, which preserves the tz-info
+                hf_trace_data[k] = pd.Index(hf_trace_data[k])
+            elif hasattr(hf_trace_data[k], "values"):
                 # when not a range index or datetime index
                 hf_trace_data[k] = hf_trace_data[k].values
 
@@ -582,13 +586,17 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         """
         hf_x: np.ndarray = (
+            # fmt: off
             (np.asarray(trace["x"]) if trace["x"] is not None else None)
             if hasattr(trace, "x") and hf_x is None
-            else hf_x.values
-            if isinstance(hf_x, pd.Series)
-            else hf_x
-            if isinstance(hf_x, pd.Index)
+            # If we cast a tz-aware datetime64 array to `.values` we lose the tz-info 
+            # and the UTC time will be displayed instead of the tz-localized time, 
+            # hence we cast to a pd.DatetimeIndex, which preserves the tz-info
+            else pd.Index(hf_x) if pd.core.dtypes.common.is_datetime64tz_dtype(hf_x)
+            else hf_x.values if isinstance(hf_x, pd.Series)
+            else hf_x if isinstance(hf_x, pd.Index)
             else np.asarray(hf_x)
+            # fmt: on
         )
 
         hf_y = (
