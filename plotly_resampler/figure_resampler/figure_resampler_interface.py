@@ -328,7 +328,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 continue
             elif pd.core.dtypes.common.is_datetime64tz_dtype(hf_trace_data[k]):
                 # When we use the .values method, timezone information is lost
-                # so convert it to pd.DatetimeIndex first
+                # so convert it to pd.DatetimeIndex, which preserves the tz-info
                 hf_trace_data[k] = pd.Index(hf_trace_data[k])
             elif hasattr(hf_trace_data[k], "values"):
                 # when not a range index or datetime index
@@ -591,7 +591,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hasattr(trace, "x") and hf_x is None
             # If we cast a tz-aware datetime64 array to `.values` we lose the tz-info 
             # and the UTC time will be displayed instead of the tz-localized time, 
-            # hence we cast to a DateTimeIndex, which preserves the tz-info
+            # hence we cast to a pd.DatetimeIndex, which preserves the tz-info
             else pd.Index(hf_x) if pd.core.dtypes.common.is_datetime64tz_dtype(hf_x)
             else hf_x.values if isinstance(hf_x, pd.Series)
             else hf_x if isinstance(hf_x, pd.Index)
@@ -1373,8 +1373,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # -------------------- construct callback data --------------------------
         # 1. Create the layout data for the front-end
-        relayout_data["xaxis"] = {}
-        relayout_data["xaxis"]["type"] = "date"
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
