@@ -348,7 +348,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         axis_type = self.layout._props.get(axis[:1] + "axis" + axis[1:], {}).get(
             "type", hf_trace_data["axis_type"]
         )
-        print("axis_type", axis_type)
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
             hf_trace_data, axis_type, start, end
         )

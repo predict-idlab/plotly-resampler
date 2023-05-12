@@ -239,6 +239,32 @@ def test_box_histogram(float_series):
     )
 
 
+def test_log_axis():
+    # This test utilizes tests whether a log axis is correctly handled
+    n = 100_000
+    y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
+
+    fr = FigureResampler()
+    fr.add_trace(
+        go.Scattergl(mode="lines+markers", marker_color=np.abs(y) / np.max(np.abs(y))),
+        hf_x=np.arange(n),
+        # NOTE: this y can be negative (as it is a noisy sin wave)
+        hf_y=np.abs(y),
+        max_n_samples=1000,
+    )
+    fr.update_xaxes(type="log")
+    fr.update_yaxes(type="log")
+    # Here, we update the xaxis range to be a log range
+    # A relayout event will return the log10 values of the range
+    x0, x1 = np.log10(100), np.log10(50_000)
+    out = fr.construct_update_data({"xaxis.range[0]": x0, "xaxis.range[1]": x1})
+    assert len(out) == 2
+    assert (x1 - x0) < 10
+    assert len(out[1]["x"]) == 1000
+    assert out[-1]["x"][0] >= 100
+    assert out[-1]["x"][-1] <= 50_000
+
+
 def test_add_traces_from_other_figure():
     labels = ["Investing", "Liquid", "Real Estate", "Retirement"]
     values = [324643.4435821581, 112238.37140194925, 2710711.06, 604360.2864262027]
