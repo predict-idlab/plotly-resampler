@@ -326,7 +326,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             ):
                 # is faster to escape the loop here than check inside the hasattr if
                 continue
-            elif pd.core.dtypes.common.is_datetime64_any_dtype(hf_trace_data[k]):
+            elif pd.core.dtypes.common.is_datetime64tz_dtype(hf_trace_data[k]):
+                # When we use the .values method, timezone information is lost
+                # so convert it to pd.DatetimeIndex first
                 hf_trace_data[k] = pd.Index(hf_trace_data[k])
             elif hasattr(hf_trace_data[k], "values"):
                 # when not a range index or datetime index
@@ -1371,6 +1373,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # -------------------- construct callback data --------------------------
         # 1. Create the layout data for the front-end
+        relayout_data["xaxis"] = {}
+        relayout_data["xaxis"]["type"] = "date"
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
