@@ -41,8 +41,23 @@ class LogLTTB(DataPointSelector):
     def _arg_downsample(
         self, x: Union[np.ndarray, None], y: np.ndarray, n_out: int, **kwargs
     ) -> np.ndarray:
-        """TODO complete docs"""
-        # We need a valid x array to determing the x-range
+        """Downsample to `n_out` points using the log variant of the LTTB algorithm.
+
+        Parameters
+        ----------
+        x : np.ndarray
+            The x-values of the data.
+        y : np.ndarray
+            The y-values of the data.
+        n_out : int
+            The number of points to downsample to.
+
+        Returns
+        -------
+        np.ndarray
+            The indices of the downsampled data.
+        """
+        # We need a valid x array to determine the x-range
         assert x is not None, "x cannot be None for this downsampler"
 
         # the log function to use
