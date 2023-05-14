@@ -15,6 +15,7 @@ import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 from selenium.webdriver.common.by import By
+from datetime import timedelta
 
 from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
 from plotly_resampler.aggregation import NoGapHandler, PlotlyAggregatorParser
@@ -124,12 +125,16 @@ def test_various_dtypes(float_series):
         np.float64,
     ]
     for dtype in valid_dtype_list:
+        if np.issubdtype(dtype, np.unsignedinteger):
+            fsv = float_series.astype("int").astype(dtype)
+        else:
+            fsv = float_series.astype(dtype)
         fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
         # nb. datapoints > default_n_shown_samples
         fig.add_trace(
             go.Scatter(name="float_series"),
-            hf_x=float_series.index,
-            hf_y=float_series.astype(dtype),
+            hf_x=fsv.index,
+            hf_y=fsv,
         )
         fig.full_figure_for_development()
 
@@ -625,6 +630,50 @@ def test_set_hfx_tz_aware_series():
     # assert that the update was performed correctly
     assert isinstance(fr.hf_data[0]["x"], pd.DatetimeIndex)
     assert all(fr.hf_data[0]["x"] == pd.DatetimeIndex(df.timestamp))
+
+
+def test_tz_xaxis_range():
+    # test related to the followign issue:
+    n = 50_000
+    s = pd.Series(
+        index=pd.date_range("2020-01-01", periods=n, freq="1min", tz="UTC"),
+        data=23 + np.random.randn(n),
+    )
+
+    fig = go.Figure(
+        layout=go.Layout(
+            title=dict(
+                text=f"AirT test timeseries",
+                y=0.98,
+                x=0.5,
+                xanchor="center",
+                yanchor="top",
+            ),
+            xaxis=dict(title="Time", type="date"),
+            yaxis=dict(title="Air Temp (ºC)", range=[20, 30], fixedrange=True),
+            template="seaborn",
+            margin=dict(l=50, r=50, t=50, b=50, pad=5),
+            showlegend=True,
+        )
+    )
+
+    fr = FigureResampler(fig, verbose=True, default_n_shown_samples=2000)
+    fr.add_trace(go.Scattergl(name="AirT", mode="markers"), hf_x=s.index, hf_y=s)
+    fr.add_trace(go.Scattergl(name="AirT", mode="markers", x=s.index, y=s))
+
+    fr.add_vline(x=s.index[0])
+    fr.add_vline(x=s.index[-1])
+
+    start = s.index[0] - timedelta(hours=48)
+    end = s.index[-1] + timedelta(hours=48)
+
+    fr.update_xaxes(range=[start, end])
+
+    # verify whether the update was performed correctly
+    out = fr.construct_update_data({"xaxis.range[0]": start, "xaxis.range[1]": end})
+    assert len(out) == 3
+    assert len(out[1]['x']) == 2000
+    assert len(out[2]['x']) == 2000
 
 
 def test_datetime_hf_x_no_index():

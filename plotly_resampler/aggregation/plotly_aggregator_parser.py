@@ -38,7 +38,7 @@ class PlotlyAggregatorParser:
             return None
         elif reference_tz is not None:
             if ts.tz is not None:
-                assert ts.tz.zone == reference_tz.zone
+                assert ts.tz.__str__() == reference_tz.__str__()
                 return ts
             else:  # localize -> time remains the same
                 return ts.tz_localize(reference_tz)
