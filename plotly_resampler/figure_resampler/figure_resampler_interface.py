@@ -342,8 +342,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             return trace
 
         # Leverage the axis type to get the start and end indices
-        # TODO: verify whether we need to use `axis`of anchor as key to determing axis
-        # type
+        # Note: the axis type specified in the figure layout takes precedence over the
+        # the axis type which is inferred from the data (and stored in hf_trace_data)
+        # TODO: verify if we need to use `axis`of anchor as key to determing axis type
         axis = trace.get("xaxis", "x")
         axis_type = self.layout._props.get(axis[:1] + "axis" + axis[1:], {}).get(
             "type", hf_trace_data["axis_type"]
