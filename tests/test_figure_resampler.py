@@ -239,6 +239,35 @@ def test_box_histogram(float_series):
     )
 
 
+def test_log_axis():
+    # This test utilizes tests whether a log axis is correctly handled
+    n = 100_000
+    y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
+
+    for hf_x in [None, np.arange(n)]:
+        fr = FigureResampler()
+        fr.add_trace(
+            go.Scattergl(
+                mode="lines+markers", marker_color=np.abs(y) / np.max(np.abs(y))
+            ),
+            hf_x=hf_x,
+            # NOTE: this y can be negative (as it is a noisy sin wave)
+            hf_y=np.abs(y),
+            max_n_samples=1000,
+        )
+        fr.update_xaxes(type="log")
+        fr.update_yaxes(type="log")
+        # Here, we update the xaxis range to be a log range
+        # A relayout event will return the log10 values of the range
+        x0, x1 = np.log10(100), np.log10(50_000)
+        out = fr.construct_update_data({"xaxis.range[0]": x0, "xaxis.range[1]": x1})
+        assert len(out) == 2
+        assert (x1 - x0) < 10
+        assert len(out[1]["x"]) == 1000
+        assert out[-1]["x"][0] >= 100
+        assert out[-1]["x"][-1] <= 50_000
+
+
 def test_add_traces_from_other_figure():
     labels = ["Investing", "Liquid", "Real Estate", "Retirement"]
     values = [324643.4435821581, 112238.37140194925, 2710711.06, 604360.2864262027]
@@ -598,35 +627,6 @@ def test_set_hfx_tz_aware_series():
     assert all(fr.hf_data[0]["x"] == pd.DatetimeIndex(df.timestamp))
 
 
-def test_datetime_hf_x_no_index_():
-    df = pd.DataFrame(
-        {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
-    )
-    df["value"] = np.random.randn(len(df))
-
-    # add via hf_x kwargs
-    fr = FigureResampler()
-    fr.add_trace({}, hf_x=df.timestamp, hf_y=df.value)
-    output = fr.construct_update_data(
-        {
-            "xaxis.range[0]": "2020-01-01 00:00:00",
-            "xaxis.range[1]": "2020-01-01 00:00:20",
-        }
-    )
-    assert len(output) == 2
-
-    # add via scatter kwargs
-    fr = FigureResampler()
-    fr.add_trace(go.Scatter(x=df.timestamp, y=df.value))
-    output = fr.construct_update_data(
-        {
-            "xaxis.range[0]": "2020-01-01 00:00:00",
-            "xaxis.range[1]": "2020-01-01 00:00:20",
-        }
-    )
-    assert len(output) == 2
-
-
 def test_datetime_hf_x_no_index():
     df = pd.DataFrame(
         {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
@@ -860,8 +860,9 @@ def test_time_tz_slicing():
 
     for s in cs:
         t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
+        hf_data_dict = construct_hf_data_dict(s.index, s.values)
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-            construct_hf_data_dict(s.index, s.values), t_start, t_stop
+            hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
         )
         assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=1)
         assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=1)
@@ -892,8 +893,9 @@ def test_time_tz_slicing_different_timestamp():
         # As each timezone in CS tz aware, using other timezones in `t_start` & `t_stop`
         # will raise an AssertionError
         with pytest.raises(AssertionError):
+            hf_data_dict = construct_hf_data_dict(s.index, s.values)
             start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-                construct_hf_data_dict(s.index, s.values), t_start, t_stop
+                hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
             )
 
 
@@ -923,8 +925,9 @@ def test_different_tz_no_tz_series_slicing():
 
         # the s has no time-info -> assumption is made that s has the same time-zone
         # the timestamps
+        hf_data_dict = construct_hf_data_dict(s.tz_localize(None).index, s.values)
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-            construct_hf_data_dict(s.tz_localize(None).index, s.values), t_start, t_stop
+            hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
         )
         assert (
             s.tz_localize(None).index[start_idx].tz_localize(t_start.tz) - t_start
@@ -961,10 +964,9 @@ def test_multiple_tz_no_tz_series_slicing():
         # Now the assumption cannot be made that s has the same time-zone as the
         # timestamps -> AssertionError will be raised.
         with pytest.raises(AssertionError):
+            hf_data_dict = construct_hf_data_dict(s.tz_localize(None).index, s.values)
             PlotlyAggregatorParser.get_start_end_indices(
-                construct_hf_data_dict(s.tz_localize(None).index, s.values),
-                t_start,
-                t_stop,
+                hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
             )
 
 

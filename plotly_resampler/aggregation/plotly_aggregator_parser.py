@@ -47,7 +47,7 @@ class PlotlyAggregatorParser:
         return ts
 
     @staticmethod
-    def get_start_end_indices(hf_trace_data, start, end) -> Tuple[int, int]:
+    def get_start_end_indices(hf_trace_data, axis_type, start, end) -> Tuple[int, int]:
         """Get the start & end indices of the high-frequency data."""
         # Base case: no hf data, or both start & end are None
         if not len(hf_trace_data["x"]):
@@ -60,6 +60,10 @@ class PlotlyAggregatorParser:
         start = hf_trace_data["x"][0] if start is None else start
         end = hf_trace_data["x"][-1] if end is None else end
 
+        # NOTE: we must verify this before check if the x is a range-index
+        if axis_type == "log":
+            start, end = 10**start, 10**end
+
         # We can compute the start & end indices directly when it is a RangeIndex
         if isinstance(hf_trace_data["x"], pd.RangeIndex):
             x_start = hf_trace_data["x"].start
@@ -69,7 +73,7 @@ class PlotlyAggregatorParser:
             return start_idx, end_idx
         # TODO: this can be performed as-well for a fixed frequency range-index w/ freq
 
-        if hf_trace_data["axis_type"] == "date":
+        if axis_type == "date":
             start, end = pd.to_datetime(start), pd.to_datetime(end)
             # convert start & end to the same timezone
             if isinstance(hf_trace_data["x"], pd.DatetimeIndex):

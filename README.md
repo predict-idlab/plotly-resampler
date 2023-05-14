@@ -21,7 +21,6 @@
 
 ![basic example gif](https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/docs/sphinx/_static/basic_example.gif)
 
-
 In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resampler/blob/main/examples/basic_example.ipynb) over `110,000,000` data points are visualized!
 
 <!-- These dynamic aggregation callbacks are realized with: -->
@@ -38,6 +37,25 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 | [**pip**](https://pypi.org/project/plotly_resampler/) | `pip install plotly-resampler` |
 | ---| ----|
 <!-- | [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` | -->
+
+<br>
+<details><summary><b>What is the difference between plotly-resampler figures and plain plotly figures?</b></summary>
+
+`plotly-resampler` can be thought of as wrapper around plain plotly figures which adds visualization scalability to line-charts by dynamically aggregating the data w.r.t. the front-end view. `plotly-resampler` thus adds dynamic aggregation functionality to plain plotly figures.
+
+**Important to know**:
+
+* ``show`` *always* returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.
+* To have dynamic aggregation:
+
+  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback.
+  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running IPython kernel).
+
+**Other changes of plotly-resampler figures w.r.t. vanilla plotly**:
+
+* **double-clicking** within a line-chart area **does not Reset Axes**, as it results in an “Autoscale” event. We decided to implement an Autoscale event as updating your y-range such that it shows all the data that is in your x-range.
+   * **Note**: vanilla Plotly figures their Autoscale result in Reset Axes behavior, in our opinion this did not make a lot of sense. It is therefore that we have overriden this behavior in plotly-resampler.
+</details><br>
 
 ### Features :tada:
 
@@ -140,10 +158,9 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
   The <b style="color:orange">[R]</b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not. Additionally, the `~<range>` suffix represent the mean aggregation bin size in terms of the sequence index.
 * The plotly **autoscale** event (triggered by the autoscale button or a double-click within the graph), **does not reset the axes but autoscales the current graph-view** of plotly-resampler figures. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the `reset_axis` button.  If you want to give feedback and discuss this further with the developers, see issue [#49](https://github.com/predict-idlab/plotly-resampler/issues/49).
 
-## Cite
+## Citation and papers
 
-Paper (preprint): https://arxiv.org/abs/2206.08703
-
+The paper about the plotly-resampler toolkit itself (preprint): https://arxiv.org/abs/2206.08703
 ```bibtex
 @inproceedings{van2022plotly,
   title={Plotly-resampler: Effective visual analytics for large time series},
@@ -154,6 +171,14 @@ Paper (preprint): https://arxiv.org/abs/2206.08703
   organization={IEEE}
 }
 ```
+
+**Related papers**:
+- **Visual representativeness** of time series data point selection algorithms (preprint): https://arxiv.org/abs/2304.00900 <br>
+  code: https://github.com/predict-idlab/ts-datapoint-selection-vis
+-  **MinMaxLTTB** - an efficient data point selection algorithm (preprint): https://arxiv.org/abs/2305.00332 <br>
+  code: https://github.com/predict-idlab/MinMaxLTTB
+
+
 
 ## Future work 🔨
 

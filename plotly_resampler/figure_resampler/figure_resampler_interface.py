@@ -341,8 +341,16 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             trace["name"] = hf_trace_data["name"]
             return trace
 
+        # Leverage the axis type to get the start and end indices
+        # Note: the axis type specified in the figure layout takes precedence over the
+        # the axis type which is inferred from the data (and stored in hf_trace_data)
+        # TODO: verify if we need to use `axis`of anchor as key to determing axis type
+        axis = trace.get("xaxis", "x")
+        axis_type = self.layout._props.get(axis[:1] + "axis" + axis[1:], {}).get(
+            "type", hf_trace_data["axis_type"]
+        )
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
-            hf_trace_data, start, end
+            hf_trace_data, axis_type, start, end
         )
 
         # Return an invisible, single-point, trace when the sliced hf_series doesn't
