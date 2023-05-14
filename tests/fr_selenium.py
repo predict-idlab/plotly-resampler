@@ -29,7 +29,6 @@ from seleniumwire.request import Request
 # - on linux, the browser (i.e., sending & getting requests) goes a lot faster
 from .utils import not_on_linux
 
-
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
 # and create a parameterized driver.get method
 

@@ -41,19 +41,19 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 <br>
 <details><summary><b>What is the difference between plotly-resampler figures and plain plotly figures?</b></summary>
 
-plotly-resampler can be thought of as wrapper around plain plotly figures which adds line-chart visualization scalability by dynamically aggregating the data of the figures w.r.t. the front-end view. plotly-resampler thus adds dynamic aggregation functionality to plain plotly figures.
+`plotly-resampler` can be thought of as wrapper around plain plotly figures which adds visualization scalability to line-charts by dynamically aggregating the data w.r.t. the front-end view. `plotly-resampler` thus adds dynamic aggregation functionality to plain plotly figures.
 
-**important to know**:
+**Important to know**:
 
 * ``show`` *always* returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.
 * To have dynamic aggregation:
 
-  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback
+  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback.
   * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running IPython kernel).
 
-**other changes of plotly-resampler figures w.r.t. vanilla plotly**:
+**Other changes of plotly-resampler figures w.r.t. vanilla plotly**:
 
-* **double-clicking** within a line-chart area **does not Reset Axes**, as it results in an “Autoscale” event. We decided to implement an Autoscale event as updating your y-range such that it shows all the data that is in your x-range
+* **double-clicking** within a line-chart area **does not Reset Axes**, as it results in an “Autoscale” event. We decided to implement an Autoscale event as updating your y-range such that it shows all the data that is in your x-range.
    * **Note**: vanilla Plotly figures their Autoscale result in Reset Axes behavior, in our opinion this did not make a lot of sense. It is therefore that we have overriden this behavior in plotly-resampler.
 </details><br>
 
@@ -175,7 +175,7 @@ The paper about the plotly-resampler toolkit itself (preprint): https://arxiv.or
 **Related papers**:
 - **Visual representativeness** of time series data point selection algorithms (preprint): https://arxiv.org/abs/2304.00900 <br>
   code: https://github.com/predict-idlab/ts-datapoint-selection-vis
--  **MinMaxLTTB**, an efficient data point selection algorithm (preprint): https://arxiv.org/abs/2305.00332 <br>
+-  **MinMaxLTTB** - an efficient data point selection algorithm (preprint): https://arxiv.org/abs/2305.00332 <br>
   code: https://github.com/predict-idlab/MinMaxLTTB
 
 

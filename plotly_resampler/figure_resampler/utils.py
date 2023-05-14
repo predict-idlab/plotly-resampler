@@ -12,7 +12,6 @@ except (ImportError, ModuleNotFoundError):
 
 from typing import Any
 
-
 ### Checks for the figure type
 
 

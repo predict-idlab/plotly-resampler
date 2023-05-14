@@ -624,35 +624,6 @@ def test_set_hfx_tz_aware_series():
     assert all(fr.hf_data[0]["x"] == pd.DatetimeIndex(df.timestamp))
 
 
-def test_datetime_hf_x_no_index_():
-    df = pd.DataFrame(
-        {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
-    )
-    df["value"] = np.random.randn(len(df))
-
-    # add via hf_x kwargs
-    fr = FigureResampler()
-    fr.add_trace({}, hf_x=df.timestamp, hf_y=df.value)
-    output = fr.construct_update_data(
-        {
-            "xaxis.range[0]": "2020-01-01 00:00:00",
-            "xaxis.range[1]": "2020-01-01 00:00:20",
-        }
-    )
-    assert len(output) == 2
-
-    # add via scatter kwargs
-    fr = FigureResampler()
-    fr.add_trace(go.Scatter(x=df.timestamp, y=df.value))
-    output = fr.construct_update_data(
-        {
-            "xaxis.range[0]": "2020-01-01 00:00:00",
-            "xaxis.range[1]": "2020-01-01 00:00:20",
-        }
-    )
-    assert len(output) == 2
-
-
 def test_datetime_hf_x_no_index():
     df = pd.DataFrame(
         {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
