@@ -744,8 +744,16 @@ document.write(`
             <span class="n">trace</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;name&quot;</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">trace</span>
 
+        <span class="c1"># Leverage the axis type to get the start and end indices</span>
+        <span class="c1"># Note: the axis type specified in the figure layout takes precedence over the</span>
+        <span class="c1"># the axis type which is inferred from the data (and stored in hf_trace_data)</span>
+        <span class="c1"># TODO: verify if we need to use `axis`of anchor as key to determing axis type</span>
+        <span class="n">axis</span> <span class="o">=</span> <span class="n">trace</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;xaxis&quot;</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">)</span>
+        <span class="n">axis_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layout</span><span class="o">.</span><span class="n">_props</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">axis</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;axis&quot;</span> <span class="o">+</span> <span class="n">axis</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;type&quot;</span><span class="p">,</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;axis_type&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
         <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">get_start_end_indices</span><span class="p">(</span>
-            <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span>
+            <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">axis_type</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span>
         <span class="p">)</span>
 
         <span class="c1"># Return an invisible, single-point, trace when the sliced hf_series doesn&#39;t</span>
