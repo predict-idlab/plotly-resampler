@@ -244,10 +244,12 @@ def test_log_axis():
     n = 100_000
     y = np.sin(np.arange(n) / 2_000) + np.random.randn(n) / 10
 
-    fr = FigureResampler()
     for hf_x in [None, np.arange(n)]:
+        fr = FigureResampler()
         fr.add_trace(
-            go.Scattergl(mode="lines+markers", marker_color=np.abs(y) / np.max(np.abs(y))),
+            go.Scattergl(
+                mode="lines+markers", marker_color=np.abs(y) / np.max(np.abs(y))
+            ),
             hf_x=hf_x,
             # NOTE: this y can be negative (as it is a noisy sin wave)
             hf_y=np.abs(y),
