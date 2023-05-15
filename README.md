@@ -179,13 +179,6 @@ The paper about the plotly-resampler toolkit itself (preprint): https://arxiv.or
   code: https://github.com/predict-idlab/MinMaxLTTB
 
 
-
-## Future work 🔨
-
-- [x] Support `.add_traces()` (currently only `.add_trace` is supported)
-- [x] Support `hf_color` and `hf_markersize`, see [#148](https://github.com/predict-idlab/plotly-resampler/pull/148)
-- [x] Integrate with [tsdownsample](https://github.com/predict-idlab/tsdownsample) :racehorse:
-
 <br>
 
 ---
