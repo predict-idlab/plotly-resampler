@@ -441,7 +441,7 @@ document.write(`
             <span class="k">return</span> <span class="kc">None</span>
         <span class="k">elif</span> <span class="n">reference_tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">assert</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span><span class="o">.</span><span class="n">zone</span> <span class="o">==</span> <span class="n">reference_tz</span><span class="o">.</span><span class="n">zone</span>
+                <span class="k">assert</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span> <span class="o">==</span> <span class="n">reference_tz</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span>
                 <span class="k">return</span> <span class="n">ts</span>
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># localize -&gt; time remains the same</span>
                 <span class="k">return</span> <span class="n">ts</span><span class="o">.</span><span class="n">tz_localize</span><span class="p">(</span><span class="n">reference_tz</span><span class="p">)</span>
