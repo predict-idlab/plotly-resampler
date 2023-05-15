@@ -7,6 +7,7 @@ import datetime
 import multiprocessing
 import subprocess
 import time
+from datetime import timedelta
 from typing import List
 
 import numpy as np
@@ -15,7 +16,6 @@ import plotly.graph_objects as go
 import pytest
 from plotly.subplots import make_subplots
 from selenium.webdriver.common.by import By
-from datetime import timedelta
 
 from plotly_resampler import LTTB, EveryNthPoint, FigureResampler
 from plotly_resampler.aggregation import NoGapHandler, PlotlyAggregatorParser
@@ -633,7 +633,7 @@ def test_set_hfx_tz_aware_series():
 
 
 def test_tz_xaxis_range():
-    # test related to the followign issue:
+    # test related to issue 212 - github.com/predict-idlab/plotly-resampler/issues/212
     n = 50_000
     s = pd.Series(
         index=pd.date_range("2020-01-01", periods=n, freq="1min", tz="UTC"),
@@ -643,7 +643,7 @@ def test_tz_xaxis_range():
     fig = go.Figure(
         layout=go.Layout(
             title=dict(
-                text=f"AirT test timeseries",
+                text="AirT test timeseries",
                 y=0.98,
                 x=0.5,
                 xanchor="center",
@@ -672,8 +672,8 @@ def test_tz_xaxis_range():
     # verify whether the update was performed correctly
     out = fr.construct_update_data({"xaxis.range[0]": start, "xaxis.range[1]": end})
     assert len(out) == 3
-    assert len(out[1]['x']) == 2000
-    assert len(out[2]['x']) == 2000
+    assert len(out[1]["x"]) == 2000
+    assert len(out[2]["x"]) == 2000
 
 
 def test_datetime_hf_x_no_index():
