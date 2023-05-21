@@ -183,7 +183,7 @@ class PlotlyAggregatorParser:
         if np.issubdtype(xdt, np.timedelta64) or np.issubdtype(xdt, np.datetime64):
             agg_x_parsed = agg_x_parsed.view("int64")
 
-        agg_y, indices = gap_handler.insert_none_between_gaps(
+        agg_y, indices = gap_handler.insert_fill_value_between_gaps(
             agg_x_parsed, agg_y, indices
         )
         if isinstance(downsampler, DataPointSelector):

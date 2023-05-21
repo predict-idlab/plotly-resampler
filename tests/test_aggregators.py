@@ -175,6 +175,30 @@ def test_wrap_aggregate_x_gaps(downsampler, series):
 
 
 @pytest.mark.parametrize(
+    "downsampler",
+    [EveryNthPoint, LTTB, MinMaxAggregator, MinMaxLTTB, MinMaxOverlapAggregator],
+)
+@pytest.mark.parametrize("series", [lf("float_series")])
+def test_wrap_aggregate_x_gaps_float_fill_value(downsampler, series):
+    idx = np.arange(len(series))
+    idx[1000:] += 1000
+    idx[2000:] += 1500
+    idx[8000:] += 2500
+    series.index = idx
+    # 2. test with the default fill value (i.e., None)
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        # add a constant to the series to ensure that the fill value is not used
+        hf_y=series.values + 1000,
+        downsampler=downsampler(),
+        gap_handler=MedDiffGapHandler(fill_value=0),
+        n_out=100,
+    )
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert pd.Series(y_agg == 0).sum() == 3
+
+
+@pytest.mark.parametrize(
     "downsampler", [EveryNthPoint, LTTB, MinMaxLTTB, MinMaxOverlapAggregator]
 )
 @pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])

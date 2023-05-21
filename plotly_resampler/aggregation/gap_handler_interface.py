@@ -11,6 +11,9 @@ import numpy as np
 
 
 class AbstractGapHandler(ABC):
+    def __init__(self, fill_value: Optional[float] = None):
+        self.fill_value = fill_value
+
     @abstractmethod
     def _get_gap_mask(self, x_agg: np.ndarray) -> Optional[np.ndarray]:
         """Get a boolean mask indicating the indices where there are gaps.
@@ -32,7 +35,7 @@ class AbstractGapHandler(ABC):
         """
         pass
 
-    def insert_none_between_gaps(
+    def insert_fill_value_between_gaps(
         self,
         x_agg: np.ndarray,
         y_agg: np.ndarray,
@@ -83,6 +86,8 @@ class AbstractGapHandler(ABC):
         # Set the NaN values
         # We add the gap index offset (via the np.arange) to the indices to account for
         # the repeats (i.e., expanded y_agg array).
-        y_agg_exp_nan[np.where(gap_mask)[0] + np.arange(gap_mask.sum())] = None
+        y_agg_exp_nan[
+            np.where(gap_mask)[0] + np.arange(gap_mask.sum())
+        ] = self.fill_value
 
         return y_agg_exp_nan, idx_exp_nan
