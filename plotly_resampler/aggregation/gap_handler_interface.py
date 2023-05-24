@@ -12,6 +12,16 @@ import numpy as np
 
 class AbstractGapHandler(ABC):
     def __init__(self, fill_value: Optional[float] = None):
+        """Constructor of AbstractGapHandler.
+
+        Parameters
+        ----------
+        fill_value: float, optional
+            The value to fill the gaps with, by default None.
+            Note that setting this value to 0 for filled area plots is particularly
+            useful.
+
+        """
         self.fill_value = fill_value
 
     @abstractmethod
@@ -41,7 +51,7 @@ class AbstractGapHandler(ABC):
         y_agg: np.ndarray,
         idxs: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Insert None values in the y_agg array when there are gaps.
+        """Insert the fill_value in the y_agg array where there are gaps.
 
         Gaps are determined by the x_agg array. The `_get_gap_mask` method is used to
         determine a boolean mask indicating the indices where there are gaps.
@@ -51,7 +61,7 @@ class AbstractGapHandler(ABC):
         x_agg: np.ndarray
             The x array. This is used to determine the gaps.
         y_agg: np.ndarray
-            The y array. A copy of this array will be expanded with None values where
+            The y array. A copy of this array will be expanded with fill_values where
             there are gaps.
         idxs: np.ndarray
             The index array. This is relevant aggregators that perform data point

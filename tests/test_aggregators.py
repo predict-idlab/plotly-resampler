@@ -185,7 +185,18 @@ def test_wrap_aggregate_x_gaps_float_fill_value(downsampler, series):
     idx[2000:] += 1500
     idx[8000:] += 2500
     series.index = idx
-    # 2. test with the default fill value (i.e., None)
+    # 1. test with the default fill value (i.e., None)
+    x_agg, y_agg, indices = wrap_aggregate(
+        hf_x=series.index,
+        # add a constant to the series to ensure that the fill value is not used
+        hf_y=series.values + 1000,
+        downsampler=downsampler(),
+        gap_handler=MedDiffGapHandler(),
+        n_out=100,
+    )
+    assert len(x_agg) == len(y_agg) == len(indices)
+    assert pd.Series(y_agg).isnull().sum() == 3
+    # 2. test with a custom default fill value (i.e., 0)
     x_agg, y_agg, indices = wrap_aggregate(
         hf_x=series.index,
         # add a constant to the series to ensure that the fill value is not used
