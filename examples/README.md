@@ -22,7 +22,9 @@ Additionally, this notebook also shows some more advanced functionalities, such 
 * How to add (shaded) confidence bounds to your time series
 * The flexibility of configuring different aggregation-algorithms and number of shown samples per trace
 * How plotly-resampler can be used for logarithmic x-axes and an implementation of a logarithmic aggregation algorithm, i.e., [LogLTTB](example_utils/loglttb.py)
+* Using different `fill_value` for gap handling of filled area plots.
 
+**Note**: the basic example notebook requires `plotly-resampler>=0.9.0rc3`.
 
 ### 1.2 Figurewidget example
 
