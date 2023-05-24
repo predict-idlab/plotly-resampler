@@ -586,7 +586,7 @@ document.write(`
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
             <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
 
-        <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">gap_handler</span><span class="o">.</span><span class="n">insert_none_between_gaps</span><span class="p">(</span>
+        <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">gap_handler</span><span class="o">.</span><span class="n">insert_fill_value_between_gaps</span><span class="p">(</span>
             <span class="n">agg_x_parsed</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
         <span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataPointSelector</span><span class="p">):</span>

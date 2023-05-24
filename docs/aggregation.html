@@ -724,16 +724,29 @@ data types.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">plotly_resampler.aggregation.gap_handler_interface.</span></span><span class="sig-name descname"><span class="pre">AbstractGapHandler</span></span><a class="reference internal" href="_modules/plotly_resampler/aggregation/gap_handler_interface.html#AbstractGapHandler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler" title="Permalink to this definition">#</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <dl class="py method">
-<dt class="sig sig-object py" id="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.insert_none_between_gaps">
-<span class="sig-name descname"><span class="pre">insert_none_between_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_agg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_agg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/gap_handler_interface.html#AbstractGapHandler.insert_none_between_gaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.insert_none_between_gaps" title="Permalink to this definition">#</a></dt>
-<dd><p>Insert None values in the y_agg array when there are gaps.</p>
+<dt class="sig sig-object py" id="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/gap_handler_interface.html#AbstractGapHandler.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.__init__" title="Permalink to this definition">#</a></dt>
+<dd><p>Constructor of AbstractGapHandler.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>fill_value</strong> (<em>float</em><em>, </em><em>optional</em>) – The value to fill the gaps with, by default None.
+Note that setting this value to 0 for filled area plots is particularly
+useful.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.insert_fill_value_between_gaps">
+<span class="sig-name descname"><span class="pre">insert_fill_value_between_gaps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x_agg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_agg</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idxs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plotly_resampler/aggregation/gap_handler_interface.html#AbstractGapHandler.insert_fill_value_between_gaps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.insert_fill_value_between_gaps" title="Permalink to this definition">#</a></dt>
+<dd><p>Insert the fill_value in the y_agg array where there are gaps.</p>
 <p>Gaps are determined by the x_agg array. The <cite>_get_gap_mask</cite> method is used to
 determine a boolean mask indicating the indices where there are gaps.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x_agg</strong> (<em>np.ndarray</em>) – The x array. This is used to determine the gaps.</p></li>
-<li><p><strong>y_agg</strong> (<em>np.ndarray</em>) – The y array. A copy of this array will be expanded with None values where
+<li><p><strong>y_agg</strong> (<em>np.ndarray</em>) – The y array. A copy of this array will be expanded with fill_values where
 there are gaps.</p></li>
 <li><p><strong>idxs</strong> (<em>np.ndarray</em>) – The index array. This is relevant aggregators that perform data point
 selection (e.g., max, min, etc.) - this array will be expanded with the

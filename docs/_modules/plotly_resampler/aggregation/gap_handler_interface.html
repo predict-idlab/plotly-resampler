@@ -414,6 +414,19 @@ document.write(`
 
 
 <div class="viewcode-block" id="AbstractGapHandler"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler">[docs]</a><span class="k">class</span> <span class="nc">AbstractGapHandler</span><span class="p">(</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="AbstractGapHandler.__init__"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fill_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructor of AbstractGapHandler.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fill_value: float, optional</span>
+<span class="sd">            The value to fill the gaps with, by default None.</span>
+<span class="sd">            Note that setting this value to 0 for filled area plots is particularly</span>
+<span class="sd">            useful.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span> <span class="o">=</span> <span class="n">fill_value</span></div>
+
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">_get_gap_mask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_agg</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get a boolean mask indicating the indices where there are gaps.</span>
@@ -435,13 +448,13 @@ document.write(`
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
-<div class="viewcode-block" id="AbstractGapHandler.insert_none_between_gaps"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.insert_none_between_gaps">[docs]</a>    <span class="k">def</span> <span class="nf">insert_none_between_gaps</span><span class="p">(</span>
+<div class="viewcode-block" id="AbstractGapHandler.insert_fill_value_between_gaps"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.gap_handler_interface.AbstractGapHandler.insert_fill_value_between_gaps">[docs]</a>    <span class="k">def</span> <span class="nf">insert_fill_value_between_gaps</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span>
         <span class="n">x_agg</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">y_agg</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">idxs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert None values in the y_agg array when there are gaps.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Insert the fill_value in the y_agg array where there are gaps.</span>
 
 <span class="sd">        Gaps are determined by the x_agg array. The `_get_gap_mask` method is used to</span>
 <span class="sd">        determine a boolean mask indicating the indices where there are gaps.</span>
@@ -451,7 +464,7 @@ document.write(`
 <span class="sd">        x_agg: np.ndarray</span>
 <span class="sd">            The x array. This is used to determine the gaps.</span>
 <span class="sd">        y_agg: np.ndarray</span>
-<span class="sd">            The y array. A copy of this array will be expanded with None values where</span>
+<span class="sd">            The y array. A copy of this array will be expanded with fill_values where</span>
 <span class="sd">            there are gaps.</span>
 <span class="sd">        idxs: np.ndarray</span>
 <span class="sd">            The index array. This is relevant aggregators that perform data point</span>
@@ -486,7 +499,9 @@ document.write(`
         <span class="c1"># Set the NaN values</span>
         <span class="c1"># We add the gap index offset (via the np.arange) to the indices to account for</span>
         <span class="c1"># the repeats (i.e., expanded y_agg array).</span>
-        <span class="n">y_agg_exp_nan</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gap_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">gap_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">y_agg_exp_nan</span><span class="p">[</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">gap_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">gap_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fill_value</span>
 
         <span class="k">return</span> <span class="n">y_agg_exp_nan</span><span class="p">,</span> <span class="n">idx_exp_nan</span></div></div>
 </pre></div>
