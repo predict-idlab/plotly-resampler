@@ -161,7 +161,7 @@ class PlotlyAggregatorParser:
 
         # No downsampling needed ; we show the raw data as is, but with gap-detection
         if (end_idx - start_idx) <= hf_trace_data["max_n_samples"]:
-            indices = np.arange(len(hf_y))
+            indices = np.arange(len(hf_y))  # no downsampling - all values are selected
             return PlotlyAggregatorParser._handle_gaps(
                 hf_trace_data, hf_x=hf_x, agg_x=hf_x, agg_y=hf_y, indices=indices
             )
