@@ -88,6 +88,58 @@ class PlotlyAggregatorParser:
         return start_idx, end_idx
 
     @staticmethod
+    def _handle_gaps(
+        hf_trace_data: dict,
+        hf_x: np.ndarray,
+        agg_x: np.ndarray,
+        agg_y: np.ndarray,
+        indices: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """Handle the gaps in the aggregated data.
+
+        Returns:
+            - agg_x: the aggregated x-values
+            - agg_y: the aggregated y-values
+            - indices: the indices of the hf_data data that were aggregated
+
+        """
+        gap_handler: AbstractGapHandler = hf_trace_data["gap_handler"]
+        downsampler = hf_trace_data["downsampler"]
+
+        # TODO check for trace mode (markers, lines, etc.) and only perform the
+        # gap insertion methodology when the mode is lines.
+        # if trace.get("connectgaps") != True and
+        if (
+            isinstance(gap_handler, NoGapHandler)
+            # rangeIndex | datetimeIndex with freq -> equally spaced x; so no gaps
+            or isinstance(hf_trace_data["x"], pd.RangeIndex)
+            or (
+                isinstance(hf_trace_data["x"], pd.DatetimeIndex)
+                and hf_trace_data["x"].freq is not None
+            )
+        ):
+            return agg_x, agg_y, indices
+
+        # Interleave the gaps
+        # View the data as an int64 when we have a DatetimeIndex
+        # We only want to detect gaps, so we only want to compare values.
+        agg_x_parsed = PlotlyAggregatorParser.parse_hf_data(agg_x)
+        xdt = agg_x_parsed.dtype
+        if np.issubdtype(xdt, np.timedelta64) or np.issubdtype(xdt, np.datetime64):
+            agg_x_parsed = agg_x_parsed.view("int64")
+
+        agg_y, indices = gap_handler.insert_fill_value_between_gaps(
+            agg_x_parsed, agg_y, indices
+        )
+        if isinstance(downsampler, DataPointSelector):
+            agg_x = hf_x[indices]
+        elif isinstance(downsampler, DataAggregator):
+            # The indices are in this case a repeat
+            agg_x = agg_x[indices]
+
+        return agg_x, agg_y, indices
+
+    @staticmethod
     def aggregate(
         hf_trace_data: dict,
         start_idx: int,
@@ -109,14 +161,15 @@ class PlotlyAggregatorParser:
 
         # No downsampling needed ; we show the raw data as is, no gap detection
         if (end_idx - start_idx) <= hf_trace_data["max_n_samples"]:
-            return hf_x, hf_y, np.arange(len(hf_y))
-
-        downsampler = hf_trace_data["downsampler"]
-        gap_handler: AbstractGapHandler = hf_trace_data["gap_handler"]
+            indices = np.arange(len(hf_y))
+            return PlotlyAggregatorParser._handle_gaps(
+                hf_trace_data, hf_x=hf_x, agg_x=hf_x, agg_y=hf_y, indices=indices
+            )
 
         hf_x_parsed = PlotlyAggregatorParser.parse_hf_data(hf_x)
         hf_y_parsed = PlotlyAggregatorParser.parse_hf_data(hf_y)
 
+        downsampler = hf_trace_data["downsampler"]
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y_parsed
             if isinstance(s_v, pd.Categorical):  # pd.Categorical (has no .values)
@@ -161,35 +214,6 @@ class PlotlyAggregatorParser:
                 + f"DataAggregator or a DataPointSelector, got {type(downsampler)}"
             )
 
-        # TODO check for trace mode (markers, lines, etc.) and only perform the
-        # gap insertion methodology when the mode is lines.
-        # if trace.get("connectgaps") != True and
-        if (
-            isinstance(gap_handler, NoGapHandler)
-            # rangeIndex | datetimeIndex with freq -> equally spaced x; so no gaps
-            or isinstance(hf_trace_data["x"], pd.RangeIndex)
-            or (
-                isinstance(hf_trace_data["x"], pd.DatetimeIndex)
-                and hf_trace_data["x"].freq is not None
-            )
-        ):
-            return agg_x, agg_y, indices
-
-        # Interleave the gaps
-        # View the data as an int64 when we have a DatetimeIndex
-        # We only want to detect gaps, so we only want to compare values.
-        agg_x_parsed = PlotlyAggregatorParser.parse_hf_data(agg_x)
-        xdt = agg_x_parsed.dtype
-        if np.issubdtype(xdt, np.timedelta64) or np.issubdtype(xdt, np.datetime64):
-            agg_x_parsed = agg_x_parsed.view("int64")
-
-        agg_y, indices = gap_handler.insert_fill_value_between_gaps(
-            agg_x_parsed, agg_y, indices
+        return PlotlyAggregatorParser._handle_gaps(
+            hf_trace_data, hf_x=hf_x, agg_x=agg_x, agg_y=agg_y, indices=indices
         )
-        if isinstance(downsampler, DataPointSelector):
-            agg_x = hf_x[indices]
-        elif isinstance(downsampler, DataAggregator):
-            # The indices are in this case a repeat
-            agg_x = agg_x[indices]
-
-        return agg_x, agg_y, indices
