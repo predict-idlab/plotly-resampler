@@ -159,17 +159,18 @@ class PlotlyAggregatorParser:
         hf_x = hf_trace_data["x"][start_idx:end_idx]
         hf_y = hf_trace_data["y"][start_idx:end_idx]
 
-        # No downsampling needed ; we show the raw data as is, no gap detection
+        # No downsampling needed ; we show the raw data as is, but with gap-detection
         if (end_idx - start_idx) <= hf_trace_data["max_n_samples"]:
             indices = np.arange(len(hf_y))
             return PlotlyAggregatorParser._handle_gaps(
                 hf_trace_data, hf_x=hf_x, agg_x=hf_x, agg_y=hf_y, indices=indices
             )
 
+        downsampler = hf_trace_data["downsampler"]
+
         hf_x_parsed = PlotlyAggregatorParser.parse_hf_data(hf_x)
         hf_y_parsed = PlotlyAggregatorParser.parse_hf_data(hf_y)
 
-        downsampler = hf_trace_data["downsampler"]
         if isinstance(downsampler, DataPointSelector):
             s_v = hf_y_parsed
             if isinstance(s_v, pd.Categorical):  # pd.Categorical (has no .values)
