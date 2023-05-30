@@ -105,6 +105,29 @@ def test_add_trace_not_resampling(float_series):
     )
 
 
+def test_add_trace_not_resampling_insert_gaps():
+    # This test verifies whether gaps are inserted correctly when adding a trace that
+    # is not resampled (but `limit_to_view` is True)
+    idx = np.arange(500)
+    for i in np.random.randint(0, 500, 4):
+        idx[i:] += 100
+    s = pd.Series(np.arange(500), index=idx)
+
+    # limit_to_view=False -> no gaps inserted
+    fr = FigureResampler(default_n_shown_samples=1000)
+    fr.add_trace({}, hf_x=s.index, hf_y=s.values)
+    fr.add_trace(dict(x=s.index, y=s.values))
+    assert np.isnan(fr.data[0]["y"]).sum() == 0
+    assert np.isnan(fr.data[1]["y"]).sum() == 0
+
+    # limit_to_view=True -> gaps inserted
+    fr = FigureResampler(default_n_shown_samples=1000)
+    fr.add_trace({}, hf_x=s.index, hf_y=s.values, limit_to_view=True)
+    fr.add_trace(dict(x=s.index, y=s.values), limit_to_view=True)
+    assert np.isnan(fr.data[0]["y"]).sum() > 0
+    assert np.isnan(fr.data[1]["y"]).sum() > 0
+
+
 def test_various_dtypes(float_series):
     # List of dtypes supported by orjson >= 3.8
     valid_dtype_list = [
