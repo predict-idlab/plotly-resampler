@@ -490,6 +490,58 @@ document.write(`
         <span class="n">end_idx</span> <span class="o">=</span> <span class="n">bisect</span><span class="o">.</span><span class="n">bisect_right</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">end</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">start_idx</span><span class="p">,</span> <span class="n">end_idx</span></div>
 
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_handle_gaps</span><span class="p">(</span>
+        <span class="n">hf_trace_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">hf_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">agg_x</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">agg_y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">indices</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handle the gaps in the aggregated data.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            - agg_x: the aggregated x-values</span>
+<span class="sd">            - agg_y: the aggregated y-values</span>
+<span class="sd">            - indices: the indices of the hf_data data that were aggregated</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">gap_handler</span><span class="p">:</span> <span class="n">AbstractGapHandler</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;gap_handler&quot;</span><span class="p">]</span>
+        <span class="n">downsampler</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">]</span>
+
+        <span class="c1"># TODO check for trace mode (markers, lines, etc.) and only perform the</span>
+        <span class="c1"># gap insertion methodology when the mode is lines.</span>
+        <span class="c1"># if trace.get(&quot;connectgaps&quot;) != True and</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="nb">isinstance</span><span class="p">(</span><span class="n">gap_handler</span><span class="p">,</span> <span class="n">NoGapHandler</span><span class="p">)</span>
+            <span class="c1"># rangeIndex | datetimeIndex with freq -&gt; equally spaced x; so no gaps</span>
+            <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">)</span>
+            <span class="ow">or</span> <span class="p">(</span>
+                <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">)</span>
+        <span class="p">):</span>
+            <span class="k">return</span> <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
+
+        <span class="c1"># Interleave the gaps</span>
+        <span class="c1"># View the data as an int64 when we have a DatetimeIndex</span>
+        <span class="c1"># We only want to detect gaps, so we only want to compare values.</span>
+        <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">agg_x</span><span class="p">)</span>
+        <span class="n">xdt</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
+            <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
+
+        <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">gap_handler</span><span class="o">.</span><span class="n">insert_fill_value_between_gaps</span><span class="p">(</span>
+            <span class="n">agg_x_parsed</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataPointSelector</span><span class="p">):</span>
+            <span class="n">agg_x</span> <span class="o">=</span> <span class="n">hf_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataAggregator</span><span class="p">):</span>
+            <span class="c1"># The indices are in this case a repeat</span>
+            <span class="n">agg_x</span> <span class="o">=</span> <span class="n">agg_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
+
 <div class="viewcode-block" id="PlotlyAggregatorParser.aggregate"><a class="viewcode-back" href="../../../aggregation.html#plotly_resampler.aggregation.plotly_aggregator_parser.PlotlyAggregatorParser.aggregate">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span>
         <span class="n">hf_trace_data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
@@ -510,12 +562,14 @@ document.write(`
         <span class="n">hf_x</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">][</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
         <span class="n">hf_y</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">][</span><span class="n">start_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span>
 
-        <span class="c1"># No downsampling needed ; we show the raw data as is, no gap detection</span>
+        <span class="c1"># No downsampling needed ; we show the raw data as is, but with gap-detection</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">end_idx</span> <span class="o">-</span> <span class="n">start_idx</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;max_n_samples&quot;</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="n">hf_x</span><span class="p">,</span> <span class="n">hf_y</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">))</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hf_y</span><span class="p">))</span>  <span class="c1"># no downsampling - all values are selected</span>
+            <span class="k">return</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">_handle_gaps</span><span class="p">(</span>
+                <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">hf_x</span><span class="o">=</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">agg_x</span><span class="o">=</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="o">=</span><span class="n">hf_y</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">indices</span>
+            <span class="p">)</span>
 
         <span class="n">downsampler</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;downsampler&quot;</span><span class="p">]</span>
-        <span class="n">gap_handler</span><span class="p">:</span> <span class="n">AbstractGapHandler</span> <span class="o">=</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;gap_handler&quot;</span><span class="p">]</span>
 
         <span class="n">hf_x_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">hf_x</span><span class="p">)</span>
         <span class="n">hf_y_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">hf_y</span><span class="p">)</span>
@@ -564,38 +618,9 @@ document.write(`
                 <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;DataAggregator or a DataPointSelector, got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">downsampler</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="p">)</span>
 
-        <span class="c1"># TODO check for trace mode (markers, lines, etc.) and only perform the</span>
-        <span class="c1"># gap insertion methodology when the mode is lines.</span>
-        <span class="c1"># if trace.get(&quot;connectgaps&quot;) != True and</span>
-        <span class="k">if</span> <span class="p">(</span>
-            <span class="nb">isinstance</span><span class="p">(</span><span class="n">gap_handler</span><span class="p">,</span> <span class="n">NoGapHandler</span><span class="p">)</span>
-            <span class="c1"># rangeIndex | datetimeIndex with freq -&gt; equally spaced x; so no gaps</span>
-            <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">RangeIndex</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="p">(</span>
-                <span class="nb">isinstance</span><span class="p">(</span><span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">pd</span><span class="o">.</span><span class="n">DatetimeIndex</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="n">hf_trace_data</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">freq</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-            <span class="p">)</span>
-        <span class="p">):</span>
-            <span class="k">return</span> <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
-
-        <span class="c1"># Interleave the gaps</span>
-        <span class="c1"># View the data as an int64 when we have a DatetimeIndex</span>
-        <span class="c1"># We only want to detect gaps, so we only want to compare values.</span>
-        <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">parse_hf_data</span><span class="p">(</span><span class="n">agg_x</span><span class="p">)</span>
-        <span class="n">xdt</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">dtype</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">timedelta64</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">xdt</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">datetime64</span><span class="p">):</span>
-            <span class="n">agg_x_parsed</span> <span class="o">=</span> <span class="n">agg_x_parsed</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="s2">&quot;int64&quot;</span><span class="p">)</span>
-
-        <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">gap_handler</span><span class="o">.</span><span class="n">insert_fill_value_between_gaps</span><span class="p">(</span>
-            <span class="n">agg_x_parsed</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataPointSelector</span><span class="p">):</span>
-            <span class="n">agg_x</span> <span class="o">=</span> <span class="n">hf_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">downsampler</span><span class="p">,</span> <span class="n">DataAggregator</span><span class="p">):</span>
-            <span class="c1"># The indices are in this case a repeat</span>
-            <span class="n">agg_x</span> <span class="o">=</span> <span class="n">agg_x</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
-
-        <span class="k">return</span> <span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span></div></div>
+        <span class="k">return</span> <span class="n">PlotlyAggregatorParser</span><span class="o">.</span><span class="n">_handle_gaps</span><span class="p">(</span>
+            <span class="n">hf_trace_data</span><span class="p">,</span> <span class="n">hf_x</span><span class="o">=</span><span class="n">hf_x</span><span class="p">,</span> <span class="n">agg_x</span><span class="o">=</span><span class="n">agg_x</span><span class="p">,</span> <span class="n">agg_y</span><span class="o">=</span><span class="n">agg_y</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">indices</span>
+        <span class="p">)</span></div></div>
 </pre></div>
 
                 </article>
