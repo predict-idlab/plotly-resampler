@@ -621,7 +621,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_text = (
             hf_text
             if hf_text is not None
-            else np.asarray(trace["text"])
+            else trace["text"]
             if hasattr(trace, "text") and trace["text"] is not None
             else None
         )
@@ -629,13 +629,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext = (
             hf_hovertext
             if hf_hovertext is not None
-            else np.asarray(trace["hovertext"])
+            else trace["hovertext"]
             if hasattr(trace, "hovertext") and trace["hovertext"] is not None
             else None
         )
 
         hf_marker_size = (
-            np.asarray(trace["marker"]["size"])
+            trace["marker"]["size"]
             if (
                 hf_marker_size is None
                 and hasattr(trace, "marker")
@@ -645,7 +645,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
         hf_marker_color = (
-            np.asarray(trace["marker"]["color"])
+            trace["marker"]["color"]
             if (
                 hf_marker_color is None
                 and hasattr(trace, "marker")
@@ -672,11 +672,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
             )
 
-            # Note: this also converts hf_text and hf_hovertext to a np.ndarray
-            if isinstance(hf_text, (list, np.ndarray, pd.Series)):
+            # Note: this converts the hf property to a np.ndarray
+            if isinstance(hf_text, (tuple, list, np.ndarray, pd.Series)):
                 hf_text = np.asarray(hf_text)
-            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
+            if isinstance(hf_hovertext, (tuple, list, np.ndarray, pd.Series)):
                 hf_hovertext = np.asarray(hf_hovertext)
+            if isinstance(hf_marker_size, (tuple, list, np.ndarray, pd.Series)):
+                hf_marker_size = np.asarray(hf_marker_size)
+            if isinstance(hf_marker_color, (tuple, list, np.ndarray, pd.Series)):
+                hf_marker_color = np.asarray(hf_marker_color)
 
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN data points & might distort
