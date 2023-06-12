@@ -621,7 +621,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_text = (
             hf_text
             if hf_text is not None
-            else trace["text"]
+            else np.asarray(trace["text"])
             if hasattr(trace, "text") and trace["text"] is not None
             else None
         )
@@ -629,13 +629,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_hovertext = (
             hf_hovertext
             if hf_hovertext is not None
-            else trace["hovertext"]
+            else np.asarray(trace["hovertext"])
             if hasattr(trace, "hovertext") and trace["hovertext"] is not None
             else None
         )
 
         hf_marker_size = (
-            trace["marker"]["size"]
+            np.asarray(trace["marker"]["size"])
             if (
                 hf_marker_size is None
                 and hasattr(trace, "marker")
@@ -645,7 +645,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
         hf_marker_color = (
-            trace["marker"]["color"]
+            np.asarray(trace["marker"]["color"])
             if (
                 hf_marker_color is None
                 and hasattr(trace, "marker")
