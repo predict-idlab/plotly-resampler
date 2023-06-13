@@ -606,16 +606,16 @@ def test_hf_text_and_hf_marker_color():
     assert fig.hf_data[0]["marker_size"] is None
 
     # Check correct hf values
-    assert np.equal(fig.hf_data[0]["text"], text).all()
-    assert np.equal(fig.hf_data[0]["marker_color"], marker_color).all()
+    assert np.all(np.equal(fig.hf_data[0]["text"], text))
+    assert np.all(np.equal(fig.hf_data[0]["marker_color"], marker_color))
 
     # Check correct trace values
     assert len(fig.data[0].y) == len(fig.data[0].text)
     assert len(fig.data[0].y) == len(fig.data[0].marker.color)
     y_color = ["black" if yi >= 0.99 else "blue" for yi in fig.data[0].y]
-    assert np.equal(fig.data[0].marker.color, y_color).all()
+    assert np.all(np.equal(fig.data[0].marker.color, y_color))
     y_text = [f"text: {yi}, color:{ci}" for yi, ci in zip(fig.data[0].y, y_color)]
-    assert np.equal(fig.data[0].text, y_text).all()
+    assert np.all(np.equal(fig.data[0].text, y_text))
 
 
 def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
