@@ -693,6 +693,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_text = hf_text[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
+                if isinstance(hf_marker_size, np.ndarray):
+                    hf_marker_size = hf_marker_size[not_nan_mask]
+                if isinstance(hf_marker_color, np.ndarray):
+                    hf_marker_color = hf_marker_color[not_nan_mask]
 
             # Try to parse the hf_x data if it is of object type or
             if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):
