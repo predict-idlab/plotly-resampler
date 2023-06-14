@@ -672,11 +672,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
             )
 
-            # Note: this also converts hf_text and hf_hovertext to a np.ndarray
-            if isinstance(hf_text, (list, np.ndarray, pd.Series)):
+            # Note: this converts the hf property to a np.ndarray
+            if isinstance(hf_text, (tuple, list, np.ndarray, pd.Series)):
                 hf_text = np.asarray(hf_text)
-            if isinstance(hf_hovertext, (list, np.ndarray, pd.Series)):
+            if isinstance(hf_hovertext, (tuple, list, np.ndarray, pd.Series)):
                 hf_hovertext = np.asarray(hf_hovertext)
+            if isinstance(hf_marker_size, (tuple, list, np.ndarray, pd.Series)):
+                hf_marker_size = np.asarray(hf_marker_size)
+            if isinstance(hf_marker_color, (tuple, list, np.ndarray, pd.Series)):
+                hf_marker_color = np.asarray(hf_marker_color)
 
             # Remove NaNs for efficiency (storing less meaningless data)
             # NaNs introduce gaps between enclosing non-NaN data points & might distort
@@ -689,6 +693,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     hf_text = hf_text[not_nan_mask]
                 if isinstance(hf_hovertext, np.ndarray):
                     hf_hovertext = hf_hovertext[not_nan_mask]
+                if isinstance(hf_marker_size, np.ndarray):
+                    hf_marker_size = hf_marker_size[not_nan_mask]
+                if isinstance(hf_marker_color, np.ndarray):
+                    hf_marker_color = hf_marker_color[not_nan_mask]
 
             # Try to parse the hf_x data if it is of object type or
             if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):

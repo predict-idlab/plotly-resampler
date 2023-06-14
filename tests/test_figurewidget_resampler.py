@@ -420,6 +420,77 @@ def test_hf_text_and_hf_hovertext():
     )
 
 
+def test_hf_text_and_hf_marker_color():
+    # Test for https://github.com/predict-idlab/plotly-resampler/issues/224
+    fig = FigureWidgetResampler(default_n_shown_samples=1_000)
+
+    x = pd.date_range("1-1-2000", "1-1-2001", periods=2_000)
+    y = np.sin(100 * np.arange(len(x)) / len(x))
+    text = [f'text: {yi}, color:{"black" if yi>=0.99 else "blue"}' for yi in y]
+    marker_color = ["black" if yi >= 0.99 else "blue" for yi in y]
+    trace = go.Scatter(
+        x=x,
+        y=y,
+        marker={"color": marker_color},
+        text=text,
+    )
+    fig.add_trace(trace)
+
+    # Check correct data types
+    assert not isinstance(fig.hf_data[0]["text"], (tuple, list))
+    assert fig.hf_data[0]["hovertext"] is None
+    assert not isinstance(fig.hf_data[0]["marker_color"], (tuple, list))
+    assert fig.hf_data[0]["marker_size"] is None
+
+    # Check correct hf values
+    assert np.all(list(fig.hf_data[0]["text"]) == text)
+    assert np.all(list(fig.hf_data[0]["marker_color"]) == marker_color)
+
+    # Check correct trace values
+    assert len(fig.data[0].y) == len(fig.data[0].text)
+    assert len(fig.data[0].y) == len(fig.data[0].marker.color)
+    y_color = ["black" if yi >= 0.99 else "blue" for yi in fig.data[0].y]
+    assert np.all(list(fig.data[0].marker.color) == y_color)
+    y_text = [f"text: {yi}, color:{ci}" for yi, ci in zip(fig.data[0].y, y_color)]
+    assert np.all(list(fig.data[0].text) == y_text)
+
+
+def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
+    y_orig = np.arange(10_000).astype(float)
+    y = y_orig.copy()
+    y[::101] = np.nan
+
+    y_nonan = y[~np.isnan(y)]
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(
+        go.Scatter(
+            name="blabla",
+            text=y.astype(str),
+            hovertext=y.astype(str)[::-1],
+            marker={"size": y_orig},
+        ),
+        hf_y=y,
+    )
+
+    assert np.all(fig.hf_data[0]["text"] == y_nonan.astype(str))
+    assert np.all(fig.hf_data[0]["hovertext"] == y_nonan.astype(str)[::-1])
+    assert np.all(fig.hf_data[0]["marker_size"] == y_nonan)
+
+    fig = FigureWidgetResampler()
+    fig.add_trace(
+        go.Scatter(name="blabla"),
+        hf_y=y,
+        hf_text=y.astype(str),
+        hf_hovertext=y.astype(str)[::-1],
+        hf_marker_size=y_orig,
+    )
+
+    assert np.all(fig.hf_data[0]["text"] == y_nonan.astype(str))
+    assert np.all(fig.hf_data[0]["hovertext"] == y_nonan.astype(str)[::-1])
+    assert np.all(fig.hf_data[0]["marker_size"] == y_nonan)
+
+
 def test_multiple_timezones():
     n = 5_050
 
