@@ -161,12 +161,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             self._yaxis_list = ["yaxis"]
 
         # Make sure to reset the layout its range
-        self.update_layout(
-            {
-                axis: {"autorange": None, "range": None}
-                for axis in self._xaxis_list + self._yaxis_list
-            }
-        )
+        # self.update_layout(
+        #     {
+        #         axis: {"autorange": None, "range": None}
+        #         for axis in self._xaxis_list + self._yaxis_list
+        #     }
+        # )
 
     def _print(self, *values):
         """Helper method for printing if ``verbose`` is set to True."""
