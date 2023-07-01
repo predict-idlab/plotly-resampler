@@ -786,7 +786,7 @@ def test_datetime_hf_x_no_index():
         }
     )
     assert len(output) == 2
-    assert(isinstance(output[1]['x'], pd.Index))
+    assert isinstance(output[1]["x"], pd.Index)
 
     # add via scatter kwargs
     fr = FigureResampler()
@@ -798,7 +798,7 @@ def test_datetime_hf_x_no_index():
         }
     )
     assert len(output) == 2
-    assert(isinstance(output[1]['x'], pd.Index))
+    assert isinstance(output[1]["x"], pd.Index)
 
 
 def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
