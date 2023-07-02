@@ -602,7 +602,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # hence we cast to a pd.DatetimeIndex, which preserves the tz-info
             # As a matter of fact, to resolve #231, we also convert non-tz-aware 
             # datetime64 arrays to an pd.Index
-            else pd.Index(hf_x) if pd.core.dtypes.common.is_datetime64_dtype(hf_x)
+            else pd.Index(hf_x) if pd.core.dtypes.common.is_datetime64_any_dtype(hf_x)
             else hf_x.values if isinstance(hf_x, pd.Series)
             else hf_x if isinstance(hf_x, pd.Index)
             else np.asarray(hf_x)
