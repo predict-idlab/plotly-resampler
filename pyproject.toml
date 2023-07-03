@@ -36,7 +36,7 @@ classifiers = [
 python = "^3.7.1"
 jupyter-dash = ">=0.4.2"
 plotly = "^5.5.0"
-dash = "^2.2.0"
+dash = "^2.11.0"
 pandas = ">=1"
 trace-updater = ">=0.0.8"
 numpy = [
