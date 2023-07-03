@@ -11,14 +11,11 @@ from __future__ import annotations
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
 import base64
-import contextlib
-import uuid
 import warnings
 from typing import List, Tuple
 
 import dash
 import plotly.graph_objects as go
-from dash import jupyter_dash
 from dash._jupyter import JupyterDash, JupyterDisplayMode
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
@@ -106,7 +103,9 @@ class DashPersistentInlineOutput(JupyterDash):
             )
 
         # Get the image from the dashboard and encode it as base64
-        fig = self.app_layout.children[0].figure  # is stored there in the show_dash method
+        fig = self.app_layout.children[
+            0
+        ].figure  # is stored there in the show_dash method
         f_width = 1000 if fig.layout.width is None else fig.layout.width
         fig_base64 = base64.b64encode(
             fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
@@ -207,180 +206,10 @@ class DashPersistentInlineOutput(JupyterDash):
 
     # Overload _display_in_jupyter method to add inline_persistent mode
     def _display_in_jupyter(self, dashboard_url, port, mode, width, height):
-        if mode == 'inline':
-            self._display_inline_output(dashboard_url, width, height)
-        else:
-            JupyterDash._display_in_jupyter(dashboard_url, port, mode, width, height)
-
-
-
-class JupyterDashPersistentInlineOutput(JupyterDash):
-    """Extension of the JupyterDash class to support the custom inline output for
-    ``FigureResampler`` figures.
-
-    Specifically we embed a div in the notebook to display the figure inline.
-
-     - In this div the figure is shown as an iframe when the server (of the dash app)
-       is alive.
-     - In this div the figure is shown as an image when the server (of the dash app)
-       is dead.
-
-    As the HTML & javascript code is embedded in the notebook output, which is loaded
-    each time you open the notebook, the figure is always displayed (either as iframe
-    or just an image).
-    Hence, this extension enables to maintain always an output in the notebook.
-
-    .. Note::
-        This subclass is only used when the mode is set to ``"inline_persistent"`` in
-        the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>`
-        method. However, the mode should be passed as ``"inline"`` since this subclass
-        overwrites the inline behavior.
-
-    .. Note::
-        This subclass utilizes the optional ``flask_cors`` package to detect whether the
-        server is alive or not.
-
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._uid = str(uuid.uuid4())  # A new unique id for each app
-
-        with contextlib.suppress(ImportWarning, ModuleNotFoundError):
-            from flask_cors import cross_origin
-
-            # Mimic the _alive_{token} endpoint but with cors
-            @self.server.route(f"/_is_alive_{self._uid}", methods=["GET"])
-            @cross_origin(origins=["*"], allow_headers=["Content-Type"])
-            def broadcast_alive():
-                return "Alive"
-
-    def _display_inline_output(self, dashboard_url, width, height):
-        """Display the dash app persistent inline in the notebook.
-
-        The figure is displayed as an iframe in the notebook if the server is reachable,
-        otherwise as an image.
-        """
-        # TODO: check whether an error gets logged in case of crash
-        # TODO: add option to opt out of this
-        from IPython.display import display
-
-        try:
-            import flask_cors  # noqa: F401
-        except (ImportError, ModuleNotFoundError):
-            warnings.warn(
-                "'flask_cors' is not installed. The persistent inline output will "
-                + " not be able to detect whether the server is alive or not."
-            )
-
-        # Get the image from the dashboard and encode it as base64
-        fig = self.layout.children[0].figure  # is stored there in the show_dash method
-        f_width = 1000 if fig.layout.width is None else fig.layout.width
-        fig_base64 = base64.b64encode(
-            fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
-        ).decode("utf8")
-
-        # The unique id of this app
-        # This id is used to couple the output in the notebook with this app
-        # A fetch request is performed to the _is_alive_{uid} endpoint to check if the
-        # app is still alive.
-        uid = self._uid
-
-        # The html (& javascript) code to display the app / figure
-        display(
-            {
-                "text/html": f"""
-                <div id='PR_div__{uid}'></div>
-                <script type='text/javascript'>
-                """
-                + """
-
-                function setOutput(timeout) {
-                    """
-                +
-                # Variables should be in local scope (in the closure)
-                f"""
-                    var pr_div = document.getElementById('PR_div__{uid}');
-                    var url = '{dashboard_url}';
-                    var pr_img_src = 'data:image/png;base64, {fig_base64}';
-                    var is_alive_suffix = '_is_alive_{uid}';
-                    """
-                + """
-
-                    if (pr_div.firstChild) return  // return if already loaded
-
-                    const controller = new AbortController();
-                    const signal = controller.signal;
-
-                    return fetch(url + is_alive_suffix, {method: 'GET', signal: signal})
-                        .then(response => response.text())
-                        .then(data =>
-                            {
-                                if (data == "Alive") {
-                                    console.log("Server is alive");
-                                    iframeOutput(pr_div, url);
-                                } else {
-                                    // I think this case will never occur because of CORS
-                                    console.log("Server is dead");
-                                    imageOutput(pr_div, pr_img_src);
-                                }
-                            }
-                        )
-                        .catch(error => {
-                            console.log("Server is unreachable");
-                            imageOutput(pr_div, pr_img_src);
-                        })
-                }
-
-                setOutput(350);
-
-                function imageOutput(element, pr_img_src) {
-                    console.log('Setting image');
-                    var pr_img = document.createElement("img");
-                    pr_img.setAttribute("src", pr_img_src)
-                    pr_img.setAttribute("alt", 'Server unreachable - using image instead');
-                    """
-                + f"""
-                    pr_img.setAttribute("max-width", '{width}');
-                    pr_img.setAttribute("max-height", '{height}');
-                    pr_img.setAttribute("width", 'auto');
-                    pr_img.setAttribute("height", 'auto');
-                    """
-                + """
-                    element.appendChild(pr_img);
-                }
-
-                function iframeOutput(element, url) {
-                    console.log('Setting iframe');
-                    var pr_iframe = document.createElement("iframe");
-                    pr_iframe.setAttribute("src", url);
-                    pr_iframe.setAttribute("frameborder", '0');
-                    pr_iframe.setAttribute("allowfullscreen", '');
-                    """
-                + f"""
-                    pr_iframe.setAttribute("width", '{width}');
-                    pr_iframe.setAttribute("height", '{height}');
-                    """
-                + """
-                    element.appendChild(pr_iframe);
-                }
-                </script>
-                """
-            },
-            raw=True,
-            clear=True,
-            display_id=uid,
-        )
-
-    def _display_in_jupyter(self, dashboard_url, port, mode, width, height):
-        """Override the display method to retain some output when displaying inline
-        in jupyter.
-        """
         if mode == "inline":
             self._display_inline_output(dashboard_url, width, height)
         else:
-            super()._display_in_jupyter(dashboard_url, port, mode, width, height)
+            JupyterDash._display_in_jupyter(dashboard_url, port, mode, width, height)
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
@@ -618,22 +447,24 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     for updated_trace in update_data[1:]:
                         trace_idx = updated_trace.pop("index")
                         self.data[trace_idx].update(updated_trace)
-        
-        # 1. Construct the Dash app layout
-        if mode == "inline_persistent":
-            # Inline persistent mode: we display a static image of the figure when the
-            # app is not reachable
-            # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
-            mode = "inline"
-            app = JupyterDashPersistentInlineOutput("local_app")
 
-            # return statement to not have constant warnings in the rest of the code because types do not match
-            # TODO: REMOVE
-            return
-        else:
-            # jupyter dash uses a normal Dash app as figure
-            app = dash.Dash("local_app")
-            # app = JupyterDash("local_app")
+        assert (
+            mode != "inline_persistent"
+        ), "inline_persistent is currently not supported"
+        # 1. Construct the Dash app layout
+        # if mode == "inline_persistent":
+        #     # Inline persistent mode: we display a static image of the figure when the
+        #     # app is not reachable
+        #     # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
+        #     mode = "inline"
+        #     app = JupyterDashPersistentInlineOutput("local_app")
+        #
+        #     # return statement to not have constant warnings in the rest of the code because types do not match
+        #     # TODO: REMOVE
+        #     return
+        # else:
+        # jupyter dash uses a normal Dash app as figure
+        app = dash.Dash("local_app")
         app.layout = dash.html.Div(
             [
                 dash.dcc.Graph(
@@ -647,23 +478,22 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self.register_update_graph_callback(app, "resample-figure", "trace-updater")
 
         # 2. Run the app
-        if mode == "inline" and "height" not in kwargs:
+        if mode == "inline" and "jupyter_height" not in kwargs:
             # If app height is not specified -> re-use figure height for inline dash app
             #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height
             fig_height = self.layout.height if self.layout.height is not None else 450
-            kwargs["height"] = fig_height + 18
+            kwargs["jupyter_height"] = fig_height + 18
 
         # kwargs take precedence over the show_dash_kwargs
         kwargs = {**self._show_dash_kwargs, **kwargs}
-
 
         # Store the app information, so it can be killed
         self._app = app
         self._host = kwargs.get("host", "127.0.0.1")
         self._port = kwargs.get("port", "8050")
 
-        jupyter_dash.run_app(app=app, mode=mode, **kwargs)
+        app.run(jupyter_mode=mode, **kwargs)
 
     # TODO: edit or remove function (still unclear what needs to happen exactly as the dash Jupyter documentation says nothing abt this)
     def stop_server(self, warn: bool = True):
@@ -678,11 +508,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             This only works if the dash-app was started with :func:`show_dash`.
         """
         if self._app is not None:
-            old_server = self._app._server_threads.get((self._host, self._port))
+            old_server = dash.jupyter_dash._servers.get((self._host, self._port))
             if old_server:
-                old_server.kill()
-                old_server.join()
-                del self._app._server_threads[(self._host, self._port)]
+                old_server.shutdown()
+                del dash.jupyter_dash._servers[(self._host, self._port)]
         elif warn:
             warnings.warn(
                 "Could not stop the server, either the \n"
