@@ -67,14 +67,10 @@ class JupyterDashPersistentInlineOutput(JupyterDash):
             )
 
         # Get the image from the dashboard and encode it as base64
-        fig = self.layout.children[
-            0
-        ].figure  # is stored there in the show_dash method
+        fig = self.layout.children[0].figure  # is stored there in the show_dash method
         f_width = 1000 if fig.layout.width is None else fig.layout.width
         fig_base64 = base64.b64encode(
-            fig.to_image(
-                format="png", width=f_width, scale=1, height=fig.layout.height
-            )
+            fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
         ).decode("utf8")
 
         # The unique id of this app

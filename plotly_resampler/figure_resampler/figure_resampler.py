@@ -29,6 +29,7 @@ from .utils import is_figure, is_fr
 
 try:
     from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
+
     _jupyter_dash_installed = True
 except ImportError:
     _jupyter_dash_installed = False
@@ -189,7 +190,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._app: dash.Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
-        # Certain functions will be different when using persistent inline 
+        # Certain functions will be different when using persistent inline
         # (namely `show_dash` and `stop_callback`)
         self._is_persistent_inline = False
 
