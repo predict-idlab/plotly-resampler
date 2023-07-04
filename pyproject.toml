@@ -34,7 +34,7 @@ classifiers = [
 
 [tool.poetry.dependencies]
 python = "^3.7.1"
-jupyter-dash = ">=0.4.2"
+jupyter-dash = { version = ">=0.4.2", optional = true }
 plotly = "^5.5.0"
 dash = "^2.11.0"
 pandas = ">=1"
@@ -52,7 +52,7 @@ tsdownsample = "0.1.2"
 
 [tool.poetry.extras]
 # Optional dependencies
-inline_persistent = ["kaleido", "Flask-Cors"]
+inline_persistent = ["kaleido", "Flask-Cors", "jupyter-dash"]
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
