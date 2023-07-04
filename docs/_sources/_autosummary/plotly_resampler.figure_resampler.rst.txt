@@ -30,5 +30,6 @@ plotly\_resampler.figure\_resampler
    plotly_resampler.figure_resampler.figure_resampler
    plotly_resampler.figure_resampler.figure_resampler_interface
    plotly_resampler.figure_resampler.figurewidget_resampler
+   plotly_resampler.figure_resampler.jupyter_dash_persistent_inline_output
    plotly_resampler.figure_resampler.utils
 
