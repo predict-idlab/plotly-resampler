@@ -366,7 +366,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._app: dash.Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
-        # Certain functions will be different when using persistent inline (namely `show_dash` and `stop_callback`)
+        # Certain functions will be different when using persistent inline 
+        # (namely `show_dash` and `stop_callback`)
         self._is_persistent_inline = False
 
     def show_dash(
