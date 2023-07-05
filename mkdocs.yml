@@ -6,8 +6,9 @@ site_description: Documentation for the Plotly Resampler; a wrapper for plotly F
 site_author:
 docs_dir: mkdocs
 
-# nav:
-#   - "Get started 🚀": "getting_started.md"
+nav:
+  - "Get started 🚀": "getting_started.md"
+  - "Dash apps 🤝": "dash_app_integration.md"
 
 markdown_extensions:
   - admonition
