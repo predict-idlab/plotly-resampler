@@ -72,6 +72,10 @@ ruff = "^0.0.262"
 black = "^22.6.0"
 pytest-lazy-fixture = "^0.6.3"
 # yep = "^0.4"  # c code profiling
+mkdocs = "^1.4.3"
+mkdocstrings = "^0.20.0"
+mike = "^1.1.2"
+mkdocs-material = "^9.1.18"
 
 # Linting
 [tool.ruff]
