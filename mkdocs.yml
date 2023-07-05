@@ -9,6 +9,12 @@ docs_dir: mkdocs
 # nav:
 #   - "Get started 🚀": "getting_started.md"
 
+markdown_extensions:
+  - admonition
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+
 theme:
   name: material
   locale: en
@@ -16,6 +22,7 @@ theme:
   features:
     - navigation.tabs
     - navigation.path
+    - content.code.copy
   palette:
     # Palette toggle for light mode
     - scheme: default
