@@ -9,9 +9,11 @@ docs_dir: mkdocs
 nav:
   - "Get started 🚀": "getting_started.md"
   - "Dash apps 🤝": "dash_app_integration.md"
+  - "FAQ ❓": "FAQ.md"
 
 markdown_extensions:
   - admonition
+  - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.inlinehilite
