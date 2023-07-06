@@ -18,6 +18,13 @@ markdown_extensions:
   - pymdownx.highlight
   - pymdownx.inlinehilite
 
+plugins:
+  - mkdocstrings:
+      handlers:
+        python:
+          selection:
+            docstring_style: numpy
+
 theme:
   name: material
   locale: en
