@@ -2,10 +2,10 @@
 
 `plotly-resampler` serves two main **modules**:
 
-- [`figure_resampler`][plotly_resampler.figure_resampler]: a wrapper for _plotly.graph_objects Figures_,
+- [`figure_resampler`][figure_resampler]: a wrapper for _plotly.graph_objects Figures_,
   coupling the dynamic resampling functionality to the _Figure_.
 
-- [`aggregation`][plotly_resampler.aggregation]: a module that withholds various data aggregation methods.
+- [`aggregation`][aggregation]: a module that withholds various data aggregation methods.
 
 ## Installation ⚙️
 
@@ -21,15 +21,15 @@ Dynamic resampling callbacks are realized:
 
 - **Automatically** (low code overhead):
 
-      - using the [`register_plotly_resampler`][plotly_resampler.registering.register_plotly_resampler] function
+      - using the [`register_plotly_resampler`][registering.register_plotly_resampler] function
         **To add dynamic resampling using a FigureWidget, you should:**
 
-        1. Import and call the [`register_plotly_resampler`][plotly_resampler.registering.register_plotly_resampler]
+        1. Import and call the [`register_plotly_resampler`][registering.register_plotly_resampler]
         2. Just use your regular graph construction code
 
         Once this method is called, it will automatically convert all new defined plotly graph objects into a
-        [`FigureResampler`][plotly_resampler.figure_resampler.FigureResampler] or
-        [`FigureWidgetResampler`][plotly_resampler.figure_resampler.FigureWidgetResampler] object. The `mode`
+        [`FigureResampler`][figure_resampler.FigureResampler] or
+        [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler] object. The `mode`
         parameter of this method allows to define which type of the aformentioned resampling objects is used.
 
 - **Manually** (data aggregation configurability, graph construction speedups):
@@ -42,8 +42,8 @@ Dynamic resampling callbacks are realized:
 
         **To add dynamic resampling, you should:**
 
-        1. wrap the plotly Figure with [`FigureResampler`][plotly_resampler.figure_resampler.FigureResampler]
-        2. call [`.show_dash()`][plotly_resampler.figure_resampler.FigureResampler.show_dash] on the Figure
+        1. wrap the plotly Figure with [`FigureResampler`][figure_resampler.FigureResampler]
+        2. call [`.show_dash()`][figure_resampler.FigureResampler.show_dash] on the Figure
 
       - [FigureWidget.layout.on_change](https://plotly.com/python-api-reference/generated/plotly.html?highlight=on_change#plotly.basedatatypes.BasePlotlyType.on_change)
         , when a `go.FigureWidget` is used within a `.ipynb` environment.
@@ -54,13 +54,13 @@ Dynamic resampling callbacks are realized:
         **To add dynamic resampling using a FigureWidget, you should:**
 
         1. wrap your plotly Figure
-            (can be a `go.Figure` with [`FigureWidgetResampler`][plotly_resampler.figure_resampler.FigureWidgetResampler])
+            (can be a `go.Figure` with [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler])
         2. output the `FigureWidgetResampler` instance in a cell
 
 !!! tip
 
     For **significant faster initial loading** of the Figure, we advise to wrap the constructor of the plotly Figure
-    with either [`FigureResampler`][plotly_resampler.figure_resampler.FigureResampler] or [`FigureWidgetResampler`][plotly_resampler.figure_resampler.FigureWidgetResampler]
+    with either [`FigureResampler`][figure_resampler.FigureResampler] or [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler]
     and add the trace data as `hf_x` and `hf_y`
 
 !!! note
@@ -109,7 +109,7 @@ fig.show_dash(mode='inline')
 
 ### FigureWidget
 
-The gif below demonstrates the example usage of [`FigureWidgetResampler`][plotly_resampler.figure_resampler.FigureWidgetResampler],
+The gif below demonstrates the example usage of [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler],
 where `JupyterLab` is used as the environment and the `FigureWidgetResampler` instance its output
 is redirected into a new view. Also note how you are able to dynamically add traces!
 
@@ -124,9 +124,9 @@ as shown in the gif below and in this [notebook](https://github.com/predict-idla
 ## Important considerations & tips 🚨
 
 - When running the code on a server, you should forward the port of the
-  [`FigureResampler.show_dash`][plotly_resampler.figure_resampler.FigureResampler.show_dash] method to your local machine.  
+  [`FigureResampler.show_dash`][figure_resampler.FigureResampler.show_dash] method to your local machine.  
   **Note** that you can add dynamic aggregation to plotly figures with the
-  [`FigureWidgetResampler`][plotly_resampler.figure_resampler.FigureWidgetResampler] wrapper without needing to forward a port!
+  [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler] wrapper without needing to forward a port!
 - In general, when using downsampling one should be aware of (possible) [aliasing](https://en.wikipedia.org/wiki/Aliasing) effects.
   The `[R]` in the legend indicates when the corresponding trace is resampled (and thus possibly distorted).
   The `~ delta` suffix in the legend represents the mean index delta for consecutive aggregated data points.
@@ -166,16 +166,16 @@ fig.hf_data[-1]['y'] = - sin ** 2
     _hf_data_ only withholds high-frequency traces (i.e., traces that are aggregated).
     To add non high-frequency traces (i.e., traces with fewer data points than _max_n_samples_),
     you need to set the `limit_to_view` argument to _True_ when adding the corresponding trace with the
-    [`add_trace`][plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] function.
+    [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] function.
 
 !!! tip
 
     The `FigureWidgetResampler` graph will not be automatically redrawn after adjusting the fig its _hf_data_ property.
     The redrawing can be triggered by manually calling either:
 
-    - [`FigureWidgetResampler.reload_data`][plotly_resampler.figure_resampler.FigureWidgetResampler.reload_data],
+    - [`FigureWidgetResampler.reload_data`][figure_resampler.FigureWidgetResampler.reload_data],
     which keeps the current-graph range.
-    - [`FigureWidgetResampler.reset_axes`][plotly_resampler.figure_resampler.FigureWidgetResampler.reset_axes],
+    - [`FigureWidgetResampler.reset_axes`][figure_resampler.FigureWidgetResampler.reset_axes],
     which performs a graph update.
 
 ### Plotly-resampler & not high-frequency traces 🔍

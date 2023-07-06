@@ -14,11 +14,11 @@ When you add a `FigureResampler` figure in a basic dash app, you should:
       - It should have as `gID` the id of the [dcc.Graph](https://dash.plotly.com/dash-core-components/graph)
         component that contains the `FigureResampler` figure.
 
-- Register the [`FigureResampler`][plotly_resampler.figure_resampler.FigureResampler] figure its callbacks to the dash app.
+- Register the [`FigureResampler`][figure_resampler.FigureResampler] figure its callbacks to the dash app.
 
       - The id of the [dcc.Graph](https://dash.plotly.com/dash-core-components/graph) component that contains the
-      [`FigureResampler`][plotly_resampler.figure_resampler.FigureResampler] figure and the id of the trace-updater component should be passed to the
-      [`register_update_graph_callback`][plotly_resampler.figure_resampler.FigureResampler.register_update_graph_callback] method.
+      [`FigureResampler`][figure_resampler.FigureResampler] figure and the id of the trace-updater component should be passed to the
+      [`register_update_graph_callback`][figure_resampler.FigureResampler.register_update_graph_callback] method.
 
 **Code illustration**:
 
