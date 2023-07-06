@@ -1,4 +1,4 @@
-"""**plotly\_resampler**: visualizing large sequences."""
+"""**plotly_resampler**: visualizing large sequences."""
 
 import contextlib
 
