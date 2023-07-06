@@ -1622,6 +1622,20 @@ files = [
 mkdocs = ">=1.0.3"
 
 [[package]]
+name = "mkdocs-literate-nav"
+version = "0.6.0"
+description = "MkDocs plugin to specify the navigation in Markdown instead of YAML"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "mkdocs_literate_nav-0.6.0-py3-none-any.whl", hash = "sha256:8c1b84714e5974da5e44e011ec0069275ae7647270c13a679662cf6ffce675a4"},
+    {file = "mkdocs_literate_nav-0.6.0.tar.gz", hash = "sha256:81ccbea18163ae8e10bd0bd39237fe70c32a1f2dff6c170779f5d52dd98a0470"},
+]
+
+[package.dependencies]
+mkdocs = ">=1.0.3"
+
+[[package]]
 name = "mkdocs-material"
 version = "9.1.18"
 description = "Documentation that simply works"
@@ -3879,4 +3893,4 @@ inline-persistent = ["Flask-Cors", "kaleido"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.1"
-content-hash = "e93c2df8fb3c4a6a45603a7321b41f2ba021a83c8aeb34b653ee24871ced3ce9"
+content-hash = "933f2e5564db00233b4437a98b310aabe590ba73e54318a1ac5349eac333e246"

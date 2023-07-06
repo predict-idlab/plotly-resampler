@@ -77,6 +77,7 @@ mkdocstrings = { version = "^0.20.0", extras = ["python"] }
 mkdocs-gen-files = "^0.5.0"
 mike = "^1.1.2"
 mkdocs-material = "^9.1.18"
+mkdocs-literate-nav = "^0.6.0"
 
 # Linting
 [tool.ruff]

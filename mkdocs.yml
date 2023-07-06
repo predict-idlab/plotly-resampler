@@ -9,6 +9,7 @@ docs_dir: mkdocs
 nav:
   - "Get started 🚀": "getting_started.md"
   - "Dash apps 🤝": "dash_app_integration.md"
+  - "API 📖": "api/"
   - "FAQ ❓": "FAQ.md"
 
 markdown_extensions:
@@ -19,10 +20,18 @@ markdown_extensions:
   - pymdownx.inlinehilite
 
 plugins:
+  - search
+  - gen-files:
+      scripts:
+        - mkdocs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
   - mkdocstrings:
+      default_handler: python
       handlers:
         python:
-          selection:
+          paths: [plotly_resampler]
+          options:
             docstring_style: numpy
 
 theme:
