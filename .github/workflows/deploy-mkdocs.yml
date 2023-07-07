@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
+      - name: fetch from gh-pages
+        run: git fetch origin gh-pages --depth=1
+
       - name: Configure Git user
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
