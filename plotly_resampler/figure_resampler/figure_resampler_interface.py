@@ -1472,6 +1472,4 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         props["pr_props"] = {}
         for k in self._get_pr_props_keys():
             props["pr_props"][k] = getattr(self, k)
-        return self.__class__, (
-            props,
-        )  # (props,) to comply with plotly magic
+        return self.__class__, (props,)  # (props,) to comply with plotly magic
