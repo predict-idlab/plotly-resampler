@@ -18,6 +18,11 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.inlinehilite
+  - attr_list
+  - sane_lists
+  - smarty
+  - toc:
+      permalink: true
 
 plugins:
   - mike
