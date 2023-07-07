@@ -2,8 +2,9 @@ name: Deploy docs
 
 on:
   push:
-    tags:
-      - "*"
+    pull_request:
+    # tags:
+    #   - "*"
 
 jobs:
   deploy:
