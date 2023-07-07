@@ -43,3 +43,4 @@ jobs:
       - name: Deploy with mike
         run: |
           poetry run mike deploy -b gh-pages --update-aliases --push "${{ github.ref_name }}" "latest"
+
