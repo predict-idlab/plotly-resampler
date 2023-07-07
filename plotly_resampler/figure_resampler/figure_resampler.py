@@ -239,7 +239,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             by default 1000.\n
             !!! note
                 - This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
-                - If a trace withholds fewer datapoints than this parameter, 
+                - If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
         default_downsampler: AbstractAggregator, optional
             An instance which implements the AbstractAggregator interface and
@@ -249,7 +249,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             per bin are considered by LTTB). This min-max ratio of 4 can be changed by
             initializing ``MinMaxLTTB`` with a different value for the ``minmax_ratio``
             parameter. \n
-            !!! note 
+            !!! note
                 This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
         default_gap_handler: AbstractGapHandler, optional
             An instance which implements the AbstractGapHandler interface and

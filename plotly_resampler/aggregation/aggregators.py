@@ -57,7 +57,7 @@ class LTTB(DataPointSelector):
           When dealing with categories, the data is encoded into its numeric codes,
           these codes are the indices of the category array.
         * To aggregate category data with LTTB, your ``pd.Series`` must be of dtype
-          'category'. <br/> 
+          'category'. <br/>
 
           **tip**:
 
