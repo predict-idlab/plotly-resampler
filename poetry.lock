@@ -1194,7 +1194,7 @@ test = ["ipykernel", "pre-commit", "pytest", "pytest-cov", "pytest-timeout"]
 name = "jupyter-dash"
 version = "0.4.2"
 description = "Dash support for the Jupyter notebook interface"
-optional = false
+optional = true
 python-versions = ">=3.5"
 files = [
     {file = "jupyter-dash-0.4.2.tar.gz", hash = "sha256:d546c7c25a2867c14c95a48af0ad572803b26915a5ce6052158c9dede4dbf48c"},
@@ -3662,9 +3662,9 @@ cffi = {version = ">=1.11", markers = "platform_python_implementation == \"PyPy\
 cffi = ["cffi (>=1.11)"]
 
 [extras]
-inline-persistent = ["Flask-Cors", "kaleido"]
+inline-persistent = ["Flask-Cors", "jupyter-dash", "kaleido"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.1"
-content-hash = "756c289bef8d75066be51d6c64cf93f4a59339854f4efdc39aaa2c0f3b78a238"
+content-hash = "5345b6846d9b49333e548f20f1eb28d4cfc0b2184d721df158b81d5ee52db23e"

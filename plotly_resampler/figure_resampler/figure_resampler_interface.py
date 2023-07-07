@@ -601,7 +601,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # If we cast a tz-aware datetime64 array to `.values` we lose the tz-info 
             # and the UTC time will be displayed instead of the tz-localized time, 
             # hence we cast to a pd.DatetimeIndex, which preserves the tz-info
-            else pd.Index(hf_x) if pd.core.dtypes.common.is_datetime64tz_dtype(hf_x)
+            # As a matter of fact, to resolve #231, we also convert non-tz-aware 
+            # datetime64 arrays to an pd.Index
+            else pd.Index(hf_x) if pd.core.dtypes.common.is_datetime64_any_dtype(hf_x)
             else hf_x.values if isinstance(hf_x, pd.Series)
             else hf_x if isinstance(hf_x, pd.Index)
             else np.asarray(hf_x)
