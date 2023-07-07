@@ -20,6 +20,7 @@ markdown_extensions:
   - pymdownx.inlinehilite
 
 plugins:
+  - mike
   - search
   - gen-files:
       scripts:
@@ -60,3 +61,7 @@ theme:
         name: Switch to light mode
   icon:
     repo: fontawesome/brands/github
+
+extra:
+  version:
+    provider: mike
