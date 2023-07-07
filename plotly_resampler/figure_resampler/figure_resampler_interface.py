@@ -1474,4 +1474,4 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             props["pr_props"][k] = getattr(self, k)
         return self.__class__, (
             props,
-        )  # (props,) to comply with plotly magicfigureresampelinte
+        )  # (props,) to comply with plotly magic
