@@ -1,0 +1,75 @@
+site_name: Plotly Resampler Documentation
+site_url: https://predict-idlab.github.io/plotly-resampler/
+repo_url: https://github.com/predict-idlab/plotly-resampler
+repo_name: plotly-resampler
+site_description: Documentation for the Plotly Resampler; a wrapper for plotly Figures to visualize large time-series data.
+site_author:
+docs_dir: mkdocs
+
+nav:
+  - "Get started 🚀": "getting_started.md"
+  - "Dash apps 🤝": "dash_app_integration.md"
+  - "API 📖": "api/"
+  - "FAQ ❓": "FAQ.md"
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - attr_list
+  - sane_lists
+  - smarty
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+
+plugins:
+  - mike
+  - search
+  - gen-files:
+      scripts:
+        - mkdocs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [plotly_resampler]
+          options:
+            docstring_style: numpy
+
+theme:
+  name: material
+  locale: en
+  logo: static/icon.png
+  features:
+    - navigation.tabs
+    - navigation.path
+    - content.code.copy
+  palette:
+    # Palette toggle for light mode
+    - scheme: default
+      primary: cyan
+      toggle:
+        icon: material/weather-night
+
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      primary: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  version:
+    provider: mike

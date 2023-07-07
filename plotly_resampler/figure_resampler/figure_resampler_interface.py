@@ -2,10 +2,6 @@
 """
 Abstract ``AbstractFigureAggregator`` interface for the concrete *Resampler* classes.
 
-.. |br| raw:: html
-
-   <br>
-
 """
 
 from __future__ import annotations
@@ -76,18 +72,20 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
-            .. note::
-                * This can be overridden within the :func:`add_trace` method.
+            !!! note
+                * This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
                 * If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
         default_downsampler: AbstractAggregator
             An instance which implements the AbstractSeriesDownsampler interface and
             will be used as default downsampler, by default ``MinMaxLTTB``. \n
-            .. note:: This can be overridden within the :func:`add_trace` method.
+            !!! note
+                This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
         default_gap_handler: GapHandler
             An instance which implements the AbstractGapHandler interface and will be
             used as default gap handler, by default ``MedDiffGapHandler``. \n
-            .. note:: This can be overridden within the :func:`add_trace` method.
+            !!! note
+                This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its legend-name when a resampled version of the
@@ -97,9 +95,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             Whether the mean aggregation bin size will be added as a suffix to the trace
             its legend-name, by default True.
         convert_traces_kwargs: dict, optional
-            A dict of kwargs that will be passed to the :func:`add_traces` method and
+            A dict of kwargs that will be passed to the [`add_traces`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_traces] method and
             will be used to convert the existing traces. \n
-            .. note::
+            !!! note
                 This argument is only used when the passed ``figure`` contains data and
                 ``convert_existing_traces`` is set to True.
         verbose: bool, optional
@@ -506,7 +504,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def _get_figure_class(constr: type) -> type:
         """Get the plotly figure class (constructor) for the given class (constructor).
 
-        .. Note::
+        !!! note
             This method will always return a plotly constructor, even when the given
             `constr` is decorated (after executing the ``register_plotly_resampler``
             function).
@@ -530,28 +528,31 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     def hf_data(self):
         """Property to adjust the `data` component of the current graph
 
-        .. note::
+        !!! note
             The user has full responsibility to adjust ``hf_data`` properly.
 
 
-        Example:
-            >>> from plotly_resampler import FigureResampler
-            >>> fig = FigureResampler(go.Figure())
-            >>> fig.add_trace(...)
-            >>> # Adjust the y property of the above added trace
-            >>> fig.hf_data[-1]["y"] = - s ** 2
-            >>> fig.hf_data
-            [
-                {
-                    'max_n_samples': 1000,
-                    'x': RangeIndex(start=0, stop=11000000, step=1),
-                    'y': array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),
-                    'axis_type': 'linear',
-                    'downsampler': <plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0>,
-                    'text': None,
-                    'hovertext': None
-                },
-            ]
+        ??? example
+
+            ```python
+                >>> from plotly_resampler import FigureResampler
+                >>> fig = FigureResampler(go.Figure())
+                >>> fig.add_trace(...)
+                >>> # Adjust the y property of the above added trace
+                >>> fig.hf_data[-1]["y"] = - s ** 2
+                >>> fig.hf_data
+                [
+                    {
+                        'max_n_samples': 1000,
+                        'x': RangeIndex(start=0, stop=11000000, step=1),
+                        'y': array([-0.01339909,  0.01390696,, ...,  0.25051913, 0.55876513]),
+                        'axis_type': 'linear',
+                        'downsampler': <plotly_resampler.aggregation.aggregators.LTTB at 0x7f786d5a9ca0>,
+                        'text': None,
+                        'hovertext': None
+                    },
+                ]
+            ```
         """
         return list(self._hf_data.values())
 
@@ -898,15 +899,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                   of the specified trace type.
         max_n_samples : int, optional
             The maximum number of samples that will be shown by the trace.\n
-            .. note::
+            !!! note
                 If this variable is not set; ``_global_n_shown_samples`` will be used.
         downsampler: AbstractAggregator, optional
             The abstract series downsampler method.\n
-            .. note::
+            !!! note
                 If this variable is not set, ``_global_downsampler`` will be used.
         gap_handler: AbstractGapHandler, optional
             The abstract series gap handler method.\n
-            .. note::
+            !!! note
                 If this variable is not set, ``_global_gap_handler`` will be used.
         limit_to_view: boolean, optional
             If set to True, the trace's datapoints will be cut to the corresponding
@@ -944,52 +945,53 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
 
-            .. seealso::
-                `Figure.add_trace <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace>`_ docs.
+            !!! info "See Also"
+                [`Figure.add_trace`](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace>) docs.
 
         Returns
         -------
         BaseFigure
             The Figure on which ``add_trace`` was called on; i.e. self.
 
-        Note
-        ----
-        Constructing traces with **very large data amounts** really takes some time.
-        To speed this up; use this :func:`add_trace` method and
+        !!! note
 
-        1. Create a trace with no data (empty lists)
-        2. pass the high frequency data to this method using the ``hf_x`` and ``hf_y``
-           parameters.
+            Constructing traces with **very large data amounts** really takes some time.
+            To speed this up; use this [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method and
 
-        See the example below:
+            1. Create a trace with no data (empty lists)
+            2. pass the high frequency data to this method using the ``hf_x`` and ``hf_y``
+               parameters.
 
-            >>> from plotly.subplots import make_subplots
-            >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
-            >>> fig = FigureResampler(go.Figure())
-            >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
+            See the example below:
+                ```python
+                >>> from plotly.subplots import make_subplots
+                >>> s = pd.Series()  # a high-frequency series, with more than 1e7 samples
+                >>> fig = FigureResampler(go.Figure())
+                >>> fig.add_trace(go.Scattergl(x=[], y=[], ...), hf_x=s.index, hf_y=s)
+                ```
 
-        .. todo::
-            * explain why adding x and y to a trace is so slow
-            * check and simplify the example above
+            !!! todo
+                * explain why adding x and y to a trace is so slow
+                * check and simplify the example above
 
-        Tip
-        ---
-        * If you **do not want to downsample** your data, set ``max_n_samples`` to the
-          the number of datapoints of your trace!
+        !!! tip
 
-        Attention
-        ---------
-        * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do
-          not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
-        * ``hf_x``, ``hf_y``, ``hf_text``, and ``hf_hovertext`` are useful when you deal
-          with large amounts of data (as it can increase the speed of this add_trace()
-          method with ~30%). These arguments have priority over the trace's data and
-          (hover)text attributes.
-        * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
-          the the automatic-zooming (y-scaling) as these will not be stored in the
-          back-end and thus not be scaled to the view.
-          To circumvent this, the ``limit_to_view`` argument can be set, resulting in
-          also storing the low-frequency series in the back-end.
+            * If you **do not want to downsample** your data, set ``max_n_samples`` to the
+              the number of datapoints of your trace!
+
+        !!! warning
+
+            * The ``NaN`` values in either ``hf_y`` or ``trace.y`` will be omitted! We do
+              not allow ``NaN`` values in ``hf_x`` or ``trace.x``.
+            * ``hf_x``, ``hf_y``, ``hf_text``, and ``hf_hovertext`` are useful when you deal
+              with large amounts of data (as it can increase the speed of this add_trace()
+              method with ~30%). These arguments have priority over the trace's data and
+              (hover)text attributes.
+            * Low-frequency time-series data, i.e. traces that are not resampled, can hinder
+              the the automatic-zooming (y-scaling) as these will not be stored in the
+              back-end and thus not be scaled to the view.
+              To circumvent this, the ``limit_to_view`` argument can be set, resulting in
+              also storing the low-frequency series in the back-end.
 
         """
         # to comply with the plotly data input acceptance behavior
@@ -1083,8 +1085,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     ):
         """Add traces to the figure.
 
-        .. note::
-            Make sure to look at the :func:`add_trace` function for more info about
+        !!! note
+
+            Make sure to look at the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] function for more info about
             **speed optimization**, and dealing with not ``high-frequency`` data, but
             still want to resample / limit the data to the front-end view.
 
@@ -1103,7 +1106,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     property then 'scatter' is assumed.
                   - All remaining properties are passed to the constructor
                     of the specified trace type.
-
         max_n_samples : None | List[int] | int, optional
               The maximum number of samples that will be shown for each trace.
               If a single integer is passed, all traces will use this number. If this
@@ -1132,13 +1134,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             False if the data is known to contain no NaNs (or when the downsampler can
             handle NaNs, e.g., EveryNthPoint). This will considerably speed up the graph
             construction time.
-
         **traces_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: rows=.., cols=..., secondary_ys=...
 
-            .. seealso::
-                `Figure.add_traces <https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces>`_ docs.
+            !!! info "See Also"
+
+                [`Figure.add_traces`](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_traces>) docs.
 
         Returns
         -------

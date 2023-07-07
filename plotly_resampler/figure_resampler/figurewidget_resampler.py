@@ -34,7 +34,7 @@ class FigureWidgetResampler(
 ):
     """Data aggregation functionality wrapper for ``go.FigureWidgets``.
 
-    .. attention::
+    !!! warning
 
         * This wrapper only works within ``jupyter``-based environments.
         * The ``.show()`` method returns a **static figure** on which the
