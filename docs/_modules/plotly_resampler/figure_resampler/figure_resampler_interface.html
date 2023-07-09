@@ -561,15 +561,15 @@ document.write(`
         <span class="c1"># edge case: an empty `go.Figure()` does not yet contain axes keys</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;xaxis&quot;</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;yaxis&quot;</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;yaxis&quot;</span><span class="p">]</span></div>
 
         <span class="c1"># Make sure to reset the layout its range</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_layout</span><span class="p">(</span>
-            <span class="p">{</span>
-                <span class="n">axis</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;autorange&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;range&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
-                <span class="k">for</span> <span class="n">axis</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xaxis_list</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_yaxis_list</span>
-            <span class="p">}</span>
-        <span class="p">)</span></div>
+        <span class="c1"># self.update_layout(</span>
+        <span class="c1">#     {</span>
+        <span class="c1">#         axis: {&quot;autorange&quot;: None, &quot;range&quot;: None}</span>
+        <span class="c1">#         for axis in self._xaxis_list + self._yaxis_list</span>
+        <span class="c1">#     }</span>
+        <span class="c1"># )</span>
 
     <span class="k">def</span> <span class="nf">_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">values</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper method for printing if ``verbose`` is set to True.&quot;&quot;&quot;</span>
