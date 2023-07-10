@@ -53,14 +53,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					syrange = [+currentSelections[0].y0.toFixed(10), +currentSelections[0].y1.toFixed(10)].sort();
 				}
 
-				console.log("selection box ",selectedData);
-				console.log("relayout", main_graphDiv.relayout);
-				console.log("xrange ", xrange);
-				console.log("sxrange ", sxrange);
-				console.log("cxrange ", cxrange);
-				console.log("yrange ", yrange);
-				console.log("syrange", syrange);
-				console.log("cyrange", cyrange);
+				// console.log("selection box ",selectedData);
+				// console.log("relayout", main_graphDiv.relayout);
+				// console.log("xrange ", xrange);
+				// console.log("sxrange ", sxrange);
+				// console.log("cxrange ", cxrange);
+				// console.log("yrange ", yrange);
+				// console.log("syrange", syrange);
+				// console.log("cyrange", cyrange);
 				
 				// console.log("selected data:");
 				// console.log(selectedData.range.x.toString());
@@ -88,10 +88,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				if ((!compareArrays(sxrange, xrange) && !compareArrays(syrange, yrange)) && 
 					(!compareArrays(syrange, cyrange) && !compareArrays(sxrange, cxrange))){ 
 					console.warn("coarse -> main (both axes)");
-					console.log(`selectionx != main graphx: ${!compareArrays(sxrange, xrange)}`);
-					console.log(`selectionx  coarsex: ${!compareArrays(sxrange, cxrange)}`);
-					console.log(`selectiony != main graphy: ${!compareArrays(syrange, yrange)}`);
-					console.log(`selectiony != coarsey: ${!compareArrays(syrange, cyrange)}`);
 					Plotly.relayout(main_graphDiv, {
 						'xaxis.range[0]': sxrange[0], 'xaxis.range[1]': sxrange[1],
 						'yaxis.range[0]': syrange[0], 'yaxis.range[1]': syrange[1],
@@ -105,7 +101,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					);
 				} else if (!compareArrays(syrange, yrange) && !compareArrays(syrange, cyrange)) {
 					console.warn("coarse -> main (yaxis)");
-					console.log(`'yaxis.range[0]': ${syrange[0]}, 'yaxis.range[1]': ${syrange[1]},`)
 					Plotly.relayout(main_graphDiv, {
 						'yaxis.range[0]': syrange[0], 'yaxis.range[1]': syrange[1],
 					}
