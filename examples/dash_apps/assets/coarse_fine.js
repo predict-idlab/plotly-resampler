@@ -160,15 +160,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			// check if reset axis was triggered
 			if (mainFigRelayout['xaxis.autorange'] && mainFigRelayout['xaxis.showspikes'] == false) {
-				console.log("reset axis");
+				console.warn("reset axis");
 				xrange = coarse_graphDiv.layout.xaxis.range;
 				yrange = coarse_graphDiv.layout.yaxis.range;
 			}
-			console.log("relayout", mainFigRelayout);
-			console.log("xrange", xrange);
-			console.log("sxrange", sxrange);
-			console.log("yrange", yrange);
-			console.log("syrange", syrange);
+			// console.log("relayout", mainFigRelayout);
+			// console.log("xrange", xrange);
+			// console.log("sxrange", sxrange);
+			// console.log("yrange", yrange);
+			// console.log("syrange", syrange);
 			
 			// console(external_scripts.compareArrays(sxrange, xrange));
 			
@@ -180,7 +180,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			if(!compareArrays(sxrange, xrange) || !compareArrays(syrange,yrange)){
 				// Update the layout without triggering another relayout event
 				console.warn('main -> coarse');
-				// document.dispatchEvent();
+				// document.dispatchEvent(); doesnt work
 				Plotly.relayout(
 					coarse_graphDiv,
 					{
