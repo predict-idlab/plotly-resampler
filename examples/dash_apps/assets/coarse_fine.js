@@ -24,6 +24,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			const compareArrays = (a, b) => {
 				return JSON.stringify(a) === JSON.stringify(b);
 			};
+			const roundTo10Decimals = (a) => {
+				return +a.toFixed(10)
+			};
 
 
 			if (selectedData) {
@@ -32,9 +35,11 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				coarse_graphDiv= getGraphDiv(coarseFigID);
 
 				let yrange = main_graphDiv.layout.yaxis.range;
+				yrange = yrange.map(roundTo10Decimals);
 				let xrange = main_graphDiv.layout.xaxis.range;
 
 				let cyrange = coarse_graphDiv.layout.yaxis.range;
+				cyrange = cyrange.map(roundTo10Decimals);
 				let cxrange = coarse_graphDiv.layout.xaxis.range;
 
 
@@ -45,16 +50,17 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				// console.log(currentSelections);
 				if(currentSelections){
 					sxrange = [currentSelections[0].x0, currentSelections[0].x1].sort();
-					syrange = [currentSelections[0].y0, currentSelections[0].y1].sort();
+					syrange = [+currentSelections[0].y0.toFixed(10), +currentSelections[0].y1.toFixed(10)].sort();
 				}
 
-				// console.log("selection box ",selectedData);
-				// console.log("xrange ", xrange);
-				// console.log("sxrange ", sxrange);
-				// console.log("cxrange ", cxrange);
-				// console.log("yrange ", yrange);
-				// console.log("syrange", syrange);
-				// console.log("cyrange", cyrange);
+				console.log("selection box ",selectedData);
+				console.log("relayout", main_graphDiv.relayout);
+				console.log("xrange ", xrange);
+				console.log("sxrange ", sxrange);
+				console.log("cxrange ", cxrange);
+				console.log("yrange ", yrange);
+				console.log("syrange", syrange);
+				console.log("cyrange", cyrange);
 				
 				// console.log("selected data:");
 				// console.log(selectedData.range.x.toString());
@@ -74,12 +80,33 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					(which should be the same as the original main graph's range). 
 					A selection range like this will be linked to the reset of the axes, meaning it comes from the 
 					"main -> coarse" (update_coarse_selectbox) callback.
+
+					DIFFERENT RELAYOUT MESSAGES: if the selection xrange is the same as the main graph xrange, 
+					but this is not the case in the y direction, relayout should only contain the y range change.
+					This is done to prevent an unnecessary aggregation in the Plotly resampler back-end
 				 */
-				if ((!compareArrays(sxrange, xrange) || !compareArrays(syrange, yrange)) && 
-					(!compareArrays(syrange, cyrange) || !compareArrays(sxrange, cxrange))){ 
-					console.warn("coarse -> main");
+				if ((!compareArrays(sxrange, xrange) && !compareArrays(syrange, yrange)) && 
+					(!compareArrays(syrange, cyrange) && !compareArrays(sxrange, cxrange))){ 
+					console.warn("coarse -> main (both axes)");
+					console.log(`selectionx != main graphx: ${!compareArrays(sxrange, xrange)}`);
+					console.log(`selectionx  coarsex: ${!compareArrays(sxrange, cxrange)}`);
+					console.log(`selectiony != main graphy: ${!compareArrays(syrange, yrange)}`);
+					console.log(`selectiony != coarsey: ${!compareArrays(syrange, cyrange)}`);
 					Plotly.relayout(main_graphDiv, {
 						'xaxis.range[0]': sxrange[0], 'xaxis.range[1]': sxrange[1],
+						'yaxis.range[0]': syrange[0], 'yaxis.range[1]': syrange[1],
+					}
+					);
+				} else if (!compareArrays(sxrange, xrange) && !compareArrays(sxrange, cxrange)){ // if the only changes are on the xaxis, only send xaxis range on relayout
+					console.warn("coarse -> main (xaxis)");
+					Plotly.relayout(main_graphDiv, {
+						'xaxis.range[0]': sxrange[0], 'xaxis.range[1]': sxrange[1],
+					}
+					);
+				} else if (!compareArrays(syrange, yrange) && !compareArrays(syrange, cyrange)) {
+					console.warn("coarse -> main (yaxis)");
+					console.log(`'yaxis.range[0]': ${syrange[0]}, 'yaxis.range[1]': ${syrange[1]},`)
+					Plotly.relayout(main_graphDiv, {
 						'yaxis.range[0]': syrange[0], 'yaxis.range[1]': syrange[1],
 					}
 					);
@@ -121,6 +148,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			
 			console.warn('starting: main -> coarse');
+			// console.log(mainFigRelayout);
 			let coarse_graphDiv = getGraphDiv(coarseFigID);
 			let main_graphDiv = getGraphDiv(mainFigID);
 			let yrange = main_graphDiv.layout.yaxis.range;
@@ -142,9 +170,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				yrange = coarse_graphDiv.layout.yaxis.range;
 			}
 			console.log("relayout", mainFigRelayout);
-			// console.log("xrange", xrange);
+			console.log("xrange", xrange);
 			console.log("sxrange", sxrange);
-			// console.log("yrange", yrange);
+			console.log("yrange", yrange);
 			console.log("syrange", syrange);
 			
 			// console(external_scripts.compareArrays(sxrange, xrange));
@@ -212,7 +240,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			let cxrange = coarse_graphDiv.layout.xaxis.range;
 			
 			if(!compareArrays(mxrange, cxrange) || !compareArrays(myrange,cyrange)){
-				console.log("updating coarse range");
+				console.warn("updating coarse range");
 				Plotly.relayout(coarse_graphDiv, {
 					'xaxis.range[0]': mxrange[0], 'xaxis.range[1]': mxrange[1],
 					'yaxis.range[0]': myrange[0], 'yaxis.range[1]': myrange[1],
