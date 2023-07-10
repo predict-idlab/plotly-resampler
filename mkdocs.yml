@@ -55,7 +55,7 @@ theme:
   palette:
     # Palette toggle for light mode
     - scheme: default
-      primary: cyan
+      primary: teal
       toggle:
         icon: material/weather-night
 
@@ -63,7 +63,7 @@ theme:
 
     # Palette toggle for dark mode
     - scheme: slate
-      primary: teal
+      primary: black
       toggle:
         icon: material/weather-sunny
         name: Switch to light mode

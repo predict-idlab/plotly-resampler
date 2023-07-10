@@ -205,7 +205,7 @@ class MinMaxLTTB(DataPointSelector):
 
     Inventors: Jonas & Jeroen Van Der Donckt - 2022
 
-    Paper: pending
+    Paper: [https://arxiv.org/pdf/2305.00332.pdf](https://arxiv.org/pdf/2305.00332.pdf)
     """
 
     def __init__(self, minmax_ratio: int = 4, **downsample_kwargs):
