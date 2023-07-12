@@ -69,9 +69,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
-            .. note::
-                * This can be overridden within the :func:`add_trace` method.
-                * If a trace withholds fewer datapoints than this parameter,
+            !!! note
+                - This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
+                - If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
         default_downsampler: AbstractAggregator, optional
             An instance which implements the AbstractAggregator interface and
@@ -81,14 +81,16 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             per bin are considered by LTTB). This min-max ratio of 4 can be changed by
             initializing ``MinMaxLTTB`` with a different value for the ``minmax_ratio``
             parameter. \n
-            .. note:: This can be overridden within the :func:`add_trace` method.
+            !!! note
+                This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
         default_gap_handler: AbstractGapHandler, optional
             An instance which implements the AbstractGapHandler interface and
             will be used as default gap handler, by default ``MedDiffGapHandler``.
             ``MedDiffGapHandler`` will determine gaps by first calculating the median
             aggregated x difference and then thresholding the aggregated x delta on a
             multiple of this median difference.  \n
-            .. note:: This can be overridden within the :func:`add_trace` method.
+            !!! note
+                This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its legend-name when a resampled version of the
@@ -98,15 +100,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             Whether the mean aggregation bin size will be added as a suffix to the trace
             its legend-name, by default True.
         convert_traces_kwargs: dict, optional
-            A dict of kwargs that will be passed to the :func:`add_traces` method and
+            A dict of kwargs that will be passed to the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method and
             will be used to convert the existing traces. \n
-            .. note::
+            !!! note
                 This argument is only used when the passed ``figure`` contains data and
                 ``convert_existing_traces`` is set to True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
         show_dash_kwargs: dict, optional
-            A dict that will be used as default kwargs for the :func:`show_dash` method.
+            A dict that will be used as default kwargs for the [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash] method.
             Note that the passed kwargs will be take precedence over these defaults.
 
         """
@@ -201,7 +203,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         graph_properties: dict | None = None,
         **kwargs,
     ):
-        """Registers the :func:`update_graph` callback & show the figure in a dash app.
+        """Registers the `update_graph` callback & show the figure in a dash app.
 
         Parameters
         ----------
@@ -218,7 +220,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 ``"inline"`` mode, allowing users to see a static figure in other
                 environments, browsers, etc.
 
-                .. note::
+                !!! note
+
                     This mode requires the ``kaleido`` and ``flask_cors`` package.
                     Install them : ``pip install plotly_resampler[inline_persistent]``
                     or ``pip install kaleido flask_cors``.
@@ -231,14 +234,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             The configuration options for displaying this figure, by default None.
             This ``config`` parameter is the same as the dict that you would pass as
             ``config`` argument to the `show` method.
-            See more https://plotly.com/python/configuration-options/
+            See more [https://plotly.com/python/configuration-options/](https://plotly.com/python/configuration-options/)
         graph_properties: dict, optional
             Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
-            e.g.: {"style": {"width": "50%"}}
+            e.g.: `{"style": {"width": "50%"}}`
             Note: "config" is not allowed as key in this dict, as there is a distinct
             ``config`` parameter for this property in this method.
-            See more https://dash.plotly.com/dash-core-components/graph
+            See more [https://dash.plotly.com/dash-core-components/graph](https://dash.plotly.com/dash-core-components/graph)
         **kwargs: dict
             Additional app.run_server() kwargs. e.g.: port, ...
             Also note that these kwargs take precedence over the ones passed to the
@@ -337,8 +340,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         warn: bool
             Whether a warning message will be shown or  not, by default True.
 
-        .. attention::
-            This only works if the dash-app was started with :func:`show_dash`.
+        !!! warning
+
+            This only works if the dash-app was started with [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash].
         """
         if self._app is not None:
             servers_dict = (
@@ -364,7 +368,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
     def register_update_graph_callback(
         self, app: dash.Dash, graph_id: str, trace_updater_id: str
     ):
-        """Register the :func:`construct_update_data` method as callback function to
+        """Register the [`construct_update_data`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data] method as callback function to
         the passed dash-app.
 
         Parameters
