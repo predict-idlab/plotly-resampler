@@ -1,4 +1,18 @@
 
+# v0.9.1
+## Major changes:
+Support for multiple axes. 
+
+The `.GIF` below demonstrates how multiple axes on a subplots can be used to enhance the number of visible traces, without using more (vertical) screen space 🔥!
+
+Make sure to take a look at our [examples](https://github.com/predict-idlab/plotly-resampler/blob/main/examples/other_examples.ipynb)
+
+![Peek 2023-07-13 10-24](https://github.com/predict-idlab/plotly-resampler/assets/38005924/aa5d278f-7baf-4251-91b5-7445eb7d53d0)
+
+## What's Changed (generated)
+* :fire: multiple y-axes support by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/244
+ 
+
  # v0.9.0
 ## Major changes:
 ### Even faster aggregation 🐎
