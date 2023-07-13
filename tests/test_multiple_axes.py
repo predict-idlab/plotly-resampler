@@ -4,6 +4,7 @@ import pytest
 from plotly.subplots import make_subplots
 
 from plotly_resampler import FigureResampler, FigureWidgetResampler
+from plotly_resampler.aggregation import MinMaxLTTB
 
 
 @pytest.mark.parametrize("fig_type", [FigureResampler, FigureWidgetResampler])
@@ -12,7 +13,9 @@ def test_multiple_axes_figure(fig_type):
     x = np.arange(200_000)
     sin = 3 + np.sin(x / 200) + np.random.randn(len(x)) / 30
 
-    fig = fig_type(default_n_shown_samples=2000)
+    fig = fig_type(
+        default_n_shown_samples=2000, default_downsampler=MinMaxLTTB(parallel=True)
+    )
 
     # all traces will be plotted against the same x-axis
     # note: the first added trace its yaxis will be used as reference
@@ -31,7 +34,6 @@ def test_multiple_axes_figure(fig_type):
         hf_y=(sin - 3) ** 2,
     )
 
-    # Create axis objects
     # in order for autoshift to work, you need to set x-anchor to free
     fig.update_layout(
         # NOTE: you can use the domain key to set the x-axis range (if you want to display)
@@ -40,7 +42,7 @@ def test_multiple_axes_figure(fig_type):
         # Add a title to the y-axis
         yaxis=dict(title="orig"),
         # by setting anchor=free, overlaying, and autoshift, the axis will be placed
-        # autmoatically, without overlapping any other axes
+        # automatically, without overlapping any other axes
         yaxis2=dict(
             title="negative",
             anchor="free",
@@ -92,7 +94,7 @@ def test_multiple_axes_subplot_rows(fig_type):
 
     # create a figure with 2 rows and 1 column
     # NOTE: instead of the above methods, we don't add the "yaxis" argument to the
-    # scatter object
+    #       scatter object
     fig = fig_type(make_subplots(rows=2, cols=1, shared_xaxes=True))
     fig.add_trace(go.Scatter(name="orig"), hf_x=x, hf_y=sin, row=2, col=1)
     fig.add_trace(go.Scatter(name="-orig"), hf_x=x, hf_y=-sin, row=2, col=1)
@@ -106,7 +108,6 @@ def test_multiple_axes_subplot_rows(fig_type):
     # add the original signal to the first row subplot
     fig.add_trace(go.Scatter(name="<b>orig</b>"), row=1, col=1, hf_x=x, hf_y=sin)
 
-    # Create axis objects
     # in order for autoshift to work, you need to set x-anchor to free
     fig.update_layout(
         xaxis2=dict(domain=[0, 1], anchor="y2"),
@@ -171,15 +172,14 @@ def test_multiple_axes_subplot_cols(fig_type):
     fig.add_trace(go.Scatter(name="-orig"), hf_x=x, hf_y=-sin, row=1, col=2)
     fig.add_trace(go.Scatter(name="sqrt"), hf_x=x, hf_y=np.sqrt(sin * 10), row=1, col=2)
     fig.add_trace(go.Scatter(name="orig**2"), hf_x=x, hf_y=(sin - 3) ** 2, row=1, col=2)
-    #
-    # NOTE: because of the row and col specification, the yaxis is automatically set to y2
+
+    # NOTE: because of the row & col specification, the yaxis is automatically set to y2
     for i, data in enumerate(fig.data[1:], 3):
         data.update(yaxis=f"y{i}")
 
     fig.add_trace(go.Scatter(name="<b>orig</b>"), row=1, col=1, hf_x=x, hf_y=sin)
 
-    # Create axis objects
-    # in order for autoshift to work, you need to set x-anchor to free
+    # In order for autoshift to work, you need to set x-anchor to free
     fig.update_layout(
         xaxis=dict(domain=[0, 0.4]),
         xaxis2=dict(domain=[0.56, 1]),
