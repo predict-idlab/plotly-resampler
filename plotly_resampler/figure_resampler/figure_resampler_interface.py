@@ -454,6 +454,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 else:
                     y_axis = "yaxis" + trace.get("yaxis")[1:]
 
+                # Also check for overlaying traces - fixes #242
+                overlaying = figure["layout"].get(y_axis, {}).get("overlaying")
+                if overlaying:
+                    y_axis = "yaxis" + overlaying[1:]
+
                 # Next to the x-anchor, we also fetch the xaxis which matches the
                 # current trace (i.e. if this value is not None, the axis shares the
                 # x-axis with one or more traces).
