@@ -23,6 +23,7 @@ Additionally, this notebook also shows some more advanced functionalities, such 
 * The flexibility of configuring different aggregation-algorithms and number of shown samples per trace
 * How plotly-resampler can be used for logarithmic x-axes and an implementation of a logarithmic aggregation algorithm, i.e., [LogLTTB](example_utils/loglttb.py)
 * Using different `fill_value` for gap handling of filled area plots.
+* Using multiple y-axes in a single subplot (see the [other_examples](other_examples.ipynb))
 
 **Note**: the basic example notebook requires `plotly-resampler>=0.9.0rc3`.
 
