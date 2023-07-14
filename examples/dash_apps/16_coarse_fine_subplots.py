@@ -36,7 +36,7 @@ from dash_extensions.enrich import (
 )
 from trace_updater import TraceUpdater
 from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
-from utils.graph_construction import visualize_multiple_files
+from utils.graph_construction import visualize_multiple_files, remove_other_axes_for_coarse, get_total_rows_and_cols
 
 from plotly_resampler import FigureResampler
 
@@ -55,7 +55,18 @@ name_folder_list = [
         "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
         "other folder": {"folder": Path(__file__).parent.parent.joinpath("data")},
     },
+    {
+        # the key-string below is the title which will be shown in the dash app
+        "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
+        "other folder": {"folder": Path(__file__).parent.parent.joinpath("data")},
+    },
+    {
+        # the key-string below is the title which will be shown in the dash app
+        "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
+        "other folder": {"folder": Path(__file__).parent.parent.joinpath("data")},
+    },
     # NOTE: A new item om this level creates a new file-selector card.
+    # (we're gonna use this to create subplots! to test our callback functionality)
     # { "PC data": { "folder": Path("/home/jonas/data/wesad/empatica/") } }
     # TODO: change the folder path above to a location where you have some
     # `.parquet` files stored on your machine.
@@ -74,7 +85,8 @@ def serve_layout() -> dbc.Container:
 
     """
     return dbc.Container(
-        [
+        [   
+            dcc.Store(id='linked-subplots'),
             dbc.Container(
                 html.H1("Data visualization - coarse & dynamic graph"),
                 style={"textAlign": "center"},
@@ -134,6 +146,7 @@ app.layout = serve_layout()
     [
         Output("coarse-graph", "figure"),
         Output("plotly-resampler-graph", "figure"),
+        # Output("linked-subplots", 'data'),
         ServersideOutput("store", "data"),
     ],
     [Input("plot-button", "n_clicks"), *get_selector_states(len(name_folder_list))],
@@ -155,10 +168,12 @@ def construct_plot_graph(_, *folder_list):
         if len(file_list):
             # Create two graphs, a dynamic plotly-resampler graph and a coarse graph
             dynamic_fig: FigureResampler = visualize_multiple_files(file_list)
-            coarse_fig: go.Figure = go.Figure(
-                FigureResampler(dynamic_fig, default_n_shown_samples=3_000)
-            )
 
+            print(get_total_rows_and_cols(dynamic_fig))
+            coarse_fig: go.Figure = go.Figure(
+                FigureResampler(remove_other_axes_for_coarse(dynamic_fig), default_n_shown_samples=3000)
+            )
+            
             coarse_fig.update_layout(title="<b>coarse view</b>", height=200)
             coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
             coarse_fig.update_layout(showlegend=False, template="plotly_white")
@@ -166,11 +181,21 @@ def construct_plot_graph(_, *folder_list):
                 hovermode=False,
                 clickmode="event+select",
                 dragmode="select",
-                xaxis={"fixedrange": True},
-                yaxis={"fixedrange": True},
                 activeselection=dict(fillcolor="coral", opacity=0.2),
             )
+            _, c_cols = get_total_rows_and_cols(coarse_fig)
+            # make the coarse layout fixed, so the user cannot accidentally zoom into the overview
+            coarse_layout = coarse_fig.layout
+            for c in range(c_cols):
+                coarse_layout[f'xaxis{c+1}']["fixedrange"] = True
+                coarse_layout[f'yaxis{c+1}']["fixedrange"] = True
             
+            
+            # for key in coarse_layout:
+            #     if key.startswith("xaxis") or key.startswith("yaxis"):
+            #         coarse_layout[key]["fixedrange"] = True
+
+            coarse_fig.update_layout(coarse_layout)
             # coarse_fig.add_selection(x0="2010-01-01", y0=20, x1="2010-10-01", y1=90)
             # coarse_fig.add_selection()
             coarse_fig._config = coarse_fig._config.update(
@@ -204,7 +229,7 @@ def construct_plot_graph(_, *folder_list):
                     )
                 )
             dynamic_fig._global_n_shown_samples = 1000
-            dynamic_fig.update_layout(title="<b>dynamic view<b>", height=450)
+            dynamic_fig.update_layout(title="<b>dynamic view<b>")
             dynamic_fig.update_layout(template="plotly_white")
             dynamic_fig.update_layout(margin=dict(l=0, r=0, b=40, t=40, pad=10))
             dynamic_fig.update_layout(
@@ -228,7 +253,7 @@ app.clientside_callback(
 
 # update range with clientside callback
 app.clientside_callback(
-    ClientsideFunction(namespace="clientside", function_name="update_main_with_coarse"),
+    ClientsideFunction(namespace="clientside", function_name="coarse_to_main"),
     Output("plotly-resampler-graph", "id", allow_duplicate=True),
     Input("coarse-graph", "selectedData"),
     State("plotly-resampler-graph", "id"),
@@ -238,7 +263,7 @@ app.clientside_callback(
 
 # update selectbox with clientside callback
 app.clientside_callback(
-    ClientsideFunction(namespace="clientside", function_name="update_coarse_selectbox"),
+    ClientsideFunction(namespace="clientside", function_name="main_to_coarse"),
     Output("coarse-graph", "id"),  # , allow_duplicate=True),
     Input("plotly-resampler-graph", "relayoutData"),
     State("coarse-graph", "id"),
@@ -258,6 +283,7 @@ def construct_update_data(relayout, fr_fig):
         return no_update
 
     print("update_dynamic_fig")
+    # print(relayout)
     t_start = time.time()
     output = fr_fig.construct_update_data(relayout)
     if output != no_update:
