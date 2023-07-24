@@ -6,8 +6,16 @@ name: Unit tests
 on:
   push:
     branches: [ main ]
+    paths:
+      - "tests/**"
+      - "plotly_resampler/**"
+      - "poetry.lock"
   pull_request:
     branches: [ main ]
+    paths:
+      - "tests/**"
+      - "plotly_resampler/**"
+      - "poetry.lock"
 
 jobs:
   test:
