@@ -456,11 +456,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if layout_xaxis_filter is not None:
             layout_trace_mapping = self._layout_xaxis_to_trace_xaxis_mapping()
             # Retrieve the trace xaxis values that are affected by the relayout event
-            trace_xaxis_filter = set(
-                itertools.chain.from_iterable(
-                    [layout_trace_mapping[k] for k in layout_xaxis_filter]
-                )
-            )
+            trace_xaxis_filter: List[str] = layout_trace_mapping[layout_xaxis_filter]
 
         for idx, trace in enumerate(figure["data"]):
             # We skip when (i) the trace-idx already has been updated or (ii) when
