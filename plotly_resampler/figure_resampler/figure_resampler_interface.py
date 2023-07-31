@@ -401,6 +401,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         mapping_dict = {}
         for sub_plot in itertools.chain.from_iterable(self._grid_ref):  # flattten
+            sub_plot = [] if sub_plot is None else sub_plot
             for axes in sub_plot:  # NOTE: you can have multiple axes in a subplot
                 layout_xaxes = axes.layout_keys[0]
                 trace_xaxes = axes.trace_kwargs["xaxis"]
