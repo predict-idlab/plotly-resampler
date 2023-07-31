@@ -60,11 +60,6 @@ name_folder_list = [
         "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
         "other folder": {"folder": Path(__file__).parent.parent.joinpath("data")},
     },
-    {
-        # the key-string below is the title which will be shown in the dash app
-        "example data": {"folder": Path(__file__).parent.parent.joinpath("data")},
-        "other folder": {"folder": Path(__file__).parent.parent.joinpath("data")},
-    },
     # NOTE: A new item om this level creates a new file-selector card.
     # (we're gonna use this to create subplots! to test our callback functionality)
     # { "PC data": { "folder": Path("/home/jonas/data/wesad/empatica/") } }
@@ -73,6 +68,8 @@ name_folder_list = [
 ]
 
 rangeslider_state = {}
+
+global_linked_indices = [2,1,3]
 
 # --------- DASH layout logic ---------
 def serve_layout() -> dbc.Container:
@@ -86,7 +83,7 @@ def serve_layout() -> dbc.Container:
     """
     return dbc.Container(
         [   
-            dcc.Store(id='linked-subplots'),
+            dcc.Store(id='linked-subplots', data=global_linked_indices),
             dbc.Container(
                 html.H1("Data visualization - coarse & dynamic graph"),
                 style={"textAlign": "center"},
@@ -118,13 +115,8 @@ def serve_layout() -> dbc.Container:
                                     layout=go.Layout(
                                         clickmode="select",
                                         dragmode="select",
-                                        xaxis={"fixedrange": True},
-                                        yaxis={"fixedrange": True},
                                     )
                                 ),
-                                # config={
-                                # "modeBarButtonsToAdd": ["drawrect", "eraseshape"]
-                                # },
                             ),
                         ],
                         md=10,
@@ -139,6 +131,58 @@ def serve_layout() -> dbc.Container:
 
 app.layout = serve_layout()
 
+def create_overview_figure(dynamic_fig, linked_indices):
+    dyn_rows, dyn_cols = get_total_rows_and_cols(dynamic_fig)
+
+    print([dyn_rows, dyn_cols])
+
+    # adjust the linked_indices if they are set wrong by the user,
+    # bring it to the closest possible indices on the dynamic fig
+    if dyn_cols > 0 and len(linked_indices) > dyn_cols:
+        linked_indices = linked_indices[:dyn_cols]
+    elif dyn_cols == 0:
+        linked_indices = [linked_indices[0]]
+
+    # take the absolute value of the linked index, 
+    # linked_indices = [item if dyn_rows == 0 else min(abs(item), dyn_rows - 1) for item in linked_indices]
+    
+    #alternative: take the modulo of the linked index
+    # TODO_idea: let the user know the indices are out of range and that it has been wrapped
+    linked_indices = [item%dyn_rows for item in linked_indices]
+
+    print(linked_indices)
+
+    coarse_fig: go.Figure = go.Figure(
+        FigureResampler(remove_other_axes_for_coarse(dynamic_fig, linked_indices), default_n_shown_samples=3000)
+    )
+
+    # coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
+    # height of the overview scales with the height of the dynamic view
+    coarse_fig.update_layout(showlegend=False, template="plotly_white", height=max(dynamic_fig.layout.height/5, 125))
+    coarse_fig.update_layout(
+        hovermode=False,
+        clickmode="event+select",
+        dragmode="select",
+        activeselection=dict(fillcolor="coral", opacity=0.2),
+    )
+
+    coarse_layout = coarse_fig.layout
+    for c in range(dyn_cols):
+        coarse_layout[f'xaxis{c+1}']["fixedrange"] = True
+        coarse_layout[f'yaxis{c+1}']["fixedrange"] = True
+    
+    # not needed
+    # coarse_fig.update_layout(coarse_layout)
+
+
+    coarse_fig._config = coarse_fig._config.update(
+        {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
+        # adds a rangeslider to the coarse graph
+    )
+    return coarse_fig
+            
+
+
 
 # ------------------------------------ DASH logic -------------------------------------
 # --------- graph construction logic + callback ---------
@@ -146,13 +190,12 @@ app.layout = serve_layout()
     [
         Output("coarse-graph", "figure"),
         Output("plotly-resampler-graph", "figure"),
-        # Output("linked-subplots", 'data'),
         ServersideOutput("store", "data"),
     ],
-    [Input("plot-button", "n_clicks"), *get_selector_states(len(name_folder_list))],
+    [Input("plot-button", "n_clicks"), State("linked-subplots", 'data'), *get_selector_states(len(name_folder_list))],
     prevent_initial_call=True,
 )
-def construct_plot_graph(_, *folder_list):
+def construct_plot_graph(_, linked_indices, *folder_list):
     it = iter(folder_list)
     file_list: List[Path] = []
     for folder, files in zip(it, it):
@@ -170,38 +213,7 @@ def construct_plot_graph(_, *folder_list):
             dynamic_fig: FigureResampler = visualize_multiple_files(file_list)
 
             print(get_total_rows_and_cols(dynamic_fig))
-            coarse_fig: go.Figure = go.Figure(
-                FigureResampler(remove_other_axes_for_coarse(dynamic_fig), default_n_shown_samples=3000)
-            )
-            
-            coarse_fig.update_layout(title="<b>coarse view</b>", height=200)
-            coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
-            coarse_fig.update_layout(showlegend=False, template="plotly_white")
-            coarse_fig.update_layout(
-                hovermode=False,
-                clickmode="event+select",
-                dragmode="select",
-                activeselection=dict(fillcolor="coral", opacity=0.2),
-            )
-            _, c_cols = get_total_rows_and_cols(coarse_fig)
-            # make the coarse layout fixed, so the user cannot accidentally zoom into the overview
-            coarse_layout = coarse_fig.layout
-            for c in range(c_cols):
-                coarse_layout[f'xaxis{c+1}']["fixedrange"] = True
-                coarse_layout[f'yaxis{c+1}']["fixedrange"] = True
-            
-            
-            # for key in coarse_layout:
-            #     if key.startswith("xaxis") or key.startswith("yaxis"):
-            #         coarse_layout[key]["fixedrange"] = True
-
-            coarse_fig.update_layout(coarse_layout)
-            # coarse_fig.add_selection(x0="2010-01-01", y0=20, x1="2010-10-01", y1=90)
-            # coarse_fig.add_selection()
-            coarse_fig._config = coarse_fig._config.update(
-                {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
-                # adds a rangeslider to the coarse graph
-            )
+            coarse_fig = create_overview_figure(dynamic_fig, linked_indices)
             if False:
                 coarse_fig.update_layout(
                     xaxis=dict(
@@ -228,6 +240,9 @@ def construct_plot_graph(_, *folder_list):
                         type="date",
                     )
                 )
+
+            coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
+
             dynamic_fig._global_n_shown_samples = 1000
             dynamic_fig.update_layout(title="<b>dynamic view<b>")
             dynamic_fig.update_layout(template="plotly_white")

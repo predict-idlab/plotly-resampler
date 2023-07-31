@@ -4,6 +4,7 @@ from typing import List, Union
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+import copy
 
 from plotly_resampler import FigureResampler
 
@@ -23,7 +24,7 @@ def visualize_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampl
 
     """
     fig = FigureResampler(make_subplots(cols=len(file_list), rows=3 , shared_xaxes=False))
-    fig.update_layout(height=min(2000, 300 * 3))
+    fig.update_layout(height=min(750, 250 * 3))
     
 
     for i, f in enumerate(file_list, 1):
@@ -37,24 +38,29 @@ def visualize_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampl
                 fig.add_trace(go.Scatter(name=c), hf_x=df.index, hf_y=df[c], row=j+1, col=i)
     return fig
 
-# TODO: Adjust function to work with a list of linkedIndices
-# => (determines which subplots to take from main and put into coarse)
-def remove_other_axes_for_coarse(figure):
-    rows, cols = get_total_rows_and_cols(figure)
+# determines which subplot data to take from main and put into coarse
+def remove_other_axes_for_coarse(figure, linked_indices):
+    _, cols = get_total_rows_and_cols(figure)
     # axes are numbered from left to right, top to bottom.
     # subplot in row 1, col 1 will have axes xy, subplot in row 1, col 2 will have axes x2y2, and so on...
     # to obtain the first subplot of every column, 
     # one must simply take the axes xy until xmym (m being the number of columns)
 
-    first_y_indices = [('y' if r == 0 else f'y{r+1}') for r in range(cols)]
-    first_x_indices = [('x' if r == 0 else f'x{r+1}') for r in range(cols)]
+    main_graph_indices = [len(linked_indices) * d + i for (i, d) in enumerate(linked_indices)]
+    # for (i , d)  in enumerate(linked_indices):
+    #     main_graph_indices.append(len(linked_indices) * d + i)
 
-    # print(first_y_indices)
-    # print(first_x_indices)
+    y_indices = [('y' if r == 0 else f'y{r+1}') for r in main_graph_indices]
+    x_indices = [('x' if r == 0 else f'x{r+1}') for r in main_graph_indices]
     
+
     first_subplot = []
-    for i, d in enumerate(figure.data):
-        if (d['xaxis'] in first_x_indices) & (d['yaxis'] in first_y_indices):
+    figdata = copy.deepcopy(figure.data)
+    for i, d in enumerate(figdata):
+        if (d['xaxis'] in x_indices) & (d['yaxis'] in y_indices):
+            col = x_indices.index(d['xaxis'])
+            d['xaxis'] = 'x' if col == 0 else f'x{col+1}'
+            d['yaxis'] = 'y' if col == 0 else f'y{col+1}'
             first_subplot.append(d)
     fig_tmp = go.Figure(data=first_subplot)
     fig = make_subplots(rows=1, cols=cols, figure=fig_tmp)
