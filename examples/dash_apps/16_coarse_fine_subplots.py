@@ -263,6 +263,7 @@ app.clientside_callback(
     Input("coarse-graph", "figure"),
     State("plotly-resampler-graph", "id"),
     State("coarse-graph", "id"),
+    State("linked-subplots", 'data'),
     prevent_initial_call=True,
 )
 
@@ -273,6 +274,7 @@ app.clientside_callback(
     Input("coarse-graph", "selectedData"),
     State("plotly-resampler-graph", "id"),
     State("coarse-graph", "id"),
+    State("linked-subplots", 'data'),
     prevent_initial_call=True,
 )
 
@@ -283,6 +285,7 @@ app.clientside_callback(
     Input("plotly-resampler-graph", "relayoutData"),
     State("coarse-graph", "id"),
     State("plotly-resampler-graph", "id"),
+    State("linked-subplots", 'data'),
     prevent_initial_call=True,
 )
 

@@ -2,7 +2,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 	clientside: {
 		// TODO -> fix doubble callback -> maybe check whether the range of the selected that is the same 
 		// range of the figure?
-		coarse_to_main: function (selectedData, mainFigID, coarseFigID) {
+		coarse_to_main: function (selectedData, mainFigID, coarseFigID, linkedIndices) {
 			//define helper function (imports not allowed?)
 			function getGraphDiv(gdID) {
 				// see this link for more information https://stackoverflow.com/a/34002028 
@@ -88,7 +88,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					// console.log(mainRows);
 
 					//to be passed as argument of this function?
-					let linkedIndices = [1, 1, 2];
+					// let linkedIndices = [1, 1, 2];
 					//perform extra checks on passed linkedIndices (could be moved over to the back-end + deleted from here)
 					if (mainCols > 0 && linkedIndices.length > mainCols) {
 						linkedIndices = linkedIndices.slice(0, mainCols);
@@ -255,7 +255,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			return mainFigID;
 		},
-		main_to_coarse: function (mainFigRelayout, coarseFigID, mainFigID) {
+		main_to_coarse: function (mainFigRelayout, coarseFigID, mainFigID, linkedIndices) {
 			//define helper function (imports not allowed?)
 			function getGraphDiv(gdID) {
 				// see this link for more information https://stackoverflow.com/a/34002028 
@@ -365,7 +365,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			// const linkedIndices = new Array(coarseCols).fill(0);
 
 			//perform extra checks on passed linkedIndices (could be moved over to the back-end + deleted from here)
-			let linkedIndices = [1, 1, 2];
+			// let linkedIndices = [1, 1, 2];
 			if (mainCols > 0 && linkedIndices.length > mainCols) {
 				linkedIndices = linkedIndices.slice(0, mainCols);
 			} else if (mainCols === 0) {
@@ -521,7 +521,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			return coarseFigID;
 		},
-		set_coarse_range: function (coarsefigure, mainFigID, coarseFigID) {
+		set_coarse_range: function (coarsefigure, mainFigID, coarseFigID, linkedIndices) {
 			function getGraphDiv(gdID) {
 				// see this link for more information https://stackoverflow.com/a/34002028 
 				let graphDiv = document?.querySelectorAll('div[id*="' + gdID + '"][class*="dash-graph"]');
@@ -593,7 +593,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			const [mainRows, mainCols] = getGridLayout(main_graphDiv.layout);
 
-			let linkedIndices = [1, 1, 2];
+			// let linkedIndices = [1, 1, 2];
 			if (mainCols > 0 && linkedIndices.length > mainCols) {
 				linkedIndices = linkedIndices.slice(0, mainCols);
 			} else if (mainCols === 0) {
