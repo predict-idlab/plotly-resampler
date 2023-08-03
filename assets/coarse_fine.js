@@ -73,6 +73,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			// console.warn("before coarse -> main");
 
 			//obtain the graph components from the DOM
+
+			// console.log(window.dash_clientside.callback_context.triggered[0].prop_id);
 			main_graphDiv = getGraphDiv(mainFigID);
 			coarse_graphDiv = getGraphDiv(coarseFigID);
 			let updateCondition = false;
@@ -612,7 +614,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			
 			// console.log(main_graphDiv._fullData);
-			// console.log(coarse_graphDiv.data);
+			console.log(coarse_graphDiv.data);
 			let updateData = [];
 			linkedIndices.forEach((item, i) => {
 				const subplotIndex = +linkedIndices.length * item + i;

@@ -14,6 +14,7 @@ import base64
 import uuid
 import warnings
 from typing import List, Tuple
+import copy
 
 import dash
 import plotly.graph_objects as go
@@ -21,6 +22,7 @@ from flask_cors import cross_origin
 from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
+from plotly.subplots import make_subplots
 
 from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
 from .figure_resampler_interface import AbstractFigureAggregator
@@ -196,6 +198,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
+        xaxis_overview_kwargs: dict = {"visible": False}, # added here bc overview only compatible with FigureResampler, default value => original FigureResampler graph, no x-axis overview
         show_dash_kwargs: dict | None = None,
     ):
         """Initialize a dynamic aggregation data mirror using a dash web app.
@@ -238,6 +241,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 ``convert_existing_traces`` is set to True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
+        TODO: add xaxis_overview_kwargs documentation
         show_dash_kwargs: dict, optional
             A dict that will be used as default kwargs for the :func:`show_dash` method.
             Note that the passed kwargs will be take precedence over these defaults.
@@ -318,10 +322,71 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 for idx in update_indices:
                     self.data[idx].update(graph_dict["data"][idx])
 
+        # TODO: find the proper way to keep these kwargs
+        self._xaxis_overview_visible = xaxis_overview_kwargs.get("visible", False)
+        # # array representing the indices per column of the subplot that should be 
+        # # linked with the columns corresponding xaxis overview
+        self._xaxis_overview_linked_subplots = self._check_linked_indices_valid(xaxis_overview_kwargs.get("linked_subplots", None))
+
         # The FigureResampler needs a dash app
         self._app: JupyterDash | dash.Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
+
+    def toggle_overview(self, overview_kwargs: dict):
+        self._xaxis_overview_visible = overview_kwargs.get("visible", False)
+        # array representing the indices per column of the subplot that should be 
+        # linked with the columns corresponding xaxis overview
+        if self._xaxis_overview_visible:
+            linked_subplots = overview_kwargs.get("linked_subplots", None)
+            # only make changes in the overviews if they are needed, otherwise keep the previous configuration
+            if linked_subplots is not None:
+                self._xaxis_overview_linked_subplots = self._check_linked_indices_valid(linked_subplots)
+
+    def _create_overview_figure(self):
+        _, fig_cols = self._get_subplot_rows_and_cols_from_grid()
+
+        main_graph_indices = [fig_cols * d + i for (i, d) in enumerate(self._xaxis_overview_linked_subplots)]
+        
+
+        coarse_fig: go.Figure = go.Figure(
+            FigureResampler(self._remove_other_axes_for_coarse(), default_n_shown_samples=3000)
+        )
+
+        # coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
+        # height of the overview scales with the height of the dynamic view
+        coarse_fig.update_layout(showlegend=False, template="plotly_white", height=250)
+        coarse_fig.update_layout(
+            hovermode=False,
+            clickmode="event+select",
+            dragmode="select",
+            activeselection=dict(fillcolor="coral", opacity=0.2),
+        )
+
+        coarse_layout = coarse_fig.layout
+        for i, c in enumerate(main_graph_indices):
+            # TODO: get subplot indices, 
+            # get x and y range in main layout!!! for each subplot
+            # use ranges to add selection to each subplot
+            subplot_main =  c+1 if c>0 else ""
+
+            mxrange = self.full_figure_for_development(warn=False).layout[f'xaxis{subplot_main}']["range"]
+            myrange = self.full_figure_for_development(warn=False).layout[f'yaxis{subplot_main}']["range"]
+
+            subplot_coarse = i+1 if i>0 else ""
+
+            coarse_layout[f'xaxis{subplot_coarse}']["fixedrange"] = True
+            coarse_layout[f'yaxis{subplot_coarse}']["fixedrange"] = True
+
+            coarse_layout[f'xaxis{subplot_coarse}']['range'] = mxrange
+            coarse_layout[f'yaxis{subplot_coarse}']['range'] = myrange
+            coarse_fig.add_selection(x0=mxrange[0],x1=mxrange[1],y0=myrange[0],y1=myrange[1], row=1, col=i+1)
+
+        coarse_fig._config = coarse_fig._config.update(
+            {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
+            # adds a rangeslider to the coarse graph
+        )
+        return coarse_fig
 
     def show_dash(
         self,
@@ -410,17 +475,34 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             app = JupyterDashPersistentInlineOutput("local_app")
         else:
             app = JupyterDash("local_app")
-        app.layout = dash.html.Div(
-            [
-                dash.dcc.Graph(
-                    id="resample-figure", figure=self, config=config, **graph_properties
-                ),
-                TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
-                ),
-            ]
-        )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
+        if self._xaxis_overview_visible:
+            overview_figure = self._create_overview_figure()
+            app.layout = dash.html.Div(
+                [
+                    dash.dcc.Store(id='linked-subplots', data=self._xaxis_overview_linked_subplots),
+                    dash.dcc.Graph(
+                        id="resample-figure", figure=self, config=config, **graph_properties
+                    ),
+                    TraceUpdater(
+                        id="trace-updater", gdID="resample-figure", sequentialUpdate=False
+                    ),
+                    dash.dcc.Graph(id="overview-figure", figure=overview_figure, config=config, **graph_properties
+                    ),
+                ]
+            )
+        else:
+            app.layout = dash.html.Div(
+                [
+                    dash.dcc.Graph(
+                        id="resample-figure", figure=self, config=config, **graph_properties
+                    ),
+                    TraceUpdater(
+                        id="trace-updater", gdID="resample-figure", sequentialUpdate=False
+                    ),
+                ]
+            )
+        
+        self.register_update_graph_callback(app, "resample-figure", "trace-updater", "overview-figure")
 
         # 2. Run the app
         if mode == "inline" and "height" not in kwargs:
@@ -466,7 +548,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             )
 
     def register_update_graph_callback(
-        self, app: dash.Dash, graph_id: str, trace_updater_id: str
+        self, app: dash.Dash, graph_id: str, trace_updater_id: str, coarse_graph_id: str 
     ):
         """Register the :func:`construct_update_data` method as callback function to
         the passed dash-app.
@@ -484,12 +566,98 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             front-end.
 
         """
+        # TODO: add overview bool variable to check here if we have to add the clientside callbacks
+        # synchronize overview and pr graph initial range with clientside callback
+        if self._xaxis_overview_visible:
+            # TODO (not priority): merge main -> coarse and coarse -> main? more "efficient" data usage?? no dupe output? :))
+            # problem: callback context, triggered property in JS? => exists, no problem
+
+            # update pr graph range with overview selection
+            app.clientside_callback(
+                dash.dependencies.ClientsideFunction(namespace="clientside", function_name="coarse_to_main"),
+                dash.dependencies.Output(graph_id, "id", allow_duplicate=True),
+                dash.dependencies.Input(coarse_graph_id, "selectedData"),
+                dash.dependencies.State(graph_id, "id"),
+                dash.dependencies.State(coarse_graph_id, "id"),
+                dash.dependencies.State("linked-subplots", 'data'),
+                prevent_initial_call=True,
+            )
+
+            # update selectbox with clientside callback
+            app.clientside_callback(
+                dash.dependencies.ClientsideFunction(namespace="clientside", function_name="main_to_coarse"),
+                dash.dependencies.Output(coarse_graph_id, "id"),  # , allow_duplicate=True),
+                dash.dependencies.Input(graph_id, "relayoutData"),
+                dash.dependencies.State(coarse_graph_id, "id"),
+                dash.dependencies.State(graph_id, "id"),
+                dash.dependencies.State("linked-subplots", 'data'),
+                prevent_initial_call=True,
+            )
+
         app.callback(
             dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
         )(self.construct_update_data)
 
+    def _get_subplot_rows_and_cols_from_grid(self):
+        if self._grid_ref is None:
+            return (1,1)
+        else:
+            return (len(self._grid_ref), len(self._grid_ref[0]))
+
+    def _check_linked_indices_valid(self, linked_indices: list = None):
+        #TODO: add content checks for security?
+        dyn_rows, dyn_cols = self._get_subplot_rows_and_cols_from_grid()
+
+        # adjust the linked_indices if they are set wrong by the user,
+        # bring it to the closest possible indices on the dynamic fig
+        if linked_indices:
+            if dyn_cols > 0 and len(linked_indices) > dyn_cols:
+                linked_indices = linked_indices[:dyn_cols]
+            elif dyn_cols == 0:
+                linked_indices = [linked_indices[0]]
+
+            # take the absolute value of the linked index, 
+            # linked_indices = [item if dyn_rows == 0 else min(abs(item), dyn_rows - 1) for item in linked_indices]
+            
+            #alternative: take the modulo of the linked index
+            # TODO: let the user know the indices are out of range and that it has been wrapped
+            linked_indices = [item%dyn_rows for item in linked_indices]
+        else:
+            linked_indices = [0 for i in range(dyn_cols)]
+        
+        return linked_indices
+
+    # determines which subplot data to take from main and put into coarse
+    def _remove_other_axes_for_coarse(self):
+        cols = len(self._xaxis_overview_linked_subplots)
+
+        # Translate the linked subplot indices to actual subplot indices
+        main_graph_indices = [cols * d + i for (i, d) in enumerate(self._xaxis_overview_linked_subplots)]
+
+        y_indices = [('y' if r == 0 else f'y{r+1}') for r in main_graph_indices]
+        x_indices = [('x' if r == 0 else f'x{r+1}') for r in main_graph_indices]
+        
+        # copy the data from the relevant subplots
+        overview_data = []
+        figdata = copy.deepcopy(self.data)
+        for i, d in enumerate(figdata):
+            if (d['xaxis'] in x_indices) and (d['yaxis'] in y_indices):
+                col = x_indices.index(d['xaxis'])
+                d['xaxis'] = 'x' if col == 0 else f'x{col+1}'
+                d['yaxis'] = 'y' if col == 0 else f'y{col+1}'
+                d['line']['color'] = self._layout_obj.template.layout.colorway[i] if self.data[i].line.color is None else self.data[i].line.color
+                overview_data.append(d)
+
+        # create a figure object with those
+        fig_tmp = go.Figure(data=overview_data)
+        if cols > 1:
+            fig = make_subplots(rows=1, cols=cols, figure=fig_tmp)
+        else:
+            fig = fig_tmp
+        return fig
+    
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class
         return super()._get_pr_props_keys() + ["_show_dash_kwargs"]
