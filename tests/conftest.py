@@ -64,7 +64,7 @@ def driver():
             options.add_argument("--headless")
         # options.add_argument("--no=sandbox")
         driver = webdriver.Chrome(
-            ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
+            # ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
             options=options,
             desired_capabilities=d,
         )
