@@ -27,6 +27,28 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			const roundTo10Decimals = (a) => {
 				return +a.toFixed(10)
 			};
+			
+			const timeSeriesRangeSortandRound = (array) => {
+				const isNumber = (currentValue) => typeof(currentValue)=="number";
+				const isDate = (currentValue) => !isNan(Date.parse(a));
+
+				if(array.every(isNumber || isDate)){
+					array = array.sort((a, b) => {
+						if(typeof(a) == "number" && !isNaN(a) && typeof(b) == "number" && !isNaN(b)){
+							console.log("sorting by number value");
+							return a - b;
+						} else if (!isNaN(Date.parse(a)) && !isNan(Date.parse(b))){
+							console.log("sorting by parsed date");
+							return Date.parse(a) - Date.parse(b);
+						}
+					});
+				}
+				if(array.every(isNumber)){
+					array.map(roundTo10Decimals);
+				}
+				return array
+
+			}
 
 			/**
 			 * 
@@ -153,12 +175,23 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 						filteredTriggerData = filteredTriggerData.map(obj => {
 							const subplotIndex = obj.columnIndex + 1;
 							const filteredSelection = currentSelections.filter(selection => {
+								console.log(selection.xref+selection.yref);
+								console.log(Date.parse(selection.x0));
+								const sxrange = timeSeriesRangeSortandRound([selection.x0, selection.x1]);
+								const syrange = [selection.y0, selection.y1].sort(function (a, b) { return a - b }).map(roundTo10Decimals);
+								
+								console.log(sxrange);
+								console.log(syrange);
+								console.log(!compareArrays(sxrange, obj.mxrange));
+								console.log(!compareArrays(syrange, obj.myrange));
 								//Plotly accepts both x and x1 as indices, 
 								//so if we are looking for selections the first axis, check both options
 								if (obj.columnIndex == 0) {
-									return selection.xref === 'x' || selection.xref === `x${subplotIndex}`;
+									return (selection.xref === 'x' || selection.xref === `x${subplotIndex}`)
+										&& (!compareArrays(sxrange, obj.mxrange) || !compareArrays(syrange, obj.myrange));
 								} else {
 									return selection.xref === `x${subplotIndex}`
+										&& (!compareArrays(sxrange, obj.mxrange) || !compareArrays(syrange, obj.myrange));
 								}
 
 							});
@@ -168,6 +201,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 							if (filteredSelection.length > 0) {
 								obj["sxrange"] = [filteredSelection[0].x0, filteredSelection[0].x1].sort((a, b) => Date.parse(a) - Date.parse(b));
 								obj["syrange"] = [filteredSelection[0].y0, filteredSelection[0].y1].sort(function (a, b) { return a - b }).map(roundTo10Decimals);
+							} else {
+								updateCondition = false;
 							}
 							return obj
 						});
@@ -522,264 +557,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			}
 
 			return coarseFigID;
-		},
-		set_coarse_range: function (coarsefigure, mainFigID, coarseFigID, linkedIndices) {
-			function getGraphDiv(gdID) {
-				// see this link for more information https://stackoverflow.com/a/34002028 
-				let graphDiv = document?.querySelectorAll('div[id*="' + gdID + '"][class*="dash-graph"]');
-				if (graphDiv.length > 1) {
-					throw new SyntaxError("UpdateStore: multiple graphs with ID=" + gdID + " found; n=" + graphDiv.length + " (either multiple graphs with same ID's or current ID is a str-subset of other graph IDs)");
-				} else if (graphDiv.length < 1) {
-					throw new SyntaxError("UpdateStore: no graphs with ID=" + gdID + " found");
-				}
-				graphDiv = graphDiv?.[0]?.getElementsByClassName('js-plotly-plot')?.[0];
-				const isDOMElement = el => el instanceof HTMLElement
-				if (!isDOMElement) {
-					throw new Error(`Invalid gdID '${gdID}'`);
-				}
-				return graphDiv;
-			}
-			//can be changed for something more sophisticated if needed, 
-			//it does the job of determining if two arrays have the same values for now
-			const compareArrays = (a, b) => {
-				return JSON.stringify(a) === JSON.stringify(b);
-			};
-			const roundTo10Decimals = (a) => {
-				return +a.toFixed(10)
-			};
-
-			/**
-			 * 
-			 * @param {object} layout : layout object from which the x and y ranges should be extracted
-			 * @param {Array} indexList : list of subplot indices of which the x and y range should be extracted. undefined = all subplots
-			 * @returns an array containing an array of xranges and an array of yranges of the figure the layout comes from
-			 */
-			const getFigureInfo = (layout, indexList = undefined) => {
-				const yrange = [];
-				const xrange = [];
-
-
-				Object.keys(layout).forEach(key => {
-					if (key.startsWith("yaxis")) {
-						const axisNumber = key.slice(5, 6) ? key.slice(5, 6) - 1 : 0; // Extract the axis number from the key
-						if (!(indexList && !indexList.includes(axisNumber))) {
-							const axisRange = layout[key].range;
-							yrange.push({ [axisNumber]: axisRange });
-						}
-					} else if (key.startsWith("xaxis")) {
-						const axisNumber = key.slice(5, 9) ? key.slice(5, 9) - 1 : 0; // Extract the axis number from the key
-						if (!(indexList && !indexList.includes(axisNumber))) {
-							const axisRange = layout[key].range;
-							xrange.push({ [axisNumber]: axisRange });
-						}
-					}
-				});
-				return [xrange, yrange];
-			};
-
-			const getGridLayout = (layout) => {
-				const xaxes = new Set();
-				const yaxes = new Set();
-
-				Object.keys(layout).forEach(key => {
-					if (key.startsWith("yaxis")) {
-						yaxes.add(JSON.stringify(layout[key].domain));
-					} else if (key.startsWith("xaxis")) {
-						xaxes.add(JSON.stringify(layout[key].domain));
-					}
-				});
-				return [yaxes.size, xaxes.size]
-			}
-			let coarse_graphDiv = getGraphDiv(coarseFigID);
-			let main_graphDiv = getGraphDiv(mainFigID);
-
-			const [mainRows, mainCols] = getGridLayout(main_graphDiv.layout);
-
-			// let linkedIndices = [1, 1, 2];
-			if (mainCols > 0 && linkedIndices.length > mainCols) {
-				linkedIndices = linkedIndices.slice(0, mainCols);
-			} else if (mainCols === 0) {
-				linkedIndices = [linkedIndices[0]];
-			}
-
-			linkedIndices = linkedIndices.map((item, i) => {
-				if (mainRows === 0) {
-					item = 0;
-				} else if (item >= mainRows) {
-					// set the row to the max possible index within the grid
-					item = mainRows - 1;
-				}
-				return item;
-			})
-
-			
-			// console.log(main_graphDiv._fullData);
-			console.log(coarse_graphDiv.data);
-			let updateData = [];
-			linkedIndices.forEach((item, i) => {
-				const subplotIndex = +linkedIndices.length * item + i;
-				const columnIndex = +i;
-				// add color of linked plot traces to updateData => change trace colors of coarse graph
-				let filteredTraceColors = main_graphDiv._fullData.filter(trace => {
-					if (subplotIndex === 0) {
-						return trace.xaxis === `x${subplotIndex + 1}` || trace.xaxis === "x"
-					} else {
-						return trace.xaxis === `x${subplotIndex + 1}`
-					}
-
-				}).map(obj => {
-					return {
-						"name": obj.name,
-						"traceColor": obj.line.color
-					}
-				});
-
-				const filteredTraceIndices = filteredTraceColors.map(obj => {
-					return coarse_graphDiv.data.findIndex(trace => trace.name === obj.name);
-				});
-
-				updateData.push({
-					"columnIndex": +i,
-					"linkIndex": +item,
-					"mainSubplotIndex": subplotIndex,
-					"traceColors": filteredTraceColors.map(obj => obj.traceColor),
-					"coarseTraceIndices": filteredTraceIndices
-				})
-			});
-
-
-			console.log(updateData);
-
-			const filteredTriggers = updateData.map(obj => obj.mainSubplotIndex);
-
-			let [xrange, yrange] = getFigureInfo(main_graphDiv.layout, filteredTriggers);
-			let [cxrange, cyrange] = getFigureInfo(coarse_graphDiv.layout);
-
-			updateData = updateData.map(obj => {
-				const subplotIndex = obj.mainSubplotIndex;
-				const columnIndex = obj.columnIndex;
-				const yrangeval = yrange.find(o => o.hasOwnProperty(subplotIndex));
-				const xrangeval = xrange.find(o => o.hasOwnProperty(subplotIndex));
-				const cyrangeval = cyrange.find(o => o.hasOwnProperty(columnIndex));
-				const cxrangeval = cxrange.find(o => o.hasOwnProperty(columnIndex));
-
-				if (xrangeval) {
-					obj["mxrange"] = xrangeval[subplotIndex];
-					obj["myrange"] = yrangeval[subplotIndex].map(roundTo10Decimals);
-					obj["cxrange"] = cxrangeval[columnIndex];
-					obj["cyrange"] = cyrangeval[columnIndex].map(roundTo10Decimals);
-				}
-				return obj
-			});
-
-
-			let updates = { 'selections': [] };
-			let restyleUpdates = { "line.color": [] };
-			let restyleTraces = [];
-			updateData.forEach(obj => {
-				const subplotIndex = +obj.columnIndex === 0 ? "" : String(obj.columnIndex + 1);
-				if (!compareArrays(obj["mxrange"], obj["cxrange"]) || !compareArrays(obj["myrange"], obj["cyrange"])) {
-
-					console.warn("updating coarse range");
-					let xaxisKey0 = `xaxis${subplotIndex}.range[0]`;
-					let xaxisKey1 = `xaxis${subplotIndex}.range[1]`;
-					let yaxisKey0 = `yaxis${subplotIndex}.range[0]`;
-					let yaxisKey1 = `yaxis${subplotIndex}.range[1]`;
-
-					updates = {
-						...updates,
-						[xaxisKey0]: obj.mxrange[0],
-						[xaxisKey1]: obj.mxrange[1],
-						[yaxisKey0]: obj.myrange[0],
-						[yaxisKey1]: obj.myrange[1],
-					};
-				}
-				updates['selections'].push({
-					"xref": `x${subplotIndex}`,
-					"yref": `y${subplotIndex}`,
-					"line": {
-						"width": 1,
-						"dash": "dot"
-					},
-					"type": "rect",
-					"x0": obj.mxrange[0],
-					"x1": obj.mxrange[1],
-					"y0": obj.myrange[0],
-					"y1": obj.myrange[1]
-				});
-
-				restyleUpdates['line.color'].push(...obj.traceColors);
-				restyleTraces.push(...obj.coarseTraceIndices);
-
-			});
-			console.log(restyleUpdates);
-			console.log(restyleTraces);
-
-
-
-
-			// for (let i = 0; i < cxrange.length; i++) {
-
-			// 	const xrange = Object.values(mxrange[i]);
-			// 	const yrange = Object.values(myrange[i]);
-			// 	if (!compareArrays(xrange, Object.values(cxrange[i])) || !compareArrays(yrange, Object.values(cyrange[i]))) {
-			// 		console.warn("updating coarse range");
-
-			// 		let xaxisKey0;
-			// 		let xaxisKey1;
-			// 		let yaxisKey0;
-			// 		let yaxisKey1;
-
-			// 		if (i == 0) {
-			// 			xaxisKey0 = 'xaxis.range[0]';
-			// 			xaxisKey1 = 'xaxis.range[1]';
-
-			// 			yaxisKey0 = 'yaxis.range[0]';
-			// 			yaxisKey1 = 'yaxis.range[1]';
-			// 		} else {
-			// 			xaxisKey0 = `xaxis${i + 1}.range[0]`;
-			// 			xaxisKey1 = `xaxis${i + 1}.range[1]`;
-
-			// 			yaxisKey0 = `yaxis${i + 1}.range[0]`;
-			// 			yaxisKey1 = `yaxis${i + 1}.range[1]`;
-			// 		}
-
-
-			// 		updates[xaxisKey0] = xrange[0][0];
-			// 		updates[xaxisKey1] = xrange[0][1];
-			// 		updates[yaxisKey0] = yrange[0][0];
-			// 		updates[yaxisKey1] = yrange[0][1];
-
-			// 	}
-			// 	updates['selections'].push({
-			// 		"xref": `x${i + 1}`,
-			// 		"yref": `y${i + 1}`,
-			// 		"line": {
-			// 			"width": 1,
-			// 			"dash": "dot"
-			// 		},
-			// 		"type": "rect",
-			// 		"x0": xrange[0][0],
-			// 		"x1": xrange[0][1],
-			// 		"y0": yrange[0][0],
-			// 		"y1": yrange[0][1]
-			// 	});
-
-
-			// 	// let coarse_graphDiv2 = getGraphDiv(coarseFigID);
-			// 	// let cyrange2 = coarse_graphDiv2.layout.yaxis.range;
-			// 	// let cxrange2 = coarse_graphDiv2.layout.xaxis.range;
-			// 	// console.log("coarse range x: " + cxrange2);
-			// 	// console.log("coarse range y:" + cyrange2);
-			// 	// console.log("main range x: " + mxrange);
-			// 	// console.log("main range y: " + myrange);
-			// 	
-			// }
-			console.log(updates);
-			Plotly.relayout(coarse_graphDiv, updates);
-			Plotly.restyle(coarse_graphDiv, restyleUpdates, restyleTraces);
-			console.log(coarse_graphDiv.layout.selections);
-			return mainFigID;
 		}
 	}
 });
