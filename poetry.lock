@@ -2612,20 +2612,6 @@ files = [
 six = ">=1.5"
 
 [[package]]
-name = "python-dotenv"
-version = "0.21.1"
-description = "Read key-value pairs from a .env file and set them as environment variables"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "python-dotenv-0.21.1.tar.gz", hash = "sha256:1c93de8f636cde3ce377292818d0e440b6e45a82f215c3744979151fa8151c49"},
-    {file = "python_dotenv-0.21.1-py3-none-any.whl", hash = "sha256:41e12e0318bebc859fcc4d97d4db8d20ad21721a6aa5047dd59f090391cb549a"},
-]
-
-[package.extras]
-cli = ["click (>=5.0)"]
-
-[[package]]
 name = "pytz"
 version = "2023.3"
 description = "World timezone definitions, modern and historical"
@@ -3498,22 +3484,6 @@ files = [
 ]
 
 [[package]]
-name = "webdriver-manager"
-version = "4.0.0"
-description = "Library provides the way to automatically manage drivers for different browsers"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "webdriver_manager-4.0.0-py2.py3-none-any.whl", hash = "sha256:05f58ab599b907b03e0aa8d6b43624b1ca8c12d5d48455c79c531b9052ae2356"},
-    {file = "webdriver_manager-4.0.0.tar.gz", hash = "sha256:2b8d1c2cb590d296ade18bc7bc2589578a868f5587133922d744641f6a757a20"},
-]
-
-[package.dependencies]
-packaging = "*"
-python-dotenv = "*"
-requests = "*"
-
-[[package]]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
@@ -3664,4 +3634,4 @@ inline-persistent = ["Flask-Cors", "jupyter-dash", "kaleido"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.1"
-content-hash = "7ec4faf73dbc7ca7440b058017844482cfd12b3a21955092099432ea6f0afc8b"
+content-hash = "7b597bc5ca4c701094441c84708627987f635519c1a343517e90f98636807d5c"
