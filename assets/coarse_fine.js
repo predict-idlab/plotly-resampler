@@ -3,7 +3,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 		// TODO -> fix doubble callback -> maybe check whether the range of the selected that is the same 
 		// range of the figure?
 		coarse_to_main: function (selectedData, mainFigID, coarseFigID, linkedIndices) {
-			//define helper function (imports not allowed?)
+			/*
+				------------ HELPERS -----------
+			*/
 			function getGraphDiv(gdID) {
 				// see this link for more information https://stackoverflow.com/a/34002028 
 				let graphDiv = document?.querySelectorAll('div[id*="' + gdID + '"][class*="dash-graph"]');
@@ -24,30 +26,48 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			const compareArrays = (a, b) => {
 				return JSON.stringify(a) === JSON.stringify(b);
 			};
-			const roundTo10Decimals = (a) => {
-				return +a.toFixed(10)
-			};
-			
-			const timeSeriesRangeSortandRound = (array) => {
-				const isNumber = (currentValue) => typeof(currentValue)=="number";
-				const isDate = (currentValue) => !isNan(Date.parse(a));
 
+			const roundTo5Decimals = (a) => {
+				if(isNumber(a)){
+					return +a.toFixed(5);
+				} else {
+					return a;
+				}
+				
+			};
+
+			const isNumber = (currentValue) => typeof(currentValue)=="number";
+
+			const isDate = (currentValue) => !isNan(Date.parse(currentValue));
+
+			/**
+			 * 
+			 * @param {Array} array : array to be sorted 
+			 * @param {Array} reference : array to use as reference for sorting direction
+			 * @returns 
+			 */
+			const timeSeriesRangeSort = (array, reference) => {
 				if(array.every(isNumber || isDate)){
 					array = array.sort((a, b) => {
-						if(typeof(a) == "number" && !isNaN(a) && typeof(b) == "number" && !isNaN(b)){
-							console.log("sorting by number value");
+						if(isNumber(a) && !isNaN(a) && isNumber(b) && !isNaN(b)){
+							if(reference.every(isNumber)){
+								if(reference[0] > reference[1]){
+									return b - a; 
+								}
+							}
 							return a - b;
-						} else if (!isNaN(Date.parse(a)) && !isNan(Date.parse(b))){
-							console.log("sorting by parsed date");
+
+						} else if (isDate(a) && isDate(b)){
+							if(reference.every(isDate)){
+								if( Date.parse(reference[0]) >  Date.parse(reference[1])){
+									return Date.parse(b) - Date.parse(a);
+								}
+							}
 							return Date.parse(a) - Date.parse(b);
 						}
 					});
 				}
-				if(array.every(isNumber)){
-					array.map(roundTo10Decimals);
-				}
-				return array
-
+				return array;
 			}
 
 			/**
@@ -77,25 +97,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				});
 				return [xrange, yrange];
 			};
-
-			const getGridLayout = (layout) => {
-				const xaxes = new Set();
-				const yaxes = new Set();
-
-				Object.keys(layout).forEach(key => {
-					if (key.startsWith("yaxis")) {
-						yaxes.add(JSON.stringify(layout[key].domain));
-					} else if (key.startsWith("xaxis")) {
-						xaxes.add(JSON.stringify(layout[key].domain));
-					}
-				});
-				return [yaxes.size, xaxes.size]
-			}
-
-			// console.warn("before coarse -> main");
-
+			/*
+				------------ CALLBACK -----------
+			*/
 			//obtain the graph components from the DOM
 
+			//for future: merge callbacks and check trigger prop!
 			// console.log(window.dash_clientside.callback_context.triggered[0].prop_id);
 			main_graphDiv = getGraphDiv(mainFigID);
 			coarse_graphDiv = getGraphDiv(coarseFigID);
@@ -103,32 +110,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			let updates = {};
 			if (selectedData) {
 				if (selectedData.range) {
-					console.warn("starting: coarse -> main");
+					// console.warn("starting: coarse -> main");
 
 					let triggerCols = [...new Set(Object.keys(selectedData.range).map(item => +(item.substring(1) || 1) - 1))];
-
-					const [mainRows, mainCols] = getGridLayout(main_graphDiv.layout);
-					// console.log(mainCols);
-					// console.log(mainRows);
-
-					//to be passed as argument of this function?
-					// let linkedIndices = [1, 1, 2];
-					//perform extra checks on passed linkedIndices (could be moved over to the back-end + deleted from here)
-					if (mainCols > 0 && linkedIndices.length > mainCols) {
-						linkedIndices = linkedIndices.slice(0, mainCols);
-					} else if (mainCols === 0) {
-						linkedIndices = [linkedIndices[0]];
-					}
-
-					linkedIndices = linkedIndices.map((item, i) => {
-						if (mainRows === 0) {
-							item = 0;
-						} else if (item >= mainRows) {
-							// set the row to the max possible index within the grid
-							item = mainRows - 1;
-						}
-						return item;
-					})
 
 					const updateData = [];
 					linkedIndices.forEach((item, i) => {
@@ -139,51 +123,36 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 						})
 					})
 
-
 					let filteredTriggerData = updateData.filter(obj => triggerCols.includes(obj.columnIndex));
 
-					const filteredTriggers = filteredTriggerData.map(obj => obj.mainSubplotIndex);
+					const filteredMainTriggers = filteredTriggerData.map(obj => obj.mainSubplotIndex);
 
-					let [xrange, yrange] = getFigureInfo(main_graphDiv.layout, filteredTriggers);
-					// let [cxrange, cyrange] = getFigureInfo(coarse_graphDiv.layout);
-
+					let [xrange, yrange] = getFigureInfo(main_graphDiv.layout, filteredMainTriggers);
 					filteredTriggerData = filteredTriggerData.map(obj => {
 						const subplotIndex = obj.mainSubplotIndex;
 						// const columnIndex = obj.columnIndex;
 						const yrangeval = yrange.find(o => o.hasOwnProperty(subplotIndex));
 						const xrangeval = xrange.find(o => o.hasOwnProperty(subplotIndex));
-						// const cyrangeval = cyrange.find(o => o.hasOwnProperty(columnIndex));
-						// const cxrangeval = cxrange.find(o => o.hasOwnProperty(columnIndex));
 
 						if (xrangeval) {
-							obj["mxrange"] = xrangeval[subplotIndex];
-							obj["myrange"] = yrangeval[subplotIndex].map(roundTo10Decimals);
-							// obj["cxrange"] = cxrangeval[columnIndex];
-							// obj["cyrange"] = cyrangeval[columnIndex].map(roundTo10Decimals);
+							obj["mxrange"] = xrangeval[subplotIndex].map(roundTo5Decimals);
+							obj["myrange"] = yrangeval[subplotIndex].map(roundTo5Decimals);
 							obj["sxrange"] = [];
 							obj["syrange"] = [];
 						}
 						return obj
 					});
-					console.log(filteredTriggerData);
 
-
+					//get the selections currently on the overviews => fill in the filteredTriggerData where needed
 					let currentSelections = coarse_graphDiv.layout.selections;
-					console.log(currentSelections);
 					if (currentSelections) {
 
 						filteredTriggerData = filteredTriggerData.map(obj => {
 							const subplotIndex = obj.columnIndex + 1;
 							const filteredSelection = currentSelections.filter(selection => {
-								console.log(selection.xref+selection.yref);
-								console.log(Date.parse(selection.x0));
-								const sxrange = timeSeriesRangeSortandRound([selection.x0, selection.x1]);
-								const syrange = [selection.y0, selection.y1].sort(function (a, b) { return a - b }).map(roundTo10Decimals);
+								const sxrange = timeSeriesRangeSort([selection.x0, selection.x1],obj.mxrange).map(roundTo5Decimals);
+								const syrange = timeSeriesRangeSort([selection.y0, selection.y1],obj.myrange).map(roundTo5Decimals);
 								
-								console.log(sxrange);
-								console.log(syrange);
-								console.log(!compareArrays(sxrange, obj.mxrange));
-								console.log(!compareArrays(syrange, obj.myrange));
 								//Plotly accepts both x and x1 as indices, 
 								//so if we are looking for selections the first axis, check both options
 								if (obj.columnIndex == 0) {
@@ -195,18 +164,16 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 								}
 
 							});
-							//filteredSelection and currentSelection sxrange is not the same?????????????
-							console.log(filteredSelection);
 
 							if (filteredSelection.length > 0) {
-								obj["sxrange"] = [filteredSelection[0].x0, filteredSelection[0].x1].sort((a, b) => Date.parse(a) - Date.parse(b));
-								obj["syrange"] = [filteredSelection[0].y0, filteredSelection[0].y1].sort(function (a, b) { return a - b }).map(roundTo10Decimals);
-							} else {
-								updateCondition = false;
+								obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1],obj.mxrange).map(roundTo5Decimals);
+								obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1],obj.myrange).map(roundTo5Decimals);
+								
 							}
-							return obj
+							return obj;
 						});
 					}
+
 
 					/**
 					 * 1. check which graph the selection change comes from
@@ -229,14 +196,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 
 					filteredTriggerData.forEach((obj, i) => {
-						// console.log(!compareArrays(obj.sxrange, obj.mxrange));
-						// console.log(!compareArrays(obj.syrange, obj.myrange));
-						// console.log(!compareArrays(obj.sxrange, obj.cxrange));
-						// console.log(!compareArrays(obj.syrange, obj.cyrange));
-						// console.log(obj.mainSubplotIndex+1);
 						const subplotIndex = +obj.mainSubplotIndex === 0 ? "" : String(obj.mainSubplotIndex + 1);
-						// console.log(subplotIndex);
-						// console.log(`xaxis${subplotIndex}.range[0]`)
 
 						let xaxisKey0 = `xaxis${subplotIndex}.range[0]`;
 						let xaxisKey1 = `xaxis${subplotIndex}.range[1]`;
@@ -269,21 +229,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 						}
 
 					});
-					console.log(updates);
-
 				}
-				// else {
-				// 	console.log('selectedData.range null? -> ' + selectedData + ' reset main graph');
-				// 	updateCondition = true;
-				// 	updates = { ...updates,
-				// 		'xaxis.autorange': true, 'xaxis.showspikes': false,
-				// 		'yaxis.autorange': true, 'yaxis.showspikes': false,
-				// 	};
-				// }
+
 			}
 			if (updateCondition) {
 				// Update the layout without triggering another relayout event
-				console.warn('coarse -> main');
+				// console.warn('coarse -> main');
 				// document.dispatchEvent(); doesnt work
 				Plotly.relayout(
 					main_graphDiv, updates
@@ -315,9 +266,42 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				return JSON.stringify(a) === JSON.stringify(b);
 			};
 
-			const roundTo10Decimals = (a) => {
-				return +a.toFixed(10)
+			const roundTo5Decimals = (a) => {
+				if(isNumber(a)){
+					return +a.toFixed(5);
+				} else {
+					return a;
+				}
+				
 			};
+
+			const isNumber = (currentValue) => typeof(currentValue)=="number";
+			const isDate = (currentValue) => !isNan(Date.parse(currentValue));
+			const timeSeriesRangeSort = (array, reference) => {
+				if(array.every(isNumber || isDate)){
+					array = array.sort((a, b) => {
+						if(typeof(a) == "number" && !isNaN(a) && typeof(b) == "number" && !isNaN(b)){
+							// console.log("sorting by number value");
+							if(reference.every(isNumber)){
+								if(reference[0] > reference[1]){
+									return b - a; 
+								}
+							}
+							return a - b;
+
+						} else if (!isNaN(Date.parse(a)) && !isNan(Date.parse(b))){
+							// console.log("sorting by parsed date");
+							if(reference.every(isDate)){
+								if( Date.parse(reference[0]) >  Date.parse(reference[1])){
+									return Date.parse(b) - Date.parse(a);
+								}
+							}
+							return Date.parse(a) - Date.parse(b);
+						}
+					});
+				}
+				return array;
+			}
 
 			/**
 			 * 
@@ -382,44 +366,22 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				});
 				return Array.from(triggerPlot);
 			}
+			//tried to move helpers to external file...
 			// external_scripts=[{'src':'../utils/callback_utils','type':'module'}]
 
-
-			console.warn('starting: main -> coarse');
-			console.log(mainFigRelayout);
+			/*
+				------------ CALLBACK -----------
+			*/
+			// console.warn('starting: main -> coarse');
 
 			let coarse_graphDiv = getGraphDiv(coarseFigID);
 			let main_graphDiv = getGraphDiv(mainFigID);
 
 			let trigger = getTriggerSubplot(mainFigRelayout);
-			// console.log(trigger);
 			const [mainRows, mainCols] = getGridLayout(main_graphDiv.layout);
 
 			// linkedIndices is an array showing which subplots of the main graph are linked with a coarse view
-			// obtained from a Store in the client (1st idea)
-			// structure: index = column, value = row (item at index 1 with value 2 is in the 2nd column, 3rd row)
-			// ensures there's only 1 linked subplot per column!
-			// const linkedIndices = new Array(coarseCols).fill(0);
-
-			//perform extra checks on passed linkedIndices (could be moved over to the back-end + deleted from here)
-			// let linkedIndices = [1, 1, 2];
-			if (mainCols > 0 && linkedIndices.length > mainCols) {
-				linkedIndices = linkedIndices.slice(0, mainCols);
-			} else if (mainCols === 0) {
-				linkedIndices = [linkedIndices[0]];
-			}
-
-			linkedIndices = linkedIndices.map((item, i) => {
-				if (mainRows === 0) {
-					item = 0;
-				} else if (item >= mainRows) {
-					// set the row to the max possible index within the grid
-					item = mainRows - 1;
-				}
-				return item;
-			})
-			// console.log(linkedIndices);
-
+			// obtained from a Store in the client
 			//list of objects compiling all data needed to create an update for relayout
 			const updateData = [];
 			linkedIndices.forEach((item, i) => {
@@ -429,14 +391,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					"mainSubplotIndex": +linkedIndices.length * item + i
 				})
 			})
-			// console.log(updateData);
 
 			//filter the trigger list to only the ones that have a coarse view linked to them
 			let filteredTriggerData = updateData.filter(obj => trigger.includes(obj.mainSubplotIndex));
-			// console.log(filteredTriggerData);
 
+			//cross-filtered list of triggers (subplot indices that triggered a relayout AND are linked to an overview)
 			const filteredTriggers = filteredTriggerData.map(obj => obj.mainSubplotIndex);
-
 
 			//obtain the x & yrange of the triggered and linked subplots
 			let [xrange, yrange] = getFigureInfo(main_graphDiv.layout, filteredTriggers);
@@ -452,26 +412,23 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 
 				if (xrangeval) {
-					obj["mxrange"] = xrangeval[subplotIndex].sort((a, b) => Date.parse(a) - Date.parse(b));
-					obj["myrange"] = yrangeval[subplotIndex].map(roundTo10Decimals).sort(function (a, b) { return a - b });
-					obj["cxrange"] = cxrangeval[columnIndex].sort((a, b) => Date.parse(a) - Date.parse(b));
-					obj["cyrange"] = cyrangeval[columnIndex].map(roundTo10Decimals).sort(function (a, b) { return a - b });
+					obj["mxrange"] = xrangeval[subplotIndex].map(roundTo5Decimals);
+					obj["myrange"] = yrangeval[subplotIndex].map(roundTo5Decimals);
+					obj["cxrange"] = cxrangeval[columnIndex].map(roundTo5Decimals);
+					obj["cyrange"] = cyrangeval[columnIndex].map(roundTo5Decimals);
 					obj["sxrange"] = [];
 					obj["syrange"] = [];
 				}
 				return obj
 			});
 
-			// obtain the selections that should be changed (using the subplot index mapped in coarseTriggerMap)
-			// create syrange
+			// obtain the selections that should be changed (using the subplot index mapped in filteredTriggeredData)
 			// used to check if it really is necessary to change the selectionbox!
 			let currentSelections = coarse_graphDiv.layout.selections;
-			console.log(currentSelections);
 			if (currentSelections) {
 
 				filteredTriggerData = filteredTriggerData.map(obj => {
 					const subplotIndex = obj.columnIndex;
-					console.log(subplotIndex);
 					const filteredSelection = currentSelections.filter(selection => {
 						if (subplotIndex === 0) {
 							return selection.xref === `x${subplotIndex + 1}` || selection.xref === "x"
@@ -481,18 +438,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 					});
 
-					//filteredSelection and currentSelection sxrange is not the same (approx errors?)?? so confused
-					console.log(filteredSelection);
-
 					if (filteredSelection.length > 0) {
-						obj["sxrange"] = [filteredSelection[0].x0, filteredSelection[0].x1].sort((a, b) => Date.parse(a) - Date.parse(b));
-						obj["syrange"] = [filteredSelection[0].y0, filteredSelection[0].y1].sort(function (a, b) { return a - b }).map(roundTo10Decimals);
+						//sort the selection range according to the direction the main graph is in (overview range could also be used as reference)
+						obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1],obj.mxrange).map(roundTo5Decimals);
+						obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1],obj.myrange).map(roundTo5Decimals);
 					}
 					return obj
 				});
 			}
-			console.log(filteredTriggerData);
-
 
 			// check if autoscale/axis reset was triggered 
 			// autorange is triggered per axis,
@@ -500,14 +453,18 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			let notAutorange = true;
 			let notShowspikes = true;
 			filteredTriggerData.forEach(obj => {
-				if (mainFigRelayout[`xaxis${obj.mainSubplotIndex + 1}.autorange`]
-					&& mainFigRelayout[`yaxis${obj.mainSubplotIndex + 1}.autorange`]) {
+				const subplotIndex = +obj.mainSubplotIndex === 0 ? "" : String(obj.mainSubplotIndex + 1);
+				if (mainFigRelayout[`xaxis${subplotIndex}.autorange`]
+					&& mainFigRelayout[`yaxis${subplotIndex}.autorange`]) {
 					//use the coarse range as a reference for 
-					//the range to be used in the relayout for the selection box
+					//the range to be used in the relayout for the selection box.
+					//not accurate to the range shown in the main graph, but it's a way to
+					//make the selectionbox easier to see/grab
 					obj.myrange = obj.cyrange;
 					notAutorange = false;
-					if (mainFigRelayout['xaxis.showspikes'] === false
-						&& mainFigRelayout['xaxis.showspikes'] === false) {
+					if (mainFigRelayout[`xaxis${subplotIndex}.showspikes`] === false
+						&& mainFigRelayout[`yaxis${subplotIndex}.showspikes`] === false) {
+						//simply resets the box to the full range again
 						obj.mxrange = obj.cxrange;
 						notShowspikes = false;
 					}
@@ -526,7 +483,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					updateCondition = true;
 					const columnIndex = +obj.columnIndex === 0 ? "" : String(obj.columnIndex + 1);
 					const selectionIndex = update['selections'].findIndex(obj => obj.xref === `x${columnIndex}`);
-					console.log(selectionIndex)
 
 					update['selections'][selectionIndex] =
 					{
@@ -549,7 +505,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			if (updateCondition) {
 				// Update the layout without triggering another relayout event
-				console.warn('main -> coarse');
+				// console.warn('main -> coarse');
 				// document.dispatchEvent(); doesnt work
 				Plotly.relayout(
 					coarse_graphDiv, update
