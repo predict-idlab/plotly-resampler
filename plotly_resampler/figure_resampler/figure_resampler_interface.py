@@ -395,6 +395,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return trace
 
     def _layout_xaxis_to_trace_xaxis_mapping(self) -> Dict[str, List[str]]:
+        """Construct a dict which maps the layout xaxis keys to the trace xaxis keys.
+
+        Returns
+        -------
+        Dict[str, List[str]]
+            A dict with the layout xaxis values as keys and the trace xaxis values as
+            values.
+
+        """
         # edge case: an empty `go.Figure()` does not yet contain axes keys
         if self._grid_ref is None:
             return {"xaxis": ["x"]}
