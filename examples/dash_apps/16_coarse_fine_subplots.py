@@ -132,23 +132,7 @@ def serve_layout() -> dbc.Container:
 app.layout = serve_layout()
 
 def create_overview_figure(dynamic_fig, linked_indices):
-    dyn_rows, dyn_cols = get_total_rows_and_cols(dynamic_fig)
-
-    print([dyn_rows, dyn_cols])
-
-    # adjust the linked_indices if they are set wrong by the user,
-    # bring it to the closest possible indices on the dynamic fig
-    if dyn_cols > 0 and len(linked_indices) > dyn_cols:
-        linked_indices = linked_indices[:dyn_cols]
-    elif dyn_cols == 0:
-        linked_indices = [linked_indices[0]]
-
-    # take the absolute value of the linked index, 
-    # linked_indices = [item if dyn_rows == 0 else min(abs(item), dyn_rows - 1) for item in linked_indices]
-    
-    #alternative: take the modulo of the linked index
-    # TODO_idea: let the user know the indices are out of range and that it has been wrapped
-    linked_indices = [item%dyn_rows for item in linked_indices]
+    linked_indices, dyn_cols = check_linked_indices_valid(dynamic_fig, linked_indices)
 
     print(linked_indices)
 
@@ -180,9 +164,27 @@ def create_overview_figure(dynamic_fig, linked_indices):
         # adds a rangeslider to the coarse graph
     )
     return coarse_fig
-            
 
+def check_linked_indices_valid(dynamic_fig, linked_indices):
+    dyn_rows, dyn_cols = get_total_rows_and_cols(dynamic_fig)
 
+    print([dyn_rows, dyn_cols])
+
+    # adjust the linked_indices if they are set wrong by the user,
+    # bring it to the closest possible indices on the dynamic fig
+    if dyn_cols > 0 and len(linked_indices) > dyn_cols:
+        linked_indices = linked_indices[:dyn_cols]
+    elif dyn_cols == 0:
+        linked_indices = [linked_indices[0]]
+
+    # take the absolute value of the linked index, 
+    # linked_indices = [item if dyn_rows == 0 else min(abs(item), dyn_rows - 1) for item in linked_indices]
+    
+    #alternative: take the modulo of the linked index
+    # TODO_idea: let the user know the indices are out of range and that it has been wrapped
+    linked_indices = [item%dyn_rows for item in linked_indices]
+    
+    return linked_indices,dyn_cols
 
 # ------------------------------------ DASH logic -------------------------------------
 # --------- graph construction logic + callback ---------
