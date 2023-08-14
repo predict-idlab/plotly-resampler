@@ -8,6 +8,7 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
+import itertools
 import re
 from abc import ABC
 from collections import namedtuple
@@ -393,12 +394,37 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         return trace
 
+    def _layout_xaxis_to_trace_xaxis_mapping(self) -> Dict[str, List[str]]:
+        """Construct a dict which maps the layout xaxis keys to the trace xaxis keys.
+
+        Returns
+        -------
+        Dict[str, List[str]]
+            A dict with the layout xaxis values as keys and the trace its corresponding
+            xaxis anchor value.
+
+        """
+        # edge case: an empty `go.Figure()` does not yet contain axes keys
+        if self._grid_ref is None:
+            return {"xaxis": ["x"]}
+
+        mapping_dict = {}
+        for sub_plot in itertools.chain.from_iterable(self._grid_ref):  # flattten
+            sub_plot = [] if sub_plot is None else sub_plot
+            for axes in sub_plot:  # NOTE: you can have multiple axes in a subplot
+                layout_xaxes = axes.layout_keys[0]
+                trace_xaxes = axes.trace_kwargs["xaxis"]
+
+                # append the trace xaxis to the layout xaxis key its value list
+                mapping_dict.setdefault(layout_xaxes, []).append(trace_xaxes)
+        return mapping_dict
+
     def _check_update_figure_dict(
         self,
         figure: dict,
         start: Optional[Union[float, str]] = None,
         stop: Optional[Union[float, str]] = None,
-        xaxis_filter: str = None,
+        layout_xaxis_filter: Optional[str] = None,
         updated_trace_indices: Optional[List[int]] = None,
     ) -> List[int]:
         """Check and update the traces within the figure dict.
@@ -421,8 +447,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The start time for the new resampled data view, by default None.
         stop : Union[float, str], optional
             The end time for the new resampled data view, by default None.
-        xaxis_filter: str, optional
-            Additional trace-update subplot filter, by default None.
+        layout_xaxis_filter: str, optional
+            Additional layout xaxis filter, e.g. the affected x-axis values by the
+            triggered relayout event (e.g. xaxis), by default None.
         updated_trace_indices: List[int], optional
             List of trace indices that already have been updated, by default None.
 
@@ -433,70 +460,22 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             modalities which are updated.
 
         """
-        xaxis_filter_short = None
-        if xaxis_filter is not None:
-            xaxis_filter_short = "x" + xaxis_filter.lstrip("xaxis")
-
         if updated_trace_indices is None:
             updated_trace_indices = []
 
+        if layout_xaxis_filter is not None:
+            layout_trace_mapping = self._layout_xaxis_to_trace_xaxis_mapping()
+            # Retrieve the trace xaxis values that are affected by the relayout event
+            trace_xaxis_filter: List[str] = layout_trace_mapping[layout_xaxis_filter]
+
         for idx, trace in enumerate(figure["data"]):
-            # We skip when the trace-idx already has been updated.
-            if idx in updated_trace_indices:
+            # We skip when (i) the trace-idx already has been updated or (ii) when
+            # there is a layout_xaxis_filter and the trace xaxis is not in the filter
+            if idx in updated_trace_indices or (
+                layout_xaxis_filter is not None
+                and trace.get("xaxis", "x") not in trace_xaxis_filter
+            ):
                 continue
-
-            if xaxis_filter is not None:
-                # the x-anchor of the trace is stored in the layout data
-                if trace.get("yaxis") is None:
-                    # TODO In versions up until v0.8.2 we made the assumption that yaxis
-                    # = xaxis_filter_short. -> Why did we make this assumption?
-                    y_axis = "y"  # + xaxis_filter[1:]
-                else:
-                    y_axis = "yaxis" + trace.get("yaxis")[1:]
-
-                # Also check for overlaying traces - fixes #242
-                overlaying = figure["layout"].get(y_axis, {}).get("overlaying")
-                if overlaying:
-                    y_axis = "yaxis" + overlaying[1:]
-
-                # Next to the x-anchor, we also fetch the xaxis which matches the
-                # current trace (i.e. if this value is not None, the axis shares the
-                # x-axis with one or more traces).
-                # This is relevant when e.g. fig.update_traces(xaxis='x...') was called.
-                x_anchor_trace = figure["layout"].get(y_axis, {}).get("anchor")
-                if x_anchor_trace is not None:
-                    xaxis_matches = (
-                        figure["layout"]
-                        .get("xaxis" + x_anchor_trace.lstrip("x"), {})
-                        .get("matches")
-                    )
-                else:
-                    xaxis_matches = figure["layout"].get("xaxis", {}).get("matches")
-
-                # print(
-                #     f"x_anchor: {x_anchor_trace} - xaxis_filter: {xaxis_filter} ",
-                #     f"- xaxis_matches: {xaxis_matches}"
-                # )
-
-                # We skip when:
-                # * the change was made on the first row and the trace its anchor is not
-                #   in [None, 'x'] and the matching (a.k.a. shared) xaxis is not equal
-                #   to the xaxis filter argument.
-                #   -> why None: traces without row/col argument and stand on first row
-                #      and do not have the anchor property (hence the DICT.get() method)
-                # * x_axis_filter_short not in [x_anchor or xaxis matches] for
-                #   NON first rows
-                if (
-                    xaxis_filter_short == "x"
-                    and (
-                        x_anchor_trace not in (None, "x")
-                        and xaxis_matches != xaxis_filter_short
-                    )
-                ) or (
-                    xaxis_filter_short != "x"
-                    and (xaxis_filter_short not in (x_anchor_trace, xaxis_matches))
-                ):
-                    continue
 
             # If we managed to find and update the trace, it will return the trace
             # and thus not None.
@@ -1361,7 +1340,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         current_graph,
                         start=relayout_data[t_start_key],
                         stop=relayout_data[t_stop_key],
-                        xaxis_filter=xaxis,
+                        layout_xaxis_filter=xaxis,
                         updated_trace_indices=updated_trace_indices,
                     )
 
@@ -1377,7 +1356,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                         xaxis = autorange_key.split(".")[0]
                         updated_trace_indices = self._check_update_figure_dict(
                             current_graph,
-                            xaxis_filter=xaxis,
+                            layout_xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the

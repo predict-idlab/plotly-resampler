@@ -52,7 +52,6 @@ def driver():
     from selenium.webdriver.chrome.options import Options
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from seleniumwire import webdriver
-    from webdriver_manager.chrome import ChromeDriverManager, ChromeType
 
     time.sleep(1)
 
@@ -64,7 +63,6 @@ def driver():
             options.add_argument("--headless")
         # options.add_argument("--no=sandbox")
         driver = webdriver.Chrome(
-            ChromeDriverManager(chrome_type=ChromeType.GOOGLE).install(),
             options=options,
             desired_capabilities=d,
         )

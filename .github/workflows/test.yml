@@ -40,6 +40,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - uses: nanasess/setup-chromedriver@master
+      with:
+        # Optional: do not specify to match Chrome's version
+        chromedriver-version: '114.0.5735.90'
 
     - name: Install Poetry
       uses: snok/install-poetry@v1

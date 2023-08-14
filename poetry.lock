@@ -2612,20 +2612,6 @@ files = [
 six = ">=1.5"
 
 [[package]]
-name = "python-dotenv"
-version = "0.21.1"
-description = "Read key-value pairs from a .env file and set them as environment variables"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "python-dotenv-0.21.1.tar.gz", hash = "sha256:1c93de8f636cde3ce377292818d0e440b6e45a82f215c3744979151fa8151c49"},
-    {file = "python_dotenv-0.21.1-py3-none-any.whl", hash = "sha256:41e12e0318bebc859fcc4d97d4db8d20ad21721a6aa5047dd59f090391cb549a"},
-]
-
-[package.extras]
-cli = ["click (>=5.0)"]
-
-[[package]]
 name = "pytz"
 version = "2023.3"
 description = "World timezone definitions, modern and historical"
@@ -3203,26 +3189,6 @@ files = [
 ]
 
 [[package]]
-name = "tqdm"
-version = "4.65.0"
-description = "Fast, Extensible Progress Meter"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "tqdm-4.65.0-py3-none-any.whl", hash = "sha256:c4f53a17fe37e132815abceec022631be8ffe1b9381c2e6e30aa70edc99e9671"},
-    {file = "tqdm-4.65.0.tar.gz", hash = "sha256:1871fb68a86b8fb3b59ca4cdd3dcccbc7e6d613eeed31f4c332531977b89beb5"},
-]
-
-[package.dependencies]
-colorama = {version = "*", markers = "platform_system == \"Windows\""}
-
-[package.extras]
-dev = ["py-make (>=0.1.0)", "twine", "wheel"]
-notebook = ["ipywidgets (>=6)"]
-slack = ["slack-sdk"]
-telegram = ["requests"]
-
-[[package]]
 name = "trace-updater"
 version = "0.0.9.1"
 description = "Dash component which allows to update a dcc.Graph its traces. This component is data efficient as it (1) only sends the to-be-updated traces (and not the whole) from the back-end to the client-side and (2) only updates the traces that have changed (and does not redraw the whole figure)."
@@ -3518,23 +3484,6 @@ files = [
 ]
 
 [[package]]
-name = "webdriver-manager"
-version = "3.8.6"
-description = "Library provides the way to automatically manage drivers for different browsers"
-optional = false
-python-versions = ">=3.7"
-files = [
-    {file = "webdriver_manager-3.8.6-py2.py3-none-any.whl", hash = "sha256:7d3aa8d67bd6c92a5d25f4abd75eea2c6dd24ea6617bff986f502280903a0e2b"},
-    {file = "webdriver_manager-3.8.6.tar.gz", hash = "sha256:ee788d389b8f45222a8a62f6f39b579360a1f87be46dad6da89918354af3ce73"},
-]
-
-[package.dependencies]
-packaging = "*"
-python-dotenv = "*"
-requests = "*"
-tqdm = "*"
-
-[[package]]
 name = "webencodings"
 version = "0.5.1"
 description = "Character encoding aliases for legacy web content"
@@ -3685,4 +3634,4 @@ inline-persistent = ["Flask-Cors", "jupyter-dash", "kaleido"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.1"
-content-hash = "e44344922cd91cd18568a3f3fdec66c40192820c993cff984a97cd544d2b9b1f"
+content-hash = "7b597bc5ca4c701094441c84708627987f635519c1a343517e90f98636807d5c"
