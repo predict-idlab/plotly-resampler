@@ -400,8 +400,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         Returns
         -------
         Dict[str, List[str]]
-            A dict with the layout xaxis values as keys and the trace xaxis values as
-            values.
+            A dict with the layout xaxis values as keys and the trace its corresponding
+            xaxis anchor value.
 
         """
         # edge case: an empty `go.Figure()` does not yet contain axes keys
@@ -447,9 +447,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The start time for the new resampled data view, by default None.
         stop : Union[float, str], optional
             The end time for the new resampled data view, by default None.
-        trace_xaxis_filter: str, optional
+        layout_xaxis_filter: str, optional
             Additional layout xaxis filter, e.g. the affected x-axis values by the
-            triggered relayout event, by default None.
+            triggered relayout event (e.g. xaxis), by default None.
         updated_trace_indices: List[int], optional
             List of trace indices that already have been updated, by default None.
 
