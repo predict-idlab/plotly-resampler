@@ -161,7 +161,8 @@ sphinx/_autosummary
 logs/
 selectionbox_layout_data
 14_coarse_fine*
-001_interactive*
+001_*.py
 callback_utils.js
 21_rangeslider.py
-tests/log_processing.ipynb
+tests/log_processing*.ipynb
+figure data/
