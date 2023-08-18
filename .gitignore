@@ -162,3 +162,5 @@ selectionbox_layout_data/
 examples/dash_apps/**/*coarse_fine*
 examples/dash_apps/2*
 examples/dash_apps/00*
+tests/log_processing*.ipynb
+figure data/
