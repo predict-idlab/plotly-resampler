@@ -97,6 +97,49 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				});
 				return [xrange, yrange];
 			};
+
+			/**
+			 * (unused but may be useful in the future?) 
+			 * @param {object} layout: object containing the layout information of a figure
+			 * @returns an array containing the number of rows and columns in the given figure
+			 */
+			const getGridLayout = (layout) => {
+				const xaxes = new Set();
+				const yaxes = new Set();
+				//TODO: adapt for when no xaxis in layout (no subplots)
+				Object.keys(layout).forEach(key => {
+					if (key.startsWith("yaxis")) {
+						yaxes.add(JSON.stringify(layout[key].domain));
+					} else if (key.startsWith("xaxis")) {
+						xaxes.add(JSON.stringify(layout[key].domain));
+					}
+				});
+				return [yaxes.size, xaxes.size]
+			};
+
+			const getTriggerSelectionIndex = (relayout , selections, cCols) => {
+				let triggerPlot = new Set();
+				// console.log(relayout);
+
+				const selectionPattern = /selections\[|\].(x|y)(0|1)/g;
+				Object.entries(relayout).forEach( ([key,value]) => {
+					if (key.startsWith("selections[")){
+						selectionIndex = +key.replace(selectionPattern, '');
+						// console.log(selectionIndex);
+						triggerPlot.add(selectionIndex);
+					} else if(key === 'selections'){
+						if (value.length < cCols){
+							//recognisable output: signals a missing selection
+							triggerPlot.add(-1);
+						} else {
+							//recognisable output: no Subplots in coarse view!
+							triggerPlot.add(0);
+						}
+					}
+				});
+				return Array.from(triggerPlot);
+			}
+
 			/*
 				------------ CALLBACK -----------
 			*/
@@ -104,25 +147,35 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			//for future: merge callbacks and check trigger prop!
 			// console.log(window.dash_clientside.callback_context.triggered[0].prop_id);
+			// console.warn('starting: coarse -> main');
 			const main_graphDiv = getGraphDiv(mainFigID);
 			const coarse_graphDiv = getGraphDiv(coarseFigID);
+			
+			[mRows, mCols] = getGridLayout(main_graphDiv.layout);
+			[cRows, cCols] = getGridLayout(coarse_graphDiv.layout);
+
 			let updateCondition = false;
 			let updates = {};
+
+			let currentSelections = coarse_graphDiv.layout.selections;
+
+			let updateData = [];
+			linkedIndices.forEach((item, i) => {
+				updateData.push({
+					"columnIndex": +i,
+					"linkIndex": +item,
+					"mainSubplotIndex": +linkedIndices.length * item + i
+				})
+			})
+
+			// console.log(selectedData);
 			if (selectedData) {
 				if (selectedData.range) {
 					// console.warn("starting: coarse -> main");
 
 					//obtain the triggers from selectedData. should only be 1 in most cases, but we still create a list
+					
 					let triggerCols = [...new Set(Object.keys(selectedData.range).map(item => +(item.substring(1) || 1) - 1))];
-
-					const updateData = [];
-					linkedIndices.forEach((item, i) => {
-						updateData.push({
-							"columnIndex": +i,
-							"linkIndex": +item,
-							"mainSubplotIndex": +linkedIndices.length * item + i
-						})
-					})
 
 					let filteredTriggerData = updateData.filter(obj => triggerCols.includes(obj.columnIndex));
 
@@ -145,9 +198,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					});
 
 					//get the selections currently on the overviews => fill in the filteredTriggerData where needed
-					let currentSelections = coarse_graphDiv.layout.selections;
 					if (currentSelections) {
-
+						//find the selection corresponding with each filteredTriggerData item
 						filteredTriggerData = filteredTriggerData.map(obj => {
 							const subplotIndex = obj.columnIndex + 1;
 							const filteredSelection = currentSelections.filter(selection => {
@@ -170,7 +222,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 							if (filteredSelection.length > 0) {
 								obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1], obj.mxrange).map(roundTo5Decimals);
 								obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1], obj.myrange).map(roundTo5Decimals);
-
 							}
 							return obj;
 						});
@@ -233,6 +284,43 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					});
 				}
 
+			} else {
+				//callback doesn't get triggered if the user does this multiple times in a row 
+				// (without changing the selections himself at least once)
+				// because selectedData property remains the same
+				// => inherent problem with dcc.Graph component!
+
+				//TODO: possible solution: use relayoutData input too? only if relayout = "selections" : [{...}]
+				// console.log('empty selectedData = removed selection -> reset axes!');
+				if (cCols > 1){
+					if(currentSelections){
+						updateData = updateData.filter(updateObj => { 
+							const columnIndex = +updateObj.columnIndex === 0 ? "" : String(updateObj.columnIndex + 1);
+							const found  = currentSelections.find(selection => {
+								return selection.xref === `x${columnIndex}`;
+							});
+							return found === undefined;
+						});
+					}
+				}
+				let subplotIndex;
+				if(updateData.length > 0){
+					subplotIndex = +updateData[0].mainSubplotIndex === 0 ? "" : String(updateData[0].mainSubplotIndex + 1);
+					let xaxisKey = `xaxis${subplotIndex}`;
+					const xaxisAutorange = xaxisKey + '.autorange';
+					const xaxisShowspikes = xaxisKey + '.showspikes';
+					let yaxisKey = `yaxis${subplotIndex}`;
+					const yaxisAutorange = yaxisKey + '.autorange';
+					const yaxisShowspikes = yaxisKey + '.showspikes';
+					
+					updates = {
+						[xaxisAutorange]: true, [xaxisShowspikes]: false,
+						[yaxisAutorange]: true, [yaxisShowspikes]: false,
+					};
+					updateCondition = true;
+				} 
+				
+				
 			}
 			if (updateCondition) {
 				// Update the layout without triggering another relayout event
@@ -333,25 +421,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				return [xrange, yrange];
 			};
 
-			/**
-			 * (unused but may be useful in the future?) 
-			 * @param {object} layout: object containing the layout information of a figure
-			 * @returns an array containing the number of rows and columns in the given figure
-			 */
-			const getGridLayout = (layout) => {
-				const xaxes = new Set();
-				const yaxes = new Set();
-				//TODO: adapt for when no xaxis in layout (no subplots)
-				Object.keys(layout).forEach(key => {
-					if (key.startsWith("yaxis")) {
-						yaxes.add(JSON.stringify(layout[key].domain));
-					} else if (key.startsWith("xaxis")) {
-						xaxes.add(JSON.stringify(layout[key].domain));
-					}
-				});
-				return [yaxes.size, xaxes.size]
-			}
-
 			//function to extract the subplot index from which the relayout comes from
 			const getTriggerSubplot = (relayout) => {
 				let triggerPlot = new Set();
@@ -449,11 +518,11 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 						//sort the selection range according to the direction the main graph is in (overview range could also be used as reference)
 						obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1], obj.mxrange).map(roundTo5Decimals);
 						obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1], obj.myrange).map(roundTo5Decimals);
-						if (!filteredSelection.xref) {
+						if (!filteredSelection[0].xref) {
 							noSubplots = true;
 						}
 					}
-					return obj
+					return obj;
 				});
 			}
 
@@ -486,12 +555,12 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			let updateCondition = false;
 			update = { 'selections': currentSelections || [] }
 			filteredTriggerData.forEach((obj, i) => {
-				// console.log(!compareArrays(obj.sxrange,obj.mxrange))
-				// console.log(!compareArrays(obj.syrange, obj.myrange));
-				// console.log(notAutorange == notShowspikes);
-				if ((!compareArrays(obj.sxrange, obj.mxrange) && notAutorange == notShowspikes) || !compareArrays(obj.syrange, obj.myrange)) {
+				if ((!compareArrays(obj.sxrange, obj.mxrange) && notAutorange == notShowspikes) || !compareArrays(obj.syrange, obj.myrange) 
+				|| (obj.sxrange.length < 1 && obj.syrange.length < 1)) {
 					updateCondition = true;
+					//in the case of no subplots
 					if (noSubplots) {
+						// console.log('noSubplots');
 						update['selections'][0] =
 						{
 							"line": {
@@ -507,26 +576,48 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					} else {
 						const columnIndex = +obj.columnIndex === 0 ? "" : String(obj.columnIndex + 1);
 						const selectionIndex = update['selections'].findIndex(obj => obj.xref === `x${columnIndex}`);
-
-						update['selections'][selectionIndex] =
-						{
-							"xref": `x${columnIndex}`,
-							"yref": `y${columnIndex}`,
-							"line": {
-								"width": 1,
-								"dash": "dot"
-							},
-							"type": "rect",
-							"x0": obj.mxrange[0],
-							"x1": obj.mxrange[1],
-							"y0": obj.myrange[0],
-							"y1": obj.myrange[1]
-						};
+						//in the case a selection was removed by the user!
+						if(selectionIndex === -1){
+							update['selections'].push({
+								"xref": `x${columnIndex}`,
+								"yref": `y${columnIndex}`,
+								"line": {
+									"width": 1,
+									"dash": "dot"
+								},
+								"type": "rect",
+								"x0": obj.mxrange[0],
+								"x1": obj.mxrange[1],
+								"y0": obj.myrange[0],
+								"y1": obj.myrange[1]
+							});
+						} else {
+							update['selections'][selectionIndex] =
+							{
+								"xref": `x${columnIndex}`,
+								"yref": `y${columnIndex}`,
+								"line": {
+									"width": 1,
+									"dash": "dot"
+								},
+								"type": "rect",
+								"x0": obj.mxrange[0],
+								"x1": obj.mxrange[1],
+								"y0": obj.myrange[0],
+								"y1": obj.myrange[1]
+							};
+						}
+						
 					}
+					update['selections'].sort((obj1, obj2) => {
+						xref1 = obj1.xref === "x" ? 1 : +obj1.xref.substring(1);
+						xref2 = obj2.xref === "x" ? 1 : +obj2.xref.substring(1);
+						return xref1-xref2;
+					});
 				}
 
 			});
-			// console.log(update);
+
 
 			if (updateCondition) {
 				// Update the layout without triggering another relayout event
