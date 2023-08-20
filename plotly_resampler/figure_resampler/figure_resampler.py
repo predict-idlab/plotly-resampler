@@ -380,7 +380,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
             coarse_layout[f'xaxis{subplot_coarse}']['range'] = mxrange
             coarse_layout[f'yaxis{subplot_coarse}']['range'] = myrange
-            coarse_fig.add_selection(x0=mxrange[0],x1=mxrange[1],y0=myrange[0],y1=myrange[1], row=1, col=i+1)
+            if(fig_cols > 1):
+                coarse_fig.add_selection(x0=mxrange[0],x1=mxrange[1],y0=myrange[0],y1=myrange[1], row=1, col=i+1)
+            else:
+                coarse_fig.add_selection(x0=mxrange[0],x1=mxrange[1],y0=myrange[0],y1=myrange[1])
+
 
         coarse_fig._config = coarse_fig._config.update(
             {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
@@ -638,13 +642,19 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         y_indices = [('y' if r == 0 else f'y{r+1}') for r in main_graph_indices]
         x_indices = [('x' if r == 0 else f'x{r+1}') for r in main_graph_indices]
-        
+
         # copy the data from the relevant subplots
         overview_data = []
         figdata = copy.deepcopy(self.data)
         for i, d in enumerate(figdata):
-            if (d['xaxis'] in x_indices) and (d['yaxis'] in y_indices):
-                col = x_indices.index(d['xaxis'])
+            xaxis = d['xaxis']
+            yaxis = d['yaxis']
+            if(d is not None and d['xaxis'] is None):
+                xaxis = 'x'
+            if(d is not None and d['yaxis'] is None):
+                yaxis = 'y'
+            if (xaxis in x_indices) and (yaxis in y_indices):
+                col = x_indices.index(xaxis)
                 d['xaxis'] = 'x' if col == 0 else f'x{col+1}'
                 d['yaxis'] = 'y' if col == 0 else f'y{col+1}'
                 d['line']['color'] = self._layout_obj.template.layout.colorway[i] if self.data[i].line.color is None else self.data[i].line.color

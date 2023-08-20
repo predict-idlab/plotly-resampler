@@ -28,15 +28,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			};
 
 			const roundTo5Decimals = (a) => {
-				if(isNumber(a)){
+				if (isNumber(a)) {
 					return +a.toFixed(5);
 				} else {
 					return a;
 				}
-				
+
 			};
 
-			const isNumber = (currentValue) => typeof(currentValue)=="number";
+			const isNumber = (currentValue) => typeof (currentValue) == "number";
 
 			const isDate = (currentValue) => !isNan(Date.parse(currentValue));
 
@@ -47,19 +47,19 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			 * @returns 
 			 */
 			const timeSeriesRangeSort = (array, reference) => {
-				if(array.every(isNumber || isDate)){
+				if (array.every(isNumber || isDate)) {
 					array = array.sort((a, b) => {
-						if(isNumber(a) && !isNaN(a) && isNumber(b) && !isNaN(b)){
-							if(reference.every(isNumber)){
-								if(reference[0] > reference[1]){
-									return b - a; 
+						if (isNumber(a) && !isNaN(a) && isNumber(b) && !isNaN(b)) {
+							if (reference.every(isNumber)) {
+								if (reference[0] > reference[1]) {
+									return b - a;
 								}
 							}
 							return a - b;
 
-						} else if (isDate(a) && isDate(b)){
-							if(reference.every(isDate)){
-								if( Date.parse(reference[0]) >  Date.parse(reference[1])){
+						} else if (isDate(a) && isDate(b)) {
+							if (reference.every(isDate)) {
+								if (Date.parse(reference[0]) > Date.parse(reference[1])) {
 									return Date.parse(b) - Date.parse(a);
 								}
 							}
@@ -104,14 +104,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 			//for future: merge callbacks and check trigger prop!
 			// console.log(window.dash_clientside.callback_context.triggered[0].prop_id);
-			main_graphDiv = getGraphDiv(mainFigID);
-			coarse_graphDiv = getGraphDiv(coarseFigID);
+			const main_graphDiv = getGraphDiv(mainFigID);
+			const coarse_graphDiv = getGraphDiv(coarseFigID);
 			let updateCondition = false;
 			let updates = {};
 			if (selectedData) {
 				if (selectedData.range) {
 					// console.warn("starting: coarse -> main");
 
+					//obtain the triggers from selectedData. should only be 1 in most cases, but we still create a list
 					let triggerCols = [...new Set(Object.keys(selectedData.range).map(item => +(item.substring(1) || 1) - 1))];
 
 					const updateData = [];
@@ -150,13 +151,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 						filteredTriggerData = filteredTriggerData.map(obj => {
 							const subplotIndex = obj.columnIndex + 1;
 							const filteredSelection = currentSelections.filter(selection => {
-								const sxrange = timeSeriesRangeSort([selection.x0, selection.x1],obj.mxrange).map(roundTo5Decimals);
-								const syrange = timeSeriesRangeSort([selection.y0, selection.y1],obj.myrange).map(roundTo5Decimals);
-								
+								const sxrange = timeSeriesRangeSort([selection.x0, selection.x1], obj.mxrange).map(roundTo5Decimals);
+								const syrange = timeSeriesRangeSort([selection.y0, selection.y1], obj.myrange).map(roundTo5Decimals);
+
 								//Plotly accepts both x and x1 as indices, 
 								//so if we are looking for selections the first axis, check both options
+								//if no subplots (only 1 figure), no xref!! => undefined selection.xref valid if columnIndex == 0
 								if (obj.columnIndex == 0) {
-									return (selection.xref === 'x' || selection.xref === `x${subplotIndex}`)
+									return (selection.xref === 'x' || selection.xref === `x${subplotIndex}` || !selection.xref)
 										&& (!compareArrays(sxrange, obj.mxrange) || !compareArrays(syrange, obj.myrange));
 								} else {
 									return selection.xref === `x${subplotIndex}`
@@ -166,9 +168,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 							});
 
 							if (filteredSelection.length > 0) {
-								obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1],obj.mxrange).map(roundTo5Decimals);
-								obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1],obj.myrange).map(roundTo5Decimals);
-								
+								obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1], obj.mxrange).map(roundTo5Decimals);
+								obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1], obj.myrange).map(roundTo5Decimals);
+
 							}
 							return obj;
 						});
@@ -267,32 +269,32 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			};
 
 			const roundTo5Decimals = (a) => {
-				if(isNumber(a)){
+				if (isNumber(a)) {
 					return +a.toFixed(5);
 				} else {
 					return a;
 				}
-				
+
 			};
 
-			const isNumber = (currentValue) => typeof(currentValue)=="number";
+			const isNumber = (currentValue) => typeof (currentValue) == "number";
 			const isDate = (currentValue) => !isNan(Date.parse(currentValue));
 			const timeSeriesRangeSort = (array, reference) => {
-				if(array.every(isNumber || isDate)){
+				if (array.every(isNumber || isDate)) {
 					array = array.sort((a, b) => {
-						if(typeof(a) == "number" && !isNaN(a) && typeof(b) == "number" && !isNaN(b)){
+						if (typeof (a) == "number" && !isNaN(a) && typeof (b) == "number" && !isNaN(b)) {
 							// console.log("sorting by number value");
-							if(reference.every(isNumber)){
-								if(reference[0] > reference[1]){
-									return b - a; 
+							if (reference.every(isNumber)) {
+								if (reference[0] > reference[1]) {
+									return b - a;
 								}
 							}
 							return a - b;
 
-						} else if (!isNaN(Date.parse(a)) && !isNan(Date.parse(b))){
+						} else if (!isNaN(Date.parse(a)) && !isNan(Date.parse(b))) {
 							// console.log("sorting by parsed date");
-							if(reference.every(isDate)){
-								if( Date.parse(reference[0]) >  Date.parse(reference[1])){
+							if (reference.every(isDate)) {
+								if (Date.parse(reference[0]) > Date.parse(reference[1])) {
 									return Date.parse(b) - Date.parse(a);
 								}
 							}
@@ -331,10 +333,15 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				return [xrange, yrange];
 			};
 
+			/**
+			 * (unused but may be useful in the future?) 
+			 * @param {object} layout: object containing the layout information of a figure
+			 * @returns an array containing the number of rows and columns in the given figure
+			 */
 			const getGridLayout = (layout) => {
 				const xaxes = new Set();
 				const yaxes = new Set();
-
+				//TODO: adapt for when no xaxis in layout (no subplots)
 				Object.keys(layout).forEach(key => {
 					if (key.startsWith("yaxis")) {
 						yaxes.add(JSON.stringify(layout[key].domain));
@@ -366,7 +373,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				});
 				return Array.from(triggerPlot);
 			}
-			//tried to move helpers to external file...
+			//tried to move helpers to external file... failed
 			// external_scripts=[{'src':'../utils/callback_utils','type':'module'}]
 
 			/*
@@ -378,7 +385,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			let main_graphDiv = getGraphDiv(mainFigID);
 
 			let trigger = getTriggerSubplot(mainFigRelayout);
-			const [mainRows, mainCols] = getGridLayout(main_graphDiv.layout);
 
 			// linkedIndices is an array showing which subplots of the main graph are linked with a coarse view
 			// obtained from a Store in the client
@@ -390,7 +396,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 					"linkIndex": +item,
 					"mainSubplotIndex": +linkedIndices.length * item + i
 				})
-			})
+			});
 
 			//filter the trigger list to only the ones that have a coarse view linked to them
 			let filteredTriggerData = updateData.filter(obj => trigger.includes(obj.mainSubplotIndex));
@@ -425,13 +431,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 			// obtain the selections that should be changed (using the subplot index mapped in filteredTriggeredData)
 			// used to check if it really is necessary to change the selectionbox!
 			let currentSelections = coarse_graphDiv.layout.selections;
+			let noSubplots = false;
 			if (currentSelections) {
 
 				filteredTriggerData = filteredTriggerData.map(obj => {
 					const subplotIndex = obj.columnIndex;
 					const filteredSelection = currentSelections.filter(selection => {
 						if (subplotIndex === 0) {
-							return selection.xref === `x${subplotIndex + 1}` || selection.xref === "x"
+							return selection.xref === `x${subplotIndex + 1}` || selection.xref === "x" || !selection.xref
 						} else {
 							return selection.xref === `x${subplotIndex + 1}`
 						}
@@ -440,8 +447,11 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
 					if (filteredSelection.length > 0) {
 						//sort the selection range according to the direction the main graph is in (overview range could also be used as reference)
-						obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1],obj.mxrange).map(roundTo5Decimals);
-						obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1],obj.myrange).map(roundTo5Decimals);
+						obj["sxrange"] = timeSeriesRangeSort([filteredSelection[0].x0, filteredSelection[0].x1], obj.mxrange).map(roundTo5Decimals);
+						obj["syrange"] = timeSeriesRangeSort([filteredSelection[0].y0, filteredSelection[0].y1], obj.myrange).map(roundTo5Decimals);
+						if (!filteredSelection.xref) {
+							noSubplots = true;
+						}
 					}
 					return obj
 				});
@@ -481,23 +491,38 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 				// console.log(notAutorange == notShowspikes);
 				if ((!compareArrays(obj.sxrange, obj.mxrange) && notAutorange == notShowspikes) || !compareArrays(obj.syrange, obj.myrange)) {
 					updateCondition = true;
-					const columnIndex = +obj.columnIndex === 0 ? "" : String(obj.columnIndex + 1);
-					const selectionIndex = update['selections'].findIndex(obj => obj.xref === `x${columnIndex}`);
+					if (noSubplots) {
+						update['selections'][0] =
+						{
+							"line": {
+								"width": 1,
+								"dash": "dot"
+							},
+							"type": "rect",
+							"x0": obj.mxrange[0],
+							"x1": obj.mxrange[1],
+							"y0": obj.myrange[0],
+							"y1": obj.myrange[1]
+						};
+					} else {
+						const columnIndex = +obj.columnIndex === 0 ? "" : String(obj.columnIndex + 1);
+						const selectionIndex = update['selections'].findIndex(obj => obj.xref === `x${columnIndex}`);
 
-					update['selections'][selectionIndex] =
-					{
-						"xref": `x${columnIndex}`,
-						"yref": `y${columnIndex}`,
-						"line": {
-							"width": 1,
-							"dash": "dot"
-						},
-						"type": "rect",
-						"x0": obj.mxrange[0],
-						"x1": obj.mxrange[1],
-						"y0": obj.myrange[0],
-						"y1": obj.myrange[1]
-					};
+						update['selections'][selectionIndex] =
+						{
+							"xref": `x${columnIndex}`,
+							"yref": `y${columnIndex}`,
+							"line": {
+								"width": 1,
+								"dash": "dot"
+							},
+							"type": "rect",
+							"x0": obj.mxrange[0],
+							"x1": obj.mxrange[1],
+							"y0": obj.myrange[0],
+							"y1": obj.myrange[1]
+						};
+					}
 				}
 
 			});
