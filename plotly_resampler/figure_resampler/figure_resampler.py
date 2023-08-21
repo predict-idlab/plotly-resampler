@@ -10,7 +10,9 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
+import os
 import warnings
+from pathlib import Path
 from typing import List, Optional, Tuple
 
 import dash
@@ -52,9 +54,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
-        xaxis_overview_kwargs: dict = {
-            "visible": False
-        },
+        xaxis_overview_kwargs: dict = {"visible": False},
         show_dash_kwargs: dict | None = None,
     ):
         """Initialize a dynamic aggregation data mirror using a dash web app.
@@ -328,16 +328,17 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             default_n_shown_samples=3 * self._global_n_shown_samples,
         )
         import time
+
         t0 = time.time()
         # NOTE: this way we can alter props without altering the original hf data
         coarse_fig_hf._hf_data = {uid: trc.copy() for uid, trc in self._hf_data.items()}
-        print('time to copy', round((time.time() - t0) * 1e6, 2), 'us')
+        print("time to copy", round((time.time() - t0) * 1e6, 2), "us")
         for trace in coarse_fig_hf.hf_data:
-            trace['max_n_samples'] *= 3
+            trace["max_n_samples"] *= 3
 
         coarse_fig_dict = coarse_fig_hf._get_current_graph()
         print(coarse_fig_hf._check_update_figure_dict(coarse_fig_dict))
-        print('coarse fig data size', len(coarse_fig_dict['data'][0]['x']))
+        print("coarse fig data size", len(coarse_fig_dict["data"][0]["x"]))
 
         coarse_fig = go.Figure(layout=coarse_fig_dict["layout"])
         coarse_fig._grid_ref = reduced_fig._grid_ref
@@ -454,24 +455,31 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                         self.data[trace_idx].update(updated_trace)
 
         # 1. Construct the Dash app layout
+        # Create an asset folder relative to current file
+        assets_folder = Path(__file__).parent.joinpath("assets").absolute().__str__()
+        # print("assets", assets_folder, "\cwd", os.getcwd(), '\n', os.path.relpath(assets_folder, os.getcwd()))
+        init_kwargs = {}
+        if self._xaxis_overview_visible:
+            init_kwargs["assets_folder"] = os.path.relpath(assets_folder, os.getcwd())
+
         if mode == "inline_persistent":
             mode = "inline"
             if _jupyter_dash_installed:
                 # Inline persistent mode: we display a static image of the figure when the
                 # app is not reachable
                 # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
-                app = JupyterDashPersistentInlineOutput("local_app")
+                app = JupyterDashPersistentInlineOutput("local_app", **init_kwargs)
                 self._is_persistent_inline = True
             else:
                 # If Jupyter Dash is not installed, inline persistent won't work and hence
                 # we default to normal inline mode with a normal Dash app
-                app = dash.Dash("local_app")
+                app = dash.Dash("local_app", **init_kwargs)
                 warnings.warn(
                     "'jupyter_dash' is not installed. The persistent inline mode will not work. Defaulting to standard inline mode."
                 )
         else:
             # jupyter dash uses a normal Dash app as figure
-            app = dash.Dash("local_app")
+            app = dash.Dash("local_app", **init_kwargs)
 
         div = dash.html.Div(
             [
@@ -488,9 +496,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             print("add coarse figure")
             div.children += [
                 # This store contains the linked subplots for which the zoom will occur
-                # dash.dcc.Store(
-                #     id="linked-subplots", data=self._xaxis_overview_linked_subplots
-                # ),
                 dash.dcc.Graph(
                     id="overview-figure",
                     figure=coarse_fig,
@@ -623,7 +628,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 dash.State(graph_id, "id"),
                 prevent_initial_call=True,
             )
-
 
         app.callback(
             dash.Output(trace_updater_id, "updateData"),
