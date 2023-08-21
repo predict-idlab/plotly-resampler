@@ -478,9 +478,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # We skip when (i) the trace-idx already has been updated, (ii) when
             # there is a layout_xaxis_filter and the trace xaxis is not in the filter
             # or (iii) when its not part of the subset of traces (visible / invisible) to update now
-            if idx in updated_trace_indices or idx not in indices_to_use or (
-                layout_xaxis_filter is not None
-                and trace.get("xaxis", "x") not in trace_xaxis_filter
+            if (
+                idx in updated_trace_indices
+                or idx not in indices_to_use
+                or (
+                    layout_xaxis_filter is not None
+                    and trace.get("xaxis", "x") not in trace_xaxis_filter
+                )
             ):
                 continue
 
@@ -1424,7 +1428,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
     def construct_invisible_update_data(
         self, visible_update: int, relayout_data, trace_visibility: dict
-    ) -> Union[List[dict], dash.no_update] :
+    ) -> Union[List[dict], dash.no_update]:
         invisible_trace_idx = trace_visibility["invisible"]
 
         current_graph = self._get_current_graph()

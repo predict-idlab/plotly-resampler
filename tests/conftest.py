@@ -58,7 +58,7 @@ def driver():
     options = Options()
     d = DesiredCapabilities.CHROME
     d["goog:loggingPrefs"] = {"browser": "ALL"}
-    d['acceptSslCerts'] = True
+    d["acceptSslCerts"] = True
     if not TESTING_LOCAL:
         if headless:
             options.add_argument("--headless")

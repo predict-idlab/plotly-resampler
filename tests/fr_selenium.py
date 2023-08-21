@@ -14,7 +14,6 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 import json
 import time
 from typing import List, Union
-import sys
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -29,7 +28,6 @@ from seleniumwire.request import Request
 #    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
 # - on linux, the browser (i.e., sending & getting requests) goes a lot faster
 from .utils import not_on_linux
-
 
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest
 # and create a parameterized driver.get method
@@ -202,7 +200,9 @@ class FigureResamplerGUITests:
 
         return requests
 
-    def drag_and_zoom(self, div_classname, x0=0.25, x1=0.5, y0=0.25, y1=0.5, testing = False):
+    def drag_and_zoom(
+        self, div_classname, x0=0.25, x1=0.5, y0=0.25, y1=0.5, testing=False
+    ):
         """
         Drags and zooms the div with the given classname.
 
@@ -243,7 +243,9 @@ class FigureResamplerGUITests:
         action.release()
         if testing:
             # self.driver.execute_script("console.log('time update visible');")
-            self.driver.execute_script("console.time('time (visible)');console.time('time (full)');")
+            self.driver.execute_script(
+                "console.time('time (visible)');console.time('time (full)');"
+            )
         action.perform()
 
     def _get_modebar_btns(self):
@@ -262,7 +264,7 @@ class FigureResamplerGUITests:
                 ActionChains(self.driver).move_to_element(btn).click().perform()
                 return
 
-    def reset_axes(self, testing = False):
+    def reset_axes(self, testing=False):
         for btn in self._get_modebar_btns():
             data_title = btn.get_attribute("data-title")
             if data_title == "Reset axes":
@@ -273,7 +275,9 @@ class FigureResamplerGUITests:
                 actions.click()
                 if testing:
                     # self.driver.execute_script("console.log('time update visible');")
-                    self.driver.execute_script("console.time('time (visible)');console.time('time (full)');")
+                    self.driver.execute_script(
+                        "console.time('time (visible)');console.time('time (full)');"
+                    )
                 actions.perform()
                 return
 
@@ -309,7 +313,7 @@ class FigureResamplerGUITests:
             self.driver.execute_script("console.log('zoom in')")
         else:
             self.driver.execute_script("console.log('reset')")
-    
+
     # ------------------------------ DATA MODEL METHODS  ------------------------------
     def __del__(self):
         self.driver.close()

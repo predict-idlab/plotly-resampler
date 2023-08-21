@@ -11,13 +11,12 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-import base64
-import uuid
 import warnings
 from typing import List, Tuple
 
 import dash
 import plotly.graph_objects as go
+
 # from graph_reporter import GraphReporter
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
@@ -303,17 +302,24 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             app = dash.Dash("local_app")
         app.layout = dash.html.Div(
             [
-                dash.dcc.Store(id="visible-indices", data={"visible": [], "invisible": []}),
+                dash.dcc.Store(
+                    id="visible-indices", data={"visible": [], "invisible": []}
+                ),
                 dash.dcc.Graph(
                     id="resample-figure", figure=self, config=config, **graph_properties
                 ),
                 TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False, verbose=testing
+                    id="trace-updater",
+                    gdID="resample-figure",
+                    sequentialUpdate=False,
+                    verbose=testing,
                 ),
                 # GraphReporter(id="graph-reporter", gId="resample-figure"),
             ]
         )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater", 'visible-indices')
+        self.register_update_graph_callback(
+            app, "resample-figure", "trace-updater", "visible-indices"
+        )
 
         height_param = "height" if self._is_persistent_inline else "jupyter_height"
 
@@ -375,7 +381,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
     # TODO: check if i should put the clientside callback to fill the store here or in a different function
     # for now, here
     def register_update_graph_callback(
-        self, app: dash.Dash, graph_id: str, trace_updater_id: str, visibility_store_id: str
+        self,
+        app: dash.Dash,
+        graph_id: str,
+        trace_updater_id: str,
+        visibility_store_id: str,
     ):
         """Register the [`construct_update_data`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data] method as callback function to
         the passed dash-app.

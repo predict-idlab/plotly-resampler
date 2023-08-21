@@ -16,6 +16,7 @@ source: https://dash.plotly.com/sharing-data-between-callbacks:
 import numpy as np
 import plotly.graph_objects as go
 from dash import Dash, Input, Output, callback_context, dcc, html, no_update
+
 # from graph_reporter import GraphReporter
 from trace_updater import TraceUpdater
 
