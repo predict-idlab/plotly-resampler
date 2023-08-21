@@ -18,7 +18,8 @@ from typing import Any
 def is_figure(figure: Any) -> bool:
     """Check if the figure is a plotly go.Figure or a FigureResampler.
 
-    .. Note::
+    !!! note
+
         This method does not use isinstance(figure, go.Figure) as this will not work
         when go.Figure is decorated (after executing the
         ``register_plotly_resampler`` function).
@@ -39,7 +40,8 @@ def is_figure(figure: Any) -> bool:
 def is_figurewidget(figure: Any):
     """Check if the figure is a plotly go.FigureWidget or a FigureWidgetResampler.
 
-    .. Note::
+    !!! note
+
         This method does not use isinstance(figure, go.FigureWidget) as this will not
         work when go.FigureWidget is decorated (after executing the
         ``register_plotly_resampler`` function).
@@ -60,7 +62,8 @@ def is_figurewidget(figure: Any):
 def is_fr(figure: Any) -> bool:
     """Check if the figure is a FigureResampler.
 
-    .. Note::
+    !!! note
+
         This method will not return True if the figure is a plotly go.Figure.
 
     Parameters
@@ -81,7 +84,8 @@ def is_fr(figure: Any) -> bool:
 def is_fwr(figure: Any) -> bool:
     """Check if the figure is a FigureWidgetResampler.
 
-    .. Note::
+    !!! note
+
         This method will not return True if the figure is a plotly go.FigureWidget.
 
     Parameters
@@ -114,6 +118,7 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
     -------
     str:
         The tight string bounds of format '$d-$h$m$s.$ms'.
+        If the timedelta is negative, the string starts with 'NEG'.
 
     """
     out_str = ""
@@ -128,7 +133,7 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
     if c.days > 0:
         out_str += f"{c.days}D"
     if c.hours > 0 or c.minutes > 0 or c.seconds > 0 or c.milliseconds > 0:
-        out_str += "_" if len(out_str) else ""
+        out_str += "_" if out_str else ""  # add seperator if non-empty
 
     if c.hours > 0:
         out_str += f"{c.hours}h"
@@ -142,30 +147,64 @@ def timedelta_to_str(td: pd.Timedelta) -> str:
         else:
             out_str += f"{c.seconds}s"
     elif c.milliseconds > 0:
-        out_str += f"{str(c.milliseconds)}ms"
+        out_str += f"{c.milliseconds}ms"
     if c.microseconds > 0:
-        out_str += f"{str(c.microseconds)}us"
+        out_str += f"{c.microseconds}us"
     if c.nanoseconds > 0:
-        out_str += f"{str(c.nanoseconds)}ns"
+        out_str += f"{c.nanoseconds}ns"
     return out_str
 
 
 def round_td_str(td: pd.Timedelta) -> str:
     """Round a timedelta to the nearest unit and convert to a string.
 
-    .. seealso::
-        :func:`timedelta_to_str`
+    Parameters
+    ----------
+    td : pd.Timedelta
+        The timedelta to round.
+
+    Returns
+    -------
+    str
+        The rounded timedelta as a string.
+        If the timedelta is == 0, None is returned.
+
+    !!! info "See Also"
+        [`timedelta_to_str`][figure_resampler.utils.timedelta_to_str]
+
     """
-    for t_s in ["D", "H", "min", "s", "ms", "us", "ns"]:
+    for t_s in ("D", "H", "min", "s", "ms", "us", "ns"):
         if td > 0.95 * pd.Timedelta(f"1{t_s}"):
             return timedelta_to_str(td.round(t_s))
 
 
 def round_number_str(number: float) -> str:
+    """Round a number to the nearest unit and convert to a string.
+
+    Parameters
+    ----------
+    number : float
+        The number to round.
+
+    Returns
+    -------
+    str
+        The rounded number as a string.
+        If the number is == 0, None is returned.
+
+    """
+    sign = "-" if number < 0 else ""
+    number = abs(number)
     if number > 0.95:
-        for unit, scaling in [("M", int(1e6)), ("k", int(1e3))]:
+        for unit, scaling in [
+            ("T", int(1e12)),  # Trillion
+            ("B", int(1e9)),  # Billion
+            ("M", int(1e6)),  # Million
+            ("k", int(1e3)),  # Thousand
+        ]:
             if number / scaling > 0.95:
                 return f"{round(number / scaling)}{unit}"
-        return str(round(number))
-    # we have a number < 1 --> round till nearest non-zero digit
-    return str(round(number, 1 + abs(int(math.log10(number)))))
+        return sign + str(round(number))
+    if number > 0:  # avoid log10(0)
+        # we have a number between 0-0.95 -> round till nearest non-zero digit
+        return sign + str(round(number, 1 + abs(int(math.log10(number)))))

@@ -4,9 +4,9 @@ Module withholding wrappers for the plotly ``go.Figure`` and ``go.FigureWidget``
 which allows bookkeeping and back-end based resampling of high-frequency sequential
 data.
 
-Tip
----
-The term `high-frequency` actually refers very large amounts of sequential data.
+!!! tip
+
+    The term `high-frequency` actually refers very large amounts of sequential data.
 
 """
 

@@ -1,9 +1,13 @@
-"""Wittholds an efficient numpy python implementation of the LTTB algorithm."""
+"""An (non-optimized) python implementation of the LTTB algorithm that utilizes 
+log-scale buckets.
+"""
 
 import numpy as np
+from plotly_resampler.aggregation.aggregation_interface import DataPointSelector
+from typing import Union
 
 
-class LTTB_core_py:
+class LogLTTB(DataPointSelector):
     @staticmethod
     def _argmax_area(prev_x, prev_y, avg_next_x, avg_next_y, x_bucket, y_bucket) -> int:
         """Vectorized triangular area argmax computation.
@@ -34,44 +38,52 @@ class LTTB_core_py:
             + (prev_x * avg_next_y - avg_next_x * prev_y)
         ).argmax()
 
-    @staticmethod
-    def downsample(x: np.ndarray, y: np.ndarray, n_out) -> np.ndarray:
-        """Downsample the data using the LTTB algorithm (python implementation).
+    def _arg_downsample(
+        self, x: Union[np.ndarray, None], y: np.ndarray, n_out: int, **kwargs
+    ) -> np.ndarray:
+        """Downsample to `n_out` points using the log variant of the LTTB algorithm.
 
         Parameters
         ----------
-        x : np.ndayarray
-            The time series array.
+        x : np.ndarray
+            The x-values of the data.
         y : np.ndarray
-            The value series array.
+            The y-values of the data.
         n_out : int
-            The number of output points.
+            The number of points to downsample to.
 
         Returns
         -------
-        np.array
-            The indexes of the selected datapoints.
+        np.ndarray
+            The indices of the downsampled data.
         """
-        # Bucket size. Leave room for start and end data points
-        block_size = (y.shape[0] - 2) / (n_out - 2)
-        # Note this 'astype' cast must take place after array creation (and not with the
-        # aranage() its dtype argument) or it will cast the `block_size` step to an int
-        # before the arange array creation
-        offset = np.arange(start=1, stop=y.shape[0], step=block_size).astype(np.int64)
+        # We need a valid x array to determine the x-range
+        assert x is not None, "x cannot be None for this downsampler"
+
+        # the log function to use
+        lf = np.log1p
+
+        offset = np.unique(
+            np.searchsorted(
+                x, np.exp(np.linspace(lf(x[0]), lf(x[-1]), n_out + 1)).astype(np.int64)
+            )
+        )
 
         # Construct the output array
-        sampled_x = np.empty(n_out, dtype="int64")
+        sampled_x = np.empty(len(offset) + 1, dtype="int64")
         sampled_x[0] = 0
         sampled_x[-1] = x.shape[0] - 1
 
-        # Convert y to int if it is boolean
-        if y.dtype == np.bool:
+        # Convert x & y to int if it is boolean
+        if x.dtype == np.bool_:
+            x = x.astype(np.int8)
+        if y.dtype == np.bool_:
             y = y.astype(np.int8)
 
         a = 0
-        for i in range(n_out - 3):
+        for i in range(len(offset) - 2):
             a = (
-                LTTB_core_py._argmax_area(
+                self._argmax_area(
                     prev_x=x[a],
                     prev_y=y[a],
                     avg_next_x=np.mean(x[offset[i + 1] : offset[i + 2]]),
@@ -86,7 +98,7 @@ class LTTB_core_py:
         # ------------ EDGE CASE ------------
         # next-average of last bucket = last point
         sampled_x[-2] = (
-            LTTB_core_py._argmax_area(
+            self._argmax_area(
                 prev_x=x[a],
                 prev_y=y[a],
                 avg_next_x=x[-1],  # last point

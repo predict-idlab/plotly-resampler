@@ -28,16 +28,7 @@ from seleniumwire.request import Request
 #    multiprocessing.Process)
 #    https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
 # - on linux, the browser (i.e., sending & getting requests) goes a lot faster
-def not_on_linux():
-    """Return True if the current platform is not Linux.
-
-    Note: this will be used to add more waiting time to windows & mac os tests as
-    - on these OS's serialization of the figure is necessary (to start the dash app in a
-      multiprocessing.Process)
-      https://docs.python.org/3/library/multiprocessing.html#contexts-and-start-methods
-    - on linux, the browser (i.e., sending & getting requests) goes a lot faster
-    """
-    return not sys.platform.startswith("linux")
+from .utils import not_on_linux
 
 
 # https://www.blazemeter.com/blog/improve-your-selenium-webdriver-tests-with-pytest

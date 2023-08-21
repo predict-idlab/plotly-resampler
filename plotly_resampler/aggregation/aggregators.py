@@ -1,337 +1,278 @@
 # -*- coding: utf-8 -*-
 """Compatible implementation for various aggregation/downsample methods.
 
-.. |br| raw:: html
-
-   <br>
-
 """
+
+from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt"
 
+
 import math
+from typing import Tuple
 
 import numpy as np
-import pandas as pd
+from tsdownsample import (
+    EveryNthDownsampler,
+    LTTBDownsampler,
+    MinMaxDownsampler,
+    MinMaxLTTBDownsampler,
+)
 
-from ..aggregation.aggregation_interface import AbstractSeriesAggregator
-
-# from plotly_resampler.aggregation import AbstractSeriesAggregator
-
-try:
-    # The efficient c version of the LTTB algorithm
-    from .algorithms.lttb_c import LTTB_core_c as LTTB_core
-except (ImportError, ModuleNotFoundError):
-    import warnings
-
-    warnings.warn("Could not import lttbc; will use a (slower) python alternative.")
-    from .algorithms.lttb_py import LTTB_core_py as LTTB_core
+from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
 
-class LTTB(AbstractSeriesAggregator):
+def _to_tsdownsample_args(
+    x: np.ndarray | None, y: np.ndarray
+) -> Tuple[np.ndarray, ...]:
+    """Converts x & y to the arguments expected by tsdownsample."""
+    if x is None:
+        return (y,)
+    return (x, y)
+
+
+class LTTB(DataPointSelector):
     """Largest Triangle Three Buckets (LTTB) aggregation method.
 
-    .. Tip::
+    This is arguably the most widely used aggregation method. It is based on the
+    effective area of a triangle (inspired from the line simplification domain).
+    The algorithm has $O(n)$ complexity, however, for large datasets, it can be much
+    slower than other algorithms (e.g. MinMax) due to the higher cost of calculating
+    the areas of triangles.
+
+    Thesis: [https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf](https://skemman.is/bitstream/1946/15343/3/SS_MSthesis.pdf) <br/>
+    Details on visual representativeness & stability: [https://arxiv.org/abs/2304.00900](https://arxiv.org/abs/2304.00900)
+
+    !!! tip
+
         `LTTB` doesn't scale super-well when moving to really large datasets, so when
         dealing with more than 1 million samples, you might consider using
-        :class:`EffientLTTB <EfficientLTTB>`.
+        [`MinMaxLTTB`][aggregation.aggregators.MinMaxLTTB].
 
-    Note
-    ----
-    * This class is mainly designed to operate on numerical data as LTTB calculates
-      distances on the values. |br|
-      When dealing with categories, the data is encoded into its numeric codes,
-      these codes are the indices of the category array.
-    * To aggregate category data with LTTB, your ``pd.Series`` must be of dtype
-      'category'. |br|
-      **Tip**: if there is an order in your categories, order them that way, LTTB uses
-      the ordered category codes values (se bullet above) to calculate distances and
-      make aggregation decisions.
-      .. code::
-        >>> s = pd.Series(["a", "b", "c", "a"])
-        >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
-        >>> s_cat = s.astype(cat_type)
+
+    !!! note
+
+        * This class is mainly designed to operate on numerical data as LTTB calculates
+          distances on the values. <br/>
+          When dealing with categories, the data is encoded into its numeric codes,
+          these codes are the indices of the category array.
+        * To aggregate category data with LTTB, your ``pd.Series`` must be of dtype
+          'category'. <br/>
+
+          **tip**:
+
+          if there is an order in your categories, order them that way, LTTB uses
+          the ordered category codes values (see bullet above) to calculate distances and
+          make aggregation decisions. <br/>
+          **code**:
+            ```python
+                >>> import pandas as pd
+                >>> s = pd.Series(["a", "b", "c", "a"])
+                >>> cat_type = pd.CategoricalDtype(categories=["b", "c", "a"], ordered=True)
+                >>> s_cat = s.astype(cat_type)
+            ```
+        * `LTTB` has no downsample kwargs, as it cannot be paralellized. Instead, you can
+          use the [`MinMaxLTTB`][aggregation.aggregators.MinMaxLTTB] downsampler, which performs
+          minmax preselection (in parallel if configured so), followed by LTTB.
 
     """
 
-    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-
-        """
+    def __init__(self):
         super().__init__(
-            interleave_gaps,
-            nan_position,
-            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
+            y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
         )
+        self.downsampler = LTTBDownsampler()
 
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        s_v = s.cat.codes.values if str(s.dtype) == "category" else s.values
-
-        s_i = s.index.values
-        s_i = s_i.astype(np.int64) if s_i.dtype.type == np.datetime64 else s_i
-
-        # Use the Core interface to perform the downsampling
-        index = LTTB_core.downsample(s_i, s_v, n_out)
-
-        return pd.Series(
-            index=s.index[index],
-            data=s.values[index],
-            name=str(s.name),
-            copy=False,
-        )
+    def _arg_downsample(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> np.ndarray:
+        return self.downsampler.downsample(*_to_tsdownsample_args(x, y), n_out=n_out)
 
 
-class MinMaxOverlapAggregator(AbstractSeriesAggregator):
+class MinMaxOverlapAggregator(DataPointSelector):
     """Aggregation method which performs binned min-max aggregation over 50% overlapping
     windows.
 
-    .. image:: _static/minmax_operator.png
+    ![minmax operator image](https://github.com/predict-idlab/plotly-resampler/blob/main/docs/sphinx/_static/minmax_operator.png)
 
     In the above image, **bin_size**: represents the size of *(len(series) / n_out)*.
     As the windows have 50% overlap and are consecutive, the min & max values are
     calculated on a windows with size (2x bin-size).
 
-    .. note::
-        This method is rather efficient when scaling to large data sizes and can be used
-        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does.
+    This is *very* similar to the MinMaxAggregator, emperical results showed no
+    observable difference between both approaches.
+
+    !!! note
+
+        This method is implemented in Python (leveraging numpy for vecotrization), but
+        is **significantly slower than the MinMaxAggregator** (which is implemented in
+        the tsdownsample toolkit in Rust). <br/>
+        As such, this class does not support any downsample kwargs.
+
+    !!! note
+
+        This downsampler supports all dtypes.
 
     """
 
-    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-
-        """
-        # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
-
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
+    def _arg_downsample(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> np.ndarray:
         # The block size 2x the bin size we also perform the ceil-operation
-        # to ensure that the block_size =
-        block_size = math.ceil(s.shape[0] / (n_out + 1) * 2)
+        # to ensure that the block_size * n_out / 2 < len(x)
+        block_size = math.ceil(y.shape[0] / (n_out + 1) * 2)
         argmax_offset = block_size // 2
 
         # Calculate the offset range which will be added to the argmin and argmax pos
         offset = np.arange(
-            0, stop=s.shape[0] - block_size - argmax_offset, step=block_size
+            0, stop=y.shape[0] - block_size - argmax_offset, step=block_size
         )
 
-        # Calculate the argmin & argmax on the reshaped view of `s` &
+        # Calculate the argmin & argmax on the reshaped view of `y` &
         # add the corresponding offset
         argmin = (
-            s.values[: block_size * offset.shape[0]]
-            .reshape(-1, block_size)
-            .argmin(axis=1)
+            y[: block_size * offset.shape[0]].reshape(-1, block_size).argmin(axis=1)
             + offset
         )
         argmax = (
-            s.values[argmax_offset : block_size * offset.shape[0] + argmax_offset]
+            y[argmax_offset : block_size * offset.shape[0] + argmax_offset]
             .reshape(-1, block_size)
             .argmax(axis=1)
             + offset
             + argmax_offset
         )
+
         # Sort the argmin & argmax (where we append the first and last index item)
-        # and then slice the original series on these indexes.
-        return s.iloc[np.unique(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
+        return np.unique(np.concatenate((argmin, argmax, [0, y.shape[0] - 1])))
 
 
-class MinMaxAggregator(AbstractSeriesAggregator):
+class MinMaxAggregator(DataPointSelector):
     """Aggregation method which performs binned min-max aggregation over fully
     overlapping windows.
 
-    .. note::
+    This is arguably the most computational efficient downsampling method, as it only
+    performs (non-expensive) comparisons on the data in a single pass.
+
+    Details on visual representativeness & stability: [https://arxiv.org/abs/2304.00900](https://arxiv.org/abs/2304.00900)
+
+    !!! note
+
         This method is rather efficient when scaling to large data sizes and can be used
-        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the
-        :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>`.
+        as a data-reduction step before feeding it to the [`LTTB`][aggregation.aggregators.LTTB]
+        algorithm, as [`MinMaxLTTB`][aggregation.aggregators.MinMaxLTTB] does with the
+        [`MinMaxOverlapAggregator`][aggregation.aggregators.MinMaxOverlapAggregator].
 
     """
 
-    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
+    def __init__(self, **downsample_kwargs):
         """
         Parameters
         ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-        dtype_regex_list: List[str], optional
-            List containing the regex matching the supported datatypes, by default None.
+        **downsample_kwargs
+            Keyword arguments passed to the :class:`MinMaxDownsampler`.
+            - The `parallel` argument is set to False by default.
+
         """
-        # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
+        # this downsampler supports all dtypes
+        super().__init__(**downsample_kwargs)
+        self.downsampler = MinMaxDownsampler()
 
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        # The block size 2x the bin size we also perform the ceil-operation
-        # to ensure that the block_size =
-        block_size = math.ceil(s.shape[0] / n_out * 2)
-
-        # Calculate the offset range which will be added to the argmin and argmax pos
-        offset = np.arange(0, stop=s.shape[0] - block_size, step=block_size)
-
-        # Calculate the argmin & argmax on the reshaped view of `s` &
-        # add the corresponding offset
-        argmin = (
-            s.values[: block_size * offset.shape[0]]
-            .reshape(-1, block_size)
-            .argmin(axis=1)
-            + offset
-        )
-        argmax = (
-            s.values[: block_size * offset.shape[0]]
-            .reshape(-1, block_size)
-            .argmax(axis=1)
-            + offset
+    def _arg_downsample(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> np.ndarray:
+        return self.downsampler.downsample(
+            *_to_tsdownsample_args(x, y), n_out=n_out, **self.downsample_kwargs
         )
 
-        # Note: the implementation below flips the array to search from
-        # right-to left (as min or max will always usee the first same minimum item,
-        # i.e. the most left item)
-        # This however creates a large computational overhead -> we do not use this
-        # implementation and suggest using the minmaxaggregator.
-        # argmax = (
-        #     (block_size - 1)
-        #     - np.fliplr(
-        #         s[: block_size * offset.shape[0]].values.reshape(-1, block_size)
-        #     ).argmax(axis=1)
-        # ) + offset
 
-        # Sort the argmin & argmax (where we append the first and last index item)
-        # and then slice the original series on these indexes.
-        return s.iloc[np.unique(np.concatenate((argmin, argmax, [0, s.shape[0] - 1])))]
-
-
-class EfficientLTTB(AbstractSeriesAggregator):
+class MinMaxLTTB(DataPointSelector):
     """Efficient version off LTTB by first reducing really large datasets with
-    the :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>` and then further
-    aggregating the reduced result with :class:`LTTB <LTTB>`.
+    the [`MinMaxAggregator`][aggregation.aggregators.MinMaxAggregator] and then further aggregating the
+    reduced result with [`LTTB`][aggregation.aggregators.LTTB].
+
+    Starting from 10M data points, this method performs the MinMax-prefetching of data
+    points to enhance computational efficiency.
+
+    Inventors: Jonas & Jeroen Van Der Donckt - 2022
+
+    Paper: [https://arxiv.org/pdf/2305.00332.pdf](https://arxiv.org/pdf/2305.00332.pdf)
     """
 
-    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
+    def __init__(self, minmax_ratio: int = 4, **downsample_kwargs):
         """
         Parameters
         ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
+        minmax_ratio: int, optional
+            The ratio between the number of data points in the MinMax-prefetching and
+            the number of data points that will be outputted by LTTB. By default, 4.
+        **downsample_kwargs
+            Keyword arguments passed to the `MinMaxLTTBDownsampler`.
+            - The `parallel` argument is set to False by default.
+            - The `minmax_ratio` argument is set to 4 by default, which was empirically
+              proven to be a good default.
 
         """
-        self.lttb = LTTB(interleave_gaps=False)
-        self.minmax = MinMaxOverlapAggregator(interleave_gaps=False)
+        self.minmaxlttb = MinMaxLTTBDownsampler()
+        self.minmax_ratio = minmax_ratio
+
         super().__init__(
-            interleave_gaps,
-            nan_position,
-            dtype_regex_list=[rf"{dtype}\d*" for dtype in ["float", "int", "uint"]]
+            y_dtype_regex_list=[rf"{dtype}\d*" for dtype in ("float", "int", "uint")]
             + ["category", "bool"],
+            **downsample_kwargs,
         )
 
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        size_threshold = 10_000_000
-        ratio_threshold = 100
-
-        # TODO -> test this with a move of the .so file
-        if LTTB_core.__name__ == "LTTB_core_py":
-            size_threshold = 1_000_000
-
-        if s.shape[0] > size_threshold and s.shape[0] / n_out > ratio_threshold:
-            s = self.minmax._aggregate(s, n_out * 30)
-        return self.lttb._aggregate(s, n_out)
-
-
-class EveryNthPoint(AbstractSeriesAggregator):
-    """Naive (but fast) aggregator method which returns every N'th point."""
-
-    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-
-        """
-        # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
-
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        return s[:: max(1, math.ceil(len(s) / n_out))]
+    def _arg_downsample(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> np.ndarray:
+        return self.minmaxlttb.downsample(
+            *_to_tsdownsample_args(x, y),
+            n_out=n_out,
+            minmax_ratio=self.minmax_ratio,
+            **self.downsample_kwargs,
+        )
 
 
-class FuncAggregator(AbstractSeriesAggregator):
+class EveryNthPoint(DataPointSelector):
+    """Naive (but fast) aggregator method which returns every N'th point.
+
+    !!! note
+        This downsampler supports all dtypes.
+    """
+
+    def _arg_downsample(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> np.ndarray:
+        return EveryNthDownsampler().downsample(y, n_out=n_out)
+
+
+class FuncAggregator(DataAggregator):
     """Aggregator instance which uses the passed aggregation func.
 
-    .. attention::
+    !!! warning
+
+        The user has total control which `aggregation_func` is passed to this method,
+        hence the user should be careful to not make copies of the data, nor write to
+        the data. Furthermore, the user should beware of performance issues when
+        using more complex aggregation functions.
+
+    !!! warning "Attention"
+
         The user has total control which `aggregation_func` is passed to this method,
         hence it is the users' responsibility to handle categorical and bool-based
         data types.
@@ -341,130 +282,74 @@ class FuncAggregator(AbstractSeriesAggregator):
     def __init__(
         self,
         aggregation_func,
-        interleave_gaps: bool = True,
-        nan_position="end",
-        dtype_regex_list=None,
+        x_dtype_regex_list=None,
+        y_dtype_regex_list=None,
+        **downsample_kwargs,
     ):
         """
         Parameters
         ----------
         aggregation_func: Callable
             The aggregation function which will be applied on each pin.
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-        dtype_regex_list: List[str], optional
-            List containing the regex matching the supported datatypes, by default None.
 
         """
         self.aggregation_func = aggregation_func
-        super().__init__(interleave_gaps, nan_position, dtype_regex_list)
+        super().__init__(x_dtype_regex_list, y_dtype_regex_list, **downsample_kwargs)
 
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        if isinstance(s.index, pd.DatetimeIndex):
-            t_start, t_end = s.index[:: len(s) - 1]
-            rate = (t_end - t_start) / n_out
-            return s.resample(rate).apply(self.aggregation_func).dropna()
+    def _aggregate(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Aggregate the data using the object's aggregation function.
 
-        # no time index -> use the every nth heuristic
-        group_size = max(1, np.ceil(len(s) / n_out))
-        s_out = (
-            s.groupby(
-                # create an array of [0, 0, 0, ...., n_out, n_out]
-                # where each value is repeated based $len(s)/n_out$ times
-                by=np.repeat(np.arange(n_out), group_size)[: len(s)]
-            )
-            .agg(self.aggregation_func)
-            .dropna()
-        )
+        Parameters
+        ----------
+        x: np.ndarray | None
+            The x-values of the data. Can be None if no x-values are available.
+        y: np.ndarray
+            The y-values of the data.
+        n_out: int
+            The number of output data points.
+        **kwargs
+            Additional keyword arguments, which are passed to the aggregation function.
+
+        Returns
+        -------
+        Tuple[np.ndarray, np.ndarray]
+            The aggregated x & y values.
+            If `x` is None, then the indices of the first element of each bin is
+            returned as x-values.
+
+        """
         # Create an index-estimation for real-time data
         # Add one to the index so it's pointed at the end of the window
         # Note: this can be adjusted to .5 to center the data
         # Multiply it with the group size to get the real index-position
         # TODO: add option to select start / middle / end as index
-        idx_locs = (np.arange(len(s_out)) + 1) * group_size
-        idx_locs[-1] = len(s) - 1
-        return pd.Series(
-            index=s.iloc[idx_locs.astype(s.index.dtype)].index.astype(s.index.dtype),
-            data=s_out.values,
-            name=str(s.name),
-            copy=False,
+        if x is None:
+            # equidistant index
+            idxs = np.linspace(0, len(y), n_out + 1).astype(int)
+        else:
+            xdt = x.dtype
+            if np.issubdtype(xdt, np.datetime64) or np.issubdtype(xdt, np.timedelta64):
+                x = x.view("int64")
+            # Thanks to `linspace`, the data is evenly distributed over the index-range
+            # The searchsorted function returns the index positions
+            idxs = np.searchsorted(x, np.linspace(x[0], x[-1], n_out + 1))
+
+        y_agg = np.array(
+            [
+                self.aggregation_func(y[t0:t1], **self.downsample_kwargs)
+                for t0, t1 in zip(idxs[:-1], idxs[1:])
+            ]
         )
 
+        if x is not None:
+            x_agg = x[idxs[:-1]]
+        else:
+            # x is None -> return the indices of the first element of each bin
+            x_agg = idxs[:-1]
 
-class M4Aggregator(AbstractSeriesAggregator):
-    """Aggregation method which performs binned min-max aggregation over fully
-    overlapping windows.
-
-    .. note::
-        This method is rather efficient when scaling to large data sizes and can be used
-        as a data-reduction step before feeding it to the :class:`LTTB <LTTB>`
-        algorithm, as :class:`EfficientLTTB <EfficientLTTB>` does with the
-        :class:`MinMaxOverlapAggregator <MinMaxOverlapAggregator>`.
-
-    """
-
-    def __init__(self, interleave_gaps: bool = True, nan_position="end"):
-        """
-        Parameters
-        ----------
-        interleave_gaps: bool, optional
-            Whether None values should be added when there are gaps / irregularly
-            sampled data. A quantile-based approach is used to determine the gaps /
-            irregularly sampled data. By default, True.
-        nan_position: str, optional
-            Indicates where nans must be placed when gaps are detected. \n
-            If ``'end'``, the first point after a gap will be replaced with a
-            nan-value \n
-            If ``'begin'``, the last point before a gap will be replaced with a
-            nan-value \n
-            If ``'both'``, both the encompassing gap datapoints are replaced with
-            nan-values \n
-            .. note::
-                This parameter only has an effect when ``interleave_gaps`` is set
-                to *True*.
-        dtype_regex_list: List[str], optional
-            List containing the regex matching the supported datatypes, by default None.
-        """
-        # this downsampler supports all pd.Series dtypes
-        super().__init__(interleave_gaps, nan_position, dtype_regex_list=None)
-
-    def _aggregate(self, s: pd.Series, n_out: int) -> pd.Series:
-        assert n_out % 4 == 0, "n_out must be a multiple of 4"
-
-        s_i = (
-            s.index.astype(np.int64)
-            if s.index.dtype.type in (np.datetime64, pd.Timestamp)
-            else s.index
-        )
-        print(s_i)
-
-        # Thanks to the `linspace` the data is evenly distributed over the index-range
-        # The searchsorted function returns the index positions
-        bins = np.searchsorted(s_i, np.linspace(s_i[0], s_i[-1], n_out // 4 + 1))
-
-        rel_idxs = []
-        for lower, upper in zip(bins, bins[1:]):
-            slice = s.iloc[lower:upper]
-            if not len(slice):
-                continue
-
-            # calculate the min(idx), argmin(slice), argmax(slice), max(idx)
-            rel_idxs.append(slice.index[0])
-            rel_idxs.append(slice.idxmin())
-            rel_idxs.append(slice.idxmax())
-            rel_idxs.append(slice.index[-1])
-
-        return s.loc[np.unique(rel_idxs)]
+        return x_agg, y_agg

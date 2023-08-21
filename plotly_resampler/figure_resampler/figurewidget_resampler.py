@@ -15,7 +15,12 @@ from typing import Tuple
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
 
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..aggregation import (
+    AbstractAggregator,
+    AbstractGapHandler,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+)
 from .figure_resampler_interface import AbstractFigureAggregator
 
 
@@ -29,7 +34,7 @@ class FigureWidgetResampler(
 ):
     """Data aggregation functionality wrapper for ``go.FigureWidgets``.
 
-    .. attention::
+    !!! warning
 
         * This wrapper only works within ``jupyter``-based environments.
         * The ``.show()`` method returns a **static figure** on which the
@@ -43,7 +48,8 @@ class FigureWidgetResampler(
         figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -92,6 +98,7 @@ class FigureWidgetResampler(
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
+            default_gap_handler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
             convert_traces_kwargs,
@@ -168,9 +175,13 @@ class FigureWidgetResampler(
                 # -> save current xaxis range to _prev_layout
                 self._prev_layout[xaxis_str]["range"] = x_range
 
-        if len(relayout_dict):
+        if relayout_dict:  # when not empty
             # Construct the update data
             update_data = self.construct_update_data(relayout_dict)
+
+            if self._is_no_update(update_data):
+                # Return when no data update
+                return
 
             if self._print_verbose:
                 self._relayout_hist.append(dict(zip(self._xaxis_list, x_ranges)))
@@ -180,7 +191,7 @@ class FigureWidgetResampler(
 
             with self.batch_update():
                 # First update the layout (first item of update_data)
-                self.layout.update(update_data[0])
+                self.layout.update(self._parse_relayout(update_data[0]))
 
                 for xaxis_str in self._xaxis_list:
                     if "showspikes" in layout[xaxis_str]:
@@ -251,7 +262,7 @@ class FigureWidgetResampler(
             with self.batch_update():
                 # First update the layout (first item of update_data)
                 if not force_update:
-                    self.layout.update(update_data[0])
+                    self.layout.update(self._parse_relayout(update_data[0]))
 
                 # Also:  Remove the showspikes from the layout, otherwise the autorange
                 # will not work as intended (it will not be triggered again)
@@ -280,7 +291,7 @@ class FigureWidgetResampler(
         # Reset the layout
         self.update_layout(
             {
-                axis: {"autorange": True, "range": None}
+                axis: {"autorange": None, "range": None}
                 for axis in self._xaxis_list + self._yaxis_list
             }
         )

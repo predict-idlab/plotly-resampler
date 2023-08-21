@@ -6,18 +6,29 @@ name: Unit tests
 on:
   push:
     branches: [ main ]
+    paths:
+      - "tests/**"
+      - "plotly_resampler/**"
+      - "poetry.lock"
   pull_request:
     branches: [ main ]
+    paths:
+      - "tests/**"
+      - "plotly_resampler/**"
+      - "poetry.lock"
 
 jobs:
-  build:
+  test:
 
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+    defaults:
+      run:
+        shell: bash
 
     steps:
     - uses: actions/checkout@v2
@@ -29,9 +40,12 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - uses: nanasess/setup-chromedriver@master
+      with:
+        # Optional: do not specify to match Chrome's version
+        chromedriver-version: '114.0.5735.90'
 
-    - name: Install poetry
-      uses: Gr1N/setup-poetry@v4
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
     - name: Cache poetry
       id: cached-poetry-dependencies
       uses: actions/cache@v2
@@ -40,7 +54,7 @@ jobs:
         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-${{ matrix.python-version }}
     - run: poetry --version
     - name: Install dependencies
-      run: poetry install
+      run: poetry install --all-extras
       # Do not use caching (anymore)
 #      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
 

@@ -28,13 +28,13 @@ def _already_wrapped(constr):
 
 def _get_plotly_constr(constr):
     """Return the constructor of the underlying plotly graph object and thus omit the
-    possibly wrapped :class:`AbstractFigureAggregator <plotly_resampler.figure_resampler.figure_resampler_interface.AbstractFigureAggregator>`
+    possibly wrapped [`AbstractFigureAggregator`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator]
     instance.
 
     Parameters
     ----------
     constr : callable
-        The constructor of a instantiatedplotly-object.
+        The constructor of a instantiated plotly-object.
 
     Returns
     -------
@@ -84,13 +84,13 @@ def register_plotly_resampler(mode="auto", **aggregator_kwargs):
 
     This function results in the use of plotly-resampler under the hood.
 
-    .. Note::
+    !!! note
         We advise to use mode= ``widget`` when working in an IPython based environment
         as this will just behave as a ``go.FigureWidget``, but with dynamic aggregation.
         When using mode= ``auto`` or ``figure``; most figures will be wrapped as
-        :class:`FigureResampler <plotly_resampler.figure_resampler.FigureResampler>`,
+        [`FigureResampler`][figure_resampler.FigureResampler],
         on which
-        :func:`show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>`
+        [`show_dash`][figure_resampler.FigureResampler.show_dash]
         needs to be called.
 
     Parameters
@@ -99,17 +99,17 @@ def register_plotly_resampler(mode="auto", **aggregator_kwargs):
         The mode of the plotly-resampler.
         Possible values are: 'auto', 'figure', 'widget', None.
         If 'auto' is used, the mode is determined based on the environment; if it is in
-        an ipython environment, the mode is 'widget', otherwise it is 'figure'.
+        an IPython environment, the mode is 'widget', otherwise it is 'figure'.
         If 'figure' is used, all plotly figures are wrapped as FigureResampler objects.
         If 'widget' is used, all plotly figure widgets are wrapped as
-        FigureWidgetResampler objects (we advise to use this mode in ipython environment
+        FigureWidgetResampler objects (we advise to use this mode in IPython environment
         with a kernel).
         If None is used, wrapping is done as expected (go.Figure -> FigureResampler,
         go.FigureWidget -> FigureWidgetResampler).
     aggregator_kwargs : dict, optional
         The keyword arguments to pass to the plotly-resampler decorator its constructor.
-        See more details in :class:`FigureResampler <FigureResampler>` and
-        :class:`FigureWidgetResampler <FigureWidgetResampler>`.
+        See more details in [`FigureResampler`][figure_resampler.FigureResampler] and
+        [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler].
 
     """
     for constr_name, pr_class in PLOTLY_CONSTRUCTOR_WRAPPER.items():

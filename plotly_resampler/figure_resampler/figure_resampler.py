@@ -16,171 +16,27 @@ import uuid
 import warnings
 from typing import List, Tuple
 
-
 import dash
 import plotly.graph_objects as go
-from flask_cors import cross_origin
 # from graph_reporter import GraphReporter
-from jupyter_dash import JupyterDash
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
-from ..aggregation import AbstractSeriesAggregator, EfficientLTTB
+from ..aggregation import (
+    AbstractAggregator,
+    AbstractGapHandler,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+)
 from .figure_resampler_interface import AbstractFigureAggregator
 from .utils import is_figure, is_fr
 
+try:
+    from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
 
-class JupyterDashPersistentInlineOutput(JupyterDash):
-    """Extension of the JupyterDash class to support the custom inline output for
-    ``FigureResampler`` figures.
-
-    Specifically we embed a div in the notebook to display the figure inline.
-
-     - In this div the figure is shown as an iframe when the server (of the dash app)
-       is alive.
-     - In this div the figure is shown as an image when the server (of the dash app)
-       is dead.
-
-    As the HTML & javascript code is embedded in the notebook output, which is loaded
-    each time you open the notebook, the figure is always displayed (either as iframe
-    or just an image).
-    Hence, this extension enables to maintain always an output in the notebook.
-
-    .. Note::
-        This subclass is only used when the mode is set to ``"inline_persistent"`` in
-        the :func:`FigureResampler.show_dash <plotly_resampler.figure_resampler.FigureResampler.show_dash>`
-        method. However, the mode should be passed as ``"inline"`` since this subclass
-        overwrites the inline behavior.
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._uid = str(uuid.uuid4())  # A new unique id for each app
-
-        # Mimic the _alive_{token} endpoint but with cors
-        @self.server.route(f"/_is_alive_{self._uid}", methods=["GET"])
-        @cross_origin(origin=["*"], allow_headers=["Content-Type"])
-        def broadcast_alive():
-            return "Alive"
-
-    def _display_inline_output(self, dashboard_url, width, height):
-        """Display the dash app persistent inline in the notebook.
-
-        The figure is displayed as an iframe in the notebook if the server is reachable,
-        otherwise as an image.
-        """
-        # TODO: check whether an error gets logged in case of crash
-        # TODO: add option to opt out of this
-        from IPython.display import display
-
-        # Get the image from the dashboard and encode it as base64
-        fig = self.layout.children[0].figure  # is stored there in the show_dash method
-        f_width = 1000 if fig.layout.width is None else fig.layout.width
-        fig_base64 = base64.b64encode(
-            fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
-        ).decode("utf8")
-
-        # The unique id of this app
-        # This id is used to couple the output in the notebook with this app
-        # A fetch request is performed to the _is_alive_{uid} endpoint to check if the
-        # app is still alive.
-        uid = self._uid
-
-        # The html (& javascript) code to display the app / figure
-        display(
-            {
-                "text/html": f"""
-                <div id='PR_div__{uid}'></div>
-                <script type='text/javascript'>
-                """
-                + """
-
-                function setOutput(timeout) {
-                    """
-                +
-                # Variables should be in local scope (in the closure)
-                f"""
-                    var pr_div = document.getElementById('PR_div__{uid}');
-                    var url = '{dashboard_url}';
-                    var pr_img_src = 'data:image/png;base64, {fig_base64}';
-                    var is_alive_suffix = '_is_alive_{uid}';
-                    """
-                + """
-
-                    if (pr_div.firstChild) return  // return if already loaded
-
-                    const controller = new AbortController();
-                    const signal = controller.signal;
-
-                    return fetch(url + is_alive_suffix, {method: 'GET', signal: signal})
-                        .then(response => response.text())
-                        .then(data =>
-                            {
-                                if (data == "Alive") {
-                                    console.log("Server is alive");
-                                    iframeOutput(pr_div, url);
-                                } else {
-                                    // I think this case will never occur because of CORS
-                                    console.log("Server is dead");
-                                    imageOutput(pr_div, pr_img_src);
-                                }
-                            }
-                        )
-                        .catch(error => {
-                            console.log("Server is unreachable");
-                            imageOutput(pr_div, pr_img_src);
-                        })
-                }
-
-                setOutput(350);
-
-                function imageOutput(element, pr_img_src) {
-                    console.log('Setting image');
-                    var pr_img = document.createElement("img");
-                    pr_img.setAttribute("src", pr_img_src)
-                    pr_img.setAttribute("alt", 'Server unreachable - using image instead');
-                    """
-                + f"""
-                    pr_img.setAttribute("max-width", '{width}');
-                    pr_img.setAttribute("max-height", '{height}');
-                    pr_img.setAttribute("width", 'auto');
-                    pr_img.setAttribute("height", 'auto');
-                    """
-                + """
-                    element.appendChild(pr_img);
-                }
-
-                function iframeOutput(element, url) {
-                    console.log('Setting iframe');
-                    var pr_iframe = document.createElement("iframe");
-                    pr_iframe.setAttribute("src", url);
-                    pr_iframe.setAttribute("frameborder", '0');
-                    pr_iframe.setAttribute("allowfullscreen", '');
-                    """
-                + f"""
-                    pr_iframe.setAttribute("width", '{width}');
-                    pr_iframe.setAttribute("height", '{height}');
-                    """
-                + """
-                    element.appendChild(pr_iframe);
-                }
-                </script>
-                """
-            },
-            raw=True,
-            clear=True,
-            display_id=uid,
-        )
-
-    def _display_in_jupyter(self, dashboard_url, port, mode, width, height):
-        """Override the display method to retain some output when displaying inline
-        in jupyter.
-        """
-        if mode == "inline":
-            self._display_inline_output(dashboard_url, width, height)
-        else:
-            super()._display_in_jupyter(dashboard_url, port, mode, width, height)
+    _jupyter_dash_installed = True
+except ImportError:
+    _jupyter_dash_installed = False
 
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
@@ -191,7 +47,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         figure: BaseFigure | dict = None,
         convert_existing_traces: bool = True,
         default_n_shown_samples: int = 1000,
-        default_downsampler: AbstractSeriesAggregator = EfficientLTTB(),
+        default_downsampler: AbstractAggregator = MinMaxLTTB(),
+        default_gap_handler: AbstractGapHandler = MedDiffGapHandler(),
         resampled_trace_prefix_suffix: Tuple[str, str] = (
             '<b style="color:sandybrown">[R]</b> ',
             "",
@@ -216,15 +73,28 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         default_n_shown_samples: int, optional
             The default number of samples that will be shown for each trace,
             by default 1000.\n
-            .. note::
-                * This can be overridden within the :func:`add_trace` method.
-                * If a trace withholds fewer datapoints than this parameter,
+            !!! note
+                - This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
+                - If a trace withholds fewer datapoints than this parameter,
                   the data will *not* be aggregated.
-        default_downsampler: AbstractSeriesDownsampler
-            An instance which implements the AbstractSeriesDownsampler interface and
-            will be used as default downsampler, by default ``EfficientLTTB`` with
-            _interleave_gaps_ set to True. \n
-            .. note:: This can be overridden within the :func:`add_trace` method.
+        default_downsampler: AbstractAggregator, optional
+            An instance which implements the AbstractAggregator interface and
+            will be used as default downsampler, by default ``MinMaxLTTB`` with
+            ``MinMaxLTTB`` is a heuristic to the LTTB algorithm that uses pre-selection
+            of min-max values (default 4 per bin) to speed up LTTB (as now only 4 values
+            per bin are considered by LTTB). This min-max ratio of 4 can be changed by
+            initializing ``MinMaxLTTB`` with a different value for the ``minmax_ratio``
+            parameter. \n
+            !!! note
+                This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
+        default_gap_handler: AbstractGapHandler, optional
+            An instance which implements the AbstractGapHandler interface and
+            will be used as default gap handler, by default ``MedDiffGapHandler``.
+            ``MedDiffGapHandler`` will determine gaps by first calculating the median
+            aggregated x difference and then thresholding the aggregated x delta on a
+            multiple of this median difference.  \n
+            !!! note
+                This can be overridden within the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method.
         resampled_trace_prefix_suffix: str, optional
             A tuple which contains the ``prefix`` and ``suffix``, respectively, which
             will be added to the trace its legend-name when a resampled version of the
@@ -234,15 +104,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             Whether the mean aggregation bin size will be added as a suffix to the trace
             its legend-name, by default True.
         convert_traces_kwargs: dict, optional
-            A dict of kwargs that will be passed to the :func:`add_traces` method and
+            A dict of kwargs that will be passed to the [`add_trace`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.add_trace] method and
             will be used to convert the existing traces. \n
-            .. note::
+            !!! note
                 This argument is only used when the passed ``figure`` contains data and
                 ``convert_existing_traces`` is set to True.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
         show_dash_kwargs: dict, optional
-            A dict that will be used as default kwargs for the :func:`show_dash` method.
+            A dict that will be used as default kwargs for the [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash] method.
             Note that the passed kwargs will be take precedence over these defaults.
 
         """
@@ -298,6 +168,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             convert_existing_traces,
             default_n_shown_samples,
             default_downsampler,
+            default_gap_handler,
             resampled_trace_prefix_suffix,
             show_mean_aggregation_size,
             convert_traces_kwargs,
@@ -322,9 +193,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     self.data[idx].update(graph_dict["data"][idx])
 
         # The FigureResampler needs a dash app
-        self._app: JupyterDash | dash.Dash | None = None
+        self._app: dash.Dash | None = None
         self._port: int | None = None
         self._host: str | None = None
+        # Certain functions will be different when using persistent inline
+        # (namely `show_dash` and `stop_callback`)
+        self._is_persistent_inline = False
 
     def show_dash(
         self,
@@ -334,7 +208,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         graph_properties: dict | None = None,
         **kwargs,
     ):
-        """Registers the :func:`update_graph` callback & show the figure in a dash app.
+        """Registers the `update_graph` callback & show the figure in a dash app.
 
         Parameters
         ----------
@@ -351,8 +225,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 ``"inline"`` mode, allowing users to see a static figure in other
                 environments, browsers, etc.
 
-                .. note::
-                    This mode requires the ``kaleido`` package.
+                !!! note
+
+                    This mode requires the ``kaleido`` and ``flask_cors`` package.
+                    Install them : ``pip install plotly_resampler[inline_persistent]``
+                    or ``pip install kaleido flask_cors``.
 
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
@@ -362,14 +239,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             The configuration options for displaying this figure, by default None.
             This ``config`` parameter is the same as the dict that you would pass as
             ``config`` argument to the `show` method.
-            See more https://plotly.com/python/configuration-options/
+            See more [https://plotly.com/python/configuration-options/](https://plotly.com/python/configuration-options/)
         graph_properties: dict, optional
             Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
-            e.g.: {"style": {"width": "50%"}}
+            e.g.: `{"style": {"width": "50%"}}`
             Note: "config" is not allowed as key in this dict, as there is a distinct
             ``config`` parameter for this property in this method.
-            See more https://dash.plotly.com/dash-core-components/graph
+            See more [https://dash.plotly.com/dash-core-components/graph](https://dash.plotly.com/dash-core-components/graph)
         **kwargs: dict
             Additional app.run_server() kwargs. e.g.: port, ...
             Also note that these kwargs take precedence over the ones passed to the
@@ -381,16 +258,49 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             mode is None or mode in available_modes
         ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
-        assert "config" not in graph_properties.keys()  # There is a param for config
+        assert "config" not in graph_properties  # There is a param for config
+
+        # 0. Check if the traces need to be updated when there is a xrange set
+        # This will be the case when the users has set a xrange (via the `update_layout`
+        # or `update_xaxes` methods`)
+        relayout_dict = {}
+        for xaxis_str in self._xaxis_list:
+            x_range = self.layout[xaxis_str].range
+            if x_range:  # when not None
+                relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
+                relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
+        if relayout_dict:  # when not empty
+            update_data = self.construct_update_data(relayout_dict)
+
+            if not self._is_no_update(update_data):  # when there is an update
+                with self.batch_update():
+                    # First update the layout (first item of update_data)
+                    self.layout.update(self._parse_relayout(update_data[0]))
+
+                    # Then update the data
+                    for updated_trace in update_data[1:]:
+                        trace_idx = updated_trace.pop("index")
+                        self.data[trace_idx].update(updated_trace)
+
         # 1. Construct the Dash app layout
         if mode == "inline_persistent":
-            # Inline persistent mode: we display a static image of the figure when the
-            # app is not reachable
-            # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
             mode = "inline"
-            app = JupyterDashPersistentInlineOutput("local_app")
+            if _jupyter_dash_installed:
+                # Inline persistent mode: we display a static image of the figure when the
+                # app is not reachable
+                # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
+                app = JupyterDashPersistentInlineOutput("local_app")
+                self._is_persistent_inline = True
+            else:
+                # If Jupyter Dash is not installed, inline persistent won't work and hence
+                # we default to normal inline mode with a normal Dash app
+                app = dash.Dash("local_app")
+                warnings.warn(
+                    "'jupyter_dash' is not installed. The persistent inline mode will not work. Defaulting to standard inline mode."
+                )
         else:
-            app = JupyterDash("local_app")
+            # jupyter dash uses a normal Dash app as figure
+            app = dash.Dash("local_app")
         app.layout = dash.html.Div(
             [
                 dash.dcc.Store(id="visible-indices", data={"visible": [], "invisible": []}),
@@ -405,13 +315,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         )
         self.register_update_graph_callback(app, "resample-figure", "trace-updater", 'visible-indices')
 
+        height_param = "height" if self._is_persistent_inline else "jupyter_height"
+
         # 2. Run the app
-        if mode == "inline" and "height" not in kwargs:
+        if mode == "inline" and height_param not in kwargs:
             # If app height is not specified -> re-use figure height for inline dash app
             #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height
             fig_height = self.layout.height if self.layout.height is not None else 450
-            kwargs["height"] = fig_height + 18
+            kwargs[height_param] = fig_height + 18
 
         # kwargs take precedence over the show_dash_kwargs
         kwargs = {**self._show_dash_kwargs, **kwargs}
@@ -421,7 +333,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._host = kwargs.get("host", "127.0.0.1")
         self._port = kwargs.get("port", "8050")
 
-        app.run_server(mode=mode, **kwargs)
+        # function signature is slightly different for the Dash and JupyterDash implementations
+        if self._is_persistent_inline:
+            app.run(mode=mode, **kwargs)
+        else:
+            app.run(jupyter_mode=mode, **kwargs)
 
     def stop_server(self, warn: bool = True):
         """Stop the running dash-app.
@@ -431,16 +347,24 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         warn: bool
             Whether a warning message will be shown or  not, by default True.
 
-        .. attention::
-            This only works if the dash-app was started with :func:`show_dash`.
+        !!! warning
+
+            This only works if the dash-app was started with [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash].
         """
         if self._app is not None:
-
-            old_server = self._app._server_threads.get((self._host, self._port))
+            servers_dict = (
+                self._app._server_threads
+                if self._is_persistent_inline
+                else dash.jupyter_dash._servers
+            )
+            old_server = servers_dict.get((self._host, self._port))
             if old_server:
-                old_server.kill()
-                old_server.join()
-                del self._app._server_threads[(self._host, self._port)]
+                if self._is_persistent_inline:
+                    old_server.kill()
+                    old_server.join()
+                else:
+                    old_server.shutdown()
+            del servers_dict[(self._host, self._port)]
         elif warn:
             warnings.warn(
                 "Could not stop the server, either the \n"
@@ -451,9 +375,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
     # TODO: check if i should put the clientside callback to fill the store here or in a different function
     # for now, here
     def register_update_graph_callback(
-        self, app: dash.Dash, graph_id: str, trace_updater_id: str, store_id: str
+        self, app: dash.Dash, graph_id: str, trace_updater_id: str, visibility_store_id: str
     ):
-        """Register the :func:`construct_update_data` method as callback function to
+        """Register the [`construct_update_data`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data] method as callback function to
         the passed dash-app.
 
         Parameters
@@ -467,7 +391,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             The id of the ``TraceUpdater`` component. This component is leveraged by
             ``FigureResampler`` to efficiently POST the to-be-updated data to the
             front-end.
-        store_id
+        visibility_store_id
             The id of the ``dcc.Store`` component which holds the indices of the visible
             traces in the client. Leveraged to efficiently perform the asynchronous update of
             the visible and invisible traces of the ``Graph``.
@@ -522,7 +446,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 return storeData;
             }
             """,
-            dash.dependencies.Output(store_id, "data"),
+            dash.dependencies.Output(visibility_store_id, "data"),
             dash.dependencies.Input(graph_id, "restyleData"),
             dash.dependencies.State(graph_id, "id"),
         )
@@ -531,7 +455,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
             # dash.dependencies.State(graph_id, "restyleData"),
-            dash.dependencies.State(store_id, "data"),
+            dash.dependencies.State(visibility_store_id, "data"),
             prevent_initial_call=True,
         )(self.construct_update_data)
 
@@ -540,7 +464,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             # dash.dependencies.Input(trace_updater_id, "updateData"),
             dash.dependencies.Input(trace_updater_id, "visibleUpdate"),
             dash.dependencies.State(graph_id, "relayoutData"),
-            dash.dependencies.State(store_id, "data"),
+            dash.dependencies.State(visibility_store_id, "data"),
             prevent_initial_call=True,
         )(self.construct_invisible_update_data)
 
