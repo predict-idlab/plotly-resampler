@@ -8,7 +8,7 @@
 [![support-version](https://img.shields.io/pypi/pyversions/plotly-resampler)](https://img.shields.io/pypi/pyversions/plotly-resampler)
 [![codecov](https://img.shields.io/codecov/c/github/predict-idlab/plotly-resampler?logo=codecov)](https://codecov.io/gh/predict-idlab/plotly-resampler)
 [![CodeQL](https://github.com/predict-idlab/plotly-resampler/actions/workflows/codeql.yml/badge.svg)](https://github.com/predict-idlab/plotly-resampler/actions/workflows/codeql.yml)
-[![Downloads](https://pepy.tech/badge/plotly-resampler)](https://pepy.tech/project/plotly-resampler)
+[![Downloads](https://static.pepy.tech/badge/plotly-resampler)](https://pepy.tech/project/plotly-resampler)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?)](http://makeapullrequest.com)
 [![Testing](https://github.com/predict-idlab/plotly-resampler/actions/workflows/test.yml/badge.svg)](https://github.com/predict-idlab/plotly-resampler/actions/workflows/test.yml)
 [![Documentation](https://img.shields.io/badge/read%20our%20docs!-informational)](https://predict-idlab.github.io/plotly-resampler/latest)
