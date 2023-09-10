@@ -40,7 +40,7 @@ DEFAULT_OVERVIEW_LAYOUT_KWARGS = {
     "showlegend": False,
     "height": 120,
     "activeselection": dict(fillcolor="#96C291", opacity=0.3),
-    "margin": {"t": 0, 'b': 0},
+    "margin": {"t": 0, "b": 0},
 }
 
 
@@ -117,10 +117,19 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             !!! note
                 This argument is only used when the passed ``figure`` contains data and
                 ``convert_existing_traces`` is set to True.
+        xaxis_overview: bool, optional
+            Whether an overview xaxis will be added to the figure, by default False.
+        overview_row_idxs: list, optional
+            A list of integers corresponding to the row indices (START AT 0) of the
+            subplots columns that should be linked with the columns corresponding xaxis
+            overview. By default None, which will result in the first row being utilized
+            of each column.
+        xaxis_overview_kwargs: dict, optional
+            A dict of kwargs that will be passed to the `update_layout` method of the
+            overview figure, by default {}, which will result in utilizing the
+            [`default`][DEFAULT_OVERVIEW_LAYOUT_KWARGS] overview layout kwargs.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
-        xaxis_overview_kwargs: dict, optional
-            TODO - write docs
         show_dash_kwargs: dict, optional
             A dict that will be used as default kwargs for the [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash] method.
             Note that the passed kwargs will be take precedence over these defaults.
