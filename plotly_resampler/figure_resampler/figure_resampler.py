@@ -36,6 +36,13 @@ try:
 except ImportError:
     _jupyter_dash_installed = False
 
+DEFAULT_OVERVIEW_LAYOUT_KWARGS = {
+    "showlegend": False,
+    "height": 120,
+    "activeselection": dict(fillcolor="#96C291", opacity=0.3),
+    "margin": {"t": 0, 'b': 0},
+}
+
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
     """Data aggregation functionality for ``go.Figures``."""
@@ -53,8 +60,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         ),
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
+        xaxis_overview: bool = False,
+        overview_row_idxs: list = None,
+        xaxis_overview_kwargs: dict = {},
         verbose: bool = False,
-        xaxis_overview_kwargs: dict = {"visible": False},
         show_dash_kwargs: dict | None = None,
     ):
         """Initialize a dynamic aggregation data mirror using a dash web app.
@@ -193,15 +202,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 for idx in update_indices:
                     self.data[idx].update(graph_dict["data"][idx])
 
-        # TODO: find the proper way to keep these kwargs
-        self._xaxis_overview_visible = xaxis_overview_kwargs.get("visible", False)
+        self._xaxis_overview = xaxis_overview
+        overview_layout_kwargs = DEFAULT_OVERVIEW_LAYOUT_KWARGS.copy()
+        overview_layout_kwargs.update(xaxis_overview_kwargs)
+        self._xaxis_overview_layout_kwgs = overview_layout_kwargs
 
         # array representing the row indices per column (START AT 0) of the subplot
         # that should be linked with the columns corresponding xaxis overview
         # by default, the first row (i.e. index 0) will be utilized for each column
-        self._xaxis_overview_linked_subplots = self._check_linked_indices_valid(
-            xaxis_overview_kwargs.get("linked_subplots", None)
-        )
+        self._overview_row_idxs = self._parse_linked_indices(overview_row_idxs)
 
         # The FigureResampler needs a dash app
         self._app: dash.Dash | None = None
@@ -224,7 +233,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # TODO: not 100% sure whether this is correct
         return (len(self._grid_ref), len(self._grid_ref[0]))
 
-    def _check_linked_indices_valid(self, linked_indices: list = None) -> List[int]:
+    def _parse_linked_indices(self, linked_indices: list = None) -> List[int]:
         """Verify whether the passed linked indices are valid.
 
         Parameters
@@ -268,15 +277,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # 'data_indices' -> list of lists of indices of the subplots will be used for
         # the coarse graph
         trace_list, l_xaxis_list, l_yaxis_list, reduced_grid_ref = [], [], [], [[]]
-        for col_idx, row_idx in enumerate(self._xaxis_overview_linked_subplots):
+        for col_idx, row_idx in enumerate(self._overview_row_idxs):
             reduced_grid_ref[0].append(self._grid_ref[row_idx][col_idx])
             for subplot in self._grid_ref[row_idx][col_idx]:
                 trace_list.append(subplot.trace_kwargs["xaxis"])
                 xaxis_key, yaxis_key = subplot.layout_keys
                 l_yaxis_list.append(yaxis_key)
                 l_xaxis_list.append(xaxis_key)
-        print("layout_list", l_xaxis_list, l_yaxis_list)
-        print("trace_list", trace_list)
+        # print("layout_list", l_xaxis_list, l_yaxis_list)
+        # print("trace_list", trace_list)
 
         # copy the data from the relevant subplots
         reduced_fig_dict = {
@@ -308,16 +317,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         reduced_fig.add_traces(reduced_fig_dict["data"])
         return reduced_fig
 
-    def toggle_overview(self, overview_kwargs: dict):
-        self._xaxis_overview_visible = overview_kwargs.get("visible", False)
-        if self._xaxis_overview_visible:
-            linked_subplots = overview_kwargs.get("linked_subplots", None)
-            # only make changes in the overviews if they are needed, otherwise keep the previous configuration
-            if linked_subplots is not None:
-                self._xaxis_overview_linked_subplots = self._check_linked_indices_valid(
-                    linked_subplots
-                )
-
     def _create_overview_figure(self) -> go.Figure:
         # create a new coarse fig
         reduced_fig = self._remove_other_axes_for_coarse()
@@ -346,19 +345,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         coarse_fig.add_traces(coarse_fig_dict["data"])
         # coarse_fig.show()
 
-        # TODO -> look into these margin props
-        # TODO -> check if we also copy the layout of the main graph
-        # coarse_fig.update_layout(margin=dict(l=0, r=0, b=0, t=40, pad=10))
         # height of the overview scales with the height of the dynamic view
-        coarse_fig.update_layout(showlegend=False, height=250)
         coarse_fig.update_layout(
+            **self._xaxis_overview_layout_kwgs,
             hovermode=False,
             clickmode="event+select",
             dragmode="select",
-            activeselection=dict(fillcolor="coral", opacity=0.2),
         )
 
-        for col_idx, row_idx in enumerate(self._xaxis_overview_linked_subplots):
+        for col_idx, row_idx in enumerate(self._overview_row_idxs):
             # we will only use the first grid-ref (as we will otherwsie have multiple overlapping selection boxes
             for subplot in self._grid_ref[row_idx][col_idx][:1]:
                 xaxis_key, yaxis_key = subplot.layout_keys
@@ -368,9 +363,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 coarse_fig["layout"][yaxis_key]["fixedrange"] = True
 
         # adds a rangeslider to the coarse graph
-        coarse_fig._config = coarse_fig._config.update(
-            {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
-        )
+        # coarse_fig._config = coarse_fig._config.update(
+        #     {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
+        # )
         return coarse_fig
 
     def show_dash(
@@ -459,7 +454,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         assets_folder = Path(__file__).parent.joinpath("assets").absolute().__str__()
         # print("assets", assets_folder, "\cwd", os.getcwd(), '\n', os.path.relpath(assets_folder, os.getcwd()))
         init_kwargs = {}
-        if self._xaxis_overview_visible:
+        if self._xaxis_overview:
             init_kwargs["assets_folder"] = os.path.relpath(assets_folder, os.getcwd())
 
         if mode == "inline_persistent":
@@ -491,15 +486,15 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 ),
             ]
         )
-        if self._xaxis_overview_visible:
+        if self._xaxis_overview:
+            overview_config = config.copy() if config is not None else {}
+            overview_config["displayModeBar"] = False
             coarse_fig = self._create_overview_figure()
-            print("add coarse figure")
             div.children += [
-                # This store contains the linked subplots for which the zoom will occur
                 dash.dcc.Graph(
                     id="overview-figure",
                     figure=coarse_fig,
-                    config=config,
+                    config=overview_config,
                     **graph_properties,
                 ),
             ]
@@ -509,7 +504,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             app,
             "resample-figure",
             "trace-updater",
-            "overview-figure" if self._xaxis_overview_visible else None,
+            "overview-figure" if self._xaxis_overview else None,
         )
 
         height_param = "height" if self._is_persistent_inline else "jupyter_height"
@@ -595,7 +590,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             Figure, by default None.
 
         """
-        if self._xaxis_overview_visible:
+        if self._xaxis_overview:
             # update pr graph range with overview selection
             app.clientside_callback(
                 dash.ClientsideFunction(
