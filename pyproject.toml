@@ -57,7 +57,7 @@ inline_persistent = ["kaleido", "Flask-Cors", "jupyter-dash"]
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
 pytest-cov = "^3.0.0"
-selenium = "4.2.0"
+selenium = "4.11.2"
 pytest-selenium = "^2.0.1"
 selenium-wire = "^5.0"
 pyarrow = "^10.0"
