@@ -39,13 +39,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - uses: nanasess/setup-chromedriver@master
-      with:
+    - uses: nanasess/setup-chromedriver@v2
+      # with:
         # Optional: do not specify to match Chrome's version
-        chromedriver-version: '114.0.5735.90'
+        # chromedriver-version: '114.0.5735.90'
 
     - name: Install Poetry
       uses: snok/install-poetry@v1
+      with:
+        version: 1.5.1
     - name: Cache poetry
       id: cached-poetry-dependencies
       uses: actions/cache@v2
