@@ -20,7 +20,7 @@ import plotly.graph_objects as go
 from dash import MATCH, Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
-    ServersideOutput,
+    Serverside,
     ServersideOutputTransform,
     Trigger,
     TriggerTransform,
@@ -152,8 +152,8 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
 
 # This method constructs the FigureResampler graph and caches it on the server side
 @app.callback(
-    ServersideOutput({"type": "store", "index": MATCH}, "data"),
     Output({"type": "dynamic-graph", "index": MATCH}, "figure"),
+    Output({"type": "store", "index": MATCH}, "data"),
     State("nbr-datapoints", "value"),
     State("expansion-factor", "value"),
     State("add-graph-btn", "n_clicks"),
@@ -180,7 +180,7 @@ def construct_display_graph(n, exp, n_added_graphs) -> FigureResampler:
         title_x=0.5,
     )
 
-    return fr, fr
+    return fr, Serverside(fr)
 
 
 @app.callback(

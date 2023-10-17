@@ -21,7 +21,7 @@ import plotly.graph_objects as go
 from dash import MATCH, Input, Output, State, dcc, html, no_update
 from dash_extensions.enrich import (
     DashProxy,
-    ServersideOutput,
+    Serverside,
     ServersideOutputTransform,
     Trigger,
     TriggerTransform,
@@ -29,6 +29,7 @@ from dash_extensions.enrich import (
 from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
+from plotly_resampler.aggregation import MinMaxLTTB
 
 # Data that will be used for the plotly-resampler figures
 x = np.arange(2_000_000)
@@ -78,14 +79,18 @@ def add_graph_div(n_clicks: int, div_children: List[html.Div]):
 
 # This method constructs the FigureResampler graph and caches it on the server side
 @app.callback(
-    ServersideOutput({"type": "store", "index": MATCH}, "data"),
     Output({"type": "dynamic-graph", "index": MATCH}, "figure"),
+    Output({"type": "store", "index": MATCH}, "data"),
     State("add-chart", "n_clicks"),
     Trigger({"type": "interval", "index": MATCH}, "n_intervals"),
     prevent_initial_call=True,
 )
 def construct_display_graph(n_clicks) -> FigureResampler:
-    fig = FigureResampler(go.Figure(), default_n_shown_samples=2_000)
+    fig = FigureResampler(
+        go.Figure(),
+        default_n_shown_samples=2_000,
+        default_downsampler=MinMaxLTTB(parallel=True),
+    )
 
     # Figure construction logic based on a state variable, in our case n_clicks
     sigma = n_clicks * 1e-6
@@ -93,7 +98,7 @@ def construct_display_graph(n_clicks) -> FigureResampler:
     fig.add_trace(dict(name="exp"), hf_x=x, hf_y=noisy_sin * (1 + sigma) ** x)
     fig.update_layout(title=f"<b>graph - {n_clicks}</b>", title_x=0.5)
 
-    return fig, fig
+    return fig, Serverside(fig)
 
 
 @app.callback(

@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from plotly_resampler import FigureResampler
+from plotly_resampler.aggregation import MinMaxLTTB
 
 
 # --------- graph construction logic + callback ---------
@@ -22,7 +23,10 @@ def visualize_multiple_files(file_list: List[Union[str, Path]]) -> FigureResampl
         Returns a view of the existing, global FigureResampler object.
 
     """
-    fig = FigureResampler(make_subplots(rows=len(file_list), shared_xaxes=False))
+    fig = FigureResampler(
+        make_subplots(rows=len(file_list), shared_xaxes=False),
+        default_downsampler=MinMaxLTTB(parallel=True),
+    )
     fig.update_layout(height=min(900, 350 * len(file_list)))
 
     for i, f in enumerate(file_list, 1):
