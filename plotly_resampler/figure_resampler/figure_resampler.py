@@ -335,24 +335,23 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             reduced_fig,
             default_n_shown_samples=3 * self._global_n_shown_samples,
         )
-        import time
+        # import time
 
-        t0 = time.time()
+        # t0 = time.time()
         # NOTE: this way we can alter props without altering the original hf data
         coarse_fig_hf._hf_data = {uid: trc.copy() for uid, trc in self._hf_data.items()}
-        print("time to copy", round((time.time() - t0) * 1e6, 2), "us")
+        # print("time to copy", round((time.time() - t0) * 1e6, 2), "us")
         for trace in coarse_fig_hf.hf_data:
             trace["max_n_samples"] *= 3
 
         coarse_fig_dict = coarse_fig_hf._get_current_graph()
         print(coarse_fig_hf._check_update_figure_dict(coarse_fig_dict))
-        print("coarse fig data size", len(coarse_fig_dict["data"][0]["x"]))
+        # print("coarse fig data size", len(coarse_fig_dict["data"][0]["x"]))
 
         coarse_fig = go.Figure(layout=coarse_fig_dict["layout"])
         coarse_fig._grid_ref = reduced_fig._grid_ref
         coarse_fig._data_validator.set_uid = False
         coarse_fig.add_traces(coarse_fig_dict["data"])
-        # coarse_fig.show()
 
         # height of the overview scales with the height of the dynamic view
         coarse_fig.update_layout(
@@ -371,10 +370,13 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 coarse_fig["layout"][xaxis_key]["fixedrange"] = True
                 coarse_fig["layout"][yaxis_key]["fixedrange"] = True
 
-        # adds a rangeslider to the coarse graph
-        # coarse_fig._config = coarse_fig._config.update(
-        #     {"modeBarButtonsToAdd": ["drawrect", "select2d"]}
-        # )
+                # add a shading to the overview
+                coarse_fig.add_vrect(
+                    **dict(row="all", col=col_idx + 1, fillcolor="black", opacity=0.05),
+                    **dict(xref=f"{subplot.trace_kwargs['xaxis']} domain", x0=0, x1=1),
+                    line_width=0,
+                )
+
         return coarse_fig
 
     def show_dash(
