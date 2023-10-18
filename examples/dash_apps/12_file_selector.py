@@ -13,7 +13,6 @@ from typing import List
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 
-# from dash import Input, Output, State,
 from dash import callback_context, dcc, html, no_update
 from dash_extensions.enrich import Output, Input, State
 from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
