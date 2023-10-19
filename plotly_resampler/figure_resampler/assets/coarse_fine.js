@@ -37,7 +37,7 @@ const getAnchorT = (keys, anchor) => {
  *                  {x[ID]: yaxis[ID], y[ID]: xaxis[ID]}
  */
 const getLayoutAxisAnchors = (layout) => {
-    return Object.assign(
+    var layout_axis_anchors = Object.assign(
         {},
         ..._.chain(layout)
             .map((value, key) => {
@@ -46,6 +46,12 @@ const getLayoutAxisAnchors = (layout) => {
             .without(undefined)
             .value()
     );
+    // Edge case for non "make_subplot" figures; i.e. figures constructed with 
+    // go.Figure
+    if (_.size(layout_axis_anchors) == 1 && _.has(layout_axis_anchors, undefined)) {
+        return { x: "yaxis", y: "xaxis" };
+    }
+    return layout_axis_anchors;
 };
 
 /**
@@ -174,8 +180,10 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             if (!currentSelections) {
                 // if current selections is None
                 coarse_xy_axiskeys.forEach((xy_pair) => {
-                    const x_axis_key = layout_axis_anchors[xy_pair.y];
-                    const y_axis_key = layout_axis_anchors[xy_pair.x];
+                    console.log("xy pair", xy_pair);
+                    const x_axis_key = _.has(layout_axis_anchors, xy_pair.y) ? layout_axis_anchors[xy_pair.y] : "xaxis";
+                    const y_axis_key = _.has(layout_axis_anchors, xy_pair.x) ? layout_axis_anchors[xy_pair.x] : "yaxis";
+                    // console.log('xaxis key', x_axis_key, main_graphDiv.layout[x_axis_key]);
                     const x_range = main_graphDiv.layout[x_axis_key].range;
                     const y_range = main_graphDiv.layout[y_axis_key].range;
 
@@ -190,8 +198,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
             for (let i = 0; i < coarse_xy_axiskeys.length; i++) {
                 const xy_pair = coarse_xy_axiskeys[i];
-                const x_axis_key = layout_axis_anchors[xy_pair.y];
-                const y_axis_key = layout_axis_anchors[xy_pair.x];
+                const x_axis_key = _.has(layout_axis_anchors, xy_pair.y) ? layout_axis_anchors[xy_pair.y] : "xaxis";
+                const y_axis_key = _.has(layout_axis_anchors, xy_pair.x) ? layout_axis_anchors[xy_pair.x] : "yaxis";
+                // console.log('xaxis key', x_axis_key, main_graphDiv.layout[x_axis_key]);
 
                 let x_range = main_graphDiv.layout[x_axis_key].range;
                 let y_range = main_graphDiv.layout[y_axis_key].range;
