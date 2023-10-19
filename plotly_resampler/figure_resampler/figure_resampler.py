@@ -36,6 +36,7 @@ try:
 except ImportError:
     _jupyter_dash_installed = False
 
+# Default arguments for the Figure overview
 DEFAULT_OVERVIEW_LAYOUT_KWARGS = {
     "showlegend": False,
     "height": 120,
@@ -118,7 +119,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 This argument is only used when the passed ``figure`` contains data and
                 ``convert_existing_traces`` is set to True.
         xaxis_overview: bool, optional
-            Whether an overview xaxis will be added to the figure, by default False.
+            Whether an overview xaxis will be added to the figure (also known as a
+            rangeslider), by default False.
         overview_row_idxs: list, optional
             A list of integers corresponding to the row indices (START AT 0) of the
             subplots columns that should be linked with the columns corresponding xaxis
@@ -212,6 +214,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     self.data[idx].update(graph_dict["data"][idx])
 
         self._xaxis_overview = xaxis_overview
+        # update the xaxis overview layout
         overview_layout_kwargs = DEFAULT_OVERVIEW_LAYOUT_KWARGS.copy()
         overview_layout_kwargs.update(xaxis_overview_kwargs)
         self._xaxis_overview_layout_kwgs = overview_layout_kwargs
@@ -219,7 +222,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # array representing the row indices per column (START AT 0) of the subplot
         # that should be linked with the columns corresponding xaxis overview
         # by default, the first row (i.e. index 0) will be utilized for each column
-        self._overview_row_idxs = self._parse_linked_indices(overview_row_idxs)
+        self._overview_row_idxs = self._parse_subplot_row_indices(overview_row_idxs)
 
         # The FigureResampler needs a dash app
         self._app: dash.Dash | None = None
@@ -242,14 +245,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # TODO: not 100% sure whether this is correct
         return (len(self._grid_ref), len(self._grid_ref[0]))
 
-    def _parse_linked_indices(self, linked_indices: list = None) -> List[int]:
-        """Verify whether the passed linked indices are valid.
+    def _parse_subplot_row_indices(self, row_indices: list = None) -> List[int]:
+        """Verify whether the passed row indices are valid.
 
         Parameters
         ----------
-        linked_indices: list, optional
+        row_indices: list, optional
             A list of integers representing the row indices per column (START AT 0) of
-            the figure that should be linked with the columns corresponding xaxis
+            the figure that should be row with the columns corresponding xaxis
             overview.
 
         Returns
@@ -260,20 +263,20 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         """
         n_rows, n_cols = self._get_subplot_rows_and_cols_from_grid()
 
-        # By default, the first row is utilized to set the linked indices
-        if linked_indices is None:
+        # By default, the first row is utilized to set the row indices
+        if row_indices is None:
             return [0] * n_cols
 
-        # perform some checks on the linked indices
-        assert isinstance(linked_indices, list), "linked indices must be a list"
+        # perform some checks on the row indices
+        assert isinstance(row_indices, list), "row indices must be a list"
         assert (
-            len(linked_indices) == n_cols
-        ), "the number of linked indices must be equal to the number of columns"
+            len(row_indices) == n_cols
+        ), "the number of row indices must be equal to the number of columns"
         assert all(
-            [li < n_rows for li in linked_indices]
-        ), "all linked indices must be smaller than the number of rows"
+            [li < n_rows for li in row_indices]
+        ), "row indices must be smaller than the number of rows"
 
-        return linked_indices
+        return row_indices
 
     # determines which subplot data to take from main and put into coarse
     def _remove_other_axes_for_coarse(self) -> go.Figure:
@@ -281,7 +284,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # base case: no rows and cols to filter
         if self._grid_ref is None:
             # TODO check whether this dict return works
-            return fig_dict
+            # return fig_dict
+            return self
 
         # 'data_indices' -> list of lists of indices of the subplots will be used for
         # the coarse graph
@@ -319,7 +323,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 v.update({"domain": [0, 1]})
                 reduced_fig_dict["layout"][k] = v
 
-        # create a figure object with those
+        # create a figure object with the relevant data
         reduced_fig = go.Figure(layout=reduced_fig_dict["layout"])
         reduced_fig._grid_ref = reduced_grid_ref
         reduced_fig._data_validator.set_uid = False
@@ -330,7 +334,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # create a new coarse fig
         reduced_fig = self._remove_other_axes_for_coarse()
 
-        # Resample the coarse figure
+        # Resample the coarse figure using 3x the default aggregation size to ensure
+        # that it contains sufficient details
         coarse_fig_hf = FigureResampler(
             reduced_fig,
             default_n_shown_samples=3 * self._global_n_shown_samples,
@@ -361,6 +366,19 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             dragmode="select",
         )
 
+        if self._grid_ref is None:
+            # set the fixed range to True
+            coarse_fig["layout"]["xaxis"]["fixedrange"] = True
+            coarse_fig["layout"]["yaxis"]["fixedrange"] = True
+
+            # add a shading to the overview
+            coarse_fig.add_vrect(
+                **dict(fillcolor="black", opacity=0.07),
+                **dict(xref=f"x domain", x0=0, x1=1),
+                line_width=0,
+            )
+            return coarse_fig
+
         for col_idx, row_idx in enumerate(self._overview_row_idxs):
             # we will only use the first grid-ref (as we will otherwsie have multiple overlapping selection boxes
             for subplot in self._grid_ref[row_idx][col_idx][:1]:
@@ -372,7 +390,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
                 # add a shading to the overview
                 coarse_fig.add_vrect(
-                    **dict(row="all", col=col_idx + 1, fillcolor="black", opacity=0.05),
+                    **dict(row="all", col=col_idx + 1, fillcolor="black", opacity=0.07),
                     **dict(xref=f"{subplot.trace_kwargs['xaxis']} domain", x0=0, x1=1),
                     line_width=0,
                 )
@@ -462,6 +480,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # 1. Construct the Dash app layout
         # Create an asset folder relative to current file
+        # TODO -> verfity whether this is correct
         assets_folder = Path(__file__).parent.joinpath("assets").absolute().__str__()
         # print("assets", assets_folder, "\cwd", os.getcwd(), '\n', os.path.relpath(assets_folder, os.getcwd()))
         init_kwargs = {}
