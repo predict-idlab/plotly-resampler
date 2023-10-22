@@ -37,6 +37,7 @@ except ImportError:
     _jupyter_dash_installed = False
 
 # Default arguments for the Figure overview
+ASSETS_FOLDER = Path(__file__).parent.joinpath("assets").absolute().__str__()
 DEFAULT_OVERVIEW_LAYOUT_KWARGS = {
     "showlegend": False,
     "height": 120,
@@ -350,8 +351,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             trace["max_n_samples"] *= 3
 
         coarse_fig_dict = coarse_fig_hf._get_current_graph()
-        print(coarse_fig_hf._check_update_figure_dict(coarse_fig_dict))
-        # print("coarse fig data size", len(coarse_fig_dict["data"][0]["x"]))
+        # add the 3x max_n_samples coarse figure data to the coarse_fig_dict
+        coarse_fig_hf._check_update_figure_dict(coarse_fig_dict)
 
         coarse_fig = go.Figure(layout=coarse_fig_dict["layout"])
         coarse_fig._grid_ref = reduced_fig._grid_ref
@@ -365,6 +366,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             clickmode="event+select",
             dragmode="select",
         )
+        # Hide the grid
+        coarse_fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
+        coarse_fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
 
         if self._grid_ref is None:
             # set the fixed range to True
@@ -373,8 +377,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
             # add a shading to the overview
             coarse_fig.add_vrect(
-                **dict(fillcolor="black", opacity=0.07),
-                **dict(xref=f"x domain", x0=0, x1=1),
+                **dict(fillcolor="lightblue", opacity=0.25, layer="above"),
+                **dict(xref="x domain", x0=0, x1=1),
                 line_width=0,
             )
             return coarse_fig
@@ -390,7 +394,13 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
                 # add a shading to the overview
                 coarse_fig.add_vrect(
-                    **dict(row="all", col=col_idx + 1, fillcolor="black", opacity=0.07),
+                    **dict(
+                        row="all",
+                        col=col_idx + 1,
+                        fillcolor="lightblue",
+                        opacity=0.25,
+                        layer="above",
+                    ),
                     **dict(xref=f"{subplot.trace_kwargs['xaxis']} domain", x0=0, x1=1),
                     line_width=0,
                 )
@@ -479,13 +489,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                         self.data[trace_idx].update(updated_trace)
 
         # 1. Construct the Dash app layout
-        # Create an asset folder relative to current file
-        # TODO -> verfity whether this is correct
-        assets_folder = Path(__file__).parent.joinpath("assets").absolute().__str__()
-        # print("assets", assets_folder, "\cwd", os.getcwd(), '\n', os.path.relpath(assets_folder, os.getcwd()))
         init_kwargs = {}
         if self._xaxis_overview:
-            init_kwargs["assets_folder"] = os.path.relpath(assets_folder, os.getcwd())
+            init_kwargs["assets_folder"] = os.path.relpath(ASSETS_FOLDER, os.getcwd())
 
         if mode == "inline_persistent":
             mode = "inline"
@@ -621,6 +627,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         """
         if self._xaxis_overview:
+            # TODO -> put this in an external method?
             # update pr graph range with overview selection
             app.clientside_callback(
                 dash.ClientsideFunction(

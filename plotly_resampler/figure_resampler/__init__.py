@@ -10,10 +10,11 @@ data.
 
 """
 
-from .figure_resampler import FigureResampler
+from .figure_resampler import ASSETS_FOLDER, FigureResampler
 from .figurewidget_resampler import FigureWidgetResampler
 
 __all__ = [
     "FigureResampler",
+    "ASSETS_FOLDER",
     "FigureWidgetResampler",
 ]
