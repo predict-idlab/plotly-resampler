@@ -345,6 +345,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # t0 = time.time()
         # NOTE: this way we can alter props without altering the original hf data
+        # NOTE: this also copies the default aggregation functionality to the coarse figure
         coarse_fig_hf._hf_data = {uid: trc.copy() for uid, trc in self._hf_data.items()}
         # print("time to copy", round((time.time() - t0) * 1e6, 2), "us")
         for trace in coarse_fig_hf.hf_data:
@@ -353,6 +354,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         coarse_fig_dict = coarse_fig_hf._get_current_graph()
         # add the 3x max_n_samples coarse figure data to the coarse_fig_dict
         coarse_fig_hf._check_update_figure_dict(coarse_fig_dict)
+        del coarse_fig_hf
 
         coarse_fig = go.Figure(layout=coarse_fig_dict["layout"])
         coarse_fig._grid_ref = reduced_fig._grid_ref

@@ -81,7 +81,7 @@ def driver():
 def float_series() -> pd.Series:
     x = np.arange(_nb_samples).astype(np.uint32)
     y = np.sin(x / 50).astype(np.float32) + np.random.randn(_nb_samples) / 5
-    return pd.Series(index=x, data=y)
+    return pd.Series(index=x, data=y, name="float_series")
 
 
 @pytest.fixture
@@ -91,17 +91,21 @@ def cat_series() -> pd.Series:
         cats_list[i] = "b"
     for i in np.random.randint(0, len(cats_list), 3):
         cats_list[i] = "c"
-    return pd.Series(cats_list * (_nb_samples // len(cats_list) + 1), dtype="category")[
-        :_nb_samples
-    ]
+    return pd.Series(
+        cats_list * (_nb_samples // len(cats_list) + 1),
+        dtype="category",
+        name="cat_series",
+    )[:_nb_samples]
 
 
 @pytest.fixture
 def bool_series() -> pd.Series:
     bool_list = [True, False, True, True, True, True] + [True] * 1000
-    return pd.Series(bool_list * (_nb_samples // len(bool_list) + 1), dtype="bool")[
-        :_nb_samples
-    ]
+    return pd.Series(
+        bool_list * (_nb_samples // len(bool_list) + 1),
+        dtype="bool",
+        name="bool_series",
+    )[:_nb_samples]
 
 
 @pytest.fixture
