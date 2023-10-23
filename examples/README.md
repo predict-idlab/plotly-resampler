@@ -17,6 +17,7 @@ The [basic example notebook](basic_example.ipynb) covers most use-cases in which
 
 Additionally, this notebook also shows some more advanced functionalities, such as:
 * Retaining (a static) plotly-resampler figure in your notebook
+* How to utilize an x-axis overview (i.e., a rangeslider) to navigate through your time series
 * Showing how to style the marker color and size of plotly-resampler figures
 * Adjusting trace data of plotly-resampler figures at runtime
 * How to add (shaded) confidence bounds to your time series

@@ -79,7 +79,9 @@ def plot_graph(_):
         # (start at 0) of the subplots that will be used to construct the overview
         # graph.
         fig: FigureResampler = FigureResampler(
-            make_subplots(rows=2, cols=2, shared_xaxes=True, horizontal_spacing=0.03),
+            make_subplots(
+                rows=2, cols=2, shared_xaxes="columns", horizontal_spacing=0.03
+            ),
             xaxis_overview=True,
             overview_row_idxs=[1, 0],
             default_downsampler=MinMaxLTTB(parallel=True),
