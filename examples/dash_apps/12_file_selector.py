@@ -12,12 +12,10 @@ from typing import List
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import Input, Output, State, callback_context, dcc, html, no_update
-from dash_extensions.enrich import (
-    DashProxy,
-    ServersideOutput,
-    ServersideOutputTransform,
-)
+
+from dash import callback_context, dcc, html, no_update
+from dash_extensions.enrich import Output, Input, State
+from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
 from trace_updater import TraceUpdater
 from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
 from utils.graph_construction import visualize_multiple_files
@@ -89,7 +87,7 @@ app.layout = serve_layout()
 
 # ------------------------------------ DASH logic -------------------------------------
 @app.callback(
-    [Output("graph-id", "figure"), ServersideOutput("store", "data")],
+    [Output("graph-id", "figure"), Output("store", "data")],
     [Input("plot-button", "n_clicks"), *get_selector_states(len(name_folder_list))],
     prevent_initial_call=True,
 )
@@ -102,12 +100,13 @@ def plot_graph(n_clicks, *folder_list):
         else:
             for file in files:
                 file_list.append((Path(folder).joinpath(file)))
+    print(file_list)
 
     ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
         if len(file_list):
             fig: FigureResampler = visualize_multiple_files(file_list)
-            return fig, fig
+            return fig, Serverside(fig)
     else:
         return no_update
 

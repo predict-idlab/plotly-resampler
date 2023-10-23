@@ -3,7 +3,7 @@
 Click on a button, and see a plotly-resampler graph of two noisy sinusoids.
 No dynamic graph construction / pattern matching callbacks are needed.
 
-This example uses the dash-extensions its ServersideOutput functionality to cache
+This example uses the dash-extensions its ServerSide functionality to cache
 the FigureResampler per user/session on the server side. This way, no global figure
 variable is used and shows the best practice of using plotly-resampler within dash-apps.
 
@@ -12,14 +12,11 @@ variable is used and shows the best practice of using plotly-resampler within da
 import numpy as np
 import plotly.graph_objects as go
 from dash import Input, Output, State, callback_context, dcc, html, no_update
-from dash_extensions.enrich import (
-    DashProxy,
-    ServersideOutput,
-    ServersideOutputTransform,
-)
+from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
 from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
+from plotly_resampler.aggregation import MinMaxLTTB
 
 # Data that will be used for the plotly-resampler figures
 x = np.arange(2_000_000)
@@ -46,21 +43,22 @@ app.layout = html.Div(
 # ------------------------------------ DASH logic -------------------------------------
 # The callback used to construct and store the FigureResampler on the serverside
 @app.callback(
-    [Output("graph-id", "figure"), ServersideOutput("store", "data")],
+    [Output("graph-id", "figure"), Output("store", "data")],
     Input("plot-button", "n_clicks"),
     prevent_initial_call=True,
-    memoize=True,
 )
 def plot_graph(n_clicks):
     ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
-        fig: FigureResampler = FigureResampler(go.Figure())
+        fig: FigureResampler = FigureResampler(
+            go.Figure(), default_downsampler=MinMaxLTTB(parallel=True)
+        )
 
         # Figure construction logic
         fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * 0.9999995**x)
         fig.add_trace(go.Scattergl(name="exp"), hf_x=x, hf_y=noisy_sin * 1.000002**x)
 
-        return fig, fig
+        return fig, Serverside(fig)
     else:
         return no_update
 

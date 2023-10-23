@@ -19,11 +19,7 @@ from typing import List
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from dash import Input, Output, State, callback_context, dcc, html, no_update
-from dash_extensions.enrich import (
-    DashProxy,
-    ServersideOutput,
-    ServersideOutputTransform,
-)
+from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
 from trace_updater import TraceUpdater
 from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
 from utils.graph_construction import visualize_multiple_files
@@ -33,7 +29,7 @@ from plotly_resampler import FigureResampler
 # --------------------------------------Globals ---------------------------------------
 app = DashProxy(
     __name__,
-    suppress_callback_exceptions=True,
+    suppress_callback_exceptions=False,
     external_stylesheets=[dbc.themes.LUX],
     transforms=[ServersideOutputTransform()],
 )
@@ -114,7 +110,7 @@ app.layout = serve_layout()
     [
         Output("coarse-graph", "figure"),
         Output("plotly-resampler-graph", "figure"),
-        ServersideOutput("store", "data"),
+        Output("store", "data"),
     ],
     [Input("plot-button", "n_clicks"), *get_selector_states(len(name_folder_list))],
     prevent_initial_call=True,
@@ -155,7 +151,7 @@ def construct_plot_graph(n_clicks, *folder_list):
                 )
             )
 
-            return coarse_fig, dynamic_fig, dynamic_fig
+            return coarse_fig, dynamic_fig, Serverside(dynamic_fig)
     else:
         return no_update
 
@@ -185,4 +181,4 @@ def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
 
 # --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":
-    app.run_server(debug=True, port=9023)
+    app.run_server(debug=False, port=9023)
