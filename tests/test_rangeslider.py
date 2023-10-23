@@ -9,8 +9,12 @@ from plotly.subplots import make_subplots
 from pytest_lazyfixture import lazy_fixture as lf
 
 from plotly_resampler import FigureResampler
-from plotly_resampler.aggregation import NoGapHandler, MedDiffGapHandler
-from plotly_resampler.aggregation import MinMaxLTTB, EveryNthPoint
+from plotly_resampler.aggregation import (
+    EveryNthPoint,
+    MedDiffGapHandler,
+    MinMaxLTTB,
+    NoGapHandler,
+)
 
 
 @pytest.mark.parametrize("figure_class", [go.Figure, make_subplots])
@@ -65,7 +69,7 @@ def test_invalid_row_indices_subplots(n_cols):
         )
 
 
-@pytest.mark.parametrize("overview_kwargs", [{'height': 80}])
+@pytest.mark.parametrize("overview_kwargs", [{"height": 80}])
 @pytest.mark.parametrize("series", [lf("float_series")])
 def test_xaxis_overview_kwargs(overview_kwargs, series):
     fig = FigureResampler(
@@ -78,6 +82,7 @@ def test_xaxis_overview_kwargs(overview_kwargs, series):
     overview_fig = fig._create_overview_figure()
     for key, value in overview_kwargs.items():
         assert overview_fig.layout[key] == value
+
 
 @pytest.mark.parametrize("figure_class", [go.Figure, make_subplots])
 @pytest.mark.parametrize(
@@ -94,7 +99,6 @@ def test_coarse_figure_aggregation(figure_class, series, default_n_samples):
     fig.add_trace({}, hf_x=series.index, hf_y=series)
 
     overview_fig = fig._create_overview_figure()
-    UPSAMPLE_FACTOR = 3
     for trace in overview_fig.data:
         assert len(trace.y) == 3 * default_n_samples
 
