@@ -46,7 +46,7 @@ const getLayoutAxisAnchors = (layout) => {
             .without(undefined)
             .value()
     );
-    // Edge case for non "make_subplot" figures; i.e. figures constructed with 
+    // Edge case for non "make_subplot" figures; i.e. figures constructed with
     // go.Figure
     if (_.size(layout_axis_anchors) == 1 && _.has(layout_axis_anchors, undefined)) {
         return { x: "yaxis", y: "xaxis" };
@@ -205,6 +205,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 let x_range = main_graphDiv.layout[x_axis_key].range;
                 let y_range = main_graphDiv.layout[y_axis_key].range;
                 // If the y-axis autorange is true, we alter the y-range to the coarse graphdiv its y-range
+                // console.log('mainrelayout', mainRelayout);
                 if (main_graphDiv.layout[y_axis_key]["autorange"] === true) {
                     y_range = coarse_graphDiv.layout[y_axis_key].range;
                 }
@@ -214,8 +215,11 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 ) {
                     performed_update = true;
                     if (
-                        mainRelayout[x_axis_key + ".showspikes"] === false &&
-                        mainRelayout[y_axis_key + ".showspikes"] === false
+                        // mainRelayout[x_axis_key + ".showspikes"] === false &&
+                        // mainRelayout[y_axis_key + ".showspikes"] === false
+                        // NOTE: for some reason, showspikes info is only availabel for the xaxis & yaxis keys
+                        mainRelayout["xaxis.showspikes"] === false &&
+                        mainRelayout["yaxis.showspikes"] === false
                     ) {
                         // reset axis -> we use the coarse graphDiv layout
                         x_range = coarse_graphDiv.layout[x_axis_key].range;
