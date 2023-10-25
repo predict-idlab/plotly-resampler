@@ -325,7 +325,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             ):
                 # is faster to escape the loop here than check inside the hasattr if
                 continue
-            elif isinstance(hf_trace_data[k], pd.DatetimeTZDtype):
+            elif pd.DatetimeTZDtype.is_dtype(hf_trace_data[k]):
                 # When we use the .values method, timezone information is lost
                 # so convert it to pd.DatetimeIndex, which preserves the tz-info
                 hf_trace_data[k] = pd.Index(hf_trace_data[k])
