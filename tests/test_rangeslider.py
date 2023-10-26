@@ -1,4 +1,4 @@
-"""Code which tests the xaxis overview Functionality of the xaxis"""
+"""Code which tests the overview functionality."""
 
 __author__ = "Jonas Van Der Donckt"
 
@@ -21,11 +21,11 @@ from plotly_resampler.aggregation import (
 @pytest.mark.parametrize(
     "series", [lf("float_series"), lf("cat_series"), lf("bool_series")]
 )
-def test_overview_xaxis_figure_type(figure_class, series):
-    """Test the overview xaxis functionality (i.e., whether the overview figure can be
+def test_overview_figure_type(figure_class, series):
+    """Test the overview functionality (i.e., whether the overview figure can be
     constructed)"""
     # Create a figure with a scatter plot
-    fig = FigureResampler(figure_class(), xaxis_overview=True)
+    fig = FigureResampler(figure_class(), create_overview=True)
     fig.add_trace(go.Scatter(x=series.index, y=series))
     fig.add_trace({}, hf_x=series.index, hf_y=series)
 
@@ -37,7 +37,7 @@ def test_overview_xaxis_figure_type(figure_class, series):
 def test_valid_row_indices_subplots(n_cols):
     fig = FigureResampler(
         make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
-        xaxis_overview=True,
+        create_overview=True,
         overview_row_idxs=None,
     )
     fig._create_overview_figure()
@@ -46,7 +46,7 @@ def test_valid_row_indices_subplots(n_cols):
     # this should not crash
     fig = FigureResampler(
         make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
-        xaxis_overview=True,
+        create_overview=True,
         overview_row_idxs=[np.random.randint(0, 2) for _ in range(n_cols)],
     )
     fig._create_overview_figure()
@@ -57,25 +57,25 @@ def test_invalid_row_indices_subplots(n_cols):
     with pytest.raises(AssertionError):
         FigureResampler(
             make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
-            xaxis_overview=True,
+            create_overview=True,
             overview_row_idxs=[3 for _ in range(n_cols)],
         )
 
     with pytest.raises(AssertionError):
         FigureResampler(
             make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
-            xaxis_overview=True,
+            create_overview=True,
             overview_row_idxs=[0 for _ in range(n_cols - 1)],
         )
 
 
 @pytest.mark.parametrize("overview_kwargs", [{"height": 80}])
 @pytest.mark.parametrize("series", [lf("float_series")])
-def test_xaxis_overview_kwargs(overview_kwargs, series):
+def test_overview_kwargs(overview_kwargs, series):
     fig = FigureResampler(
         go.Figure(),
-        xaxis_overview=True,
-        xaxis_overview_kwargs=overview_kwargs,
+        create_overview=True,
+        overview_kwargs=overview_kwargs,
     )
     fig.add_trace(go.Scatter(x=series.index, y=series))
 
@@ -93,7 +93,7 @@ def test_coarse_figure_aggregation(figure_class, series, default_n_samples):
     """Test whether the coarse figure aggregation works as expected"""
     # Create a figure with a scatter plot
     fig = FigureResampler(
-        figure_class(), xaxis_overview=True, default_n_shown_samples=default_n_samples
+        figure_class(), create_overview=True, default_n_shown_samples=default_n_samples
     )
     fig.add_trace(go.Scatter(x=series.index, y=series))
     fig.add_trace({}, hf_x=series.index, hf_y=series)
@@ -107,7 +107,7 @@ def test_coarse_figure_aggregation(figure_class, series, default_n_samples):
 def test_overview_figure_gap_handler_similarity(aggregator):
     """Test whether the same gap handlers as those used in the figure are used in the
     overview figure"""
-    fig = FigureResampler(xaxis_overview=True, default_downsampler=aggregator())
+    fig = FigureResampler(create_overview=True, default_downsampler=aggregator())
 
     # create uneven data which contains gaps
     N = 20_000

@@ -3,9 +3,9 @@
 Click on a button, and see a plotly-resampler graph of an exponential and log curve
 (and combinations thereof) spread over 4 subplots.
 In addition, another graph is shown below, which is an overview of subplot columns from
-the main graph. This other graph is linked to the main graph, such that when you select
-a region in the overview graph, the main graph will zoom in on that region and vice
-versa.
+the main graph. This other graph is bidirectionally linked to the main graph; when you
+select a region in the overview graph, the main graph will zoom in on that region and
+vice versa.
 
 This example uses the dash-extensions its ServersideOutput functionality to cache
 the FigureResampler per user/session on the server side. This way, no global figure
@@ -75,14 +75,17 @@ def plot_graph(_):
     global app
     ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
-        # NOTE: reamrk how the `overview_row_idxs` argument specifies the row indices
+        # NOTE: remark how the `overview_row_idxs` argument specifies the row indices
         # (start at 0) of the subplots that will be used to construct the overview
-        # graph.
+        # graph. In this list the position of the values indicate the column index of
+        # the subplot. In this case, the overview graph will show for the first column
+        # the second subplot row (1), and for the second column the first subplot row
+        # (0).
         fig: FigureResampler = FigureResampler(
             make_subplots(
                 rows=2, cols=2, shared_xaxes="columns", horizontal_spacing=0.03
             ),
-            xaxis_overview=True,
+            create_overview=True,
             overview_row_idxs=[1, 0],
             default_downsampler=MinMaxLTTB(parallel=True),
         )
@@ -116,7 +119,7 @@ def plot_graph(_):
         return no_update
 
 
-# --- The clientside callbacks used to link the overview and main graph ---
+# --- Clientside callbacks used to bidirectionally link the overview and main graph ---
 app.clientside_callback(
     dash.ClientsideFunction(namespace="clientside", function_name="main_to_coarse"),
     dash.Output(

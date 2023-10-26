@@ -2,7 +2,7 @@
 
 Click on a button, and see a plotly-resampler graph of two sinusoids.
 In addition, another graph is shown, which is an overview of the main graph.
-This other graph is linked to the main graph, such that when you select a region
+This other graph is bidirectionally linked to the main graph; when you select a region
 in the overview graph, the main graph will zoom in on that region and vice versa.
 
 This example uses the dash-extensions its ServersideOutput functionality to cache
@@ -71,7 +71,7 @@ def plot_graph(_):
     global app
     ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
-        fig: FigureResampler = FigureResampler(xaxis_overview=True)
+        fig: FigureResampler = FigureResampler(create_overview=True)
 
         # Figure construction logic
         fig.add_trace(go.Scattergl(name="log"), hf_x=x, hf_y=noisy_sin * 0.9999995**x)
@@ -86,7 +86,7 @@ def plot_graph(_):
         return no_update
 
 
-# --- The clientside callbacks used to link the overview and main graph ---
+# --- Clientside callbacks used to bidirectionally link the overview and main graph ---
 app.clientside_callback(
     dash.ClientsideFunction(namespace="clientside", function_name="main_to_coarse"),
     dash.Output(
