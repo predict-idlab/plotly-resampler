@@ -6,6 +6,7 @@ Creates a web-application and uses ``dash`` callbacks to enable dynamic resampli
 
 """
 
+
 from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
@@ -15,6 +16,8 @@ from typing import List, Tuple
 
 import dash
 import plotly.graph_objects as go
+
+# from graph_reporter import GraphReporter
 from plotly.basedatatypes import BaseFigure
 from trace_updater import TraceUpdater
 
@@ -200,6 +203,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self,
         mode=None,
         config: dict | None = None,
+        testing: bool | None = False,
         graph_properties: dict | None = None,
         **kwargs,
     ):
@@ -298,15 +302,24 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             app = dash.Dash("local_app")
         app.layout = dash.html.Div(
             [
+                dash.dcc.Store(
+                    id="visible-indices", data={"visible": [], "invisible": []}
+                ),
                 dash.dcc.Graph(
                     id="resample-figure", figure=self, config=config, **graph_properties
                 ),
                 TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
+                    id="trace-updater",
+                    gdID="resample-figure",
+                    sequentialUpdate=False,
+                    verbose=testing,
                 ),
+                # GraphReporter(id="graph-reporter", gId="resample-figure"),
             ]
         )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
+        self.register_update_graph_callback(
+            app, "resample-figure", "trace-updater", "visible-indices"
+        )
 
         height_param = "height" if self._is_persistent_inline else "jupyter_height"
 
@@ -365,8 +378,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 + "\t- the dash-server wasn't started with 'show_dash'"
             )
 
+    # TODO: check if i should put the clientside callback to fill the store here or in a different function
+    # for now, here
     def register_update_graph_callback(
-        self, app: dash.Dash, graph_id: str, trace_updater_id: str
+        self,
+        app: dash.Dash,
+        graph_id: str,
+        trace_updater_id: str,
+        visibility_store_id: str,
     ):
         """Register the [`construct_update_data`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data] method as callback function to
         the passed dash-app.
@@ -382,13 +401,82 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             The id of the ``TraceUpdater`` component. This component is leveraged by
             ``FigureResampler`` to efficiently POST the to-be-updated data to the
             front-end.
+        visibility_store_id
+            The id of the ``dcc.Store`` component which holds the indices of the visible
+            traces in the client. Leveraged to efficiently perform the asynchronous update of
+            the visible and invisible traces of the ``Graph``.
 
         """
+        # Callback triggers when a stylistic change is made to the graph
+        # this includes hiding traces or making them visible again, which is the
+        # desired use-case
+        app.clientside_callback(
+            """
+            function(restyleData, gdID) {
+                // HELPER FUNCTIONS
+            
+                function getGraphDiv(gdID){
+                    // see this link for more information https://stackoverflow.com/a/34002028 
+                    let graphDiv = document?.querySelectorAll('div[id*="' + gdID + '"][class*="dash-graph"]');
+                    if (graphDiv.length > 1) {
+                        throw new SyntaxError("UpdateStore: multiple graphs with ID=" + gdID + " found; n=" + graphDiv.length + " (either multiple graphs with same ID's or current ID is a str-subset of other graph IDs)");
+                    } else if (graphDiv.length < 1) {
+                        throw new SyntaxError("UpdateStore: no graphs with ID=" + gdID + " found");
+                    } 
+                    graphDiv = graphDiv?.[0]?.getElementsByClassName('js-plotly-plot')?.[0];
+                    const isDOMElement = el => el instanceof HTMLElement
+                    if (!isDOMElement) {
+                        throw new Error(`Invalid gdID '${gdID}'`);
+                    }
+                    return graphDiv;
+                }
+                
+                //MAIN CALLBACK
+                let storeData = {'visible':[], 'invisible':[]};
+                if (restyleData) {
+                    let graphDiv = getGraphDiv(gdID);
+                    
+                    //console.log("restyleData:");
+                    //console.log(restyleData);
+                    //console.log("\tgraph data -> visibility of traces: ");
+                    
+                    let visible_traces = [];
+                    let invisible_traces = [];
+                    graphDiv.data.forEach((trace, index) => {
+                        //console.log('\tvisible: ' + trace.visible);
+                        if (trace.visible == true || trace.visible == undefined) {
+                            visible_traces.push(index);
+                        } else {
+                            invisible_traces.push(index);
+                        }
+                    });
+                    storeData = {'visible':visible_traces, 'invisible':invisible_traces};
+                }
+                //console.log(storeData);
+                return storeData;
+            }
+            """,
+            dash.dependencies.Output(visibility_store_id, "data"),
+            dash.dependencies.Input(graph_id, "restyleData"),
+            dash.dependencies.State(graph_id, "id"),
+        )
+
         app.callback(
             dash.dependencies.Output(trace_updater_id, "updateData"),
             dash.dependencies.Input(graph_id, "relayoutData"),
+            # dash.dependencies.State(graph_id, "restyleData"),
+            dash.dependencies.State(visibility_store_id, "data"),
             prevent_initial_call=True,
         )(self.construct_update_data)
+
+        app.callback(
+            dash.dependencies.Output(trace_updater_id, "invisibleUpdateData"),
+            # dash.dependencies.Input(trace_updater_id, "updateData"),
+            dash.dependencies.Input(trace_updater_id, "visibleUpdate"),
+            dash.dependencies.State(graph_id, "relayoutData"),
+            dash.dependencies.State(visibility_store_id, "data"),
+            prevent_initial_call=True,
+        )(self.construct_invisible_update_data)
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class

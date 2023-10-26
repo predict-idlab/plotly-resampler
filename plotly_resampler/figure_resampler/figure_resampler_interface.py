@@ -57,6 +57,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
         verbose: bool = False,
+        # TODO: add c_width parameter
     ):
         """Instantiate a resampling data mirror.
 
@@ -271,7 +272,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         start: Optional[Union[str, float]] = None,
         end: Optional[Union[str, float]] = None,
     ) -> Optional[Union[dict, BaseTraceType]]:
-        """Check and update the passed ``trace`` its data properties based on the
+        """Check and update the passed ddfkj``trace`` its data properties based on the
         slice range.
 
         Note
@@ -426,6 +427,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         stop: Optional[Union[float, str]] = None,
         layout_xaxis_filter: Optional[str] = None,
         updated_trace_indices: Optional[List[int]] = None,
+        indices_to_use: Optional[List[int]] = None,
     ) -> List[int]:
         """Check and update the traces within the figure dict.
 
@@ -463,17 +465,26 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         if updated_trace_indices is None:
             updated_trace_indices = []
 
+        if indices_to_use is None:
+            indices_to_use = []
+
         if layout_xaxis_filter is not None:
             layout_trace_mapping = self._layout_xaxis_to_trace_xaxis_mapping()
             # Retrieve the trace xaxis values that are affected by the relayout event
             trace_xaxis_filter: List[str] = layout_trace_mapping[layout_xaxis_filter]
 
         for idx, trace in enumerate(figure["data"]):
-            # We skip when (i) the trace-idx already has been updated or (ii) when
+            # We skip when the trace-idx already has been updated or when it's not due for an update.
+            # We skip when (i) the trace-idx already has been updated, (ii) when
             # there is a layout_xaxis_filter and the trace xaxis is not in the filter
-            if idx in updated_trace_indices or (
-                layout_xaxis_filter is not None
-                and trace.get("xaxis", "x") not in trace_xaxis_filter
+            # or (iii) when its not part of the subset of traces (visible / invisible) to update now
+            if (
+                idx in updated_trace_indices
+                or idx not in indices_to_use
+                or (
+                    layout_xaxis_filter is not None
+                    and trace.get("xaxis", "x") not in trace_xaxis_filter
+                )
             ):
                 continue
 
@@ -490,7 +501,10 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         !!! note
             This method will always return a plotly constructor, even when the given
-            `constr` is decorated (after executing the ``register_plotly_resampler``
+            `constr` is decorated (after executing the ``
+
+
+            _plotly_resampler``
             function).
 
         Parameters
@@ -1290,8 +1304,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         return extra_layout_updates
 
     def construct_update_data(
-        self,
-        relayout_data: dict,
+        self, relayout_data: dict, trace_visibility: dict
     ) -> Union[List[dict], dash.no_update]:
         """Construct the to-be-updated front-end data, based on the layout change.
 
@@ -1308,6 +1321,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             A dict containing the ``relayout``-data (a.k.a. changed layout data) of
             the corresponding front-end graph.
 
+        figure: dict
+            A dict containing the ``figure``-data (a.k.a. all the data needed to plot traces and style them accordingly) of
+            the corresponding front-end graph. Used to determine the current visible state of each trace
+            NOTE: there should be a better way to pass ONLY the visible state of the traces to the back-end
+                wrap dcc.Graph? => could extract the visible data from the figure before passing it to the callback?
+
         Returns
         -------
         List[dict]:
@@ -1319,6 +1338,18 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             in each dict.
 
         """
+        if (
+            len(trace_visibility["visible"]) == 0
+            and len(trace_visibility["invisible"]) == 0
+        ):
+            visible_trace_idx = [i for i, trace in enumerate(self._data)]
+        else:
+            visible_trace_idx = trace_visibility["visible"]
+
+        # import json
+        # import datetime
+        # with open(f'figure_{datetime.datetime.now().strftime("%H_%M")}.json', 'w') as f:
+        #     json.dump({"data": figure['data']}, f)
         current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
@@ -1337,11 +1368,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     assert xaxis == t_stop_key.split(".")[0]
                     # -> we want to copy the layout on the back-end
                     updated_trace_indices = self._check_update_figure_dict(
-                        current_graph,
+                        figure=current_graph,
                         start=relayout_data[t_start_key],
                         stop=relayout_data[t_stop_key],
                         layout_xaxis_filter=xaxis,
                         updated_trace_indices=updated_trace_indices,
+                        indices_to_use=visible_trace_idx,
                     )
 
             # 2. The user clicked on either autorange | reset axes
@@ -1358,6 +1390,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                             current_graph,
                             layout_xaxis_filter=xaxis,
                             updated_trace_indices=updated_trace_indices,
+                            indices_to_use=visible_trace_idx,
                         )
             # 2.1. Autorange -> do nothing, the autorange will be applied on the
             #      current front-end view
@@ -1393,6 +1426,93 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
 
+    def construct_invisible_update_data(
+        self, visible_update: int, relayout_data, trace_visibility: dict
+    ) -> Union[List[dict], dash.no_update]:
+        invisible_trace_idx = trace_visibility["invisible"]
+
+        current_graph = self._get_current_graph()
+        updated_trace_indices, cl_k = [], []
+        if relayout_data:
+            self._print("-" * 100 + "\n", "changed layout", relayout_data)
+
+            cl_k = relayout_data.keys()
+
+            # ------------------ HF DATA aggregation ---------------------
+            # 1. Base case - there is a x-range specified in the front-end
+            start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
+            stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
+            if len(start_matches) and len(stop_matches):
+                for t_start_key, t_stop_key in zip(start_matches, stop_matches):
+                    # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
+                    xaxis = t_start_key.split(".")[0]
+                    assert xaxis == t_stop_key.split(".")[0]
+                    # -> we want to copy the layout on the back-end
+                    updated_trace_indices = self._check_update_figure_dict(
+                        figure=current_graph,
+                        start=relayout_data[t_start_key],
+                        stop=relayout_data[t_stop_key],
+                        layout_xaxis_filter=xaxis,
+                        updated_trace_indices=updated_trace_indices,
+                        indices_to_use=invisible_trace_idx,
+                    )
+
+            # 2. The user clicked on either autorange | reset axes
+            autorange_matches = self._re_matches(
+                re.compile(r"xaxis\d*.autorange"), cl_k
+            )
+            spike_matches = self._re_matches(re.compile(r"xaxis\d*.showspikes"), cl_k)
+            # 2.1 Reset-axes -> autorange & reset to the global data view
+            if len(autorange_matches) and len(spike_matches):
+                for autorange_key in autorange_matches:
+                    if relayout_data[autorange_key]:
+                        xaxis = autorange_key.split(".")[0]
+                        updated_trace_indices = self._check_update_figure_dict(
+                            current_graph,
+                            layout_xaxis_filter=xaxis,
+                            updated_trace_indices=updated_trace_indices,
+                            indices_to_use=invisible_trace_idx,
+                        )
+            # 2.1. Autorange -> do nothing, the autorange will be applied on the
+            #      current front-end view
+            elif len(autorange_matches) and not len(spike_matches):
+                # PreventUpdate returns a 204 status code response on the
+                # relayout post request
+                return dash.no_update
+
+        # If we do not have any traces to be updated, we will return an empty
+        # request response
+        if len(updated_trace_indices) == 0:
+            # PreventUpdate returns a 204 status-code response on the relayout post
+            # request
+            return dash.no_update
+
+        # -------------------- construct callback data --------------------------
+        layout_traces_list: List[dict] = []  # the data
+
+        # 1. Create a new dict with additional layout updates for the front-end
+        extra_layout_updates = {}
+
+        # 1.1. Set autorange to False for each layout item with a specified x-range
+        xy_matches = self._re_matches(re.compile(r"[xy]axis\d*.range\[\d+]"), cl_k)
+        for range_change_axis in xy_matches:
+            axis = range_change_axis.split(".")[0]
+            extra_layout_updates[f"{axis}.autorange"] = False
+        layout_traces_list.append(extra_layout_updates)
+
+        # 2. Create the additional trace data for the frond-end
+        relevant_keys = ["x", "y", "text", "hovertext", "name"]  # TODO - marker color
+        # Note that only updated trace-data will be sent to the client
+        for idx in updated_trace_indices:
+            trace = current_graph["data"][idx]
+            trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
+
+            # Store the index into the corresponding to-be-sent trace-data so
+            # the client front-end can know which trace needs to be updated
+            trace_reduced.update({"index": idx})
+            layout_traces_list.append(trace_reduced)
+        return layout_traces_list
+
     @staticmethod
     def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:
         """Verify the orjson compatibility of the series and convert it if needed."""
@@ -1412,6 +1532,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             m = regex.match(item)
             if m is not None:
                 matches.append(m.string)
+        # print(f'sorted(matches): {sorted(matches)}')
         return sorted(matches)
 
     @staticmethod

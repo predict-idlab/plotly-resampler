@@ -20,7 +20,7 @@ from plotly_resampler import (
 # hyperparameters
 _nb_samples = 10_000
 data_dir = "examples/data/"
-headless = True
+headless = False
 TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
 
 
@@ -58,6 +58,7 @@ def driver():
     options = Options()
     d = DesiredCapabilities.CHROME
     d["goog:loggingPrefs"] = {"browser": "ALL"}
+    d["acceptSslCerts"] = True
     if not TESTING_LOCAL:
         if headless:
             options.add_argument("--headless")

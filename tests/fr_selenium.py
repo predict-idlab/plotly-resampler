@@ -200,7 +200,9 @@ class FigureResamplerGUITests:
 
         return requests
 
-    def drag_and_zoom(self, div_classname, x0=0.25, x1=0.5, y0=0.25, y1=0.5):
+    def drag_and_zoom(
+        self, div_classname, x0=0.25, x1=0.5, y0=0.25, y1=0.5, testing=False
+    ):
         """
         Drags and zooms the div with the given classname.
 
@@ -232,12 +234,19 @@ class FigureResamplerGUITests:
         actions = ActionChains(self.driver)
         actions.move_to_element_with_offset(subplot, xoffset=w * x0, yoffset=h * y0)
         actions.click_and_hold()
-        actions.pause(0.2)
+        actions.pause(0.1)
         actions.move_by_offset(xoffset=w * (x1 - x0), yoffset=h * (y1 - y0))
-        actions.pause(0.2)
-        actions.release()
-        actions.pause(0.2)
+        actions.pause(0.1)
         actions.perform()
+
+        action = ActionChains(self.driver)
+        action.release()
+        if testing:
+            # self.driver.execute_script("console.log('time update visible');")
+            self.driver.execute_script(
+                "console.time('time (visible)');console.time('time (full)');"
+            )
+        action.perform()
 
     def _get_modebar_btns(self):
         if not self.on_page:
@@ -255,11 +264,21 @@ class FigureResamplerGUITests:
                 ActionChains(self.driver).move_to_element(btn).click().perform()
                 return
 
-    def reset_axes(self):
+    def reset_axes(self, testing=False):
         for btn in self._get_modebar_btns():
             data_title = btn.get_attribute("data-title")
             if data_title == "Reset axes":
-                ActionChains(self.driver).move_to_element(btn).click().perform()
+                ActionChains(self.driver).move_to_element(btn).perform()
+
+                # NOTE: execucte the click right after the log
+                actions = ActionChains(self.driver)
+                actions.click()
+                if testing:
+                    # self.driver.execute_script("console.log('time update visible');")
+                    self.driver.execute_script(
+                        "console.time('time (visible)');console.time('time (full)');"
+                    )
+                actions.perform()
                 return
 
     def click_legend_item(self, legend_name):
@@ -277,6 +296,23 @@ class FigureResamplerGUITests:
                     .perform()
                 )
                 return
+
+    def hide_legend_restyle(self, item_numbers):
+
+        # for the moment this only works with 1 graph present?
+        graph = self.driver.find_elements(by=By.CLASS_NAME, value="js-plotly-plot")
+        # TODO: find way to scroll down to an element (trace in legend) within an element (legend)
+        self.driver.execute_script(
+            "Plotly.restyle(arguments[0], {'visible': ['legendonly']},arguments[1])",
+            graph[0],
+            item_numbers,
+        )
+
+    def start_timer(self, type):
+        if type == "zoom":
+            self.driver.execute_script("console.log('zoom in')")
+        else:
+            self.driver.execute_script("console.log('reset')")
 
     # ------------------------------ DATA MODEL METHODS  ------------------------------
     def __del__(self):
