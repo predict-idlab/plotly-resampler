@@ -89,9 +89,7 @@ def plot_graph(_):
 # --- Clientside callbacks used to bidirectionally link the overview and main graph ---
 app.clientside_callback(
     dash.ClientsideFunction(namespace="clientside", function_name="main_to_coarse"),
-    dash.Output(
-        OVERVIEW_GRAPH_ID, "id", allow_duplicate=True
-    ),  # TODO -> look for clean output
+    dash.Output(OVERVIEW_GRAPH_ID, "id", allow_duplicate=True),
     dash.Input(GRAPH_ID, "relayoutData"),
     [dash.State(OVERVIEW_GRAPH_ID, "id"), dash.State(GRAPH_ID, "id")],
     prevent_initial_call=True,
