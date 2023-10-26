@@ -89,7 +89,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             const main_xy_axiskeys = getXYAxisKeys(main_graphDiv.data);
             const layout_axis_anchors = getLayoutAxisAnchors(main_graphDiv.layout);
 
-            // Use the maingraphDiv its layout to obtain a list of a list of all shared axis names
+            // Use the maingraphDiv its layout to obtain a list of a list of all shared (x)axis names
+            // in practice, these are the xaxis names that are linked to each other (i.e. the inner list is the 
+            // xaxis names of the subplot columns)
             // e.g.: [ [xaxis1, xaxis2],  [xaxis3, xaxis4] ]
             let shared_axes_list = _.chain(main_graphDiv.layout)
                 .map((value, key) => {
@@ -113,30 +115,32 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     return m_obj.match;
                 })
                 .value();
+            // console.log("shared axes list", shared_axes_list);
 
             const relayout = {};
 
             // Quick inline function to set the relayout range values
             const setRelayoutRangeValues = (axisStr, values) => {
-                for (let i = 0; i < 2; i++) {
-                    relayout[axisStr + `.range[${i}]`] = values[i];
+                for (let rangeIdx = 0; rangeIdx < 2; rangeIdx++) {
+                    relayout[axisStr + `.range[${rangeIdx}]`] = values[rangeIdx];
                 }
             };
 
             // iterate over the selected data range
+            console.log('selected data range', selectedData.range);
             for (const anchor_key in selectedData.range) {
                 const selected_range = selectedData.range[anchor_key];
                 // Obtain the anchor key of the orthogonal axis (x or y), based on the coarse graphdiv anchor pairs
                 const anchorT = getAnchorT(coarse_xy_axiskeys, anchor_key);
                 const axisStr = layout_axis_anchors[anchorT];
                 const mainLayoutRange = main_graphDiv.layout[axisStr].range;
-                const CoarseFigRange = coarse_graphDiv.layout[axisStr].range;
+                const coarseFigRange = coarse_graphDiv.layout[axisStr].range;
 
                 if (!_.isEqual(selected_range, mainLayoutRange)) {
                     const shared_axis_match = _.chain(shared_axes_list)
                         .filter((arr) => arr.includes(axisStr))
                         .value()[0];
-                    if (axisStr.includes("yaxis") && _.isEqualWith(selected_range, CoarseFigRange, rangeCustomizer)) {
+                    if (axisStr.includes("yaxis") && _.isEqualWith(selected_range, coarseFigRange, rangeCustomizer)) {
                         continue;
                     }
 
@@ -198,6 +202,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
 
             for (let i = 0; i < coarse_xy_axiskeys.length; i++) {
                 const xy_pair = coarse_xy_axiskeys[i];
+                // If else handles the edge case of a figure without subplots
                 const x_axis_key = _.has(layout_axis_anchors, xy_pair.y) ? layout_axis_anchors[xy_pair.y] : "xaxis";
                 const y_axis_key = _.has(layout_axis_anchors, xy_pair.x) ? layout_axis_anchors[xy_pair.x] : "yaxis";
                 // console.log('xaxis key', x_axis_key, main_graphDiv.layout[x_axis_key]);
