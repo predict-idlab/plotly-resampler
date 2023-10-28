@@ -30,7 +30,7 @@ def test_overview_figure_type(figure_class, series):
     fig.add_trace({}, hf_x=series.index, hf_y=series)
 
     overview_fig = fig._create_overview_figure()
-    assert len(overview_fig['data']) == 2
+    assert len(overview_fig["data"]) == 2
     # fig.write_image(f"test_{figure_class.__name__}_{series.name}.png")
 
 
@@ -53,13 +53,24 @@ def test_valid_row_indices_subplots(n_cols):
     )
     fig._create_overview_figure()
 
+    # By adding None values, we can skip certain subplot columns
+    row_idxs = [np.random.randint(0, 2) for _ in range(n_cols)]
+    for _ in range(np.random.randint(0, n_cols)):
+        row_idxs[np.random.randint(0, n_cols)] = None
+    fig = FigureResampler(
+        make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
+        create_overview=True,
+        overview_row_idxs=row_idxs,
+    )
+    fig._create_overview_figure()
+
 
 @pytest.mark.parametrize("n_cols", [1, 2, 3])
 def test_invalid_row_indices_subplots(n_cols):
     with pytest.raises(AssertionError):
         FigureResampler(
             make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
-            xaxis_overview=True,
+            create_overview=True,
             # row index 3 is too high (starts at 0, so [0, 1, 2])
             overview_row_idxs=[3 for _ in range(n_cols)],
         )
@@ -67,7 +78,7 @@ def test_invalid_row_indices_subplots(n_cols):
     with pytest.raises(AssertionError):
         FigureResampler(
             make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
-            xaxis_overview=True,
+            create_overview=True,
             # n_cols -1 causes the overview to have one subplot column less
             overview_row_idxs=[0 for _ in range(n_cols - 1)],
         )

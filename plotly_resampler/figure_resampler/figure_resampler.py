@@ -269,6 +269,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             number of rows of the figure (thus note that the row indices start at 0). By
             default None, which will result in the first row being utilized for each
             column.
+            !!! note
+                When you do not want to use an overview of a certain column (because
+                a certain subplot spans more than 1 column), you can specify this by
+                setting that respecive row_index value to `None`.
+
+                For instance, the sbuplot on row 2, col 1 spans two coloms. So when you
+                intend to utilize that subplot within the overview, you want to specify
+                the row_indices as: `[1, None, ...]`
 
         Returns
         -------
@@ -288,7 +296,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             len(row_indices) == n_cols
         ), "the number of row indices must be equal to the number of columns"
         assert all(
-            [0 <= li < n_rows for li in row_indices]
+            [(li is None) or (0 <= li < n_rows) for li in row_indices]
         ), "row indices must be smaller than the number of rows"
 
         return row_indices
@@ -309,6 +317,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # Store the xaxis and yaxis layout keys of the traces to keep (e.g., xaxis2)
         layout_xaxis_list, layout_yaxis_list = [], []
         for col_idx, row_idx in enumerate(self._overview_row_idxs):
+            if row_idx is None:  # skip None value
+                continue
+
             overview_grid_ref = self._grid_ref[row_idx][col_idx]
             reduced_grid_ref[0].append(overview_grid_ref)  # [0] bc 1 row in overview
             for subplot in overview_grid_ref:
@@ -400,8 +411,18 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             dragmode="select",
         )
         # Hide the grid
-        coarse_fig.update_yaxes(showgrid=False, showticklabels=False, zeroline=False)
-        coarse_fig.update_xaxes(showgrid=False, showticklabels=False, zeroline=False)
+        hide_kwrgs = dict(
+            showgrid=False,
+            showticklabels=False,
+            zeroline=False,
+            title_text=None,
+            mirror=True,
+            ticks="",
+            showline=False,
+            linecolor="black",
+        )
+        coarse_fig.update_yaxes(**hide_kwrgs)
+        coarse_fig.update_xaxes(**hide_kwrgs)
 
         vrect_props = dict(
             **dict(line_width=0, x0=0, x1=1, row="all"),
@@ -418,6 +439,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             return coarse_fig
 
         for col_idx, row_idx in enumerate(self._overview_row_idxs):
+            if row_idx is None:  # skip the None value
+                continue
+
             # we will only use the first grid-ref (as we will otherwise have multiple
             # overlapping selection boxes)
             for subplot in self._grid_ref[row_idx][col_idx][:1]:
