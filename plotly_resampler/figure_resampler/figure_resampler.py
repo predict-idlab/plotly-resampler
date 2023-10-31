@@ -438,6 +438,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             coarse_fig.add_vrect(xref="x domain", **vrect_props)
             return coarse_fig
 
+        col_idx_overview = 0
         for col_idx, row_idx in enumerate(self._overview_row_idxs):
             if row_idx is None:  # skip the None value
                 continue
@@ -453,10 +454,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
                 # add a shading to the overview
                 coarse_fig.add_vrect(
-                    col=col_idx + 1,
+                    col=col_idx_overview + 1,
                     xref=f"{subplot.trace_kwargs['xaxis']} domain",
                     **vrect_props,
                 )
+
+            col_idx_overview += 1  # only increase the index when not None
 
         return coarse_fig
 
