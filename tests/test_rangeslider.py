@@ -57,6 +57,7 @@ def test_valid_row_indices_subplots(n_cols):
     row_idxs = [np.random.randint(0, 2) for _ in range(n_cols)]
     for _ in range(np.random.randint(0, n_cols)):
         row_idxs[np.random.randint(0, n_cols)] = None
+    # print(row_idxs)
     fig = FigureResampler(
         make_subplots(rows=3, cols=n_cols, shared_xaxes="columns"),
         create_overview=True,

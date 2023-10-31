@@ -425,7 +425,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         coarse_fig.update_xaxes(**hide_kwrgs)
 
         vrect_props = dict(
-            **dict(line_width=0, x0=0, x1=1, row="all"),
+            **dict(line_width=0, x0=0, x1=1),
             **dict(fillcolor="lightblue", opacity=0.25, layer="above"),
         )
 
