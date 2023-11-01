@@ -3,7 +3,7 @@
 import contextlib
 
 from .aggregation import LTTB, EveryNthPoint, MinMaxLTTB
-from .figure_resampler import FigureResampler, FigureWidgetResampler
+from .figure_resampler import ASSETS_FOLDER, FigureResampler, FigureWidgetResampler
 from .registering import register_plotly_resampler, unregister_plotly_resampler
 
 __docformat__ = "numpy"
@@ -14,6 +14,7 @@ __all__ = [
     "__version__",
     "FigureResampler",
     "FigureWidgetResampler",
+    "ASSETS_FOLDER",
     "MinMaxLTTB",
     "LTTB",
     "EveryNthPoint",

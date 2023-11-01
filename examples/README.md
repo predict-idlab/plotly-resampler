@@ -17,6 +17,7 @@ The [basic example notebook](basic_example.ipynb) covers most use-cases in which
 
 Additionally, this notebook also shows some more advanced functionalities, such as:
 * Retaining (a static) plotly-resampler figure in your notebook
+* How to utilize an x-axis overview (i.e., a rangeslider) to navigate through your time series
 * Showing how to style the marker color and size of plotly-resampler figures
 * Adjusting trace data of plotly-resampler figures at runtime
 * How to add (shaded) confidence bounds to your time series
@@ -43,6 +44,8 @@ The [dash_apps](dash_apps/) folder contains example dash apps in which `plotly-r
 | [global variable](dash_apps/01_minimal_global.py) | *bad practice*: minimal example in which a global `FigureResampler` variable is used                                                                                                                                                                                                |
 | [server side caching](dash_apps/02_minimal_cache.py) | *good practice*: minimal example in which we perform server side caching of the `FigureResampler` variable                                                                                                                                                                          |
 | [runtime graph construction](dash_apps/03_minimal_cache_dynamic.py) | minimal example where graphs are constructed based on user interactions at runtime. [Pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) are used construct these plotly-resampler graphs dynamically. Again, server side caching is performed.         |
+| [xaxis overview (rangeslider)](dash_apps/04_minimal_cache_overview.py) | minimal example where a linked xaxis overview is shown below the `FigureResampler` figure. This xaxis rangeslider utilizes [clientside callbacks](https://dash.plotly.com/clientside-callbacks) to realize this behavior. |
+| [xaxis overview (subplots)](dash_apps/05_cache_overview_subplots.py) | example where a linked xaxis overview is shown below the `FigureResampler` figure (with subplots). |
 | **advanced apps** |                                                                                                                                                                                                                                                                                     |
 | [dynamic sine generator](dash_apps/11_sine_generator.py) | exponential sine generator which uses [pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) to remove and construct plotly-resampler graphs dynamically                                                                                                  |
 | [file visualization](dash_apps/12_file_selector.py) | load and visualize multiple `.parquet` files with plotly-resampler                                                                                                                                                                                                                  |

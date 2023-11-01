@@ -10,8 +10,10 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
+import os
 import warnings
-from typing import List, Tuple
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 import dash
 import plotly.graph_objects as go
@@ -34,6 +36,15 @@ try:
 except ImportError:
     _jupyter_dash_installed = False
 
+# Default arguments for the Figure overview
+ASSETS_FOLDER = Path(__file__).parent.joinpath("assets").absolute().__str__()
+_DEFAULT_OVERVIEW_LAYOUT_KWARGS = {
+    "showlegend": False,
+    "height": 120,
+    "activeselection": dict(fillcolor="#96C291", opacity=0.3),
+    "margin": {"t": 0, "b": 0},
+}
+
 
 class FigureResampler(AbstractFigureAggregator, go.Figure):
     """Data aggregation functionality for ``go.Figures``."""
@@ -51,6 +62,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         ),
         show_mean_aggregation_size: bool = True,
         convert_traces_kwargs: dict | None = None,
+        create_overview: bool = False,
+        overview_row_idxs: list = None,
+        overview_kwargs: dict = {},
         verbose: bool = False,
         show_dash_kwargs: dict | None = None,
     ):
@@ -105,6 +119,29 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             !!! note
                 This argument is only used when the passed ``figure`` contains data and
                 ``convert_existing_traces`` is set to True.
+        create_overview: bool, optional
+            Whether an overview will be added to the figure (also known as rangeslider),
+            by default False. An overview is a bidirectionally linked figure that is
+            placed below the FigureResampler figure and shows a coarse version on which
+            the current view of the FigureResampler figure is highlighted. The overview
+            can be used to quickly navigate through the data by dragging the selection
+            box.
+            !!! note
+                - In the case of subplots, the overview will be created for each subplot
+                  column. Only a single subplot row can be captured in the overview,
+                  this is by default the first row. If you want to customize this
+                  behavior, you can use the `overview_row_idxs` argument.
+                - This functionality is not yet extensively validated. Please report any
+                  issues you encounter on GitHub.
+        overview_row_idxs: list, optional
+            A list of integers corresponding to the row indices (START AT 0) of the
+            subplots columns that should be linked with the column its corresponding
+            overview. By default None, which will result in the first row being utilized
+            for each column.
+        overview_kwargs: dict, optional
+            A dict of kwargs that will be passed to the `update_layout` method of the
+            overview figure, by default {}, which will result in utilizing the
+            [`default`][_DEFAULT_OVERVIEW_LAYOUT_KWARGS] overview layout kwargs.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
         show_dash_kwargs: dict, optional
@@ -188,6 +225,17 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 for idx in update_indices:
                     self.data[idx].update(graph_dict["data"][idx])
 
+        self._create_overview = create_overview
+        # update the overview layout
+        overview_layout_kwargs = _DEFAULT_OVERVIEW_LAYOUT_KWARGS.copy()
+        overview_layout_kwargs.update(overview_kwargs)
+        self._overview_layout_kwargs = overview_layout_kwargs
+
+        # array representing the row indices per column (START AT 0) of the subplot
+        # that should be linked with the columns corresponding overview.
+        # By default, the first row (i.e. index 0) will be utilized for each column
+        self._overview_row_idxs = self._parse_subplot_row_indices(overview_row_idxs)
+
         # The FigureResampler needs a dash app
         self._app: dash.Dash | None = None
         self._port: int | None = None
@@ -195,6 +243,225 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # Certain functions will be different when using persistent inline
         # (namely `show_dash` and `stop_callback`)
         self._is_persistent_inline = False
+
+    def _get_subplot_rows_and_cols_from_grid(self) -> Tuple[int, int]:
+        """Get the number of rows and columns of the figure's grid.
+
+        Returns
+        -------
+        Tuple[int, int]
+            The number of rows and columns of the figure's grid, respectively.
+        """
+        if self._grid_ref is None:  # case: go.Figure (no subplots)
+            return (1, 1)
+        # TODO: not 100% sure whether this is correct
+        return (len(self._grid_ref), len(self._grid_ref[0]))
+
+    def _parse_subplot_row_indices(self, row_indices: list = None) -> List[int]:
+        """Verify whether the passed row indices are valid.
+
+        Parameters
+        ----------
+        row_indices: list, optional
+            A list of integers representing the row indices for which the overview
+            should be created. The length of the list should be equal to the number of
+            columns of the figure. Each element of the list should be smaller than the
+            number of rows of the figure (thus note that the row indices start at 0). By
+            default None, which will result in the first row being utilized for each
+            column.
+            !!! note
+                When you do not want to use an overview of a certain column (because
+                a certain subplot spans more than 1 column), you can specify this by
+                setting that respecive row_index value to `None`.
+
+                For instance, the sbuplot on row 2, col 1 spans two coloms. So when you
+                intend to utilize that subplot within the overview, you want to specify
+                the row_indices as: `[1, None, ...]`
+
+        Returns
+        -------
+        List[int]
+            A list of integers representing the row indices per subplot column.
+
+        """
+        n_rows, n_cols = self._get_subplot_rows_and_cols_from_grid()
+
+        # By default, the first row is utilized to set the row indices
+        if row_indices is None:
+            return [0] * n_cols
+
+        # perform some checks on the row indices
+        assert isinstance(row_indices, list), "row indices must be a list"
+        assert (
+            len(row_indices) == n_cols
+        ), "the number of row indices must be equal to the number of columns"
+        assert all(
+            [(li is None) or (0 <= li < n_rows) for li in row_indices]
+        ), "row indices must be smaller than the number of rows"
+
+        return row_indices
+
+    # determines which subplot data to take from main and put into coarse
+    def _remove_other_axes_for_coarse(self) -> go.Figure:
+        # base case: no rows and cols to filter
+        if self._grid_ref is None:  # case: go.Figure (no subplots)
+            return self
+
+        # Create the grid specification for the overview figure (in `reduced_grid_ref`)
+        # The trace_list and the 2 axis lists are 1D arrays holding track of the traces
+        # and axes to track.
+        reduced_grid_ref = [[]]
+
+        # Store the xaxis keys (e.g., x2) of the traces to keep
+        trace_list = []
+        # Store the xaxis and yaxis layout keys of the traces to keep (e.g., xaxis2)
+        layout_xaxis_list, layout_yaxis_list = [], []
+        for col_idx, row_idx in enumerate(self._overview_row_idxs):
+            if row_idx is None:  # skip None value
+                continue
+
+            overview_grid_ref = self._grid_ref[row_idx][col_idx]
+            reduced_grid_ref[0].append(overview_grid_ref)  # [0] bc 1 row in overview
+            for subplot in overview_grid_ref:
+                trace_list.append(subplot.trace_kwargs["xaxis"])
+
+                # store the layout keys so that we can retain the exact layout
+                xaxis_key, yaxis_key = subplot.layout_keys
+                layout_yaxis_list.append(yaxis_key)
+                layout_xaxis_list.append(xaxis_key)
+        # print("layout_list", l_xaxis_list, l_yaxis_list)
+        # print("trace_list", trace_list)
+
+        fig_dict = self._get_current_graph()  # a copy of the current graph
+
+        # copy the data from the relevant overview subplots
+        reduced_fig_dict = {
+            "data": [],
+            "layout": {"template": fig_dict["layout"]["template"]},
+        }
+        # NOTE: we enumerate over the data of the full figure so that we can utilize the
+        # trace index to mimic the colorway.
+        for i, trace in enumerate(fig_dict["data"]):
+            # NOTE: the interplay between line_color and marker_color seems to work in
+            # this implementation - a more thorough investigation might be needed
+            if trace.get("xaxis", "x") in trace_list:
+                if "line" not in trace:
+                    trace["line"] = {}
+                # Ensure that the same color is utilized
+                trace["line"]["color"] = (
+                    self._layout_obj.template.layout.colorway[i]
+                    if self.data[i].line.color is None
+                    else self.data[i].line.color
+                )
+                # add the trace to the reduced figure
+                reduced_fig_dict["data"].append(trace)
+
+        # Add the relevant layout keys to the reduced figure
+        for k, v in fig_dict["layout"].items():
+            if k in layout_xaxis_list:
+                reduced_fig_dict["layout"][k] = v
+            elif k in layout_yaxis_list:
+                v = v.copy()
+                # set the domain to [0, 1] to ensure that the overview figure has the
+                # global y-axis range
+                v.update({"domain": [0, 1]})
+                reduced_fig_dict["layout"][k] = v
+
+        # Create a figure object using the reduced figure dict
+        reduced_fig = go.Figure(layout=reduced_fig_dict["layout"])
+        reduced_fig._grid_ref = reduced_grid_ref
+        # Ensure that the trace uid is not adjusted, this must be set prior to adding
+        # the trace data. Otherwise, data aggregation will not work.
+        reduced_fig._data_validator.set_uid = False
+        reduced_fig.add_traces(reduced_fig_dict["data"])
+        return reduced_fig
+
+    def _create_overview_figure(self) -> go.Figure:
+        # create a new coarse fig
+        reduced_fig = self._remove_other_axes_for_coarse()
+
+        # Resample the coarse figure using 3x the default aggregation size to ensure
+        # that it contains sufficient details
+        coarse_fig_hf = FigureResampler(
+            reduced_fig,
+            default_n_shown_samples=3 * self._global_n_shown_samples,
+        )
+
+        # NOTE: this way we can alter props without altering the original hf data
+        # NOTE: this also copies the default aggregation functionality to the coarse figure
+        coarse_fig_hf._hf_data = {uid: trc.copy() for uid, trc in self._hf_data.items()}
+        for trace in coarse_fig_hf.hf_data:
+            trace["max_n_samples"] *= 3
+
+        coarse_fig_dict = coarse_fig_hf._get_current_graph()
+        # add the 3x max_n_samples coarse figure data to the coarse_fig_dict
+        coarse_fig_hf._check_update_figure_dict(coarse_fig_dict)
+        del coarse_fig_hf
+
+        coarse_fig = go.Figure(layout=coarse_fig_dict["layout"])
+        coarse_fig._grid_ref = reduced_fig._grid_ref
+        coarse_fig._data_validator.set_uid = False
+        coarse_fig.add_traces(coarse_fig_dict["data"])
+
+        # height of the overview scales with the height of the dynamic view
+        coarse_fig.update_layout(
+            **self._overview_layout_kwargs,
+            hovermode=False,
+            clickmode="event+select",
+            dragmode="select",
+        )
+        # Hide the grid
+        hide_kwrgs = dict(
+            showgrid=False,
+            showticklabels=False,
+            zeroline=False,
+            title_text=None,
+            mirror=True,
+            ticks="",
+            showline=False,
+            linecolor="black",
+        )
+        coarse_fig.update_yaxes(**hide_kwrgs)
+        coarse_fig.update_xaxes(**hide_kwrgs)
+
+        vrect_props = dict(
+            **dict(line_width=0, x0=0, x1=1),
+            **dict(fillcolor="lightblue", opacity=0.25, layer="above"),
+        )
+
+        if self._grid_ref is None:  # case: go.Figure (no subplots)
+            # set the fixed range to True
+            coarse_fig["layout"]["xaxis"]["fixedrange"] = True
+            coarse_fig["layout"]["yaxis"]["fixedrange"] = True
+
+            # add a shading to the overview
+            coarse_fig.add_vrect(xref="x domain", **vrect_props)
+            return coarse_fig
+
+        col_idx_overview = 0
+        for col_idx, row_idx in enumerate(self._overview_row_idxs):
+            if row_idx is None:  # skip the None value
+                continue
+
+            # we will only use the first grid-ref (as we will otherwise have multiple
+            # overlapping selection boxes)
+            for subplot in self._grid_ref[row_idx][col_idx][:1]:
+                xaxis_key, yaxis_key = subplot.layout_keys
+
+                # set the fixed range to True
+                coarse_fig["layout"][xaxis_key]["fixedrange"] = True
+                coarse_fig["layout"][yaxis_key]["fixedrange"] = True
+
+                # add a shading to the overview
+                coarse_fig.add_vrect(
+                    col=col_idx_overview + 1,
+                    xref=f"{subplot.trace_kwargs['xaxis']} domain",
+                    **vrect_props,
+                )
+
+            col_idx_overview += 1  # only increase the index when not None
+
+        return coarse_fig
 
     def show_dash(
         self,
@@ -278,25 +545,32 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                         self.data[trace_idx].update(updated_trace)
 
         # 1. Construct the Dash app layout
+        app_init_kwargs = {}
+        if self._create_overview:
+            app_init_kwargs["assets_folder"] = os.path.relpath(
+                ASSETS_FOLDER, os.getcwd()
+            )
+
         if mode == "inline_persistent":
             mode = "inline"
             if _jupyter_dash_installed:
                 # Inline persistent mode: we display a static image of the figure when the
                 # app is not reachable
                 # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
-                app = JupyterDashPersistentInlineOutput("local_app")
+                app = JupyterDashPersistentInlineOutput("local_app", **app_init_kwargs)
                 self._is_persistent_inline = True
             else:
                 # If Jupyter Dash is not installed, inline persistent won't work and hence
                 # we default to normal inline mode with a normal Dash app
-                app = dash.Dash("local_app")
+                app = dash.Dash("local_app", **app_init_kwargs)
                 warnings.warn(
                     "'jupyter_dash' is not installed. The persistent inline mode will not work. Defaulting to standard inline mode."
                 )
         else:
             # jupyter dash uses a normal Dash app as figure
-            app = dash.Dash("local_app")
-        app.layout = dash.html.Div(
+            app = dash.Dash("local_app", **app_init_kwargs)
+
+        div = dash.html.Div(
             [
                 dash.dcc.Graph(
                     id="resample-figure", figure=self, config=config, **graph_properties
@@ -306,7 +580,26 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 ),
             ]
         )
-        self.register_update_graph_callback(app, "resample-figure", "trace-updater")
+        if self._create_overview:
+            overview_config = config.copy() if config is not None else {}
+            overview_config["displayModeBar"] = False
+            coarse_fig = self._create_overview_figure()
+            div.children += [
+                dash.dcc.Graph(
+                    id="overview-figure",
+                    figure=coarse_fig,
+                    config=overview_config,
+                    **graph_properties,
+                ),
+            ]
+        app.layout = div
+
+        self.register_update_graph_callback(
+            app,
+            "resample-figure",
+            "trace-updater",
+            "overview-figure" if self._create_overview else None,
+        )
 
         height_param = "height" if self._is_persistent_inline else "jupyter_height"
 
@@ -366,7 +659,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             )
 
     def register_update_graph_callback(
-        self, app: dash.Dash, graph_id: str, trace_updater_id: str
+        self,
+        app: dash.Dash,
+        graph_id: str,
+        trace_updater_id: str,
+        coarse_graph_id: Optional[str] = None,
     ):
         """Register the [`construct_update_data`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data] method as callback function to
         the passed dash-app.
@@ -382,11 +679,39 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             The id of the ``TraceUpdater`` component. This component is leveraged by
             ``FigureResampler`` to efficiently POST the to-be-updated data to the
             front-end.
+        coarse_graph_id: str, optional
+            The id of the ``dcc.Graph``-component which withholds the coarse overview
+            Figure, by default None.
 
         """
+        if coarse_graph_id is not None:
+            # update pr graph range with overview selection
+            app.clientside_callback(
+                dash.ClientsideFunction(
+                    namespace="clientside", function_name="coarse_to_main"
+                ),
+                dash.Output(graph_id, "id", allow_duplicate=True),
+                dash.Input(coarse_graph_id, "selectedData"),
+                dash.State(graph_id, "id"),
+                dash.State(coarse_graph_id, "id"),
+                prevent_initial_call=True,
+            )
+
+            # update selectbox with clientside callback
+            app.clientside_callback(
+                dash.ClientsideFunction(
+                    namespace="clientside", function_name="main_to_coarse"
+                ),
+                dash.Output(coarse_graph_id, "id", allow_duplicate=True),
+                dash.Input(graph_id, "relayoutData"),
+                dash.State(coarse_graph_id, "id"),
+                dash.State(graph_id, "id"),
+                prevent_initial_call=True,
+            )
+
         app.callback(
-            dash.dependencies.Output(trace_updater_id, "updateData"),
-            dash.dependencies.Input(graph_id, "relayoutData"),
+            dash.Output(trace_updater_id, "updateData"),
+            dash.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
         )(self.construct_update_data)
 
