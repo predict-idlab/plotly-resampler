@@ -107,10 +107,10 @@ fig.add_trace(go.Scattergl(name='noisy sine', showlegend=True), hf_x=x, hf_y=sin
 fig.show_dash(mode='inline')
 ```
 
-#### Overview
+### Overview
 
 In the example below, we demonstrate the (x-axis)`overview` feature of plotly-ressampler.
-For more information check out the [example](https://github.com/predict-idlab/plotly-resampler/tree/main/examples).
+For more information you can check out the [examples](https://github.com/predict-idlab/plotly-resampler/tree/main/examples) to find dash apps and in-notebook use-cases.
 
 > **Note**:
 > * This overview is only available for the `FigureResampler` and not for the `FigureWidgetResampler`.
