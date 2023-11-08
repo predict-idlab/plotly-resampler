@@ -66,6 +66,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         overview_row_idxs: list = None,
         overview_kwargs: dict = {},
         verbose: bool = False,
+        show_dash_kwargs: dict | None = None,
     ):
         """Initialize a dynamic aggregation data mirror using a dash web app.
 
@@ -143,6 +144,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             [`default`][_DEFAULT_OVERVIEW_LAYOUT_KWARGS] overview layout kwargs.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
+        show_dash_kwargs: dict, optional
+            A dict that will be used as default kwargs for the [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash] method.
+            !!! note
+                The passed kwargs to the [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash] method will take precedence over these defaults.
 
         """
         # Parse the figure input before calling `super`
@@ -187,6 +192,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             elif isinstance(figure, (dict, list)):
                 # A single trace dict or a list of traces
                 f.add_traces(figure)
+
+        self._show_dash_kwargs = (
+            show_dash_kwargs if show_dash_kwargs is not None else {}
+        )
 
         super().__init__(
             f,
@@ -496,7 +505,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             ``config`` argument to the `show` method.
             See more [https://plotly.com/python/configuration-options/](https://plotly.com/python/configuration-options/)
         init_dash_kwargs: dict, optional
-            keyword arguments for the Dash app constructor
+            Keyword arguments for the Dash app constructor.
             !!! note
                 This variable is of special interest for ``TODO``.
         graph_properties: dict, optional
@@ -507,7 +516,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             ``config`` parameter for this property in this method.
             See more [https://dash.plotly.com/dash-core-components/graph](https://dash.plotly.com/dash-core-components/graph)
         **kwargs: dict
-            ``show_dash_kwargs`` for the ``app.run_server()`` method, e.g., port=8037.
+            kwargs for the ``app.run_server()`` method, e.g., port=8037.
+            !!! note
+                These kwargs take precedence over the ones that are passed to the
+                constructor via the ``show_dash_kwargs`` argument.
 
         """
         available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
@@ -605,6 +617,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             #  See: https://plotly.com/python/reference/layout/#layout-height
             fig_height = self.layout.height if self.layout.height is not None else 450
             kwargs[height_param] = fig_height + 18
+
+        # kwargs take precedence over the show_dash_kwargs
+        kwargs = {**self._show_dash_kwargs, **kwargs}
 
         # Store the app information, so it can be killed
         self._app = app
@@ -709,7 +724,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class
-        return super()._get_pr_props_keys()
+        return super()._get_pr_props_keys() + ["_show_dash_kwargs"]
 
     def _ipython_display_(self):
         # To display the figure inline as a dash app
