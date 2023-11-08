@@ -68,8 +68,12 @@ ruff = "^0.0.262"
 black = "^22.6.0"
 pytest-lazy-fixture = "^0.6.3"
 # yep = "^0.4"  # c code profiling
-mkdocs = "1.4.3"
-mkdocstrings = { version = "^0.20.0", extras = ["python"] }
+mkdocs = "^1.5.3"
+mkdocstrings = "^0.20.0"
+mkdocstrings-python = [
+    { version = "^1.1.2", python="<3.8" },
+    { version = "^1.7.3", python=">=3.8" }
+]
 griffe = [
     { version = "^0.30.1", python = "<3.8" },
     { version = ">=0.32.0", python = ">=3.8" }
