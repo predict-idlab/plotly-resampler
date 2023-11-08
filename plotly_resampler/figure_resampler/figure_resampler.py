@@ -66,7 +66,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         overview_row_idxs: list = None,
         overview_kwargs: dict = {},
         verbose: bool = False,
-        show_dash_kwargs: dict | None = None,
     ):
         """Initialize a dynamic aggregation data mirror using a dash web app.
 
@@ -144,9 +143,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             [`default`][_DEFAULT_OVERVIEW_LAYOUT_KWARGS] overview layout kwargs.
         verbose: bool, optional
             Whether some verbose messages will be printed or not, by default False.
-        show_dash_kwargs: dict, optional
-            A dict that will be used as default kwargs for the [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash] method.
-            Note that the passed kwargs will be take precedence over these defaults.
 
         """
         # Parse the figure input before calling `super`
@@ -191,10 +187,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             elif isinstance(figure, (dict, list)):
                 # A single trace dict or a list of traces
                 f.add_traces(figure)
-
-        self._show_dash_kwargs = (
-            show_dash_kwargs if show_dash_kwargs is not None else {}
-        )
 
         super().__init__(
             f,
@@ -467,6 +459,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self,
         mode=None,
         config: dict | None = None,
+        init_dash_kwargs: dict | None = None,
         graph_properties: dict | None = None,
         **kwargs,
     ):
@@ -502,6 +495,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             This ``config`` parameter is the same as the dict that you would pass as
             ``config`` argument to the `show` method.
             See more [https://plotly.com/python/configuration-options/](https://plotly.com/python/configuration-options/)
+        init_dash_kwargs: dict, optional
+            keyword arguments for the Dash app constructor
+            !!! note
+                This variable is of special interest for ``TODO``.
         graph_properties: dict, optional
             Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
@@ -510,9 +507,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             ``config`` parameter for this property in this method.
             See more [https://dash.plotly.com/dash-core-components/graph](https://dash.plotly.com/dash-core-components/graph)
         **kwargs: dict
-            Additional app.run_server() kwargs. e.g.: port, ...
-            Also note that these kwargs take precedence over the ones passed to the
-            constructor via the ``show_dash_kwargs`` argument.
+            ``show_dash_kwargs`` for the ``app.run_server()`` method, e.g., port=8037.
 
         """
         available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
@@ -545,9 +540,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                         self.data[trace_idx].update(updated_trace)
 
         # 1. Construct the Dash app layout
-        app_init_kwargs = {}
+        init_dash_kwargs = {} if init_dash_kwargs is None else init_dash_kwargs
         if self._create_overview:
-            app_init_kwargs["assets_folder"] = os.path.relpath(
+            init_dash_kwargs["assets_folder"] = os.path.relpath(
                 ASSETS_FOLDER, os.getcwd()
             )
 
@@ -557,18 +552,18 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 # Inline persistent mode: we display a static image of the figure when the
                 # app is not reachable
                 # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
-                app = JupyterDashPersistentInlineOutput("local_app", **app_init_kwargs)
+                app = JupyterDashPersistentInlineOutput("local_app", **init_dash_kwargs)
                 self._is_persistent_inline = True
             else:
                 # If Jupyter Dash is not installed, inline persistent won't work and hence
                 # we default to normal inline mode with a normal Dash app
-                app = dash.Dash("local_app", **app_init_kwargs)
+                app = dash.Dash("local_app", **init_dash_kwargs)
                 warnings.warn(
                     "'jupyter_dash' is not installed. The persistent inline mode will not work. Defaulting to standard inline mode."
                 )
         else:
             # jupyter dash uses a normal Dash app as figure
-            app = dash.Dash("local_app", **app_init_kwargs)
+            app = dash.Dash("local_app", **init_dash_kwargs)
 
         div = dash.html.Div(
             [
@@ -610,9 +605,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             #  See: https://plotly.com/python/reference/layout/#layout-height
             fig_height = self.layout.height if self.layout.height is not None else 450
             kwargs[height_param] = fig_height + 18
-
-        # kwargs take precedence over the show_dash_kwargs
-        kwargs = {**self._show_dash_kwargs, **kwargs}
 
         # Store the app information, so it can be killed
         self._app = app
@@ -717,7 +709,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class
-        return super()._get_pr_props_keys() + ["_show_dash_kwargs"]
+        return super()._get_pr_props_keys()
 
     def _ipython_display_(self):
         # To display the figure inline as a dash app
