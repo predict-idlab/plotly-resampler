@@ -382,7 +382,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 out[k] = v
 
         # Check if (hover)text also needs to be downsampled
-        for k in ["text", "hovertext", "marker_size", "marker_color"]:
+        for k in ["text", "hovertext", "marker_size", "marker_color", "customdata"]:
             k_val = hf_trace_data.get(k)
             if isinstance(k_val, (np.ndarray, pd.Series)):
                 assert isinstance(
