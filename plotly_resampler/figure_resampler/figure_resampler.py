@@ -521,7 +521,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties  # There is a param for config
-        if self["layout"]["autosize"] == True and self["layout"]["height"] == None:
+        if self["layout"]["autosize"] is True and self["layout"]["height"] is None:
             graph_properties.setdefault("style", {}).update({"height": "100%"})
 
         # 0. Check if the traces need to be updated when there is a xrange set
