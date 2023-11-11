@@ -34,7 +34,8 @@ from .utils import round_number_str, round_td_str
 # `_hf_data_container._asdict()` function is used in
 #  `AbstractFigureAggregator._construct_hf_data_dict`.
 _hf_data_container = namedtuple(
-    "DataContainer", ["x", "y", "text", "hovertext", "marker_size", "marker_color"]
+    "DataContainer",
+    ["x", "y", "text", "hovertext", "marker_size", "marker_color", "customdata"],
 )
 
 
@@ -641,6 +642,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else hf_marker_color
         )
 
+        hf_customdata = trace["customdata"] if hasattr(trace, "customdata") else None
+
         if trace["type"].lower() in self._high_frequency_traces:
             if hf_x is None:  # if no data as x or hf_x is passed
                 if hf_y.ndim != 0:  # if hf_y is an array
@@ -742,7 +745,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     trace.marker.color = hf_marker_color
 
         return _hf_data_container(
-            hf_x, hf_y, hf_text, hf_hovertext, hf_marker_size, hf_marker_color
+            hf_x,
+            hf_y,
+            hf_text,
+            hf_hovertext,
+            hf_marker_size,
+            hf_marker_color,
+            hf_customdata,
         )
 
     def _construct_hf_data_dict(
