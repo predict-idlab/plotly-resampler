@@ -1,9 +1,8 @@
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly_resampler import register_plotly_resampler
-
-import pandas as pd
 import numpy as np
+import pandas as pd
+import plotly.express as px
+
+from plotly_resampler import register_plotly_resampler
 
 
 def test_px_hoverlabel_figureResampler():
@@ -29,7 +28,7 @@ def test_px_hoverlabel_figureResampler():
         x=x_label,
         y=y_label,
         color=label_label,
-        title=f"Without resampler",
+        title="Without resampler",
         hover_data=["description"],
     )
 
@@ -40,7 +39,7 @@ def test_px_hoverlabel_figureResampler():
         x=x_label,
         y=y_label,
         color=label_label,
-        title=f"With resampler",
+        title="With resampler",
         hover_data=["description"],
     )
 
