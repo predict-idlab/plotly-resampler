@@ -153,8 +153,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # A list of al xaxis and yaxis string names
         # e.g., "xaxis", "xaxis2", "xaxis3", .... for _xaxis_list
-        self._xaxis_list = self._re_matches(re.compile(r"xaxis\d*"), self._layout.keys())
-        self._yaxis_list = self._re_matches(re.compile(r"yaxis\d*"), self._layout.keys())
+        self._xaxis_list = self._re_matches(
+            re.compile(r"xaxis\d*"), self._layout.keys()
+        )
+        self._yaxis_list = self._re_matches(
+            re.compile(r"yaxis\d*"), self._layout.keys()
+        )
         # edge case: an empty `go.Figure()` does not yet contain axes keys
         if not len(self._xaxis_list):
             self._xaxis_list = ["xaxis"]
