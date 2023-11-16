@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from plotly_resampler import register_plotly_resampler
+from plotly_resampler import register_plotly_resampler, unregister_plotly_resampler
 
 
 def test_px_hoverlabel_figureResampler():
@@ -51,3 +51,5 @@ def test_px_hoverlabel_figureResampler():
         agg_indices = np.searchsorted(trc_orig["x"], trc_res["x"]).ravel()
         for k in ["customdata", "y"]:
             assert all(trc_orig[k].ravel()[agg_indices] == trc_res[k].ravel())
+
+    unregister_plotly_resampler()
