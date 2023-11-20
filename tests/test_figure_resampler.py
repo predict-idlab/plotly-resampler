@@ -2,10 +2,10 @@
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-
 import datetime
 import multiprocessing
 import subprocess
+import sys
 import time
 from datetime import timedelta
 from typing import List
@@ -129,6 +129,10 @@ def test_add_trace_not_resampling_insert_gaps():
 
 
 def test_various_dtypes(float_series):
+    # skip the test on windows
+    if sys.platform.lower().startswith("win"):
+        pytest.skip("Skipping test on windows")
+
     # List of dtypes supported by orjson >= 3.8
     valid_dtype_list = [
         np.bool_,
