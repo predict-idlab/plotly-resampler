@@ -1196,6 +1196,9 @@ def test_showdash_not_hanging_when_port_in_use():
 
 
 def test_manual_jupyterdashpersistentinline():
+    if sys.platform.lower().startswith("win"):
+        pytest.skip("This test is currently not supported on windows")
+
     # Manually call the JupyterDashPersistentInline its method
     # This requires some gimmicky stuff to mimmick the behaviour of a jupyter notebook.
 
