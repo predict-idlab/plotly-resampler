@@ -31,11 +31,11 @@ jobs:
         shell: bash
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         lfs: true
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -50,7 +50,7 @@ jobs:
         version: 1.5.1
     - name: Cache poetry
       id: cached-poetry-dependencies
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.cache/pypoetry/virtualenvs
         key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-${{ matrix.python-version }}
@@ -70,7 +70,7 @@ jobs:
       run: |
         poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests
     - name: Upload pytest test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: pytest-results-${{ matrix.python-version }}
         path: junit/test-results-${{ matrix.python-version }}.xml
@@ -78,4 +78,4 @@ jobs:
       if: ${{ always() }}
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
