@@ -507,7 +507,14 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         init_dash_kwargs: dict, optional
             Keyword arguments for the Dash app constructor.
             !!! note
-                This variable is of special interest for ``TODO``.
+                This variable is of special interest when working in a jupyterhub +
+                kubernetes environment. In this case, user notebook servers are spawned
+                as separate pods and user access to those servers are proxied via
+                jupyterhub. Dash requires the `requests_pathname_prefix` to be set on
+                __init__ - which can be done via this `init_dash_kwargs` argument.
+                Note that you should also pass the jupyter_server_url to the show_dash
+                method.
+                More details: https://github.com/predict-idlab/plotly-resampler/issues/265
         graph_properties: dict, optional
             Dictionary of (keyword, value) for the properties that should be passed to
             the dcc.Graph, by default None.
