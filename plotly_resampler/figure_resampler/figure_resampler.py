@@ -512,7 +512,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 as separate pods and user access to those servers are proxied via
                 jupyterhub. Dash requires the `requests_pathname_prefix` to be set on
                 __init__ - which can be done via this `init_dash_kwargs` argument.
-                Note that you should also pass the `jupyter_server_url` to the 
+                Note that you should also pass the `jupyter_server_url` to the
                 `show_dash` method.
                 More details: https://github.com/predict-idlab/plotly-resampler/issues/265
         graph_properties: dict, optional
