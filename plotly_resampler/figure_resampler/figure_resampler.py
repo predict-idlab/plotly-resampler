@@ -579,6 +579,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             # jupyter dash uses a normal Dash app as figure
             app = dash.Dash("local_app", **init_dash_kwargs)
 
+        # fmt: off
         div = dash.html.Div(
             style={
                 "display": "flex", "flex-flow": "column",
@@ -589,7 +590,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 TraceUpdater(id="trace-updater", gdID="resample-figure", sequentialUpdate=False),
             ],
         )
-        # # fmt: on
+        # fmt: on
         if self._create_overview:
             overview_config = config.copy() if config is not None else {}
             overview_config["displayModeBar"] = False
