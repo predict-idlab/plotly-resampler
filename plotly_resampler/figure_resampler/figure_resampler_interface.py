@@ -34,7 +34,8 @@ from .utils import round_number_str, round_td_str
 # `_hf_data_container._asdict()` function is used in
 #  `AbstractFigureAggregator._construct_hf_data_dict`.
 _hf_data_container = namedtuple(
-    "DataContainer", ["x", "y", "text", "hovertext", "marker_size", "marker_color"]
+    "DataContainer",
+    ["x", "y", "text", "hovertext", "marker_size", "marker_color", "customdata"],
 )
 
 
@@ -152,8 +153,12 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # A list of al xaxis and yaxis string names
         # e.g., "xaxis", "xaxis2", "xaxis3", .... for _xaxis_list
-        self._xaxis_list = self._re_matches(re.compile("xaxis\d*"), self._layout.keys())
-        self._yaxis_list = self._re_matches(re.compile("yaxis\d*"), self._layout.keys())
+        self._xaxis_list = self._re_matches(
+            re.compile(r"xaxis\d*"), self._layout.keys()
+        )
+        self._yaxis_list = self._re_matches(
+            re.compile(r"yaxis\d*"), self._layout.keys()
+        )
         # edge case: an empty `go.Figure()` does not yet contain axes keys
         if not len(self._xaxis_list):
             self._xaxis_list = ["xaxis"]
@@ -382,7 +387,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 out[k] = v
 
         # Check if (hover)text also needs to be downsampled
-        for k in ["text", "hovertext", "marker_size", "marker_color"]:
+        for k in ["text", "hovertext", "marker_size", "marker_color", "customdata"]:
             k_val = hf_trace_data.get(k)
             if isinstance(k_val, (np.ndarray, pd.Series)):
                 assert isinstance(
@@ -641,6 +646,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else hf_marker_color
         )
 
+        hf_customdata = trace["customdata"] if hasattr(trace, "customdata") else None
+
         if trace["type"].lower() in self._high_frequency_traces:
             if hf_x is None:  # if no data as x or hf_x is passed
                 if hf_y.ndim != 0:  # if hf_y is an array
@@ -742,7 +749,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     trace.marker.color = hf_marker_color
 
         return _hf_data_container(
-            hf_x, hf_y, hf_text, hf_hovertext, hf_marker_size, hf_marker_color
+            hf_x,
+            hf_y,
+            hf_text,
+            hf_hovertext,
+            hf_marker_size,
+            hf_marker_color,
+            hf_customdata,
         )
 
     def _construct_hf_data_dict(

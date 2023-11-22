@@ -528,6 +528,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         ), f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties  # There is a param for config
+        if self["layout"]["autosize"] is True and self["layout"]["height"] is None:
+            graph_properties.setdefault("style", {}).update({"height": "100%"})
 
         # 0. Check if the traces need to be updated when there is a xrange set
         # This will be the case when the users has set a xrange (via the `update_layout`
@@ -578,15 +580,16 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             app = dash.Dash("local_app", **init_dash_kwargs)
 
         div = dash.html.Div(
-            [
-                dash.dcc.Graph(
-                    id="resample-figure", figure=self, config=config, **graph_properties
-                ),
-                TraceUpdater(
-                    id="trace-updater", gdID="resample-figure", sequentialUpdate=False
-                ),
-            ]
+            style={
+                "display": "flex", "flex-flow": "column",
+                "height": "95vh", "width": "100%",
+            },
+            children=[
+                dash.dcc.Graph(id="resample-figure", figure=self, config=config, **graph_properties),
+                TraceUpdater(id="trace-updater", gdID="resample-figure", sequentialUpdate=False),
+            ],
         )
+        # # fmt: on
         if self._create_overview:
             overview_config = config.copy() if config is not None else {}
             overview_config["displayModeBar"] = False
