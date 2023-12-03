@@ -20,6 +20,7 @@ import dash
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+from pandas.io.json._normalize import nested_to_record
 from plotly.basedatatypes import BaseFigure, BaseTraceType
 
 from ..aggregation import AbstractAggregator, MedDiffGapHandler, MinMaxLTTB
@@ -1335,6 +1336,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
+            relayout_data = nested_to_record(relayout_data, sep=".")
             self._print("-" * 100 + "\n", "changed layout", relayout_data)
 
             cl_k = list(relayout_data.keys())
