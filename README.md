@@ -19,7 +19,9 @@
 
 > `plotly_resampler`: visualize large sequential data by **adding resampling functionality to Plotly figures**
 
-[Plotly](https://github.com/plotly/plotly.py) is an awesome interactive visualization library, however it can get pretty slow when a lot of data points are visualized (100 000+ datapoints). This library solves this by downsampling (aggregating) the data respective to the view and then plotting the aggregated points. When you interact with the plot (panning, zooming, ...), callbacks are used to aggregate data and update the figure.
+`plotly-resampler` improves the scalability of [Plotly](https://github.com/plotly/plotly.py) for visualizing large time series datasets. Specifically, our library *dynamically aggregates time-series data respective to the current graph view*, ensuring efficient and responsive updates during user interactions like panning or zooming via callbacks.
+
+This core aggregation functionality is achieved by utilizing by *time-series data point selection algorithms*, for which `plotly-resampler` leverages the highly optimized implementations available in [tsdownsample](https://github.com/predict-idlab/tsdownsample). Our default data aggregation method is `MinMaxLTTB` (and selects 1000 data points for plotting). For a deeper understanding of this method, you can consult to the algorithm's dedicated [repository](https://github.com/predict-idlab/MinMaxLTTB) and the associated [research paper](https://arxiv.org/abs/2305.00332).
 
 ![basic example gif](https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/mkdocs/static/basic_example.gif)
 
@@ -41,17 +43,17 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 <!-- | [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` | -->
 
 <br>
-<details><summary><b>What is the difference between plotly-resampler figures and plain plotly figures?</b></summary>
+<details><summary><b>👀 What is the difference between plotly-resampler figures and plain plotly figures?</b></summary>
 
 `plotly-resampler` can be thought of as wrapper around plain plotly figures which adds visualization scalability to line-charts by dynamically aggregating the data w.r.t. the front-end view. `plotly-resampler` thus adds dynamic aggregation functionality to plain plotly figures.
 
-**Important to know**:
+**❗ Important to know**:
 
 * ``show`` *always* returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.
 * To have dynamic aggregation:
 
-  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback.
-  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running IPython kernel).
+  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with **dash callbacks**.
+  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running **IPython kernel**).
 
 **Other changes of plotly-resampler figures w.r.t. vanilla plotly**:
 
