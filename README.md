@@ -19,9 +19,9 @@
 
 > `plotly_resampler`: visualize large sequential data by **adding resampling functionality to Plotly figures**
 
-`plotly-resampler` improves the scalability of [Plotly](https://github.com/plotly/plotly.py) for visualizing large time series datasets. Specifically, our library *dynamically aggregates time-series data respective to the current graph view*, ensuring efficient and responsive updates during user interactions like panning or zooming via callbacks.
+`plotly-resampler` improves the scalability of [Plotly](https://github.com/plotly/plotly.py) for visualizing large time series datasets. Specifically, our library *dynamically* **aggregates time-series data respective to the current graph view**, ensuring efficient and responsive updates during user interactions like panning or zooming via callbacks.
 
-This core aggregation functionality is achieved by utilizing by *time-series data point selection algorithms*, for which `plotly-resampler` leverages the highly optimized implementations available in [tsdownsample](https://github.com/predict-idlab/tsdownsample). Our default data aggregation method is `MinMaxLTTB` (and selects 1000 data points for plotting). For a deeper understanding of this method, you can consult to the algorithm's dedicated [repository](https://github.com/predict-idlab/MinMaxLTTB) and the associated [research paper](https://arxiv.org/abs/2305.00332).
+This core aggregation functionality is achieved by utilizing by *time-series data point selection algorithms*, for which `plotly-resampler` leverages the highly optimized implementations available in [tsdownsample](https://github.com/predict-idlab/tsdownsample). Our default data aggregation method is `MinMaxLTTB` (and selects 1000 data points for plotting). For a deeper understanding of this method, you can consult to the algorithm's dedicated [MinMaxLTTB repository](https://github.com/predict-idlab/MinMaxLTTB) and the associated [research paper](https://arxiv.org/abs/2305.00332).
 
 ![basic example gif](https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/mkdocs/static/basic_example.gif)
 
