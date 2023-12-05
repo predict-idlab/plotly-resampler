@@ -292,7 +292,7 @@ def test_log_axis():
         # Here, we update the xaxis range to be a log range
         # A relayout event will return the log10 values of the range
         x0, x1 = np.log10(100), np.log10(50_000)
-        out = fr.construct_update_data({"xaxis.range[0]": x0, "xaxis.range[1]": x1})
+        out = fr._construct_update_data({"xaxis.range[0]": x0, "xaxis.range[1]": x1})
         assert len(out) == 2
         assert (x1 - x0) < 10
         assert len(out[1]["x"]) == 1000
@@ -723,7 +723,9 @@ def test_set_hfx_tz_aware_series():
     fr.hf_data[0]["x"] = df.timestamp
     assert not isinstance(fr.hf_data[0]["x"], pd.DatetimeIndex)
     # perform an update
-    out = fr.construct_update_data({"xaxis.autorange": True, "xaxis.showspikes": False})
+    out = fr._construct_update_data(
+        {"xaxis.autorange": True, "xaxis.showspikes": False}
+    )
     assert len(out) == 2
     # assert that the update was performed correctly
     assert isinstance(fr.hf_data[0]["x"], pd.DatetimeIndex)
@@ -768,7 +770,7 @@ def test_tz_xaxis_range():
     fr.update_xaxes(range=[start, end])
 
     # verify whether the update was performed correctly
-    out = fr.construct_update_data({"xaxis.range[0]": start, "xaxis.range[1]": end})
+    out = fr._construct_update_data({"xaxis.range[0]": start, "xaxis.range[1]": end})
     assert len(out) == 3
     assert len(out[1]["x"]) == 2000
     assert len(out[2]["x"]) == 2000
@@ -783,7 +785,7 @@ def test_datetime_hf_x_no_index():
     # add via hf_x kwargs
     fr = FigureResampler()
     fr.add_trace({}, hf_x=df.timestamp, hf_y=df.value)
-    output = fr.construct_update_data(
+    output = fr._construct_update_data(
         {
             "xaxis.range[0]": "2020-01-01 00:00:00",
             "xaxis.range[1]": "2020-01-01 00:00:20",
@@ -795,7 +797,7 @@ def test_datetime_hf_x_no_index():
     # add via scatter kwargs
     fr = FigureResampler()
     fr.add_trace(go.Scatter(x=df.timestamp, y=df.value))
-    output = fr.construct_update_data(
+    output = fr._construct_update_data(
         {
             "xaxis.range[0]": "2020-01-01 00:00:00",
             "xaxis.range[1]": "2020-01-01 00:00:20",
@@ -1225,7 +1227,6 @@ def test_manual_jupyterdashpersistentinline():
     app.layout = dash.html.Div(
         [
             dash.dcc.Graph(id="resample-figure", figure=fr),
-            # no need to add traceupdater for this dummy app
         ]
     )
 
@@ -1852,7 +1853,7 @@ def test_hf_marker_size_hf_args():
     assert len(hf_trace["marker_color"] == len(y))
 
     # perform some asserts on the to-be constructed update data
-    update_trace = fr.construct_update_data(
+    update_trace = fr._construct_update_data(
         {"xaxis.autorange": True, "xaxis.showspikes": True}
     )[1]
 
@@ -1893,7 +1894,7 @@ def test_hf_marker_size_plotly_args():
     assert len(hf_trace["marker_color"] == len(y))
 
     # perform some asserts on the to-be constructed update data
-    update_trace = fr.construct_update_data(
+    update_trace = fr._construct_update_data(
         {"xaxis.autorange": True, "xaxis.showspikes": True}
     )[1]
 
