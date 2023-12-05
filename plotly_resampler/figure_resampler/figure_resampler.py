@@ -18,7 +18,6 @@ from typing import List, Optional, Tuple
 import dash
 import plotly.graph_objects as go
 from plotly.basedatatypes import BaseFigure
-from trace_updater import TraceUpdater
 
 from ..aggregation import (
     AbstractAggregator,
@@ -548,7 +547,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 relayout_dict[f"{xaxis_str}.range[0]"] = x_range[0]
                 relayout_dict[f"{xaxis_str}.range[1]"] = x_range[1]
         if relayout_dict:  # when not empty
-            update_data = self.construct_update_data(relayout_dict)
+            update_data = self._construct_update_data(relayout_dict)
 
             if not self._is_no_update(update_data):  # when there is an update
                 with self.batch_update():
@@ -563,9 +562,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # 1. Construct the Dash app layout
         init_dash_kwargs = {} if init_dash_kwargs is None else init_dash_kwargs
         if self._create_overview:
-            init_dash_kwargs["assets_folder"] = os.path.relpath(
-                ASSETS_FOLDER, os.getcwd()
-            )
+            # fmt: off
+            # Add the assets folder to the init_dash_kwargs
+            init_dash_kwargs["assets_folder"] = os.path.relpath(ASSETS_FOLDER, os.getcwd())
+            # Also include the lodash script, as the client-side callbacks uses this
+            init_dash_kwargs["external_scripts"] = ["https://cdn.jsdelivr.net/npm/lodash/lodash.min.js" ]
+            # fmt: on
 
         if mode == "inline_persistent":
             mode = "inline"
@@ -588,14 +590,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # fmt: off
         div = dash.html.Div(
+            dash.dcc.Graph(id="resample-figure", figure=self, config=config, **graph_properties),
             style={
                 "display": "flex", "flex-flow": "column",
                 "height": "95vh", "width": "100%",
             },
-            children=[
-                dash.dcc.Graph(id="resample-figure", figure=self, config=config, **graph_properties),
-                TraceUpdater(id="trace-updater", gdID="resample-figure", sequentialUpdate=False),
-            ],
         )
         # fmt: on
         if self._create_overview:
@@ -615,7 +614,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self.register_update_graph_callback(
             app,
             "resample-figure",
-            "trace-updater",
             "overview-figure" if self._create_overview else None,
         )
 
@@ -680,11 +678,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self,
         app: dash.Dash,
         graph_id: str,
-        trace_updater_id: str,
         coarse_graph_id: Optional[str] = None,
     ):
-        """Register the [`construct_update_data`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data] method as callback function to
-        the passed dash-app.
+        """Register the [`construct_update_data_patch`][figure_resampler.figure_resampler_interface.AbstractFigureAggregator.construct_update_data_patch]
+        method as callback function to the passed dash-app.
 
         Parameters
         ----------
@@ -693,10 +690,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         graph_id:
             The id of the ``dcc.Graph``-component which withholds the to-be resampled
             Figure.
-        trace_updater_id
-            The id of the ``TraceUpdater`` component. This component is leveraged by
-            ``FigureResampler`` to efficiently POST the to-be-updated data to the
-            front-end.
         coarse_graph_id: str, optional
             The id of the ``dcc.Graph``-component which withholds the coarse overview
             Figure, by default None.
@@ -728,10 +721,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             )
 
         app.callback(
-            dash.Output(trace_updater_id, "updateData"),
+            dash.Output(graph_id, "figure", allow_duplicate=True),
             dash.Input(graph_id, "relayoutData"),
             prevent_initial_call=True,
-        )(self.construct_update_data)
+        )(self.construct_update_data_patch)
 
     def _get_pr_props_keys(self) -> List[str]:
         # Add the additional plotly-resampler properties of this class

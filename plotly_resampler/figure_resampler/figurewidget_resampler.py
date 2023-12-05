@@ -177,7 +177,7 @@ class FigureWidgetResampler(
 
         if relayout_dict:  # when not empty
             # Construct the update data
-            update_data = self.construct_update_data(relayout_dict)
+            update_data = self._construct_update_data(relayout_dict)
 
             if self._is_no_update(update_data):
                 # Return when no data update
@@ -253,7 +253,7 @@ class FigureWidgetResampler(
             self._prev_layout = layout
 
             # Construct the update data
-            update_data = self.construct_update_data(relayout_dict)
+            update_data = self._construct_update_data(relayout_dict)
             if self._print_verbose:
                 self._relayout_hist.append(layout)
                 self._relayout_hist.append(["showspikes-update", len(update_data) - 1])
