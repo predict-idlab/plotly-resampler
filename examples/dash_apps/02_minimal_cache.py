@@ -13,7 +13,6 @@ import numpy as np
 import plotly.graph_objects as go
 from dash import Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
-from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
 from plotly_resampler.aggregation import MinMaxLTTB
@@ -30,12 +29,11 @@ app.layout = html.Div(
         html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-        # The graph and its needed components to serialize and update efficiently
+        # The graph object - which we will empower with plotly-resampler
+        dcc.Graph(id="graph-id"),
         # Note: we also add a dcc.Store component, which will be used to link the
         #       server side cached FigureResampler object
-        dcc.Graph(id="graph-id"),
         dcc.Loading(dcc.Store(id="store")),
-        TraceUpdater(id="trace-updater", gdID="graph-id"),
     ]
 )
 
@@ -63,8 +61,10 @@ def plot_graph(n_clicks):
         return no_update
 
 
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
-    Output("trace-updater", "updateData"),
+    Output("graph-id", "figure", allow_duplicate=True),
     Input("graph-id", "relayoutData"),
     State("store", "data"),  # The server side cached FigureResampler per session
     prevent_initial_call=True,
@@ -73,7 +73,7 @@ def plot_graph(n_clicks):
 def update_fig(relayoutdata, fig):
     if fig is None:
         return no_update
-    return fig.construct_update_data(relayoutdata)
+    return fig.construct_update_data_patch(relayoutdata)
 
 
 # --------------------------------- Running the app ---------------------------------
