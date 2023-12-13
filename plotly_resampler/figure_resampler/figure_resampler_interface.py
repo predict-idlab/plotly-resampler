@@ -1334,9 +1334,13 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         patched_figure = dash.Patch()  # create patch
         for trace in update_data[1:]:  # skip first item as it contains the relayout
             trace_index = trace.pop("index")  # the index of the corresponding trace
-            # All the other items are the trace data which needs to be updated
-            patched_figure["data"][trace_index] = trace
-        # TODO -> how to make this work with subplots?
+            # All the other items are the trace properties which needs to be updated
+            for k, v in trace.items():
+                # NOTE: we need to use the `patched_figure` as a dict, and not
+                # `patched_figure.data` as the latter will replace **all** the 
+                # data for the corresponding trace, and we just want to update the
+                # specific trace its properties.
+                patched_figure["data"][trace_index][k] = v
         return patched_figure
 
     def _construct_update_data(
