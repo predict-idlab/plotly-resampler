@@ -25,7 +25,6 @@ from dash_extensions.enrich import (
     Trigger,
     TriggerTransform,
 )
-from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
 
@@ -132,12 +131,10 @@ def add_or_remove_graph(add_graph, remove_graph, n, exp, gc_children):
     uid = str(uuid4())
     new_child = html.Div(
         children=[
-            # The graph and its needed components to serialize and update efficiently
             # Note: we also add a dcc.Store component, which will be used to link the
             #       server side cached FigureResampler object
             dcc.Graph(id={"type": "dynamic-graph", "index": uid}, figure=go.Figure()),
             dcc.Loading(dcc.Store(id={"type": "store", "index": uid})),
-            TraceUpdater(id={"type": "dynamic-updater", "index": uid}, gdID=f"{uid}"),
             # This dcc.Interval components makes sure that the `construct_display_graph`
             # callback is fired once after these components are added to the session
             # its front-end
@@ -183,8 +180,10 @@ def construct_display_graph(n, exp, n_added_graphs) -> FigureResampler:
     return fr, Serverside(fr)
 
 
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
-    Output({"type": "dynamic-updater", "index": MATCH}, "updateData"),
+    Output({"type": "dynamic-graph", "index": MATCH}, "figure", allow_duplicate=True),
     Input({"type": "dynamic-graph", "index": MATCH}, "relayoutData"),
     State({"type": "store", "index": MATCH}, "data"),
     prevent_initial_call=True,
@@ -192,7 +191,7 @@ def construct_display_graph(n, exp, n_added_graphs) -> FigureResampler:
 )
 def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is not None:
-        return fig.construct_update_data(relayoutdata)
+        return fig.construct_update_data_patch(relayoutdata)
     return no_update
 
 

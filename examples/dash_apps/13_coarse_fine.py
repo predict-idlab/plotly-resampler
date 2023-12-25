@@ -10,6 +10,7 @@ of the coarse graph is not linked.
 TODO: add an rectangle on the coarse graph
 
 """
+from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt"
 
@@ -20,7 +21,6 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from dash import Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
-from trace_updater import TraceUpdater
 from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
 from utils.graph_construction import visualize_multiple_files
 
@@ -75,7 +75,6 @@ def serve_layout() -> dbc.Container:
                         md=2,
                     ),
                     # Add the graphs, the dcc.Store (for serialization) and the
-                    # TraceUpdater (for efficient data updating) components
                     dbc.Col(
                         [
                             # The coarse graph whose updates will fetch data for the
@@ -87,9 +86,6 @@ def serve_layout() -> dbc.Container:
                             html.Br(),
                             dcc.Graph(id="plotly-resampler-graph", figure=go.Figure()),
                             dcc.Loading(dcc.Store(id="store")),
-                            TraceUpdater(
-                                id="trace-updater", gdID="plotly-resampler-graph"
-                            ),
                         ],
                         md=10,
                     ),
@@ -158,13 +154,17 @@ def construct_plot_graph(n_clicks, *folder_list):
 
 # Register the graph update callbacks to the layout
 @app.callback(
-    Output("trace-updater", "updateData"),
+    Output("plotly-resampler-graph", "figure", allow_duplicate=True),
     Input("coarse-graph", "relayoutData"),
     Input("plotly-resampler-graph", "relayoutData"),
     State("store", "data"),
     prevent_initial_call=True,
 )
-def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
+def update_dynamic_fig(
+    coarse_grained_relayout: dict | None,
+    fine_grained_relayout: dict | None,
+    fr_fig: FigureResampler,
+):
     if fr_fig is None:  # When the figure does not exist -> do nothing
         return no_update
 
@@ -172,9 +172,9 @@ def update_dynamic_fig(coarse_grained_relayout, fine_grained_relayout, fr_fig):
     trigger_id = ctx.triggered[0].get("prop_id", "").split(".")[0]
 
     if trigger_id == "plotly-resampler-graph":
-        return fr_fig.construct_update_data(fine_grained_relayout)
+        return fr_fig.construct_update_data_patch(fine_grained_relayout)
     elif trigger_id == "coarse-graph":
-        return fr_fig.construct_update_data(coarse_grained_relayout)
+        return fr_fig.construct_update_data_patch(coarse_grained_relayout)
 
     return no_update
 
