@@ -1337,7 +1337,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # All the other items are the trace properties which needs to be updated
             for k, v in trace.items():
                 # NOTE: we need to use the `patched_figure` as a dict, and not
-                # `patched_figure.data` as the latter will replace **all** the 
+                # `patched_figure.data` as the latter will replace **all** the
                 # data for the corresponding trace, and we just want to update the
                 # specific trace its properties.
                 patched_figure["data"][trace_index][k] = v
