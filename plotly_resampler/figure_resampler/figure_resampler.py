@@ -590,7 +590,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # fmt: off
         div = dash.html.Div(
-            dash.dcc.Graph(id="resample-figure", figure=self, config=config, **graph_properties),
+            children=[
+                dash.dcc.Graph(
+                    id="resample-figure", figure=self, config=config, **graph_properties
+                )
+            ],
             style={
                 "display": "flex", "flex-flow": "column",
                 "height": "95vh", "width": "100%",
