@@ -1328,7 +1328,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         """
         update_data = self._construct_update_data(relayout_data)
-        if not isinstance(update_data, list):
+        if not isinstance(update_data, list) or len(update_data) <= 1:
             return dash.no_update
 
         patched_figure = dash.Patch()  # create patch
