@@ -96,7 +96,6 @@ class RequestParser:
         # verify that there are x and y updates for each trace
         assert len(updated_x_keys) == len(updated_y_keys) == n_updated_traces
 
-
     def assert_front_end_relayout_request(relayout_request: Request):
         relayout_body = json.loads(relayout_request.body)
         assert "inputs" in relayout_body and len(relayout_body["inputs"]) == 1
@@ -133,7 +132,7 @@ class RequestParser:
         requests = RequestParser.filter_callback_requests(fr.get_requests())
 
         browser_name = fr.driver.capabilities["browserName"]
-        if browser_name == "firefox":
+        if "firefox" in browser_name:
             # There are 2 requests which are send
             # 1. first: changed-layout to server -> new data to back-end request
             # 2. the front-end relayout request
@@ -144,7 +143,7 @@ class RequestParser:
             else:
                 fetch_data_request = requests[0]
 
-        elif browser_name == "chrome":
+        elif "chrome" in browser_name:
             # for some, yet unknown reason, chrome does not seem to capture the
             # second front-end request.
             assert len(requests) == 1
