@@ -3,6 +3,7 @@ venv*
 *.ruff*
 *.DS_Store
 file_system_store/
+file_system_backend/
 
 # Sphinx documentation
 *_build/

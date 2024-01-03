@@ -107,7 +107,10 @@ def plot_graph(n_clicks, *folder_list):
         return no_update
 
 
-# --------- Figure update callback ---------
+# --------- FigureResampler update callback ---------
+
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
     Output("graph-id", "figure", allow_duplicate=True),
     Input("graph-id", "relayoutData"),

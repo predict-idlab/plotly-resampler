@@ -1312,7 +1312,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         ---------
         This method is tightly coupled with Dash app callbacks. It takes the front-end
         figure its ``relayoutData`` as input and returns the ``dash.Patch`` which needs
-        to be sent to the  ``figure`` property for the corresponding ``dcc.Graph``.
+        to be sent to the ``figure`` property for the corresponding ``dcc.Graph``.
 
         Parameters
         ----------

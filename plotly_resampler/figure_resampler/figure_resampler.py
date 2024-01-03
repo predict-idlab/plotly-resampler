@@ -699,6 +699,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             Figure, by default None.
 
         """
+        # As we use the figure again as output, we need to set: allow_duplicate=True
+
         if coarse_graph_id is not None:
             # update pr graph range with overview selection
             app.clientside_callback(

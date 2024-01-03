@@ -153,6 +153,7 @@ def construct_plot_graph(n_clicks, *folder_list):
 
 
 # Register the graph update callbacks to the layout
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
     Output("plotly-resampler-graph", "figure", allow_duplicate=True),
     Input("coarse-graph", "relayoutData"),

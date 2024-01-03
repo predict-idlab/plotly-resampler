@@ -138,7 +138,10 @@ app.clientside_callback(
 )
 
 
-# --- FigureResampler update logic ---
+# --- FigureResampler update callback ---
+
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
     Output(GRAPH_ID, "figure", allow_duplicate=True),
     Input(GRAPH_ID, "relayoutData"),
