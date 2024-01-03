@@ -197,4 +197,4 @@ def update_fig(relayoutdata: dict, fig: FigureResampler):
 
 # --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":
-    app.run_server(debug=True, port=9023)
+    app.run_server(debug=True, port=9023, use_reloader=False)
