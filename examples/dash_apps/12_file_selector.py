@@ -16,7 +16,6 @@ import plotly.graph_objects as go
 from dash import callback_context, dcc, html, no_update
 from dash_extensions.enrich import Output, Input, State
 from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
-from trace_updater import TraceUpdater
 from utils.callback_helpers import get_selector_states, multiple_folder_file_selector
 from utils.graph_construction import visualize_multiple_files
 
@@ -64,13 +63,11 @@ def serve_layout() -> dbc.Container:
                 [
                     # Add file selection layout (+ assign callbacks)
                     dbc.Col(multiple_folder_file_selector(app, name_folder_list), md=2),
-                    # Add the graph, the dcc.Store (for serialization) and the
-                    # TraceUpdater (for efficient data updating) components
+                    # Add the graph and the dcc.Store (for serialization)
                     dbc.Col(
                         [
                             dcc.Graph(id="graph-id", figure=go.Figure()),
                             dcc.Loading(dcc.Store(id="store")),
-                            TraceUpdater(id="trace-updater", gdID="graph-id"),
                         ],
                         md=10,
                     ),
@@ -100,7 +97,6 @@ def plot_graph(n_clicks, *folder_list):
         else:
             for file in files:
                 file_list.append((Path(folder).joinpath(file)))
-    print(file_list)
 
     ctx = callback_context
     if len(ctx.triggered) and "plot-button" in ctx.triggered[0]["prop_id"]:
@@ -111,19 +107,22 @@ def plot_graph(n_clicks, *folder_list):
         return no_update
 
 
-# --------- Figure update callback ---------
+# --------- FigureResampler update callback ---------
+
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
-    Output("trace-updater", "updateData"),
+    Output("graph-id", "figure", allow_duplicate=True),
     Input("graph-id", "relayoutData"),
     State("store", "data"),  # The server side cached FigureResampler per session
     prevent_initial_call=True,
 )
-def update_fig(relayoutdata, fig):
+def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is None:
         return no_update
-    return fig.construct_update_data(relayoutdata)
+    return fig.construct_update_data_patch(relayoutdata)
 
 
 # --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":
-    app.run_server(debug=True, port=9023)
+    app.run_server(debug=True, port=9023, use_reloader=False)

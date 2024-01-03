@@ -14,6 +14,10 @@ lint:
 test:
 	poetry run pytest --cov-report term-missing --cov=plotly_resampler tests
 
+.PHONY: docs
+docs:
+	poetry run mkdocs build -c -f mkdocs.yml
+
 .PHONY: clean
 clean:
 	rm -rf `find . -name __pycache__`

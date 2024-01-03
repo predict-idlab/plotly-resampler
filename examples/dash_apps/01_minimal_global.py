@@ -4,7 +4,7 @@ Click on a button, and see a plotly-resampler graph of two noisy sinusoids.
 No dynamic graph construction / pattern matching callbacks are needed.
 
 This example uses a global FigureResampler object, which is considered a bad practice.
-source: https://dash.plotly.com/sharing-data-between-callbacks: 
+source: https://dash.plotly.com/sharing-data-between-callbacks:
 
     Dash is designed to work in multi-user environments where multiple people view the
     application at the same time and have independent sessions.
@@ -16,7 +16,6 @@ source: https://dash.plotly.com/sharing-data-between-callbacks:
 import numpy as np
 import plotly.graph_objects as go
 from dash import Dash, Input, Output, callback_context, dcc, html, no_update
-from trace_updater import TraceUpdater
 
 from plotly_resampler import FigureResampler
 
@@ -38,9 +37,8 @@ app.layout = html.Div(
         html.H1("plotly-resampler global variable", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-        # The graph and it's needed components to update efficiently
+        # The graph object  - which we will empower with plotly-resampler
         dcc.Graph(id="graph-id"),
-        TraceUpdater(id="trace-updater", gdID="graph-id"),
     ]
 )
 
@@ -67,10 +65,8 @@ def plot_graph(n_clicks):
         return no_update
 
 
-# Register the graph update callbacks to the layout
-fig.register_update_graph_callback(
-    app=app, graph_id="graph-id", trace_updater_id="trace-updater"
-)
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+fig.register_update_graph_callback(app=app, graph_id="graph-id")
 
 # --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":

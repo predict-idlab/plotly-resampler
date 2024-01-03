@@ -36,9 +36,8 @@ classifiers = [
 python = "^3.7.1"
 jupyter-dash = { version = ">=0.4.2", optional = true }
 plotly = "^5.5.0"
-dash = "^2.11.0"
+dash = ">=2.9.0"  # Patch is supported from 2.9.0
 pandas = ">=1"
-trace-updater = ">=0.0.8"
 numpy = [
     { version = ">=1.14", python = "<3.11" },
     { version = ">=1.24", python = ">=3.11" }

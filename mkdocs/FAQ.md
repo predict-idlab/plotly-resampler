@@ -35,15 +35,6 @@
          in our opinion this did not make a lot of sense.
          It is therefore that we have overriden this behavior in plotly-resampler.
 
-??? abstract "What does [TraceUpdater](https://github.com/predict-idlab/trace-updater) do?"
-
-    The `TraceUpdater` class is a custom dash component that aids `dcc.Graph` components to
-    efficiently send and update (in our case aggregated) data to the front-end.
-
-    For more information on how to use the trace-updater component together with the `FigureResampler`,
-    see our dash app [examples](https://github.com/predict-idlab/plotly-resampler/tree/main/examples)
-    and look at the [trace-updater](https://github.com/predict-idlab/trace-updater/blob/master/trace_updater/TraceUpdater.py) its documentation.
-
 ??? abstract "My `FigureResampler.show_dash` keeps hanging (indefinitely) with the error message: `OSError: Port already in use`"
 
     !!! info "Disclaimer"

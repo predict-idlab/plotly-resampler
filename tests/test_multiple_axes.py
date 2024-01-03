@@ -81,7 +81,7 @@ def test_multiple_axes_figure(fig_type):
     )
 
     # Test: check whether a single update triggers all traces to be updated
-    out = fig.construct_update_data({"xaxis.range[0]": 0, "xaxis.range[1]": 50_000})
+    out = fig._construct_update_data({"xaxis.range[0]": 0, "xaxis.range[1]": 50_000})
     assert len(out) == 5
     # fig.show_dash
 
@@ -150,7 +150,7 @@ def test_multiple_axes_subplot_rows(fig_type):
     )
 
     # Test: check whether a single update triggers all traces to be updated
-    out = fig.construct_update_data(
+    out = fig._construct_update_data(
         {
             "xaxis.range[0]": 0,
             "xaxis.range[1]": 50_000,
@@ -221,7 +221,7 @@ def test_multiple_axes_subplot_cols(fig_type):
         template="plotly_white",
     )
 
-    out = fig.construct_update_data(
+    out = fig._construct_update_data(
         {
             "xaxis.range[0]": 0,
             "xaxis.range[1]": 50_000,
@@ -229,7 +229,7 @@ def test_multiple_axes_subplot_cols(fig_type):
     )
     assert len(out) == 2
 
-    out = fig.construct_update_data(
+    out = fig._construct_update_data(
         {
             "xaxis2.range[0]": 0,
             "xaxis2.range[1]": 50_000,
