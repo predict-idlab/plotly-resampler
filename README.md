@@ -47,10 +47,9 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 **❗ Important to know**:
 
-* ``show`` *always* returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.
+* ``show`` *always* generates a static HTML view of the figure, prohibiting dynamic aggregation.
 * To have dynamic aggregation:
-
-  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with **dash callbacks**.
+  * Use `show_dash` with `FigureResampler` to initiate a **Dash** app to realize the dynamic aggregation with **callbacks**.<br>(or output the object in a cell via ``IPython.display``), which will also spawn a dash-web app
   * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running **IPython kernel**).
 
 **Other changes of plotly-resampler figures w.r.t. vanilla plotly**:
@@ -149,7 +148,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 > **Note**:
 > Any plotly Figure can be wrapped with `FigureResampler` and `FigureWidgetResampler`! 🎉
-> But, (obviously) only the scatter traces will be resampled.
+> But **only** the `go.Scatter`/`go.Scattergl` **traces are resampled**.
 
 ## 💭 Important considerations & tips
 
