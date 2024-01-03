@@ -113,7 +113,7 @@ app.clientside_callback(
     State(STORE_ID, "data"),  # The server side cached FigureResampler per session
     prevent_initial_call=True,
 )
-def update_fig(relayoutdata, fig):
+def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is None:
         return no_update
     return fig.construct_update_data_patch(relayoutdata)

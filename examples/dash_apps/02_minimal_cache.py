@@ -70,7 +70,7 @@ def plot_graph(n_clicks):
     prevent_initial_call=True,
     memoize=True,
 )
-def update_fig(relayoutdata, fig):
+def update_fig(relayoutdata: dict, fig: FigureResampler):
     if fig is None:
         return no_update
     return fig.construct_update_data_patch(relayoutdata)
