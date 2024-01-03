@@ -1336,6 +1336,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         current_graph = self._get_current_graph()
         updated_trace_indices, cl_k = [], []
         if relayout_data:
+            # flatten the possibly nested dict using '.' as separator
             relayout_data = nested_to_record(relayout_data, sep=".")
             self._print("-" * 100 + "\n", "changed layout", relayout_data)
 
