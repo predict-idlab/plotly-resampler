@@ -13,13 +13,13 @@
 [![Testing](https://github.com/predict-idlab/plotly-resampler/actions/workflows/test.yml/badge.svg)](https://github.com/predict-idlab/plotly-resampler/actions/workflows/test.yml)
 [![Documentation](https://img.shields.io/badge/read%20our%20docs!-informational)](https://predict-idlab.github.io/plotly-resampler/latest)
 
-
-
 <!-- [![Downloads](https://pepy.tech/badge/plotly-resampler)](https://pepy.tech/project/plotly-resampler) -->
 
 > `plotly_resampler`: visualize large sequential data by **adding resampling functionality to Plotly figures**
 
-[Plotly](https://github.com/plotly/plotly.py) is an awesome interactive visualization library, however it can get pretty slow when a lot of data points are visualized (100 000+ datapoints). This library solves this by downsampling (aggregating) the data respective to the view and then plotting the aggregated points. When you interact with the plot (panning, zooming, ...), callbacks are used to aggregate data and update the figure.
+`plotly-resampler` improves the scalability of [Plotly](https://github.com/plotly/plotly.py) for visualizing large time series datasets. Specifically, our library _dynamically_ **aggregates time-series data respective to the current graph view**, ensuring efficient and responsive updates during user interactions like panning or zooming via callbacks.
+
+This core aggregation functionality is achieved by utilizing by _time-series data point selection algorithms_, for which `plotly-resampler` leverages the highly optimized implementations available in [tsdownsample](https://github.com/predict-idlab/tsdownsample). Our default data aggregation method is `MinMaxLTTB` (and selects 1000 data points for plotting). For a deeper understanding of this method, you can consult to the algorithm's dedicated [MinMaxLTTB repository](https://github.com/predict-idlab/MinMaxLTTB) and the associated [research paper](https://arxiv.org/abs/2305.00332).
 
 ![basic example gif](https://raw.githubusercontent.com/predict-idlab/plotly-resampler/main/mkdocs/static/basic_example.gif)
 
@@ -34,24 +34,23 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 <!-- - [Documentation]() work in progress 🚧  -->
 <!-- - [Example notebooks](https://github.com/predict-idlab/plotly-resampler/tree/main/examples/) -->
 
-### Installation
+### 🛠️ Installation
 
 | [**pip**](https://pypi.org/project/plotly_resampler/) | `pip install plotly-resampler` |
 | ---| ----|
 <!-- | [**conda**](https://anaconda.org/conda-forge/plotly_resampler/) | `conda install -c conda-forge plotly_resampler` | -->
 
 <br>
-<details><summary><b>What is the difference between plotly-resampler figures and plain plotly figures?</b></summary>
+<details><summary><b>👀 What is the difference between plotly-resampler figures and plain plotly figures?</b></summary>
 
 `plotly-resampler` can be thought of as wrapper around plain plotly figures which adds visualization scalability to line-charts by dynamically aggregating the data w.r.t. the front-end view. `plotly-resampler` thus adds dynamic aggregation functionality to plain plotly figures.
 
-**Important to know**:
+**❗ Important to know**:
 
-* ``show`` *always* returns a static html view of the figure, i.e., no dynamic aggregation can be performed on that view.
+* ``show`` *always* generates a static HTML view of the figure, prohibiting dynamic aggregation.
 * To have dynamic aggregation:
-
-  * with ``FigureResampler``, you need to call ``show_dash`` (or output the object in a cell via ``IPython.display``) -> which spawns a dash-web app, and the dynamic aggregation is realized with dash callback.
-  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running IPython kernel).
+  * Use `show_dash` with `FigureResampler` to initiate a **Dash** app to realize the dynamic aggregation with **callbacks**.<br>(or output the object in a cell via ``IPython.display``), which will also spawn a dash-web app
+  * with ``FigureWidgetResampler``, you need to use ``IPython.display`` on the object, which uses widget-events to realize dynamic aggregation (via the running **IPython kernel**).
 
 **Other changes of plotly-resampler figures w.r.t. vanilla plotly**:
 
@@ -59,7 +58,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
    * **Note**: vanilla Plotly figures their Autoscale result in Reset Axes behavior, in our opinion this did not make a lot of sense. It is therefore that we have overriden this behavior in plotly-resampler.
 </details><br>
 
-### Features :tada:
+### 📋 Features
 
   * **Convenient** to use:
     * just add either
@@ -72,7 +71,7 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
   * Interface for **various aggregation algorithms**:
     * ability to develop or select your preferred sequence aggregation method
 
-## Usage
+## 🚀 Usage
 
 **Add dynamic aggregation** to your plotly Figure _(unfold your fitting use case)_
 * 🤖 <b>Automatically</b> _(minimal code overhead)_:
@@ -149,9 +148,9 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 > **Note**:
 > Any plotly Figure can be wrapped with `FigureResampler` and `FigureWidgetResampler`! 🎉
-> But, (obviously) only the scatter traces will be resampled.
+> But **only** the `go.Scatter`/`go.Scattergl` **traces are resampled**.
 
-## Important considerations & tips
+## 💭 Important considerations & tips
 
 * When running the code on a server, you should forward the port of the `FigureResampler.show_dash()` method to your local machine.<br>
   **Note** that you can add dynamic aggregation to plotly figures with the `FigureWidgetResampler` wrapper without needing to forward a port!
@@ -160,9 +159,10 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
   The <b style="color:orange">[R]</b> in the legend indicates when the corresponding trace is being resampled (and thus possibly distorted) or not. Additionally, the `~<range>` suffix represent the mean aggregation bin size in terms of the sequence index.
 * The plotly **autoscale** event (triggered by the autoscale button or a double-click within the graph), **does not reset the axes but autoscales the current graph-view** of plotly-resampler figures. This design choice was made as it seemed more intuitive for the developers to support this behavior with double-click than the default axes-reset behavior. The graph axes can ofcourse be resetted by using the `reset_axis` button.  If you want to give feedback and discuss this further with the developers, see issue [#49](https://github.com/predict-idlab/plotly-resampler/issues/49).
 
-## Citation and papers
+## 📜 Citation and papers
 
 The paper about the plotly-resampler toolkit itself (preprint): https://arxiv.org/abs/2206.08703
+
 ```bibtex
 @inproceedings{van2022plotly,
   title={Plotly-resampler: Effective visual analytics for large time series},

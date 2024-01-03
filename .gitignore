@@ -2,8 +2,6 @@ venv*
 .cache_datasets/
 *.ruff*
 *.DS_Store
-file_system_store/
-file_system_backend/
 
 # Sphinx documentation
 *_build/
@@ -157,3 +155,11 @@ cython_debug/
 # sphinx-docs
 sphinx/_build
 sphinx/_autosummary
+
+# dash apps
+file_system_backend/
+file_system_store/
+
+
+# testing
+bugs/

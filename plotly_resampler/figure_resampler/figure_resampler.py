@@ -402,6 +402,13 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         coarse_fig._grid_ref = reduced_fig._grid_ref
         coarse_fig._data_validator.set_uid = False
         coarse_fig.add_traces(coarse_fig_dict["data"])
+        # remove any update menus for the coarse figure
+        coarse_fig.layout.pop("updatemenus", None)
+        # remove the `rangeselector` options for all 'axis' keys in the layout of the
+        # coarse figure
+        for k, v in coarse_fig.layout._props.items():
+            if "axis" in k:
+                v.pop("rangeselector", None)
 
         # height of the overview scales with the height of the dynamic view
         coarse_fig.update_layout(
