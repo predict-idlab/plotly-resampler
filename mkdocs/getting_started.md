@@ -23,7 +23,7 @@ Plotly-Resampler facilitates dynamic resampling in two ways:
     - steps:
         1. Import and invoke [`register_plotly_resampler`][registering.register_plotly_resampler]
         2. That's it! 🎉<br>Just proceed with your standard gaph construction workflow.
-    - Upon unvoking [`register_plotly_resampler`][registering.register_plotly_resampler], all new defined plotly graph objects are transformed into either 
+    - Upon invoking [`register_plotly_resampler`][registering.register_plotly_resampler], all new defined plotly graph objects are transformed into either 
       [`FigureResampler`][figure_resampler.FigureResampler] or
       [`FigureWidgetResampler`][figure_resampler.FigureWidgetResampler] object.  The `mode` parameter in this method determines which resampling Figure type is used.
 
