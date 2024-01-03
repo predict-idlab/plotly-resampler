@@ -1303,23 +1303,57 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             extra_layout_updates[f"{axis}.autorange"] = None
         return extra_layout_updates
 
-    def construct_update_data(
-        self,
-        relayout_data: dict,
-    ) -> Union[List[dict], dash.no_update]:
-        """Construct the to-be-updated front-end data, based on the layout change.
+    def construct_update_data_patch(
+        self, relayout_data: dict
+    ) -> Union[dash.Patch, dash.no_update]:
+        """Construct the Patch of the to-be-updated front-end data, based on the layout
+        change.
 
         Attention
         ---------
         This method is tightly coupled with Dash app callbacks. It takes the front-end
-        figure its ``relayoutData`` as input and returns the data which needs to be
-        sent tot the ``TraceUpdater`` its ``updateData`` property for that corresponding
-        graph.
+        figure its ``relayoutData`` as input and returns the ``dash.Patch`` which needs
+        to be sent to the ``figure`` property for the corresponding ``dcc.Graph``.
 
         Parameters
         ----------
         relayout_data: dict
-            A dict containing the ``relayout``-data (a.k.a. changed layout data) of
+            A dict containing the ``relayoutData`` (i.e., the changed layout data) of
+            the corresponding front-end graph.
+
+        Returns
+        -------
+        dash.Patch:
+            The Patch object containing the figure updates which needs to be sent to
+            the front-end.
+
+        """
+        update_data = self._construct_update_data(relayout_data)
+        if not isinstance(update_data, list) or len(update_data) <= 1:
+            return dash.no_update
+
+        patched_figure = dash.Patch()  # create patch
+        for trace in update_data[1:]:  # skip first item as it contains the relayout
+            trace_index = trace.pop("index")  # the index of the corresponding trace
+            # All the other items are the trace properties which needs to be updated
+            for k, v in trace.items():
+                # NOTE: we need to use the `patched_figure` as a dict, and not
+                # `patched_figure.data` as the latter will replace **all** the
+                # data for the corresponding trace, and we just want to update the
+                # specific trace its properties.
+                patched_figure["data"][trace_index][k] = v
+        return patched_figure
+
+    def _construct_update_data(
+        self,
+        relayout_data: dict,
+    ) -> Union[List[dict], None]:
+        """Construct the to-be-updated front-end data, based on the layout change.
+
+        Parameters
+        ----------
+        relayout_data: dict
+            A dict containing the ``relayoutData`` (i.e., the changed layout data) of
             the corresponding front-end graph.
 
         Returns
@@ -1406,6 +1440,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # Store the index into the corresponding to-be-sent trace-data so
             # the client front-end can know which trace needs to be updated
             trace_reduced.update({"index": idx})
+
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
 

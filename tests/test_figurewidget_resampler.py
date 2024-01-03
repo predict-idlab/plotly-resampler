@@ -541,7 +541,7 @@ def test_datetime_hf_x_no_index():
     # add via hf_x kwargs
     fr = FigureWidgetResampler()
     fr.add_trace({}, hf_x=df.timestamp, hf_y=df.value)
-    output = fr.construct_update_data(
+    output = fr._construct_update_data(
         {
             "xaxis.range[0]": "2020-01-01 00:00:00",
             "xaxis.range[1]": "2020-01-01 00:00:20",
@@ -553,7 +553,7 @@ def test_datetime_hf_x_no_index():
     # add via scatter kwargs
     fr = FigureWidgetResampler()
     fr.add_trace(go.Scatter(x=df.timestamp, y=df.value))
-    output = fr.construct_update_data(
+    output = fr._construct_update_data(
         {
             "xaxis.range[0]": "2020-01-01 00:00:00",
             "xaxis.range[1]": "2020-01-01 00:00:20",

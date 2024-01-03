@@ -19,7 +19,6 @@ import plotly.graph_objects as go
 from dash import Input, Output, State, callback_context, dcc, html, no_update
 from dash_extensions.enrich import DashProxy, Serverside, ServersideOutputTransform
 from plotly.subplots import make_subplots
-from trace_updater import TraceUpdater
 
 # The overview figure requires clientside callbacks, whose JavaScript code is located
 # in the assets folder. We need to tell dash where to find this folder.
@@ -35,13 +34,16 @@ noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 GRAPH_ID = "graph-id"
 OVERVIEW_GRAPH_ID = "overview-graph"
 STORE_ID = "store"
-TRACEUPDATER_ID = "traceupdater"
 
 
 # --------------------------------------Globals ---------------------------------------
-# Remark how the assests folder is passed to the Dash(proxy) application
+# NOTE: Remark how the assests folder is passed to the Dash(proxy) application and how
+#       the lodash script is included as an external script.
 app = DashProxy(
-    __name__, transforms=[ServersideOutputTransform()], assets_folder=ASSETS_FOLDER
+    __name__,
+    transforms=[ServersideOutputTransform()],
+    assets_folder=ASSETS_FOLDER,
+    external_scripts=["https://cdn.jsdelivr.net/npm/lodash/lodash.min.js"],
 )
 
 app.layout = html.Div(
@@ -49,13 +51,10 @@ app.layout = html.Div(
         html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-        # The graph and its needed components to serialize and update efficiently
-        # Note: we also add a dcc.Store component, which will be used to link the
-        #       server side cached FigureResampler object
+        # The graph, overview graph, and servside store for the FigureResampler graph
         dcc.Graph(id=GRAPH_ID),
         dcc.Graph(id=OVERVIEW_GRAPH_ID),
         dcc.Loading(dcc.Store(id=STORE_ID)),
-        TraceUpdater(id=TRACEUPDATER_ID, gdID=GRAPH_ID),
     ]
 )
 
@@ -139,17 +138,20 @@ app.clientside_callback(
 )
 
 
-# --- FigureResampler update logic ---
+# --- FigureResampler update callback ---
+
+# The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
+# As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
-    Output(TRACEUPDATER_ID, "updateData"),
+    Output(GRAPH_ID, "figure", allow_duplicate=True),
     Input(GRAPH_ID, "relayoutData"),
     State(STORE_ID, "data"),  # The server side cached FigureResampler per session
     prevent_initial_call=True,
 )
-def update_fig(relayoutdata, fig):
+def update_fig(relayoutdata, fig: FigureResampler):
     if fig is None:
         return no_update
-    return fig.construct_update_data(relayoutdata)
+    return fig.construct_update_data_patch(relayoutdata)
 
 
 # --------------------------------- Running the app ---------------------------------

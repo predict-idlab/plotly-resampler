@@ -67,25 +67,34 @@ class RequestParser:
         """
         fetch_data_body = json.loads(data_request.body)
         assert "inputs" in fetch_data_body and len(fetch_data_body["inputs"]) == 1
-        assert fetch_data_body["inputs"][0]["id"] == "resample-figure"
+        # verify that the request is triggered by the relayoutData
+        figure_id = "resample-figure"
+        assert fetch_data_body["inputs"][0]["id"] == figure_id
         assert fetch_data_body["inputs"][0]["property"] == "relayoutData"
         assert all(k in fetch_data_body["inputs"][0]["value"] for k in relayout_keys)
+        # verify that the response is a list of dicts
         fetch_data_response_body = json.loads(data_request.response.body)["response"]
-        updateData = fetch_data_response_body["trace-updater"]["updateData"]
-        # in this case; the length of updateData is 2 as
-        # (1) only the sin-wave is updated ÁND (2) relayout data is always sent first
-        assert len(updateData) == 1 + n_updated_traces
-        # verify that the layout update does not contain trace props
-        assert "x" not in updateData[0]
-        assert "y" not in updateData[0]
+        # convert the updateData to a list of dicts
+        updateData = fetch_data_response_body[figure_id]["figure"]["operations"]
+        updated_traces = list(set(d["location"][1] for d in updateData))
 
-        # verify that the trace-update does not contain layout update props
-        for i in range(1, n_updated_traces + 1):
-            assert "x" in updateData[i]
-            assert "y" in updateData[i]
-            # As identifier, we always send the trace-index
-            # (i.e. the the position of the trace in the `trace-list`)
-            assert "index" in updateData[i]
+        updated_x_keys = set(
+            map(
+                lambda d: d["location"][1],
+                (filter(lambda x: x["location"][-1] == "x", updateData)),
+            )
+        )
+        updated_y_keys = set(
+            map(
+                lambda d: d["location"][1],
+                (filter(lambda x: x["location"][-1] == "y", updateData)),
+            )
+        )
+
+        assert n_updated_traces == len(updated_traces)
+
+        # verify that there are x and y updates for each trace
+        assert len(updated_x_keys) == len(updated_y_keys) == n_updated_traces
 
     def assert_front_end_relayout_request(relayout_request: Request):
         relayout_body = json.loads(relayout_request.body)
@@ -123,7 +132,7 @@ class RequestParser:
         requests = RequestParser.filter_callback_requests(fr.get_requests())
 
         browser_name = fr.driver.capabilities["browserName"]
-        if browser_name == "firefox":
+        if "firefox" in browser_name:
             # There are 2 requests which are send
             # 1. first: changed-layout to server -> new data to back-end request
             # 2. the front-end relayout request
@@ -134,7 +143,7 @@ class RequestParser:
             else:
                 fetch_data_request = requests[0]
 
-        elif browser_name == "chrome":
+        elif "chrome" in browser_name:
             # for some, yet unknown reason, chrome does not seem to capture the
             # second front-end request.
             assert len(requests) == 1
