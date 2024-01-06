@@ -90,7 +90,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             const layout_axis_anchors = getLayoutAxisAnchors(main_graphDiv.layout);
 
             // Use the maingraphDiv its layout to obtain a list of a list of all shared (x)axis names
-            // in practice, these are the xaxis names that are linked to each other (i.e. the inner list is the 
+            // in practice, these are the xaxis names that are linked to each other (i.e. the inner list is the
             // xaxis names of the subplot columns)
             // e.g.: [ [xaxis1, xaxis2],  [xaxis3, xaxis4] ]
             let shared_axes_list = _.chain(main_graphDiv.layout)
@@ -127,7 +127,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             };
 
             // iterate over the selected data range
-            console.log('selected data range', selectedData.range);
+            console.log("selected data range", selectedData.range);
             for (const anchor_key in selectedData.range) {
                 const selected_range = selectedData.range[anchor_key];
                 // Obtain the anchor key of the orthogonal axis (x or y), based on the coarse graphdiv anchor pairs
@@ -157,6 +157,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             Object.keys(relayout).length > 0 ? Plotly.relayout(main_graphDiv, relayout) : null;
             return mainFigID;
         },
+
         main_to_coarse: function (mainRelayout, coarseFigID, mainFigID) {
             const coarse_graphDiv = getGraphDiv(coarseFigID);
             const main_graphDiv = getGraphDiv(mainFigID);
@@ -179,6 +180,8 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                     y1: y_range[1],
                 };
             };
+
+            // console.log("main to coarse", mainRelayout);
 
             // Base case; no selections yet on the coarse graph
             if (!currentSelections) {
@@ -220,11 +223,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 ) {
                     performed_update = true;
                     if (
-                        // mainRelayout[x_axis_key + ".showspikes"] === false &&
-                        // mainRelayout[y_axis_key + ".showspikes"] === false
-                        // NOTE: for some reason, showspikes info is only availabel for the xaxis & yaxis keys
-                        mainRelayout["xaxis.showspikes"] === false &&
-                        mainRelayout["yaxis.showspikes"] === false
+                        // NOTE: for some reason, showspikes info is only available for the xaxis & yaxis keys
+                        _.has(mainRelayout, "xaxis.showspikes") &&
+                        _.has(mainRelayout, "yaxis.showspikes")
                     ) {
                         // reset axis -> we use the coarse graphDiv layout
                         x_range = coarse_graphDiv.layout[x_axis_key].range;
