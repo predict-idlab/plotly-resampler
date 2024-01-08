@@ -181,8 +181,6 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 };
             };
 
-            // console.log("main to coarse", mainRelayout);
-
             // Base case; no selections yet on the coarse graph
             if (!currentSelections) {
                 // if current selections is None
