@@ -127,7 +127,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             };
 
             // iterate over the selected data range
-            console.log("selected data range", selectedData.range);
+            // console.log("selected data range", selectedData.range);
             for (const anchor_key in selectedData.range) {
                 const selected_range = selectedData.range[anchor_key];
                 // Obtain the anchor key of the orthogonal axis (x or y), based on the coarse graphdiv anchor pairs
@@ -181,13 +181,11 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 };
             };
 
-            // console.log("main to coarse", mainRelayout);
-
             // Base case; no selections yet on the coarse graph
             if (!currentSelections) {
                 // if current selections is None
                 coarse_xy_axiskeys.forEach((xy_pair) => {
-                    console.log("xy pair", xy_pair);
+                    // console.log("xy pair", xy_pair);
                     const x_axis_key = _.has(layout_axis_anchors, xy_pair.y) ? layout_axis_anchors[xy_pair.y] : "xaxis";
                     const y_axis_key = _.has(layout_axis_anchors, xy_pair.x) ? layout_axis_anchors[xy_pair.x] : "yaxis";
                     // console.log('xaxis key', x_axis_key, main_graphDiv.layout[x_axis_key]);
