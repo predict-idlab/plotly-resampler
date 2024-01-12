@@ -11,6 +11,8 @@ allows to zoom in with a fixed time range.
 
 Lastly, there is a button present to reset the axes of the main graph. This button
 replaces the default reset axis button as the default button removes the spikes.
+(specifically, the `xaxis.showspikes` and `yaxis.showspikes` are set to False; This is 
+most likely a bug in plotly-resampler, but I have not yet found out why).
 
 This example uses the dash-extensions its ServersideOutput functionality to cache
 the FigureResampler per user/session on the server side. This way, no global figure
@@ -42,11 +44,8 @@ OVERVIEW_GRAPH_ID = "overview-graph"
 STORE_ID = "store"
 PLOT_BTN_ID = "plot-button"
 
-# fmt: off
-# fmt: on
-
 # --------------------------------------Globals ---------------------------------------
-# NOTE: Remark how the assests folder is passed to the Dash(proxy) application and how
+# NOTE: Remark how the assets folder is passed to the Dash(proxy) application and how
 #       the lodash script is included as an external script.
 app = DashProxy(
     __name__,
@@ -60,7 +59,7 @@ app.layout = html.Div(
         html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id=PLOT_BTN_ID, n_clicks=0),
         html.Hr(),
-        # The graph, overview graph, and servside store for the FigureResampler graph
+        # The graph, overview graph, and serverside store for the FigureResampler graph
         dcc.Graph(
             id=GRAPH_ID,
             config={"modeBarButtonsToRemove": ["resetscale"]},
