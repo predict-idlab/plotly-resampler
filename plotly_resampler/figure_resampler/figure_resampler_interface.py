@@ -43,7 +43,7 @@ _hf_data_container = namedtuple(
 class AbstractFigureAggregator(BaseFigure, ABC):
     """Abstract interface for data aggregation functionality for plotly figures."""
 
-    _high_frequency_traces = ["scatter", "scattergl"]
+    _high_frequency_traces = ["scatter", "scattergl", "candlestick"]
 
     def __init__(
         self,
@@ -342,8 +342,15 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Also check if the y-data is empty, if so, return an empty trace
         if len(hf_trace_data["y"]) == 0:
             trace["x"] = []
-            trace["y"] = []
             trace["name"] = hf_trace_data["name"]
+            if trace["type"] == "candlestick":
+                trace["open"] = []
+                trace["high"] = []
+                trace["low"] = []
+                trace["close"] = []
+                trace["x"] = []
+            else:
+                trace["y"] = []
             return trace
 
         # Leverage the axis type to get the start and end indices
@@ -362,8 +369,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # contain any data in the current view
         if end_idx == start_idx:
             trace["x"] = [hf_trace_data["x"][0]]
-            trace["y"] = [None]
             trace["name"] = hf_trace_data["name"]
+            if trace["type"] == "candlestick":
+                trace["open"] = None
+                trace["high"] = None
+                trace["low"] = None
+                trace["close"] = None
+            else:
+                trace["y"] = [None]
             return trace
 
         agg_x, agg_y, indices = PlotlyAggregatorParser.aggregate(
@@ -371,13 +384,57 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
         # -------------------- Set the hf_trace_data_props -------------------
+        trace["name"] = self._parse_trace_name(
+            hf_trace_data, end_idx - start_idx, agg_x
+        )
+        if trace["type"] == "candlestick":
+            # TODO -> maybe abstract this in a per-trace type function
+            # we slice the candlestick data based on the indices
+            y_se = hf_trace_data["y"][start_idx:end_idx]
+            x_se = hf_trace_data["x"][start_idx:end_idx]
+
+            idx_open = indices[::4]
+            idx_close = indices[3::4]
+
+            # NOTE: as for now the extremum argmin and max indices are sorted within M4
+            # so we need extra logic to separate them into minima and maxima indices
+            extrema_1 = indices[1::4]
+            extrema_2 = indices[2::4]
+
+            # this matters when the number of candlesticks is not a multiple of 4
+            # which can happen when the user zooms in really far
+            # (and the number of datapoints is small)
+            min_len = min(len(extrema_1), len(extrema_2), len(idx_open), len(idx_close))
+            extrema_1 = extrema_1[:min_len]
+            extrema_2 = extrema_2[:min_len]
+            idx_open = idx_open[:min_len]
+            idx_close = idx_close[:min_len]
+
+            # Add the extrema indices in an array of [2, n_candlesticks]
+            # then compute the arg-max along the first axis (output = [n_candlesticks])
+            extrema_idxs = np.array([extrema_1, extrema_2])
+            a_max_indices = np.argmax(
+                np.array([y_se[extrema_1], y_se[extrema_2]]), axis=0
+            )
+            # via 'take_along_axis', the max / min indices are separated into two arrays
+            idxs_high = np.take_along_axis(
+                extrema_idxs, a_max_indices[None, :], axis=0
+            ).ravel()
+            idxs_low = np.take_along_axis(
+                extrema_idxs, (1 - a_max_indices)[None, :], axis=0
+            ).ravel()
+
+            trace["open"] = y_se[idx_open]
+            trace["high"] = y_se[idxs_high]
+            trace["low"] = y_se[idxs_low]
+            trace["close"] = y_se[idx_close]
+            trace["x"] = x_se[idx_open]
+            return trace
+
         # Parse the data types to an orjson compatible format
         # NOTE: this can be removed once orjson supports f16
         trace["x"] = self._parse_dtype_orjson(agg_x)
         trace["y"] = self._parse_dtype_orjson(agg_y)
-        trace["name"] = self._parse_trace_name(
-            hf_trace_data, end_idx - start_idx, agg_x
-        )
 
         def _nest_dict_rec(k: str, v: any, out: dict) -> None:
             """Recursively nest a dict based on the key whose '_' indicates level."""
@@ -1430,7 +1487,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = list(_hf_data_container._fields) + ["name", "marker"]
+        relevant_keys = (
+            list(_hf_data_container._fields)
+            + ["name", "marker"]
+            + ["open", "high", "low", "close"]
+        )
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
