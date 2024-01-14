@@ -88,10 +88,12 @@ def register_plotly_resampler(mode="auto", **aggregator_kwargs):
         We advise to use mode= ``widget`` when working in an IPython based environment
         as this will just behave as a ``go.FigureWidget``, but with dynamic aggregation.
         When using mode= ``auto`` or ``figure``; most figures will be wrapped as
-        [`FigureResampler`][figure_resampler.FigureResampler],
-        on which
-        [`show_dash`][figure_resampler.FigureResampler.show_dash]
-        needs to be called.
+        [`FigureResampler`][figure_resampler.FigureResampler], on which
+        [`show_dash`][figure_resampler.FigureResampler.show_dash] needs to be called.
+
+    !!! note
+        This function is mostly useful for notebooks. For dash-apps, we advise to look
+        at the dash app examples on [GitHub](https://github.com/predict-idlab/plotly-resampler/tree/main/examples#2-dash-apps)
 
     Parameters
     ----------

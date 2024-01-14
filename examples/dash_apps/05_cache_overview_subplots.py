@@ -37,7 +37,7 @@ STORE_ID = "store"
 
 
 # --------------------------------------Globals ---------------------------------------
-# NOTE: Remark how the assests folder is passed to the Dash(proxy) application and how
+# NOTE: Remark how the assets folder is passed to the Dash(proxy) application and how
 #       the lodash script is included as an external script.
 app = DashProxy(
     __name__,
@@ -51,7 +51,7 @@ app.layout = html.Div(
         html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
         html.Button("plot chart", id="plot-button", n_clicks=0),
         html.Hr(),
-        # The graph, overview graph, and servside store for the FigureResampler graph
+        # The graph, overview graph, and serverside store for the FigureResampler graph
         dcc.Graph(id=GRAPH_ID),
         dcc.Graph(id=OVERVIEW_GRAPH_ID),
         dcc.Loading(dcc.Store(id=STORE_ID)),
