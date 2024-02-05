@@ -173,7 +173,7 @@ def round_td_str(td: pd.Timedelta) -> str:
         [`timedelta_to_str`][figure_resampler.utils.timedelta_to_str]
 
     """
-    for t_s in ("D", "H", "min", "s", "ms", "us", "ns"):
+    for t_s in ("D", "h", "min", "s", "ms", "us", "ns"):
         if td > 0.95 * pd.Timedelta(f"1{t_s}"):
             return timedelta_to_str(td.round(t_s))
 
