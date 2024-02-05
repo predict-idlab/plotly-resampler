@@ -27,6 +27,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: POSIX :: Linux",
     "Operating System :: MacOS :: MacOS X",
     "Operating System :: Microsoft :: Windows",
@@ -47,7 +48,7 @@ orjson = "^3.8.0"  # Faster json serialization
 Flask-Cors = { version = "^3.0.10", optional = true }
 # Lock kaleido dependency until https://github.com/plotly/Kaleido/issues/156 is resolved
 kaleido = {version = "0.2.1", optional = true}
-tsdownsample = "0.1.2"
+tsdownsample = "^0.1.2"
 
 [tool.poetry.extras]
 # Optional dependencies
