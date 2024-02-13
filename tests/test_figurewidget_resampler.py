@@ -245,7 +245,7 @@ def test_replace_figure(float_series):
 
 
 def test_nan_removed_input(float_series):
-    # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and 
+    # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and
     # the NaN handling is delegated to the aggregators
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
     base_fig = make_subplots(
@@ -431,7 +431,7 @@ def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
     y = y_orig.copy()
     y[::101] = np.nan
 
-    # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and 
+    # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and
     # the NaN handling is delegated to the aggregators
     y_nonan = y  # we do not remove the NaNs anymore
 
