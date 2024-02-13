@@ -232,6 +232,51 @@ def test_wrap_aggregate_range_index_data_point_selection(
     assert x_agg[0] == -20_000
 
 
+# ------------------------------- NAN handling -------------------------------
+@pytest.mark.parametrize("downsampler", [MinMaxLTTB, MinMaxAggregator])
+@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
+@pytest.mark.parametrize("series", [lf("float_series")])
+def test_nan_behavior(series, downsampler, gap_handler):
+    series = series.copy()
+    series.iloc[np.random.choice(len(series), 100)] = np.nan
+
+    # OMIT -> no NaNs in the output
+    for n in np.random.randint(100, len(series), 6):
+        x_agg, y_agg, indices = wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series.values,
+            downsampler=downsampler(nan_policy="omit"),
+            gap_handler=NoGapHandler(),
+            n_out=100,
+        )
+        assert not pd.Series(y_agg).isna().any()
+        assert len(x_agg) == len(y_agg) == len(indices)
+        assert len(y_agg) <= n + (n % 2)
+
+    # KEEP -> NaN will be returned in the output
+    for n in np.random.randint(100, len(series), 6):
+        x_agg, y_agg, indices = wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series.values,
+            downsampler=downsampler(nan_policy="keep"),
+            gap_handler=NoGapHandler(),
+            n_out=100,
+        )
+        assert pd.Series(y_agg).isna().any()
+        assert len(x_agg) == len(y_agg) == len(indices)
+        assert len(y_agg) <= n + (n % 2)
+
+    ## INVALID nan_policy -> should raise a ValueError
+    with pytest.raises(ValueError):
+        wrap_aggregate(
+            hf_x=series.index,
+            hf_y=series.values,
+            downsampler=downsampler(nan_policy="invalid"),
+            gap_handler=NoGapHandler(),
+            n_out=100,
+        )
+
+
 # # ------------------------------- DataAggregator -------------------------------
 @pytest.mark.parametrize("agg_func", [np.mean])  # np.median, sum])
 @pytest.mark.parametrize("series", [lf("float_series"), lf("bool_series")])

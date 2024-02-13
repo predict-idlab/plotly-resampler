@@ -17,6 +17,9 @@ from tsdownsample import (
     LTTBDownsampler,
     MinMaxDownsampler,
     MinMaxLTTBDownsampler,
+    NaNMinMaxDownsampler,
+    NaNMinMaxLTTBDownsampler,
+    # TODO -> integrate NANM4 (after the candlestick PR)
 )
 
 from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
@@ -171,18 +174,25 @@ class MinMaxAggregator(DataPointSelector):
 
     """
 
-    def __init__(self, **downsample_kwargs):
+    def __init__(self, nan_policy="omit", **downsample_kwargs):
         """
         Parameters
         ----------
         **downsample_kwargs
             Keyword arguments passed to the :class:`MinMaxDownsampler`.
             - The `parallel` argument is set to False by default.
+        nan_policy: str, optional
+            The policy to handle NaNs. Can be 'omit' or 'keep'. By default, 'omit'.
 
         """
         # this downsampler supports all dtypes
         super().__init__(**downsample_kwargs)
-        self.downsampler = MinMaxDownsampler()
+        if nan_policy not in ("omit", "keep"):
+            raise ValueError("nan_policy must be either 'omit' or 'keep'")
+        if nan_policy == "omit":
+            self.downsampler = MinMaxDownsampler()
+        else:
+            self.downsampler = NaNMinMaxDownsampler()
 
     def _arg_downsample(
         self,
@@ -208,13 +218,17 @@ class MinMaxLTTB(DataPointSelector):
     Paper: [https://arxiv.org/pdf/2305.00332.pdf](https://arxiv.org/pdf/2305.00332.pdf)
     """
 
-    def __init__(self, minmax_ratio: int = 4, **downsample_kwargs):
+    def __init__(
+        self, minmax_ratio: int = 4, nan_policy: str = "omit", **downsample_kwargs
+    ):
         """
         Parameters
         ----------
         minmax_ratio: int, optional
             The ratio between the number of data points in the MinMax-prefetching and
             the number of data points that will be outputted by LTTB. By default, 4.
+        nan_policy: str, optional
+            The policy to handle NaNs. Can be 'omit' or 'keep'. By default, 'omit'.
         **downsample_kwargs
             Keyword arguments passed to the `MinMaxLTTBDownsampler`.
             - The `parallel` argument is set to False by default.
@@ -222,7 +236,13 @@ class MinMaxLTTB(DataPointSelector):
               proven to be a good default.
 
         """
-        self.minmaxlttb = MinMaxLTTBDownsampler()
+        if nan_policy not in ("omit", "keep"):
+            raise ValueError("nan_policy must be either 'omit' or 'keep'")
+        if nan_policy == "omit":
+            self.minmaxlttb = MinMaxLTTBDownsampler()
+        else:
+            self.minmaxlttb = NaNMinMaxLTTBDownsampler()
+
         self.minmax_ratio = minmax_ratio
 
         super().__init__(

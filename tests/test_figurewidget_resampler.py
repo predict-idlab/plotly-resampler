@@ -297,39 +297,6 @@ def test_nan_removed_input(float_series):
     )
 
 
-def test_nan_removed_input_check_nans_false(float_series):
-    # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
-    base_fig = make_subplots(
-        rows=2,
-        cols=2,
-        specs=[[{}, {}], [{"colspan": 2}, None]],
-    )
-
-    fig = FigureWidgetResampler(
-        base_fig,
-        default_n_shown_samples=1000,
-        default_downsampler=EveryNthPoint(),
-        resampled_trace_prefix_suffix=(
-            '<b style="color:sandybrown">[R]</b>',
-            '<b style="color:sandybrown">[R]</b>',
-        ),
-    )
-
-    float_series = float_series.copy()
-    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
-    fig.add_trace(
-        go.Scatter(x=float_series.index, y=float_series, name="float_series"),
-        row=1,
-        col=1,
-        hf_text="text",
-        hf_hovertext="hovertext",
-        check_nans=False,
-    )
-    # Check the undesired behavior
-    assert len(fig.hf_data[0]["y"]) == len(float_series)
-    assert pd.isna(fig.hf_data[0]["y"]).any()
-
-
 def test_hf_text():
     y = np.arange(10_000)
 
