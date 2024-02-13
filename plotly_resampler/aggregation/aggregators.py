@@ -19,9 +19,9 @@ from tsdownsample import (
     MinMaxLTTBDownsampler,
     NaNMinMaxDownsampler,
     NaNMinMaxLTTBDownsampler,
-    # TODO -> integrate NANM4 (after the candlestick PR)
 )
 
+# TODO -> integrate NANM4 (after the candlestick PR)
 from ..aggregation.aggregation_interface import DataAggregator, DataPointSelector
 
 

@@ -414,7 +414,9 @@ def test_replace_properties(float_series):
     assert fr_fig._global_downsampler == default_downsampler
 
 
-def test_nan_removed_input(float_series):
+def test_nan_retained_input(float_series):
+    # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and 
+    # the NaN handling is delegated to the aggregators
     # see: https://plotly.com/python/subplots/#custom-sized-subplot-with-subplot-titles
     base_fig = make_subplots(
         rows=2,
@@ -431,6 +433,7 @@ def test_nan_removed_input(float_series):
         ),
     )
 
+    # ADD nans to to the float_series
     float_series = float_series.copy()
     float_series.iloc[np.random.choice(len(float_series), 100, replace=False)] = np.nan
     fig.add_trace(
@@ -440,9 +443,10 @@ def test_nan_removed_input(float_series):
         hf_text="text",
         hf_hovertext="hovertext",
     )
-    # Check the desired behavior
-    assert len(fig.hf_data[0]["y"]) == len(float_series) - 100
-    assert ~pd.isna(fig.hf_data[0]["y"]).any()
+    # Check the desired behavior - normally the NaNs are retained (no changes are made
+    # to the input data)
+    assert len(fig.hf_data[0]["y"]) == len(float_series)
+    assert pd.isna(fig.hf_data[0]["y"]).sum() == 100
 
     # here we test whether we are able to deal with not-nan output
     float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
@@ -597,7 +601,9 @@ def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
     y = y_orig.copy()
     y[::101] = np.nan
 
-    y_nonan = y[~np.isnan(y)]
+    # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and 
+    # the NaN handling is delegated to the aggregators
+    y_nonan = y  # we do not remove the NaNs anymore
 
     fig = FigureResampler()
     fig.add_trace(
@@ -612,7 +618,7 @@ def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
 
     assert np.all(fig.hf_data[0]["text"] == y_nonan.astype(str))
     assert np.all(fig.hf_data[0]["hovertext"] == y_nonan.astype(str)[::-1])
-    assert np.all(fig.hf_data[0]["marker_size"] == y_nonan)
+    assert np.all(fig.hf_data[0]["marker_size"] == y_orig)
 
     fig = FigureResampler()
     fig.add_trace(
@@ -625,7 +631,7 @@ def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
 
     assert np.all(fig.hf_data[0]["text"] == y_nonan.astype(str))
     assert np.all(fig.hf_data[0]["hovertext"] == y_nonan.astype(str)[::-1])
-    assert np.all(fig.hf_data[0]["marker_size"] == y_nonan)
+    assert np.all(fig.hf_data[0]["marker_size"] == y_orig)
 
 
 def test_multiple_timezones():

@@ -648,7 +648,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 if hf_y.ndim != 0:  # if hf_y is an array
                     hf_x = pd.RangeIndex(0, len(hf_y))  # np.arange(len(hf_y))
                 else:  # if no data as y or hf_y is passed
-                    hf_x = np.asarray(None)
+                    hf_x = np.asarray([])
+                    hf_y = np.asarray([])
 
             assert hf_y.ndim == np.ndim(hf_x), (
                 "plotly-resampler requires scatter data "
