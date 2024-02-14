@@ -1,7 +1,6 @@
 # .
 
-Removed the `check_nans` argument of the FigureResampler construct and its `add_traces` method. This argument was used to check for NaNs in the input data, but this is now handled by the `nan_policy` argument of specific aggregators.
-
+Removed the `check_nans` argument of the FigureResampler constructor and its `add_traces` method. This argument was used to check for NaNs in the input data, but this is now handled by the `nan_policy` argument of specific aggregators (see for instance the constructor of the `MinMax` and `MinMaxLTTB` aggregator).
 
 
 
