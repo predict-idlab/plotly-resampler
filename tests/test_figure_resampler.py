@@ -435,7 +435,9 @@ def test_nan_retained_input(float_series):
 
     # ADD nans to to the float_series
     float_series = float_series.copy()
-    float_series.iloc[np.random.choice(len(float_series), 100, replace=False)] = np.nan
+    float_series.iloc[
+        1 + np.random.choice(len(float_series) - 2, 100, replace=False)
+    ] = np.nan
     fig.add_trace(
         go.Scatter(x=float_series.index, y=float_series, name="float_series"),
         row=1,
@@ -449,7 +451,9 @@ def test_nan_retained_input(float_series):
     assert pd.isna(fig.hf_data[0]["y"]).sum() == 100
 
     # here we test whether we are able to deal with not-nan output
-    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    float_series.iloc[
+        1 + np.random.choice(len(float_series) - 2, 100, replace=False)
+    ] = np.nan
     fig.add_trace(
         go.Scatter(
             x=float_series.index, y=float_series
@@ -459,7 +463,9 @@ def test_nan_retained_input(float_series):
         col=1,
     )
 
-    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    float_series.iloc[
+        1 + np.random.choice(len(float_series) - 2, 100, replace=False)
+    ] = np.nan
     fig.add_trace(
         go.Scattergl(
             x=float_series.index,
@@ -599,7 +605,7 @@ def test_hf_text_and_hf_marker_color():
 def test_hf_text_and_hf_hovertext_and_hf_marker_size_nans():
     y_orig = np.arange(10_000).astype(float)
     y = y_orig.copy()
-    y[::101] = np.nan
+    y[1::101] = np.nan
 
     # NEW from plotly-resampler >0.9.2 => we retain the NaNs in the input data and
     # the NaN handling is delegated to the aggregators

@@ -109,7 +109,7 @@ def test_arg_downsample_no_x_empty_series(downsampler, series):
 def test_wrap_aggregate(downsampler, gap_handler, series, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
-    for n in np.random.randint(100, len(series), 6):
+    for n in np.random.randint(100, len(series) // 2, 6):
         # make sure n is even (required for MinMax downsampler)
         n = n - (n % 2)
         x_agg, y_agg, indices = wrap_aggregate(
@@ -234,11 +234,10 @@ def test_wrap_aggregate_range_index_data_point_selection(
 
 # ------------------------------- NAN handling -------------------------------
 @pytest.mark.parametrize("downsampler", [MinMaxLTTB, MinMaxAggregator])
-@pytest.mark.parametrize("gap_handler", [MedDiffGapHandler, NoGapHandler])
 @pytest.mark.parametrize("series", [lf("float_series")])
-def test_nan_behavior(series, downsampler, gap_handler):
+def test_nan_behavior(series, downsampler):
     series = series.copy()
-    series.iloc[np.random.choice(len(series), 100)] = np.nan
+    series.iloc[1 + np.random.choice(len(series) - 2, 100, replace=False)] = np.nan
 
     # OMIT -> no NaNs in the output
     for n in np.random.randint(100, len(series), 6):

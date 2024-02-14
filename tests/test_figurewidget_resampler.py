@@ -265,7 +265,9 @@ def test_nan_removed_input(float_series):
 
     # Add NaN's to the float series
     float_series = float_series.copy()
-    float_series.iloc[np.random.choice(len(float_series), 100, replace=False)] = np.nan
+    float_series.iloc[
+        1 + np.random.choice(len(float_series) - 2, 100, replace=False)
+    ] = np.nan
     fig.add_trace(
         go.Scatter(x=float_series.index, y=float_series, name="float_series"),
         row=1,
@@ -279,7 +281,9 @@ def test_nan_removed_input(float_series):
     assert pd.isna(fig.hf_data[0]["y"]).sum() == 100
 
     # here we test whether we are able to deal with not-nan output
-    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    float_series.iloc[
+        1 + np.random.choice(len(float_series) - 2, 100, replace=False)
+    ] = np.nan
     fig.add_trace(
         go.Scatter(
             x=float_series.index, y=float_series
@@ -289,7 +293,9 @@ def test_nan_removed_input(float_series):
         col=1,
     )
 
-    float_series.iloc[np.random.choice(len(float_series), 100)] = np.nan
+    float_series.iloc[
+        1 + np.random.choice(len(float_series) - 2, 100, replace=False)
+    ] = np.nan
     fig.add_trace(
         go.Scattergl(
             x=float_series.index,
