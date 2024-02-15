@@ -1,11 +1,46 @@
-# .
+# `TODO`
+## New Features
 
-Removed the `check_nans` argument of the FigureResampler constructor and its `add_traces` method. This argument was used to check for NaNs in the input data, but this is now handled by the `nan_policy` argument of specific aggregators (see for instance the constructor of the `MinMax` and `MinMaxLTTB` aggregator).
-
+## What's Changed
+- Removed the `check_nans` argument of the FigureResampler constructor and its `add_traces` method. This argument was used to check for NaNs in the input data, but this is now handled by the `nan_policy` argument of specific aggregators (see for instance the constructor of the `MinMax` and `MinMaxLTTB` aggregator).
 
 
 # v0.9.2
-`TODO`
+### ⚡ `overview` / `rangeslider` support 🎉 
+
+* ➡️  [code example](https://github.com/predict-idlab/plotly-resampler/blob/main/examples/dash_apps/05_cache_overview_subplots.py):
+* 🖍️ [high level docs](https://predict-idlab.github.io/plotly-resampler/v0.9.2/getting_started/#overview)
+* 🔍 [API docs](https://predict-idlab.github.io/plotly-resampler/v0.9.2/api/figure_resampler/figure_resampler/#figure_resampler.figure_resampler.FigureResampler.__init__)
+  * make sure to take a look at the doc strings of the `create_overview`, `overview_row_idxs`, and `overview_kwargs` arguments of the  `FigureResampler` its constructor.
+![Peek 2023-10-25 01-51](https://github.com/predict-idlab/plotly-resampler/assets/38005924/5b3a40e0-f058-4d7e-8303-47e51896347a)
+
+
+
+### 💨 remove [traceUpdater](https://github.com/predict-idlab/trace-updater) dash component as a dependency.
+> **context**: see #281 #271 
+> `traceUpdater` was developed during a period when Dash did not yet contain the [Patch ](https://dash.plotly.com/partial-properties)feature for partial property updates. As such, `traceUpdater` has become somewhat redundant is now effectively replaced with Patch.
+
+🚨 This is a breaking change with previous `Dash` apps!!!
+
+## What's Changed
+* Support nested admonitions  by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/245
+* 👷 build: create codeql.yml by @NielsPraet in https://github.com/predict-idlab/plotly-resampler/pull/248
+* :sparkles: first draft of improved xaxis filtering by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/250
+* :arrow_up: update dependencies by @jvdd in https://github.com/predict-idlab/plotly-resampler/pull/260
+* :muscle: update dash-extensions by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/261
+* fix for #263 by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/264
+* Rangeslider support by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/254
+* :pray: fix mkdocs by @jvdd in https://github.com/predict-idlab/plotly-resampler/pull/268
+* ✈️  fix for #270 by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/272
+* :mag: adding init kwargs to show dash - fix for #265 by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/269
+* Refactor/remove trace updater by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/281
+* Bug/pop rangeselector by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/279
+* :sparkles: fix for #275 by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/286
+* Bug/rangeselector by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/287
+
+
+**Full Changelog**: https://github.com/predict-idlab/plotly-resampler/compare/v0.9.1...v0.9.2
+
 
 # v0.9.1
 ## Major changes:
