@@ -1,8 +1,16 @@
-# `TODO`
+# Latest
+
+
+# v0.10.0
 ## New Features
+🚨  `Nan` handling has been delegated to the `aggregators`, this implies that `plotly-resampler` does not perform any nan-checks anymore (making it faster) 🐎.
+
+Consequently, we removed the `check_nans` argument of the FigureResampler constructor and its `add_traces` method. This argument was used to check for NaNs in the input data, but this is now handled by the `nan_policy` argument of specific aggregators (see for instance the constructor of the `MinMax` and `MinMaxLTTB` aggregator). 🔍 
 
 ## What's Changed
-- Removed the `check_nans` argument of the FigureResampler constructor and its `add_traces` method. This argument was used to check for NaNs in the input data, but this is now handled by the `nan_policy` argument of specific aggregators (see for instance the constructor of the `MinMax` and `MinMaxLTTB` aggregator).
+* Address FutureWarning: 'H' is deprecated and will be removed in a future version. Please use 'h' instead of 'H'. by @t-jakubek in https://github.com/predict-idlab/plotly-resampler/pull/291
+* :rocket: Python 3.12 support by @jvdd in https://github.com/predict-idlab/plotly-resampler/pull/292
+* :fire: delegate nan behavior to aggregators by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/294
 
 
 # v0.9.2
