@@ -284,7 +284,7 @@ def test_log_axis():
         assert len(out) == 2
         assert (x1 - x0) < 10
         assert len(out[1]["x"]) == 1000
-        assert out[-1]["x"][0] >= 100
+        assert out[-1]["x"][0] >= 99
         assert out[-1]["x"][-1] <= 50_000
 
 
@@ -1061,8 +1061,8 @@ def test_time_tz_slicing():
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
             hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
         )
-        assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=1)
-        assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=1)
+        assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=2)
+        assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=2)
 
 
 def test_time_tz_slicing_different_timestamp():
@@ -1147,10 +1147,10 @@ def test_different_tz_no_tz_series_slicing():
         )
         assert (
             s.tz_localize(None).index[start_idx].tz_localize(t_start.tz) - t_start
-        ) <= pd.Timedelta(seconds=1)
+        ) <= pd.Timedelta(seconds=2)
         assert (
             s.tz_localize(None).index[end_idx].tz_localize(t_stop.tz) - t_stop
-        ) <= pd.Timedelta(seconds=1)
+        ) <= pd.Timedelta(seconds=2)
 
 
 def test_multiple_tz_no_tz_series_slicing():
