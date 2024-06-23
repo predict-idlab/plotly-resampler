@@ -87,8 +87,8 @@ class PlotlyAggregatorParser:
         # Search the index-positions
         start_idx = bisect.bisect_left(hf_trace_data["x"], start)
         end_idx = bisect.bisect_right(hf_trace_data["x"], end)
-        # start_idx = max(0, start_idx - 1)
-        # end_idx = min(end_idx + 1, len(hf_trace_data["x"]))
+        start_idx = max(0, start_idx - 1)
+        end_idx = min(end_idx + 1, len(hf_trace_data["x"]))
         return start_idx, end_idx
 
     @staticmethod
