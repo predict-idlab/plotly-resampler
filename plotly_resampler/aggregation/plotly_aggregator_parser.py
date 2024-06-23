@@ -74,6 +74,8 @@ class PlotlyAggregatorParser:
             x_step = hf_trace_data["x"].step
             start_idx = int(max((start - x_start) // x_step, 0))
             end_idx = int((end - x_start) // x_step)
+            start_idx = max(0, start_idx - 1)
+            end_idx = min(end_idx + 1, len(hf_trace_data["x"]))
             return start_idx, end_idx
         # TODO: this can be performed as-well for a fixed frequency range-index w/ freq
 
@@ -97,8 +99,8 @@ class PlotlyAggregatorParser:
         # Search the index-positions
         start_idx = bisect.bisect_left(hf_trace_data["x"], start)
         end_idx = bisect.bisect_right(hf_trace_data["x"], end)
-        start_idx = max(0, start_idx - 1)
-        end_idx = min(end_idx + 1, len(hf_trace_data["x"]))
+        # start_idx = max(0, start_idx - 1)
+        # end_idx = min(end_idx + 1, len(hf_trace_data["x"]))
         return start_idx, end_idx
 
     @staticmethod

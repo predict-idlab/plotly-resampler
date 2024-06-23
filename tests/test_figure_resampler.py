@@ -285,7 +285,7 @@ def test_log_axis():
         assert (x1 - x0) < 10
         assert len(out[1]["x"]) == 1000
         assert out[-1]["x"][0] >= 99
-        assert out[-1]["x"][-1] <= 50_000
+        assert out[-1]["x"][-1] <= 50_001
 
 
 def test_add_traces_from_other_figure():
