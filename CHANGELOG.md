@@ -2,7 +2,7 @@
 
 # v0.10.1
 ## What's Changed
-After resampling the figure, the line goes beyond figure frontier indicating presence of data.
+After resampling the figure, the line goes beyond figure frontier indicating presence of data. https://github.com/predict-idlab/plotly-resampler/pull/308
 
 # v0.10.0
 ## New Features
