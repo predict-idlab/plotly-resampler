@@ -254,12 +254,14 @@ class FigureWidgetResampler(
 
             # Construct the update data
             update_data = self._construct_update_data(relayout_dict)
-            if self._print_verbose:
-                self._relayout_hist.append(layout)
-                self._relayout_hist.append(["showspikes-update", len(update_data) - 1])
-                self._relayout_hist.append("-" * 30)
-
             if not self._is_no_update(update_data):
+                if self._print_verbose:
+                    self._relayout_hist.append(layout)
+                    self._relayout_hist.append(
+                        ["showspikes-update", len(update_data) - 1]
+                    )
+                    self._relayout_hist.append("-" * 30)
+
                 with self.batch_update():
                     # First update the layout (first item of update_data)
                     if not force_update:
