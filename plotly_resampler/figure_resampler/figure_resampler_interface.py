@@ -44,6 +44,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     """Abstract interface for data aggregation functionality for plotly figures."""
 
     _high_frequency_traces = ["scatter", "scattergl"]
+    _stats_traces = ["histogram"]
 
     def __init__(
         self,
@@ -980,21 +981,21 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         uuid_str = str(uuid4()) if trace.uid is None else trace.uid
         trace.uid = uuid_str
 
-        # construct the hf_data_container
-        # TODO in future version -> maybe regex on kwargs which start with `hf_`
-        dc = self._parse_get_trace_props(
-            trace,
-            hf_x,
-            hf_y,
-            hf_text,
-            hf_hovertext,
-            hf_marker_size,
-            hf_marker_color,
-        )
-
         # These traces will determine the autoscale its RANGE!
         #   -> so also store when `limit_to_view` is set.
         if trace["type"].lower() in self._high_frequency_traces:
+            # construct the hf_data_container
+            # TODO in future version -> maybe regex on kwargs which start with `hf_`
+            dc = self._parse_get_trace_props(
+                trace,
+                hf_x,
+                hf_y,
+                hf_text,
+                hf_hovertext,
+                hf_marker_size,
+                hf_marker_color,
+            )
+
             n_samples = len(dc.x)
             if n_samples > max_out_s or limit_to_view:
                 self._print(
