@@ -44,7 +44,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
     """Abstract interface for data aggregation functionality for plotly figures."""
 
     _high_frequency_traces = ["scatter", "scattergl"]
-    _stats_traces = ["histogram"]
 
     def __init__(
         self,
