@@ -146,7 +146,7 @@ class RequestParser:
         elif "chrome" in browser_name:
             # for some, yet unknown reason, chrome does not seem to capture the
             # second front-end request.
-            assert len(requests) == 1
+            assert len(requests) == 1, f"len(requests) = {len(requests)}"
             fetch_data_request = requests[0]
         else:
             raise ValueError(f"invalid browser name {browser_name}")
