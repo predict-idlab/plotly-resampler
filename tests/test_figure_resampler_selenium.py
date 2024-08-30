@@ -611,7 +611,7 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
 
         # Note: as there is only 1 hf-scatter-trace, the reset axes command will only
         # update a single trace
-        fr.clear_requests(sleep_time_s=3)
+        fr.clear_requests(sleep_time_s=1)
         fr.reset_axes()
         time.sleep(3)
         RequestParser.browser_independent_single_callback_request_assert(
@@ -625,12 +625,11 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
             n_updated_traces=30,
         )
 
-        time.sleep(5)
-        fr.drag_and_zoom("xy", x0=0.1, x1=0.3, y0=0.6, y1=0.9)
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.3, y0=0.3, y1=0.5)
         fr.clear_requests(sleep_time_s=3)
 
         # First, apply some horizontal based zooms
-        fr.clear_requests(sleep_time_s=3)
+        fr.clear_requests(sleep_time_s=1)
         fr.drag_and_zoom("xy", x0=0.1, x1=0.2, y0=0.5, y1=0.5)
         time.sleep(3)
         # As all axes are shared, we expect at least 3 updated
