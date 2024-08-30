@@ -142,6 +142,23 @@ def test_add_not_a_hf_trace(float_series):
     )
 
 
+def test_add_not_scatter():
+    fw_fig = FigureWidgetResampler(
+        go.Figure(go.Bar(x=[1, 2, 3, 4], y=[1, 2, 3, 4])), verbose=True
+    )
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # zoom in on both traces
+    fw_fig.layout.update(
+        {"xaxis": {"range": [0, 1]}},
+        overwrite=False,
+    )
+    # reset axes
+    fw_fig.reset_axes()
+
+
 def test_box_histogram(float_series):
     base_fig = make_subplots(
         rows=2,

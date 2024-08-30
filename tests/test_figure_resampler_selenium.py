@@ -625,7 +625,7 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
             n_updated_traces=30,
         )
 
-        fr.drag_and_zoom("xy", x0=0.1, x1=0.3, y0=0.6, y1=0.9)
+        fr.drag_and_zoom("xy", x0=0.1, x1=0.3, y0=0.3, y1=0.5)
         fr.clear_requests(sleep_time_s=3)
 
         # First, apply some horizontal based zooms
