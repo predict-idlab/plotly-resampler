@@ -1094,7 +1094,6 @@ def test_time_tz_slicing_different_timestamp():
         )
 
 
-
 def test_different_tz_no_tz_series_slicing():
     n = 60 * 60 * 24 * 3
     dr = pd.Series(
