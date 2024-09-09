@@ -39,7 +39,6 @@ class PlotlyAggregatorParser:
         elif reference_tz is not None:
             if ts.tz is not None:
                 # compare if these two have the same timezone / offset
-                print('to same tz', 'ts', ts.tz.__str__(), 'ref', reference_tz.__str__())
                 try:
                     assert ts.tz.__str__() == reference_tz.__str__()
                 except AssertionError:
