@@ -38,16 +38,15 @@ x = np.arange(2_000_000)
 x_time = pd.date_range("2020-01-01", periods=len(x), freq="1min")
 noisy_sin = (3 + np.sin(x / 200) + np.random.randn(len(x)) / 10) * x / 1_000
 
-# The ids of the components used in the app (we put them here to avoid typos later on)
+# The ids of the components used in the app (we put them here to avoid typos)
 GRAPH_ID = "graph-id"
 OVERVIEW_GRAPH_ID = "overview-graph"
 STORE_ID = "store"
 PLOT_BTN_ID = "plot-button"
 
 # --------------------------------------Globals ---------------------------------------
-# NOTE: Remark how
-#   (1) the assets folder is passed to the Dash(proxy) application
-#   (2) the lodash script is included as an external script.
+# NOTE: Remark how the assets folder is passed to the Dash(proxy) application and how
+#       the lodash script is included as an external script.
 app = DashProxy(
     __name__,
     transforms=[ServersideOutputTransform()],
@@ -55,7 +54,6 @@ app = DashProxy(
     external_scripts=["https://cdn.jsdelivr.net/npm/lodash/lodash.min.js"],
 )
 
-# Construct the app layout
 app.layout = html.Div(
     [
         html.H1("plotly-resampler + dash-extensions", style={"textAlign": "center"}),
@@ -64,8 +62,6 @@ app.layout = html.Div(
         # The graph, overview graph, and serverside store for the FigureResampler graph
         dcc.Graph(
             id=GRAPH_ID,
-            # NOTE: we remove the reset scale button as it removes the spikes and
-            # we provide our own reset-axis button upon graph construction
             config={"modeBarButtonsToRemove": ["resetscale"]},
         ),
         dcc.Graph(id=OVERVIEW_GRAPH_ID, config={"displayModeBar": False}),
@@ -86,6 +82,7 @@ app.layout = html.Div(
     prevent_initial_call=True,
 )
 def plot_graph(_):
+    global app
     ctx = callback_context
     if not len(ctx.triggered) or PLOT_BTN_ID not in ctx.triggered[0]["prop_id"]:
         return no_update
