@@ -43,6 +43,7 @@ class PlotlyAggregatorParser:
                     assert ts.tz.__str__() == reference_tz.__str__()
                 except AssertionError:
                     assert ts.utcoffset() == reference_tz.utcoffset(ts.tz_convert(None))
+                return ts
             else:  # localize -> time remains the same
                 return ts.tz_localize(reference_tz)
         elif reference_tz is None and ts.tz is not None:
