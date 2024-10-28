@@ -15,6 +15,7 @@ import numpy as np
 from tsdownsample import (
     EveryNthDownsampler,
     LTTBDownsampler,
+    M4Downsampler,
     MinMaxDownsampler,
     MinMaxLTTBDownsampler,
     NaNMinMaxDownsampler,
@@ -192,6 +193,33 @@ class MinMaxAggregator(DataPointSelector):
             self.downsampler = MinMaxDownsampler()
         else:
             self.downsampler = NaNMinMaxDownsampler()
+
+    def _arg_downsample(
+        self,
+        x: np.ndarray | None,
+        y: np.ndarray,
+        n_out: int,
+    ) -> np.ndarray:
+        return self.downsampler.downsample(
+            *_to_tsdownsample_args(x, y), n_out=n_out, **self.downsample_kwargs
+        )
+
+
+class M4(DataPointSelector):
+    """M4 aggregation method."""
+
+    def __init__(self, **downsample_kwargs):
+        """
+        Parameters
+        ----------
+        **downsample_kwargs
+            Keyword arguments passed to the :class:`M4Downsampler`.
+            - The `parallel` argument is set to False by default.
+
+        """
+        # this downsampler supports all dtypes
+        super().__init__(**downsample_kwargs)
+        self.downsampler = M4Downsampler()
 
     def _arg_downsample(
         self,
