@@ -136,7 +136,7 @@ class RequestParser:
             # There are 2 requests which are send
             # 1. first: changed-layout to server -> new data to back-end request
             # 2. the front-end relayout request
-            assert len(requests) >= 1
+            assert len(requests) >= 1, f"len(requests) = {len(requests)}"
             if len(requests) == 2:
                 fetch_data_request, relayout_request = requests
                 # RequestParser.assert_front_end_relayout_request(relayout_request)
@@ -146,7 +146,7 @@ class RequestParser:
         elif "chrome" in browser_name:
             # for some, yet unknown reason, chrome does not seem to capture the
             # second front-end request.
-            assert len(requests) == 1
+            assert len(requests) == 1, f"len(requests) = {len(requests)}"
             fetch_data_request = requests[0]
         else:
             raise ValueError(f"invalid browser name {browser_name}")

@@ -254,27 +254,30 @@ class FigureWidgetResampler(
 
             # Construct the update data
             update_data = self._construct_update_data(relayout_dict)
-            if self._print_verbose:
-                self._relayout_hist.append(layout)
-                self._relayout_hist.append(["showspikes-update", len(update_data) - 1])
-                self._relayout_hist.append("-" * 30)
+            if not self._is_no_update(update_data):
+                if self._print_verbose:
+                    self._relayout_hist.append(layout)
+                    self._relayout_hist.append(
+                        ["showspikes-update", len(update_data) - 1]
+                    )
+                    self._relayout_hist.append("-" * 30)
 
-            with self.batch_update():
-                # First update the layout (first item of update_data)
-                if not force_update:
-                    self.layout.update(self._parse_relayout(update_data[0]))
+                with self.batch_update():
+                    # First update the layout (first item of update_data)
+                    if not force_update:
+                        self.layout.update(self._parse_relayout(update_data[0]))
 
-                # Also:  Remove the showspikes from the layout, otherwise the autorange
-                # will not work as intended (it will not be triggered again)
-                # Note: this removal causes a second trigger of this method
-                # which will go in the "else" part below.
-                for xaxis_str in self._xaxis_list:
-                    self.layout[xaxis_str].pop("showspikes")
+                    # Also: Remove the showspikes from the layout, otherwise the autorange
+                    # will not work as intended (it will not be triggered again)
+                    # Note: this removal causes a second trigger of this method
+                    # which will go in the "else" part below.
+                    for xaxis_str in self._xaxis_list:
+                        self.layout[xaxis_str].pop("showspikes")
 
-                # Then, update the data
-                for updated_trace in update_data[1:]:
-                    trace_idx = updated_trace.pop("index")
-                    self.data[trace_idx].update(updated_trace)
+                    # Then, update the data
+                    for updated_trace in update_data[1:]:
+                        trace_idx = updated_trace.pop("index")
+                        self.data[trace_idx].update(updated_trace)
         elif self._print_verbose:
             self._relayout_hist.append(["showspikes", "initial call or showspikes"])
             self._relayout_hist.append("-" * 40)
