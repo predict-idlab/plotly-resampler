@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.graph_objects as go
+import pytest
 
 from plotly_resampler import FigureResampler, FigureWidgetResampler
 from plotly_resampler.figure_resampler.utils import (
@@ -13,18 +14,32 @@ from plotly_resampler.figure_resampler.utils import (
 )
 
 
-def test_is_figure():
-    fig_dict = {"type": "scatter", "y": [1, 2, 3]}
-    assert is_figure(go.Figure())
-    assert is_figure(go.Figure(fig_dict))
-    assert is_figure(FigureResampler())
-    assert is_figure(FigureResampler(fig_dict))
-    assert not is_figure(go.FigureWidget())
-    assert not is_figure(None)
-    assert not is_figure(fig_dict)
-    assert not is_figure(go.Scatter(y=[1, 2, 3]))
-    assert not is_figure(FigureWidgetResampler())
-    assert not is_figure(FigureWidgetResampler(fig_dict))
+@pytest.mark.parametrize(
+    "obj",
+    [
+        go.Figure(),
+        go.Figure({"type": "scatter", "y": [1, 2, 3]}),
+        FigureResampler(),
+        FigureResampler({"type": "scatter", "y": [1, 2, 3]}),
+    ],
+)
+def test_is_figure(obj):
+    assert is_figure(obj)
+
+
+@pytest.mark.parametrize(
+    "obj",
+    [
+        go.FigureWidget(),
+        None,
+        {"type": "scatter", "y": [1, 2, 3]},
+        go.Scatter(y=[1, 2, 3]),
+        FigureWidgetResampler(),
+        FigureWidgetResampler({"type": "scatter", "y": [1, 2, 3]}),
+    ],
+)
+def test_not_is_figure(obj):
+    assert not is_figure(obj)
 
 
 def test_is_fr():
