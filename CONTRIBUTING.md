@@ -3,8 +3,6 @@
 First of all, thank you for considering contributing to `plotly-resampler`.<br>
 It's people like you that will help make `plotly-resampler` a great toolkit. 🤝
 
-As usual, contributions are managed through GitHub Issues and Pull Requests.
-
 As usual, contributions are managed through GitHub Issues and Pull Requests.  
 We invite you to use GitHub's [Issues](https://github.com/predict-idlab/plotly-resampler/issues) to report bugs, request features, or ask questions about the project. To ask use-specific questions, please use the [Discussions](https://github.com/predict-idlab/plotly-resampler/discussions) instead.
 
