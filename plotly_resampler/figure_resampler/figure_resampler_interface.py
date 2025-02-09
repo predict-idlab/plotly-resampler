@@ -1299,6 +1299,23 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # 1. Base case - there is an x-range specified in the front-end
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
+
+            # When the user sets x range via update_xaxes and the number of points in
+            # data exceeds the default_n_shown_samples, then after resetting the axes
+            # the relayout may only have "xaxis.range", instead of "xaxis.range[0]" and
+            # "xaxis.range[1]". If this happens, we need to manually add "xaxis.range[0]"
+            # and "xaxis.range[1]", otherwise resetting axes wouldn't work.
+            if not (start_matches and stop_matches):
+                range_matches = self._re_matches(re.compile(r"xaxis\d*.range"), cl_k)
+                for range_match in range_matches:
+                    x_range = relayout_data[range_match]
+                    start, stop = x_range
+                    start_match = range_match + "[0]"
+                    stop_match = range_match + "[1]"
+                    relayout_data[start_match] = start
+                    relayout_data[stop_match] = stop
+                    start_matches.append(start_match)
+                    stop_matches.append(stop_match)
             if start_matches and stop_matches:  # when both are not empty
                 for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                     # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
