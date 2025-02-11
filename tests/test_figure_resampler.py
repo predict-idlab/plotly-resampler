@@ -147,7 +147,7 @@ def test_various_dtypes(float_series):
         np.int32,
         np.int64,
         # -------- floats
-        np.float16,  # currently not supported by orjson
+        np.float16,  # supported by orjson >=3.10.0
         np.float32,
         np.float64,
     ]
@@ -165,19 +165,6 @@ def test_various_dtypes(float_series):
         )
         fig.full_figure_for_development()
 
-    # List of dtypes not supported by orjson >= 3.8
-    invalid_dtype_list = [np.float16]
-    for invalid_dtype in invalid_dtype_list:
-        fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
-        # nb. datapoints < default_n_shown_samples
-        with pytest.raises(TypeError):
-            # if this test fails -> orjson supports f16 => remove casting frome code
-            fig.add_trace(
-                go.Scatter(name="float_series"),
-                hf_x=float_series.index[:500],
-                hf_y=float_series.astype(invalid_dtype)[:500],
-            )
-            fig.full_figure_for_development()
 
 
 def test_max_n_samples(float_series):
