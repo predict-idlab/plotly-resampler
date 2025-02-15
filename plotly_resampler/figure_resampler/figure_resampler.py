@@ -26,14 +26,8 @@ from ..aggregation import (
     MinMaxLTTB,
 )
 from .figure_resampler_interface import AbstractFigureAggregator
+from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
 from .utils import is_figure, is_fr
-
-try:
-    from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
-
-    _jupyter_dash_installed = True
-except ImportError:
-    _jupyter_dash_installed = False
 
 # Default arguments for the Figure overview
 ASSETS_FOLDER = Path(__file__).parent.joinpath("assets").absolute().__str__()
@@ -242,7 +236,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._host: str | None = None
         # Certain functions will be different when using persistent inline
         # (namely `show_dash` and `stop_callback`)
-        self._is_persistent_inline = False
 
     def _get_subplot_rows_and_cols_from_grid(self) -> Tuple[int, int]:
         """Get the number of rows and columns of the figure's grid.
@@ -535,7 +528,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 constructor via the ``show_dash_kwargs`` argument.
 
         """
-        available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
+        available_modes = list(dash._jupyter.JupyterDisplayMode.__args__) + [
+            "inline_persistent"
+        ]
         assert (
             mode is None or mode in available_modes
         ), f"mode must be one of {available_modes}"
@@ -576,25 +571,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             init_dash_kwargs["external_scripts"] = ["https://cdn.jsdelivr.net/npm/lodash/lodash.min.js" ]
             # fmt: on
 
-        if mode == "inline_persistent":
-            mode = "inline"
-            if _jupyter_dash_installed:
-                # Inline persistent mode: we display a static image of the figure when the
-                # app is not reachable
-                # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
-                app = JupyterDashPersistentInlineOutput("local_app", **init_dash_kwargs)
-                self._is_persistent_inline = True
-            else:
-                # If Jupyter Dash is not installed, inline persistent won't work and hence
-                # we default to normal inline mode with a normal Dash app
-                app = dash.Dash("local_app", **init_dash_kwargs)
-                warnings.warn(
-                    "'jupyter_dash' is not installed. The persistent inline mode will not work. Defaulting to standard inline mode."
-                )
-        else:
-            # jupyter dash uses a normal Dash app as figure
-            app = dash.Dash("local_app", **init_dash_kwargs)
-
         # fmt: off
         div = dash.html.Div(
             children=[
@@ -620,18 +596,19 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     **graph_properties,
                 ),
             ]
-        app.layout = div
 
+        # Create the app, populate the layout and register the resample callback
+        app = dash.Dash("local_app", **init_dash_kwargs)
+        app.layout = div
         self.register_update_graph_callback(
             app,
             "resample-figure",
             "overview-figure" if self._create_overview else None,
         )
 
-        height_param = "height" if self._is_persistent_inline else "jupyter_height"
-
         # 2. Run the app
-        if mode == "inline" and height_param not in kwargs:
+        height_param = "height" if mode == "inline_persistent" else "jupyter_height"
+        if "inline" in mode and height_param not in kwargs:
             # If app height is not specified -> re-use figure height for inline dash app
             #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height
@@ -646,9 +623,12 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._host = kwargs.get("host", "127.0.0.1")
         self._port = kwargs.get("port", "8050")
 
-        # function signature is slightly different for the Dash and JupyterDash implementations
-        if self._is_persistent_inline:
-            app.run(mode=mode, **kwargs)
+        # function signatures are slightly different for the (Jupyter)Dash and the
+        # JupyterDashInlinePersistent implementations
+        print("kwargs", kwargs)
+        if mode == "inline_persistent":
+            jpi = JupyterDashPersistentInlineOutput(self)
+            jpi.run_app(app=app, **kwargs)
         else:
             app.run(jupyter_mode=mode, **kwargs)
 
@@ -665,18 +645,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             This only works if the dash-app was started with [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash].
         """
         if self._app is not None:
-            servers_dict = (
-                self._app._server_threads
-                if self._is_persistent_inline
-                else dash.jupyter_dash._servers
-            )
+            servers_dict = dash.jupyter_dash._servers
             old_server = servers_dict.get((self._host, self._port))
             if old_server:
-                if self._is_persistent_inline:
-                    old_server.kill()
-                    old_server.join()
-                else:
-                    old_server.shutdown()
+                old_server.shutdown()
             del servers_dict[(self._host, self._port)]
         elif warn:
             warnings.warn(
