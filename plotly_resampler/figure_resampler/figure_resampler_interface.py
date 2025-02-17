@@ -576,7 +576,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             A namedtuple which serves as a datacontainer.
 
         """
-        hf_x: np.ndarray = (
+        hf_x: np.ndarray | pd.Index = (
             # fmt: off
             (np.asarray(trace["x"]) if trace["x"] is not None else None)
             if hasattr(trace, "x") and hf_x is None
@@ -591,6 +591,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else np.asarray(hf_x)
             # fmt: on
         )
+        if pd.core.dtypes.common.is_datetime64_any_dtype(hf_x):
+            hf_x = pd.Index(hf_x)
 
         hf_y = (
             trace["y"]

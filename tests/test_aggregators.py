@@ -365,3 +365,6 @@ def test_MinMaxLTTB_size():
     mmltb = MinMaxLTTB()
     for n_out in np.random.randint(500, 1_000, size=3):
         assert n_out == mmltb._arg_downsample(x, y, n_out).shape[0]
+
+
+# TODO: add tests for all the supported data types?

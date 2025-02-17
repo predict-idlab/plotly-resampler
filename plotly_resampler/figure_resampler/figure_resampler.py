@@ -625,7 +625,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # function signatures are slightly different for the (Jupyter)Dash and the
         # JupyterDashInlinePersistent implementations
-        print("kwargs", kwargs)
         if mode == "inline_persistent":
             jpi = JupyterDashPersistentInlineOutput(self)
             jpi.run_app(app=app, **kwargs)
