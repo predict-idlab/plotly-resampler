@@ -14,6 +14,7 @@ from plotly_resampler.registering import (
 )
 
 from .conftest import pickle_figure, registering_cleanup
+from .utils import decode_trace_bdata
 
 
 def _get_hf_props(nb_samples: int) -> dict:
@@ -32,12 +33,17 @@ def _check_correctly_serialized(
     for i in range(nb_traces):
         trace = fig.data[i]
         assert isinstance(trace, go.Scattergl)
-        assert len(trace.y) == 50
+        y_ = decode_trace_bdata(trace.y)
+        assert len(y_) == 50
         assert len(trace.text) == 50
         assert len(trace.hovertext) == 50
-        assert len(trace.marker.size) == 50
-        assert len(trace.marker.color) == 50
+        marker_size_ = decode_trace_bdata(trace.marker.size)
+        assert len(marker_size_) == 50
+
+        marker_color_ = decode_trace_bdata(trace.marker.color)
+        assert len(marker_color_) == 50
         assert f"trace--{i}" in trace.name
+
         hf_trace = fig.hf_data[i]
         assert np.all(hf_trace["y"] == np.arange(nb_samples))
         assert np.all(hf_trace["text"] == np.arange(nb_samples).astype(str))
