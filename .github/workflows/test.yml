@@ -25,13 +25,7 @@ jobs:
       fail-fast: false
       matrix:
         os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-        exclude:  # Python < 3.8 is not supported on Apple Silicon ARM64
-          - os: macOS-latest
-            python-version: '3.7'
-        include:  # So run on older version on Intel CPU
-          - os: macOS-13
-            python-version: '3.7'
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
     defaults:
       run:
         shell: bash
@@ -76,7 +70,7 @@ jobs:
       run: |
         poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests
     - name: Upload pytest test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: pytest-results-${{ matrix.python-version }}
         path: junit/test-results-${{ matrix.python-version }}.xml
