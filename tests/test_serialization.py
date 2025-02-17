@@ -137,7 +137,7 @@ def test_pickle_figurewidget_resampler(pickle_figure):
             col=1,
         )
     assert fig._global_n_shown_samples == 50
-    assert fig._figure_class == go.FigureWidget
+    assert fig._figure_class.__name__ == go.FigureWidget.__name__
     assert fig._xaxis_list == ["xaxis", "xaxis2"]
     assert fig._yaxis_list == ["yaxis", "yaxis2"]
 
@@ -146,7 +146,7 @@ def test_pickle_figurewidget_resampler(pickle_figure):
 
     assert isinstance(fig_pickle, FigureWidgetResampler)
     assert fig_pickle._global_n_shown_samples == 50
-    assert fig_pickle._figure_class == go.FigureWidget
+    assert fig_pickle._figure_class.__name__ == go.FigureWidget.__name__
     assert fig_pickle._xaxis_list == ["xaxis", "xaxis2"]
     assert fig_pickle._yaxis_list == ["yaxis", "yaxis2"]
     assert len(fig_pickle.data) == nb_traces

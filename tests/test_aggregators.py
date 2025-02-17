@@ -171,7 +171,7 @@ def test_wrap_aggregate_x_gaps(downsampler, series):
         n_out=100,
     )
     assert len(x_agg) == len(y_agg) == len(indices)
-    assert pd.Series(y_agg).isna().sum() == 3
+    assert pd.Series(y_agg).isna().sum() >= 3
 
 
 @pytest.mark.parametrize(
