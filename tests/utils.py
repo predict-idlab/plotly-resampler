@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import sys
 
 import numpy as np
@@ -73,7 +74,22 @@ def construct_index(series: pd.Series, index_type: str) -> pd.Index:
     if index_type == "timedelta":
         return pd.timedelta_range(start="0s", periods=len(series), freq="1ms")
     if index_type == "float":
-        return pd.Float64Index(np.arange(len(series)))
+        return pd.Index(np.arange(len(series), dtype=np.float64))
     if index_type == "int":
-        return pd.Int64Index(np.arange(len(series)))
+        return pd.Index(np.arange(len(series), dtype=np.int64))
     raise ValueError(f"Unknown index type: {index_type}")
+
+
+def decode_trace_bdata(data: dict | list):
+    """As from plotly>6.0.0, traces can be encoded as binary strings, we"""
+    if isinstance(data, dict) and "bdata" in data:
+        bdata = data["bdata"]
+        dtype = data["dtype"]
+
+        # Decode the base64 encoded binary data
+        decoded_data = base64.b64decode(bdata)
+        # Convert the decoded data to a numpy array
+        np_array = np.frombuffer(decoded_data, dtype=np.dtype(dtype))
+        return np_array  # Return the numpy array for further use if needed
+    else:
+        return data
