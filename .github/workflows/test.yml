@@ -70,12 +70,15 @@ jobs:
       run: |
         poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests
     - name: Upload pytest test results
+       # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() && hashFiles('junit/test-results-${{ matrix.python-version }}.xml') != '' }}
       uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-${{ matrix.python-version }}-${{ github.run_id }}
+        name: pytest-results-${{ matrix.python-version }}-${{ matrix.os }}-${{ github.run_number }}
         path: junit/test-results-${{ matrix.python-version }}.xml
-        # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
+        overwrite: true
+        retention-days: 7
+        compression-level: 5
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
