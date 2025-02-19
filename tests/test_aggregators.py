@@ -109,6 +109,7 @@ def test_arg_downsample_no_x_empty_series(downsampler, series):
 def test_wrap_aggregate(downsampler, gap_handler, series, index_type):
     series = series.copy()
     series.index = construct_index(series, index_type)
+    np.random.seed(42)
     for n in np.random.randint(100, len(series) // 2, 6):
         # make sure n is even (required for MinMax downsampler)
         n = n - (n % 2)
