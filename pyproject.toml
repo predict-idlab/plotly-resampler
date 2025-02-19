@@ -68,7 +68,7 @@ pyarrow = [
     {version = ">=15.0", python = "<3.13"},
     {version = ">=18.0", python = ">=3.13"},
 ]
-ipywidgets = "^7.7.1"
+ipywidgets = ">=7.7.1"
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
 ruff = "^0.0.262"
