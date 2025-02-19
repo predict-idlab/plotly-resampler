@@ -68,7 +68,7 @@ pyarrow = [
     {version = ">=15.0", python = "<3.13"},
     {version = ">=18.0", python = ">=3.13"},
 ]
-ipywidgets = ">=7.7.1"
+ipywidgets = "^7.7.1" # needs to be v7 in order to support serialization
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
 ruff = "^0.0.262"
@@ -77,7 +77,7 @@ pytest-lazy-fixture = "^0.6.3"
 # yep = "^0.4"  # c code profiling
 mkdocs = "^1.5.3"
 mkdocstrings = "^0.20.0"
-mkdocstrings-python = "^1.7.3"
+mkdocstrings-python = "^1.7.3ipywidgets"
 griffe = ">=0.32.0" 
 mkdocs-gen-files = "^0.5.0"
 mike = "^1.1.2"
