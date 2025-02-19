@@ -1,9 +1,9 @@
 pyfunctional>=1.4.3
 dash-bootstrap-components>=1.2.0
-dash-extensions==1.0.1  # fixated on this version as more recent versions do not work
+dash-extensions==1.0.20  # fixated on this version as more recent versions do not work
 ipywidgets>=7.7.0
 memory-profiler>=0.60.0
 line-profiler>=3.5.1
-pyarrow>=6.0.0
+pyarrow>=17.0.0
 kaleido>=0.2.1
 flask-cors>=3.0.10
