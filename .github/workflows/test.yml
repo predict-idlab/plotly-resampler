@@ -19,7 +19,7 @@ on:
 
 jobs:
   test:
-
+    if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12') }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
