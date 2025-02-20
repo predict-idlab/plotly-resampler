@@ -19,13 +19,15 @@ on:
 
 jobs:
   test:
-    if: ${{ !(matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12') }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        exclude:
+          - os: ubuntu-latest
+            python-version: '3.12'
     defaults:
       run:
         shell: bash
