@@ -190,7 +190,7 @@ class PlotlyAggregatorParser:
                 agg_x = (
                     start_idx
                     + hf_trace_data["x"].start
-                    + indices * hf_trace_data["x"].step
+                    + indices.astype(hf_trace_data["x"].dtype) * hf_trace_data["x"].step
                 )
             else:
                 agg_x = hf_x[indices]

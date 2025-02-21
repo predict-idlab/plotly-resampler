@@ -16,7 +16,7 @@ following code: `import plotly.io as pio; pio.templates.default = "plotly"`
 
 __author__ = "Jeroen Van Der Donckt"
 
-# Explicitely set pio.templates in order to have colored traces in the streamlit app!
+# Explicitly set pio.templates in order to have colored traces in the streamlit app!
 # -> https://discuss.streamlit.io/t/streamlit-overrides-colours-of-plotly-chart/34943/5
 import plotly.io as pio
 

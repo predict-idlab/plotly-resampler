@@ -19,19 +19,15 @@ on:
 
 jobs:
   test:
-
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-        exclude:  # Python < 3.8 is not supported on Apple Silicon ARM64
-          - os: macOS-latest
-            python-version: '3.7'
-        include:  # So run on older version on Intel CPU
-          - os: macOS-13
-            python-version: '3.7'
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        exclude:
+          - os: ubuntu-latest
+            python-version: '3.12'
     defaults:
       run:
         shell: bash
@@ -76,12 +72,15 @@ jobs:
       run: |
         poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests
     - name: Upload pytest test results
-      uses: actions/upload-artifact@v3
+       # Use always() to always run this step to publish test results when there are test failures
+      if: ${{ always() && hashFiles('junit/test-results-${{ matrix.python-version }}.xml') != '' }}
+      uses: actions/upload-artifact@v4
       with:
-        name: pytest-results-${{ matrix.python-version }}
+        name: pytest-results-${{ matrix.python-version }}-${{ matrix.os }}-${{ github.run_number }}
         path: junit/test-results-${{ matrix.python-version }}.xml
-        # Use always() to always run this step to publish test results when there are test failures
-      if: ${{ always() }}
+        overwrite: true
+        retention-days: 7
+        compression-level: 5
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

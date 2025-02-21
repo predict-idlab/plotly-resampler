@@ -13,7 +13,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 import os
 import warnings
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import dash
 import plotly.graph_objects as go
@@ -26,14 +26,8 @@ from ..aggregation import (
     MinMaxLTTB,
 )
 from .figure_resampler_interface import AbstractFigureAggregator
+from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
 from .utils import is_figure, is_fr
-
-try:
-    from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
-
-    _jupyter_dash_installed = True
-except ImportError:
-    _jupyter_dash_installed = False
 
 # Default arguments for the Figure overview
 ASSETS_FOLDER = Path(__file__).parent.joinpath("assets").absolute().__str__()
@@ -242,7 +236,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._host: str | None = None
         # Certain functions will be different when using persistent inline
         # (namely `show_dash` and `stop_callback`)
-        self._is_persistent_inline = False
 
     def _get_subplot_rows_and_cols_from_grid(self) -> Tuple[int, int]:
         """Get the number of rows and columns of the figure's grid.
@@ -535,7 +528,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 constructor via the ``show_dash_kwargs`` argument.
 
         """
-        available_modes = ["external", "inline", "inline_persistent", "jupyterlab"]
+        available_modes = list(dash._jupyter.JupyterDisplayMode.__args__) + [
+            "inline_persistent"
+        ]
         assert (
             mode is None or mode in available_modes
         ), f"mode must be one of {available_modes}"
@@ -576,25 +571,6 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             init_dash_kwargs["external_scripts"] = ["https://cdn.jsdelivr.net/npm/lodash/lodash.min.js" ]
             # fmt: on
 
-        if mode == "inline_persistent":
-            mode = "inline"
-            if _jupyter_dash_installed:
-                # Inline persistent mode: we display a static image of the figure when the
-                # app is not reachable
-                # Note: this is the "inline" behavior of JupyterDashInlinePersistentOutput
-                app = JupyterDashPersistentInlineOutput("local_app", **init_dash_kwargs)
-                self._is_persistent_inline = True
-            else:
-                # If Jupyter Dash is not installed, inline persistent won't work and hence
-                # we default to normal inline mode with a normal Dash app
-                app = dash.Dash("local_app", **init_dash_kwargs)
-                warnings.warn(
-                    "'jupyter_dash' is not installed. The persistent inline mode will not work. Defaulting to standard inline mode."
-                )
-        else:
-            # jupyter dash uses a normal Dash app as figure
-            app = dash.Dash("local_app", **init_dash_kwargs)
-
         # fmt: off
         div = dash.html.Div(
             children=[
@@ -620,18 +596,19 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                     **graph_properties,
                 ),
             ]
-        app.layout = div
 
+        # Create the app, populate the layout and register the resample callback
+        app = dash.Dash("local_app", **init_dash_kwargs)
+        app.layout = div
         self.register_update_graph_callback(
             app,
             "resample-figure",
             "overview-figure" if self._create_overview else None,
         )
 
-        height_param = "height" if self._is_persistent_inline else "jupyter_height"
-
         # 2. Run the app
-        if mode == "inline" and height_param not in kwargs:
+        height_param = "height" if mode == "inline_persistent" else "jupyter_height"
+        if "inline" in mode and height_param not in kwargs:
             # If app height is not specified -> re-use figure height for inline dash app
             #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height
@@ -646,9 +623,11 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         self._host = kwargs.get("host", "127.0.0.1")
         self._port = kwargs.get("port", "8050")
 
-        # function signature is slightly different for the Dash and JupyterDash implementations
-        if self._is_persistent_inline:
-            app.run(mode=mode, **kwargs)
+        # function signatures are slightly different for the (Jupyter)Dash and the
+        # JupyterDashInlinePersistent implementations
+        if mode == "inline_persistent":
+            jpi = JupyterDashPersistentInlineOutput(self)
+            jpi.run_app(app=app, **kwargs)
         else:
             app.run(jupyter_mode=mode, **kwargs)
 
@@ -665,18 +644,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
             This only works if the dash-app was started with [`show_dash`][figure_resampler.figure_resampler.FigureResampler.show_dash].
         """
         if self._app is not None:
-            servers_dict = (
-                self._app._server_threads
-                if self._is_persistent_inline
-                else dash.jupyter_dash._servers
-            )
+            servers_dict = dash.jupyter_dash._servers
             old_server = servers_dict.get((self._host, self._port))
             if old_server:
-                if self._is_persistent_inline:
-                    old_server.kill()
-                    old_server.join()
-                else:
-                    old_server.shutdown()
+                old_server.shutdown()
             del servers_dict[(self._host, self._port)]
         elif warn:
             warnings.warn(
@@ -684,6 +655,47 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
                 + "\t- 'show-dash' method was not called, or \n"
                 + "\t- the dash-server wasn't started with 'show_dash'"
             )
+
+    def construct_update_data_patch(
+        self, relayout_data: dict
+    ) -> Union[dash.Patch, dash.no_update]:
+        """Construct the Patch of the to-be-updated front-end data, based on the layout
+        change.
+
+        Attention
+        ---------
+        This method is tightly coupled with Dash app callbacks. It takes the front-end
+        figure its ``relayoutData`` as input and returns the ``dash.Patch`` which needs
+        to be sent to the ``figure`` property for the corresponding ``dcc.Graph``.
+
+        Parameters
+        ----------
+        relayout_data: dict
+            A dict containing the ``relayoutData`` (i.e., the changed layout data) of
+            the corresponding front-end graph.
+
+        Returns
+        -------
+        dash.Patch:
+            The Patch object containing the figure updates which needs to be sent to
+            the front-end.
+
+        """
+        update_data = self._construct_update_data(relayout_data)
+        if not isinstance(update_data, list) or len(update_data) <= 1:
+            return dash.no_update
+
+        patched_figure = dash.Patch()  # create patch
+        for trace in update_data[1:]:  # skip first item as it contains the relayout
+            trace_index = trace.pop("index")  # the index of the corresponding trace
+            # All the other items are the trace properties which needs to be updated
+            for k, v in trace.items():
+                # NOTE: we need to use the `patched_figure` as a dict, and not
+                # `patched_figure.data` as the latter will replace **all** the
+                # data for the corresponding trace, and we just want to update the
+                # specific trace its properties.
+                patched_figure["data"][trace_index][k] = v
+        return patched_figure
 
     def register_update_graph_callback(
         self,

@@ -371,10 +371,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
         # -------------------- Set the hf_trace_data_props -------------------
-        # Parse the data types to an orjson compatible format
-        # NOTE: this can be removed once orjson supports f16
-        trace["x"] = self._parse_dtype_orjson(agg_x)
-        trace["y"] = self._parse_dtype_orjson(agg_y)
+        trace["x"] = agg_x
+        trace["y"] = agg_y
         trace["name"] = self._parse_trace_name(
             hf_trace_data, end_idx - start_idx, agg_x
         )
@@ -578,7 +576,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             A namedtuple which serves as a datacontainer.
 
         """
-        hf_x: np.ndarray = (
+        hf_x: np.ndarray | pd.Index = (
             # fmt: off
             (np.asarray(trace["x"]) if trace["x"] is not None else None)
             if hasattr(trace, "x") and hf_x is None
@@ -593,6 +591,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else np.asarray(hf_x)
             # fmt: on
         )
+        if pd.core.dtypes.common.is_datetime64_any_dtype(hf_x):
+            hf_x = pd.Index(hf_x)
 
         hf_y = (
             trace["y"]
@@ -1037,7 +1037,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
                 )
 
-        return super(self._figure_class, self).add_traces(
+        return super().add_traces(
             [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
         )
 
@@ -1169,7 +1169,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             assert trace is not None
             data[i] = trace
 
-        return super(self._figure_class, self).add_traces(data, **traces_kwargs)
+        return super().add_traces(data, **traces_kwargs)
 
     def _clear_figure(self):
         """Clear the current figure object its data and layout."""
@@ -1258,47 +1258,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             axis = range_change_axis.split(".")[0]
             extra_layout_updates[f"{axis}.autorange"] = None
         return extra_layout_updates
-
-    def construct_update_data_patch(
-        self, relayout_data: dict
-    ) -> Union[dash.Patch, dash.no_update]:
-        """Construct the Patch of the to-be-updated front-end data, based on the layout
-        change.
-
-        Attention
-        ---------
-        This method is tightly coupled with Dash app callbacks. It takes the front-end
-        figure its ``relayoutData`` as input and returns the ``dash.Patch`` which needs
-        to be sent to the ``figure`` property for the corresponding ``dcc.Graph``.
-
-        Parameters
-        ----------
-        relayout_data: dict
-            A dict containing the ``relayoutData`` (i.e., the changed layout data) of
-            the corresponding front-end graph.
-
-        Returns
-        -------
-        dash.Patch:
-            The Patch object containing the figure updates which needs to be sent to
-            the front-end.
-
-        """
-        update_data = self._construct_update_data(relayout_data)
-        if not isinstance(update_data, list) or len(update_data) <= 1:
-            return dash.no_update
-
-        patched_figure = dash.Patch()  # create patch
-        for trace in update_data[1:]:  # skip first item as it contains the relayout
-            trace_index = trace.pop("index")  # the index of the corresponding trace
-            # All the other items are the trace properties which needs to be updated
-            for k, v in trace.items():
-                # NOTE: we need to use the `patched_figure` as a dict, and not
-                # `patched_figure.data` as the latter will replace **all** the
-                # data for the corresponding trace, and we just want to update the
-                # specific trace its properties.
-                patched_figure["data"][trace_index][k] = v
-        return patched_figure
 
     def _construct_update_data(
         self,
@@ -1399,17 +1358,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
-
-    @staticmethod
-    def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:
-        """Verify the orjson compatibility of the series and convert it if needed."""
-        # NOTE:
-        #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
-        #    * this method assumes that the it will not get a float128 series
-        # -> this method can be removed if orjson supports float16
-        if series.dtype == np.float16:
-            return series.astype(np.float32)
-        return series
 
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:

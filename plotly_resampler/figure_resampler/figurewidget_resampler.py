@@ -326,3 +326,8 @@ class FigureWidgetResampler(
             )
             # TODO: when we know which traces have changed we can use
             # a new -> `update_xaxis_str` argument.
+
+    def __reduce__(self):
+        # Needed for pickling
+        # Specifically set the class name, as the metaclass is not easily picklable
+        return FigureWidgetResampler, *list(super().__reduce__())[1:]
