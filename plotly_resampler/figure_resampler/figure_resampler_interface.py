@@ -1169,7 +1169,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             assert trace is not None
             data[i] = trace
 
-        # return super(self._figure_class, self).add_traces(data, **traces_kwargs)
         return super().add_traces(data, **traces_kwargs)
 
     def _clear_figure(self):

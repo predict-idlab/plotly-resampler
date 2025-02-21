@@ -75,7 +75,7 @@ class JupyterDashPersistentInlineOutput:
             )
 
         # Get the image from the dashboard and encode it as base64
-        fig = self.fig  # is stored there in the show_dash method
+        fig = self.fig  # is stored in the show_dash method
         f_width = 1000 if fig.layout.width is None else fig.layout.width
         fig_base64 = base64.b64encode(
             fig.to_image(format="png", width=f_width, scale=1, height=fig.layout.height)
