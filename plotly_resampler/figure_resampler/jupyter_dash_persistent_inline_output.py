@@ -178,13 +178,23 @@ class JupyterDashPersistentInlineOutput:
         port=8050,
         server_url=None,
     ):
-        """
-        :type app: dash.Dash
-        :param width: Width of app when displayed using mode="inline"
-        :param height: Height of app when displayed using mode="inline"
-        :param host: Host of the server
-        :param port: Port used by the server
-        :param server_url: Use if a custom url is required to display the app.
+        """Run the inline persistent dash app in the notebook.
+
+        Parameters
+        ----------
+        app : dash.Dash
+            A Dash application instance
+        width : str, optional
+            Width of app when displayed using mode="inline", by default "100%"
+        height : int, optional
+            Height of app when displayed using mode="inline", by default 650
+        host : str, optional
+            Host of the server, by default "127.0.0.1"
+        port : int, optional
+            Port used by the server, by default 8050
+        server_url : str, optional
+            Use if a custom url is required to display the app, by default None
+
         """
         # Terminate any existing server using this port
         old_server = JupyterDash._servers.get((host, port))
@@ -312,8 +322,6 @@ class JupyterDashPersistentInlineOutput:
                 _get_error()
                 raise err
 
-        print(dashboard_url)
-        print(alive_url)
         try:
             wait_for_app()
             self._display_inline_output(dashboard_url, width=width, height=height)

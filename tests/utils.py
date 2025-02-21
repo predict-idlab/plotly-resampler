@@ -81,7 +81,9 @@ def construct_index(series: pd.Series, index_type: str) -> pd.Index:
 
 
 def decode_trace_bdata(data: dict | list):
-    """As from plotly>6.0.0, traces can be encoded as binary strings, we"""
+    """As from plotly>6.0.0, traces can be encoded as binary strings, we need to decode
+    them to get the actual data.
+    """
     if isinstance(data, dict) and "bdata" in data:
         bdata = data["bdata"]
         dtype = data["dtype"]
