@@ -48,7 +48,7 @@ numpy = [
 ]
 orjson = "^3.10.0"  # Faster json serialization (from 3.10 onwards f16 is supported)
 # Optional dependencies
-Flask-Cors = { version = "^3.0.10", optional = true }
+Flask-Cors = { version = "^4.0.2", optional = true }
 # Lock kaleido dependency until https://github.com/plotly/Kaleido/issues/156 is resolved
 kaleido = {version = "0.2.1", optional = true}
 tsdownsample = ">=0.1.3"
@@ -72,7 +72,7 @@ ipywidgets = "^7.7.1" # needs to be v7 in order to support serialization
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
 ruff = "^0.0.262"
-black = "^22.6.0"
+black = "^24.3.0"
 pytest-lazy-fixture = "^0.6.3"
 # yep = "^0.4"  # c code profiling
 mkdocs = "^1.5.3"
