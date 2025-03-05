@@ -58,7 +58,7 @@ tsdownsample = ">=0.1.3"
 inline_persistent = ["kaleido", "Flask-Cors"]
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.5"
+pytest = "^7.2.0"
 pytest-cov = "^3.0.0"
 selenium = "4.2.0"
 pytest-selenium = "^2.0.1"
