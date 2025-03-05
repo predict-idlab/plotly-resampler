@@ -758,7 +758,7 @@ def test_compare_tz_with_fixed_offset():
     # related: https://github.com/predict-idlab/plotly-resampler/issues/305
     fig = FigureResampler()
 
-    x = pd.date_range("2024-04-01T00:00:00", "2025-01-01T00:00:00", freq="H")
+    x = pd.date_range("2024-04-01T00:00:00", "2025-01-01T00:00:00", freq="h")
     x = x.tz_localize("Asia/Taipei")
     y = np.random.randn(len(x))
 
@@ -779,7 +779,7 @@ def test_compare_tz_with_fixed_offset_2():
     # related: https://github.com/predict-idlab/plotly-resampler/issues/305
     fig = FigureResampler()
 
-    x = pd.date_range("2024-04-01T00:00:00", "2025-01-01T00:00:00", freq="H")
+    x = pd.date_range("2024-04-01T00:00:00", "2025-01-01T00:00:00", freq="h")
     x = x.tz_localize("UTC")
     x = x.tz_convert("Canada/Pacific")
     y = np.random.randn(len(x))
@@ -796,6 +796,27 @@ def test_compare_tz_with_fixed_offset_2():
         "xaxis.range[1]": pd.Timestamp("2024-03-31T00:00:00").tz_localize(
             "Canada/Pacific"
         ),
+    }
+
+    fig.construct_update_data_patch(relayout_data)
+
+
+def test_relayout_tz_DST():
+    # related: https://github.com/predict-idlab/plotly-resampler/issues/305
+    fig = FigureResampler()
+
+    x = pd.date_range(
+        "2024-09-27 17:00:00", "2024-12-11 16:00:00", tz="US/Pacific", freq="1h"
+    )
+    y = np.random.randn(len(x))
+    fig.add_trace(
+        go.Scattergl(x=x, y=y, name="demo", mode="lines+markers"),
+        max_n_samples=int(len(x) * 0.2),
+    )
+
+    relayout_data = {
+        "xaxis.range[0]": "2024-09-27T17:00:00-07:00",
+        "xaxis.range[1]": "2024-12-12T15:59:00-08:00",
     }
 
     fig.construct_update_data_patch(relayout_data)
@@ -836,8 +857,8 @@ def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
     # TODO: can be improved with pytest parametrize
     y = np.arange(20)
 
-    index1 = pd.date_range("2018-01-01", periods=10, freq="H", tz="US/Eastern")
-    index2 = pd.date_range("2018-01-02", periods=10, freq="H", tz="Asia/Dubai")
+    index1 = pd.date_range("2018-01-01", periods=10, freq="h", tz="US/Eastern")
+    index2 = pd.date_range("2018-01-02", periods=10, freq="h", tz="Asia/Dubai")
     index_timestamps = index1.append(index2)
     assert all(isinstance(x, pd.Timestamp) for x in index_timestamps)
     index1_datetimes = pd.Index([x.to_pydatetime() for x in index1])
@@ -1158,7 +1179,7 @@ def test_multiple_tz_no_tz_series_slicing():
 
         # Now the assumption cannot be made that s has the same time-zone as the
         # timestamps -> AssertionError will be raised.
-        with pytest.raises(AssertionError):
+        with pytest.raises((TypeError, AssertionError)):
             hf_data_dict = construct_hf_data_dict(s.tz_localize(None).index, s.values)
             PlotlyAggregatorParser.get_start_end_indices(
                 hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
