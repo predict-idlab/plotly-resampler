@@ -2079,7 +2079,7 @@ def test_fwr_update_layout_axes_range():
     # Now the f_pr contains the data of the selected xrange (downsampled to 500 samples)
     # Since https://github.com/predict-idlab/plotly-resampler/pull/343
     # the data range is left-right expanded with 1 sample
-    check_data(f_pr, min_v=100 -1, max_v=1_000)
+    check_data(f_pr, min_v=100 - 1, max_v=1_000)
 
 
 def test_fwr_update_layout_axes_range_no_update():
