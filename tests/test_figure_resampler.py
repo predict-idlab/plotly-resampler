@@ -1984,3 +1984,43 @@ def test_hf_marker_size_plotly_args():
         (np.abs(update_trace["y"]) / np.max(np.abs(y))),
         rtol=1e-3,
     )
+
+
+@pytest.mark.parametrize("shared_xaxes", [False, True])
+def test_manual_range_def(shared_xaxes):
+    # related issue: https://github.com/predict-idlab/plotly-resampler/pull/336
+    time = 1000
+    N = 4001  # number of points in the subplot exceeds default_n_shown_samples
+    x = np.linspace(0.0, time, N, endpoint=False)
+    y = np.cos(1 / 2 * np.pi + 2 / 50 * np.pi * x)
+
+    # Create a subplot with two rows (non shared xaxes)
+    fig = FigureResampler(make_subplots(rows=2, cols=1, shared_xaxes=shared_xaxes))
+    fig.add_trace(
+        go.Scattergl(line=dict(width=1), marker=dict(size=2, color="blue")),
+        hf_x=x,
+        hf_y=y,
+        row=1,
+        col=1,
+    )
+    fig.add_trace(go.Scattergl(), hf_x=x, hf_y=-y, row=2, col=1)
+
+    fig.update_xaxes(
+        range=[0, np.ceil(x[-1])],  # set the x range of the subplot
+        row=1,
+        col=1,
+    )
+
+    fig.update_xaxes(
+        range=[0, np.ceil(x[-1])],  # set the x range of the subplot
+        row=2,
+        col=1,
+    )
+
+    # Before this fix, a noUpdate was returned
+    ud = fig._construct_update_data({"xaxis.range": [0, 10]})
+    assert isinstance(ud, list) and len(ud) == 2
+    ud = fig._construct_update_data({"xaxis2.range": [0, 10]})
+    assert isinstance(ud, list) and len(ud) == 2
+    ud = fig._construct_update_data({"xaxis2.range": [2, 10], "xaxis.range": [5, 100]})
+    assert isinstance(ud, list) and len(ud) == 3
