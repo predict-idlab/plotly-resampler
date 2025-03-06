@@ -1725,8 +1725,10 @@ def test_fr_update_layout_axes_range(driver):
         x_ = decode_trace_bdata(f_pr_data[0]["x"])
         assert len(y_) == 500
         assert len(x_) == 500
-        assert y_[0] >= 100 and y_[-1] <= 1000
-        assert x_[0] >= 100 and x_[-1] <= 1000
+        # Since https://github.com/predict-idlab/plotly-resampler/pull/343
+        # the data range is left-right expanded with 1 sample
+        assert y_[0] >= 99 and y_[-1] <= 1000
+        assert x_[0] >= 99 and x_[-1] <= 1000
         # Check the front-end layout
         assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
         assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
