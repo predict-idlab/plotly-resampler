@@ -96,8 +96,8 @@ class AbstractGapHandler(ABC):
         # Set the NaN values
         # We add the gap index offset (via the np.arange) to the indices to account for
         # the repeats (i.e., expanded y_agg array).
-        y_agg_exp_nan[
-            np.where(gap_mask)[0] + np.arange(gap_mask.sum())
-        ] = self.fill_value
+        y_agg_exp_nan[np.where(gap_mask)[0] + np.arange(gap_mask.sum())] = (
+            self.fill_value
+        )
 
         return y_agg_exp_nan, idx_exp_nan
