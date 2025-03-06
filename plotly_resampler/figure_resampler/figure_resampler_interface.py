@@ -597,9 +597,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y = (
             trace["y"]
             if hasattr(trace, "y") and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, (pd.Series, pd.Index))
-            else hf_y
+            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index)) else hf_y
         )
         # NOTE: the if will not be triggered for a categorical series its values
         if not hasattr(hf_y, "dtype"):
@@ -608,17 +606,21 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_text = (
             hf_text
             if hf_text is not None
-            else trace["text"]
-            if hasattr(trace, "text") and trace["text"] is not None
-            else None
+            else (
+                trace["text"]
+                if hasattr(trace, "text") and trace["text"] is not None
+                else None
+            )
         )
 
         hf_hovertext = (
             hf_hovertext
             if hf_hovertext is not None
-            else trace["hovertext"]
-            if hasattr(trace, "hovertext") and trace["hovertext"] is not None
-            else None
+            else (
+                trace["hovertext"]
+                if hasattr(trace, "hovertext") and trace["hovertext"] is not None
+                else None
+            )
         )
 
         hf_marker_size = (
@@ -1114,9 +1116,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # Convert each trace into a BaseTraceType object
         data = [
-            self._data_validator.validate_coerce(trace)[0]
-            if not isinstance(trace, BaseTraceType)
-            else trace
+            (
+                self._data_validator.validate_coerce(trace)[0]
+                if not isinstance(trace, BaseTraceType)
+                else trace
+            )
             for trace in data
         ]
 
@@ -1137,7 +1141,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             limit_to_views = [limit_to_views] * len(data)
 
         zipped = zip(data, max_n_samples, downsamplers, gap_handlers, limit_to_views)
-        for (i, (trace, max_out, downsampler, gap_handler, limit_to_view)) in enumerate(
+        for i, (trace, max_out, downsampler, gap_handler, limit_to_view) in enumerate(
             zipped
         ):
             if (

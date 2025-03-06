@@ -10,6 +10,7 @@ of the coarse graph is not linked.
 TODO: add an rectangle on the coarse graph
 
 """
+
 from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt"

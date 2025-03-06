@@ -1,6 +1,5 @@
 """Fixtures and helper functions for testing"""
 
-
 import os
 from typing import Union
 
@@ -71,6 +70,7 @@ def driver():
         driver = webdriver.Chrome(
             options=options,
             # executable_path="/home/jeroen/chromedriver",
+            # executable_path="/home/jonas/Documents/chromedriver-linux64/chromedriver",
             desired_capabilities=d,
         )
         # driver = webdriver.Firefox(executable_path='/home/jonas/git/gIDLaB/plotly-dynamic-resampling/geckodriver')
