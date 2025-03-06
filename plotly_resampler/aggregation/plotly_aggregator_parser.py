@@ -38,7 +38,11 @@ class PlotlyAggregatorParser:
             return None
         elif reference_tz is not None:
             if ts.tz is not None:
-                assert ts.tz.__str__() == reference_tz.__str__()
+                # compare if these two have the same timezone / offset
+                try:
+                    assert ts.tz.__str__() == reference_tz.__str__()
+                except AssertionError:
+                    assert ts.utcoffset() == reference_tz.utcoffset(ts.tz_convert(None))
                 return ts
             else:  # localize -> time remains the same
                 return ts.tz_localize(reference_tz)
@@ -78,7 +82,15 @@ class PlotlyAggregatorParser:
             # convert start & end to the same timezone
             if isinstance(hf_trace_data["x"], pd.DatetimeIndex):
                 tz = hf_trace_data["x"].tz
-                assert start.tz == end.tz
+                try:
+                    assert start.tz.__str__() == end.tz.__str__()
+                except (TypeError, AssertionError):
+                    # This fix is needed for DST (when the timezone is not fixed)
+                    assert start.tz_localize(None) == start.tz_convert(tz).tz_localize(
+                        None
+                    )
+                    assert end.tz_localize(None) == end.tz_convert(tz).tz_localize(None)
+
                 start = PlotlyAggregatorParser.to_same_tz(start, tz)
                 end = PlotlyAggregatorParser.to_same_tz(end, tz)
 
