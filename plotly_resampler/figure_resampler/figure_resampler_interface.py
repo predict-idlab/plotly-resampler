@@ -1300,6 +1300,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
 
+            # related issue: https://github.com/predict-idlab/plotly-resampler/pull/336
             # When the user sets x range via update_xaxes and the number of points in
             # data exceeds the default_n_shown_samples, then after resetting the axes
             # the relayout may only have "xaxis.range", instead of "xaxis.range[0]" and
@@ -1316,6 +1317,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     relayout_data[stop_match] = stop
                     start_matches.append(start_match)
                     stop_matches.append(stop_match)
+                    del x_range, start, stop, start_match, stop_match
             if start_matches and stop_matches:  # when both are not empty
                 for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                     # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
