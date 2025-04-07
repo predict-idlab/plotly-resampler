@@ -19,8 +19,8 @@ except ImportError:
     )
 
 from dash._jupyter import JupyterDash, _jupyter_config, make_server
-from retrying import retry
 from plotly.graph_objects import Figure
+from retrying import retry
 
 
 class JupyterDashPersistentInlineOutput:
