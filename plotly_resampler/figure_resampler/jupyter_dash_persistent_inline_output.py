@@ -13,8 +13,8 @@ try:
     from IPython.display import HTML, display
 except ImportError:
     raise ImportError(
-        "The `jupyter_dash_persistent_inline_output` module is not installed.\n"
-        "Please install it with:\n"
+        "The `jupyter_dash_persistent_inline_output` requirements are not installed.\n"
+        "Please install them with:\n"
         "pip install plotly_resampler[inline_persistent]"
     )
 
