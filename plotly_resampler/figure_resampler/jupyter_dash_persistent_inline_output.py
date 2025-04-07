@@ -12,10 +12,15 @@ import requests
 try:
     from IPython.display import HTML, display
 except ImportError:
-    pass
+    raise ImportError(
+        "The `jupyter_dash_persistent_inline_output` requirements are not installed.\n"
+        "Please install them with:\n"
+        "pip install plotly_resampler[inline_persistent]"
+    )
 
-from dash._jupyter import JupyterDash, _jupyter_config, make_server, retry
+from dash._jupyter import JupyterDash, _jupyter_config, make_server
 from plotly.graph_objects import Figure
+from retrying import retry
 
 
 class JupyterDashPersistentInlineOutput:
