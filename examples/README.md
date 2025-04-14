@@ -51,6 +51,7 @@ The [dash_apps](dash_apps/) folder contains example dash apps in which `plotly-r
 | [dynamic sine generator](dash_apps/11_sine_generator.py) | exponential sine generator which uses [pattern matching callbacks](https://dash.plotly.com/pattern-matching-callbacks) to remove and construct plotly-resampler graphs dynamically                                                                                                  |
 | [file visualization](dash_apps/12_file_selector.py) | load and visualize multiple `.parquet` files with plotly-resampler                                                                                                                                                                                                                  |
 | [dynamic static graph](dash_apps/13_coarse_fine.py) | Visualization dashboard in which a dynamic (i.e., plotly-resampler graph) and a coarse, static graph (i.e., go.Figure) are shown (made for [this issue](https://github.com/predict-idlab/plotly-resampler/issues/56)). Graph interaction events on the coarse graph update the dynamic graph. |
+| [modify traces](dash_apps/14_modify_traces.py) | Example in which trace data is modified based on front-end parameter values. |
 
 ## 3. Other apps
 
