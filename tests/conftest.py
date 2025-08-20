@@ -288,7 +288,7 @@ def gsr_figure() -> FigureResampler:
             start- and endtime of the consecutive range, the number of consecutive samples,
             and the col_name's consecutive values.
         """
-        if type(df) == pd.Series:
+        if isinstance(df, pd.Series):
             col_name = df.name
             df = df.to_frame()
 

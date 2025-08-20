@@ -2,12 +2,12 @@ black = black plotly_resampler examples tests
 
 .PHONY: format
 format:
-	ruff --fix plotly_resampler tests
 	$(black)
+	poetry run ruff check plotly_resampler tests
 
 .PHONY: lint
 lint:
-	poetry run ruff plotly_resampler tests
+	poetry run ruff check plotly_resampler tests
 	poetry run $(black) --check --diff
 
 .PHONY: test

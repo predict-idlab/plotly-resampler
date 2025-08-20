@@ -611,9 +611,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y = (
             trace["y"]
             if hasattr(trace, "y") and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, (pd.Series, pd.Index))
-            else hf_y
+            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index)) else hf_y
         )
         # NOTE: the if will not be triggered for a categorical series its values
         if not hasattr(hf_y, "dtype"):

@@ -37,7 +37,7 @@ classifiers = [
 python = "^3.8"
 plotly = ">=5.5.0,<7.0.0"
 dash = ">=2.11.0"  # from dash 2.11, jupyter support is included
-pandas =[
+pandas = [
     { version = ">=1", python = "<3.13" },
     { version = ">=2.2.3", python = ">=3.13" }
 ] 
@@ -71,7 +71,7 @@ pyarrow = [
 ipywidgets = "^7.7.1" # needs to be v7 in order to support serialization
 memory-profiler = "^0.60.0"
 line-profiler = "^4.0"
-ruff = "^0.0.262"
+ruff = ">=0.9.6"
 black = "^24.3.0"
 pytest-lazy-fixture = "^0.6.3"
 # yep = "^0.4"  # c code profiling
@@ -89,16 +89,24 @@ anywidget = "^0.9.13"
 
 # Linting
 [tool.ruff]
-select = ["E", "F", "I"]
 line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
 ignore = ["E501"] # Never enforce `E501` (line length violations).
-[tool.ruff.per-file-ignores]
+
+[tool.ruff.lint.per-file-ignores]
 "tests/test_registering.py" = ["F401", "F811"]
 "tests/test_serialization.py" = ["F401", "F811"]
 
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
 # Formatting
-[tool.black]
-line-length = 88
+# [tool.black]
+# line-length = 88
 
 [build-system]
 requires = ["poetry-core"]
