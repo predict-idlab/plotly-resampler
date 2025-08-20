@@ -112,6 +112,116 @@ class TestDynamicProperties:
         assert len(trace.marker.symbol) == 100
         assert len(trace.marker.size) == 100
 
+    def test_aggregation_contains_downsampled_properties(self):
+        """Test that aggregation contains the downsampled properties using MinMaxAggregator."""
+        # Highly similar to the usecase in issue #354
+        from plotly_resampler.aggregation import MinMaxAggregator
+
+        fig = FigureResampler(default_n_shown_samples=100)
+
+        # Create test data similar to the example
+        n = 2000
+        x = np.arange(n)
+        y = (
+            (3 + np.sin(x / (x.shape[0] / 100)) + np.random.randn(len(x)) / 10)
+            * x
+            / 1_000
+        )
+
+        # Prepare the marker symbol and color arrays
+        marker_symbol = np.where(x % 2 == 0, "triangle-up", "triangle-down")
+        marker_color = np.where(
+            x % 3 == 0, "green", np.where(x % 3 == 1, "red", "blue")
+        )
+
+        # Add the trace with hf_marker_symbol and hf_marker_color
+        fig.add_trace(
+            go.Scatter(
+                name="foobar", showlegend=True, mode="markers", marker={"size": 20}
+            ),
+            hf_x=x,
+            hf_y=y,
+            hf_marker_symbol=marker_symbol,
+            hf_marker_color=marker_color,
+            downsampler=MinMaxAggregator(),
+        )
+
+        # Check that properties are in hf_data
+        hf_trace = fig.hf_data[0]
+        assert "marker_symbol" in hf_trace
+        assert "marker_color" in hf_trace
+        assert len(hf_trace["marker_symbol"]) == n
+        assert len(hf_trace["marker_color"]) == n
+
+        # Check that the downsampled trace has the properties
+        trace = fig.data[0]
+        assert hasattr(trace.marker, "symbol")
+        assert hasattr(trace.marker, "color")
+        assert len(trace.marker.symbol) == 100
+        assert len(trace.marker.color) == 100
+
+        # Check that the downsampled properties maintain the pattern
+        downsampled_symbols = trace.marker.symbol
+        downsampled_colors = trace.marker.color
+        downsampled_x = trace.x
+
+        # Verify that the downsampled symbols are still valid
+        assert np.all(downsampled_symbols == marker_symbol[downsampled_x])
+        assert np.all(downsampled_colors == marker_color[downsampled_x])
+
+
+    def test_aggregation_property_consistency(self):
+        """Test that aggregated properties are consistent with the original data pattern."""
+        # Highly similar to the usecase in issue #354
+        from plotly_resampler.aggregation import MinMaxAggregator
+
+        fig = FigureResampler(default_n_shown_samples=50)
+
+        # Create test data with a clear pattern
+        n = 1000
+        x = np.arange(n)
+        y = np.sin(x / 100)
+
+        # Create alternating patterns for easy verification
+        marker_symbol = np.where(
+            x % 4 == 0,
+            "circle",
+            np.where(x % 4 == 1, "square", np.where(x % 4 == 2, "diamond", "cross")),
+        )
+
+        marker_color = np.where(
+            x % 3 == 0, "red", np.where(x % 3 == 1, "green", "blue")
+        )
+
+        # Add trace with clear patterns
+        fig.add_trace(
+            go.Scatter(
+                x=x,
+                y=y,
+                mode="markers",
+            ),
+            hf_marker_symbol=marker_symbol,
+            hf_marker_color=marker_color,
+            downsampler=MinMaxAggregator(),
+        )
+
+        # Check that the downsampled properties maintain the original values
+        # (not aggregated/transformed values)
+        trace = fig.data[0]
+        downsampled_symbols = trace.marker.symbol
+        downsampled_colors = trace.marker.color
+        downsampled_x = trace.x
+
+        # The length should match the downsampled data
+        assert len(downsampled_symbols) == 50
+        assert len(downsampled_colors) == 50
+        assert len(downsampled_x) == 50
+
+        # Assert the the downsampled data matches the original data
+        assert np.all(downsampled_symbols == marker_symbol[downsampled_x])
+        assert np.all(downsampled_colors == marker_color[downsampled_x])
+
+
     def test_figurewidget_resampler_support(self):
         """Test that FigureWidgetResampler also supports dynamic properties."""
         fig = FigureWidgetResampler(default_n_shown_samples=100)
