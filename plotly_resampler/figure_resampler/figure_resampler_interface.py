@@ -37,6 +37,8 @@ from .utils import round_number_str, round_td_str
 DOWNSAMPLABLE_PROPERTIES = [
     ("text", ["text"], "hf_text"),
     ("hovertext", ["hovertext"], "hf_hovertext"),
+    ("marker_angle", ["marker", "angle"], "hf_marker_angle"),
+    ("marker_opacity", ["marker", "opacity"], "hf_marker_opacity"),
     ("marker_size", ["marker", "size"], "hf_marker_size"),
     ("marker_color", ["marker", "color"], "hf_marker_color"),
     ("marker_symbol", ["marker", "symbol"], "hf_marker_symbol"),
@@ -939,6 +941,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             - hf_marker_size: High-frequency marker size data
             - hf_marker_color: High-frequency marker color data
             - hf_marker_symbol: High-frequency marker symbol data
+            - hf_marker_angle: High-frequency marker angle data
             - hf_customdata: High-frequency customdata
 
             These have priority over the corresponding trace properties.
