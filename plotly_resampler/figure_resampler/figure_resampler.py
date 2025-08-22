@@ -26,7 +26,6 @@ from ..aggregation import (
     MinMaxLTTB,
 )
 from .figure_resampler_interface import AbstractFigureAggregator
-from .jupyter_dash_persistent_inline_output import JupyterDashPersistentInlineOutput
 from .utils import is_figure, is_fr
 
 # Default arguments for the Figure overview
@@ -626,6 +625,10 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         # function signatures are slightly different for the (Jupyter)Dash and the
         # JupyterDashInlinePersistent implementations
         if mode == "inline_persistent":
+            from .jupyter_dash_persistent_inline_output import (
+                JupyterDashPersistentInlineOutput,
+            )
+
             jpi = JupyterDashPersistentInlineOutput(self)
             jpi.run_app(app=app, **kwargs)
         else:

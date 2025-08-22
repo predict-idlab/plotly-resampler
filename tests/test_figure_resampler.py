@@ -1279,7 +1279,7 @@ def test_manual_jupyterdashpersistentinline():
 
     import dash
 
-    from plotly_resampler.figure_resampler.figure_resampler import (
+    from plotly_resampler.figure_resampler.jupyter_dash_persistent_inline_output import (
         JupyterDashPersistentInlineOutput,
     )
 
