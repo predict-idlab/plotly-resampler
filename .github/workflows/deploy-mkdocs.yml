@@ -30,12 +30,12 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry/virtualenvs
-          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.8
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}-python-3.10
 
       - run: poetry --version
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --all-extras
 
       - name: fetch from gh-pages
         run: git fetch origin gh-pages --depth=1
