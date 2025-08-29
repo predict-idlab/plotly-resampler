@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -37,6 +39,19 @@ jobs:
       - name: Install dependencies
         run: poetry install --all-extras
 
+      - name: Get version for deployment
+        id: get_version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # For manual runs, get the latest tag
+            VERSION=$(git describe --tags --abbrev=0)
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            # For tag pushes, use the tag name
+            VERSION="${{ github.ref_name }}"
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          fi
+
       - name: fetch from gh-pages
         run: git fetch origin gh-pages --depth=1
 
@@ -47,4 +62,4 @@ jobs:
 
       - name: Deploy with mike
         run: |
-          poetry run mike deploy -b gh-pages --update-aliases --push "${{ github.ref_name }}" "latest"
+          poetry run mike deploy -b gh-pages --update-aliases --push "${{ steps.get_version.outputs.version }}" "latest"
