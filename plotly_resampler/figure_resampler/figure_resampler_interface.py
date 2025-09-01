@@ -236,8 +236,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "data": [
                 {
                     k: copy(trace[k])
-                    # TODO: why not "text" as well? -> we can use _hf_data_container.fields then
-                    for k in set(trace.keys()).difference({"x", "y", "hovertext"})
+                    for k in set(trace.keys()).difference({_hf_data_container.fields})
                 }
                 for trace in self._data
             ],
@@ -613,7 +612,9 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y = (
             trace["y"]
             if hasattr(trace, "y") and hf_y is None
-            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index)) else hf_y
+            else hf_y.values
+            if isinstance(hf_y, (pd.Series, pd.Index))
+            else hf_y
         )
         # NOTE: the if will not be triggered for a categorical series its values
         if not hasattr(hf_y, "dtype"):
@@ -1019,7 +1020,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             hf_properties = {}
             for _, _, hf_param_name in DOWNSAMPLABLE_PROPERTIES:
                 if hf_param_name in trace_kwargs:
-                    # TODO -> hf_param name
                     hf_properties[hf_param_name] = trace_kwargs.pop(hf_param_name)
 
             # construct the hf_data_container
