@@ -236,7 +236,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "data": [
                 {
                     k: copy(trace[k])
-                    for k in set(trace.keys()).difference({_hf_data_container.fields})
+                    for k in set(trace.keys()).difference({_hf_data_container._fields})
                 }
                 for trace in self._data
             ],
