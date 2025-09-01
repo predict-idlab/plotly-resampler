@@ -756,7 +756,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             The value to set.
         """
         current = trace
-        for i, path_component in enumerate(trace_path[:-1]):
+        for path_component in trace_path[:-1]:
             if hasattr(current, path_component):
                 current = getattr(current, path_component)
             elif isinstance(current, dict):
