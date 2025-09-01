@@ -4561,4 +4561,4 @@ inline-persistent = ["Flask-Cors", "kaleido"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.8"
-content-hash = "ff6783c57a2f304053d9fbd85393b3c7eb261eee7e0fd4f5b860b8bea27cce17"
+content-hash = "5a16d15a5f9c16e3d1a2ec35d4ab9f1dcaed65934de4b4faa6d1875f6bfc4294"

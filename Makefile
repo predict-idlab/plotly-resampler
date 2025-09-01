@@ -2,7 +2,7 @@ black = black plotly_resampler examples tests
 
 .PHONY: format
 format:
-	$(black)
+	poetry run $(black)
 	poetry run ruff check plotly_resampler tests
 
 .PHONY: lint
