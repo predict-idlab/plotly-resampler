@@ -1,9 +1,17 @@
 import multiprocessing
+import platform
 import time
+
+import pytest
 
 from plotly_resampler.figure_resampler import FigureResampler
 
 from .fr_selenium import FigureResamplerGUITests, RequestParser
+
+pytestmark = pytest.mark.skipif(
+    platform.system() == "Darwin",
+    reason="Selenium tests are unstable on macOS CI",
+)
 
 
 def test_multiple_tz(driver, multiple_tz_figure):
