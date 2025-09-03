@@ -1,6 +1,7 @@
 """Fixtures and helper functions for testing"""
 
 import os
+import platform
 from typing import Union
 
 import numpy as np
@@ -64,6 +65,14 @@ def driver():
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
         # options.add_argument("--no=sandbox")
+
+    # macOS-specific options for better stability
+    if platform.system() == "Darwin":  # macOS
+        options.add_argument("--disable-web-security")
+        options.add_argument("--disable-features=VizDisplayCompositor")
+        options.add_argument("--window-size=1920,1080")
+        options.add_argument("--remote-debugging-port=9222")
+
         driver = webdriver.Chrome(
             options=options,
             desired_capabilities=d,

@@ -230,7 +230,8 @@ class FigureResamplerGUITests:
         if not self.on_page:
             self.go_to_page()
 
-        WebDriverWait(self.driver, 10).until(
+        timeout = 30 if not_on_linux() else 10
+        WebDriverWait(self.driver, timeout).until(
             EC.presence_of_element_located((By.CLASS_NAME, div_classname))
         )
 
