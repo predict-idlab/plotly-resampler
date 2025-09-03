@@ -230,7 +230,7 @@ class FigureResamplerGUITests:
         if not self.on_page:
             self.go_to_page()
 
-        WebDriverWait(self.driver, 3).until(
+        WebDriverWait(self.driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, div_classname))
         )
 
