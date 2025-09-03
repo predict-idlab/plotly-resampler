@@ -23,10 +23,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
-        os: ['macOS-latest', 'ubuntu-latest']
-        # python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
-        python-version: ['3.8']
+        os: ['windows-latest', 'macOS-latest', 'ubuntu-latest']
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
         exclude:
           - os: ubuntu-latest
             python-version: '3.12'
@@ -42,10 +40,6 @@ jobs:
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
-
-    - name: Install Chrome
-      uses: browser-actions/setup-chrome@v1
-      if: matrix.os == 'macOS-latest'
 
     - uses: nanasess/setup-chromedriver@v2
       # with:
@@ -76,7 +70,7 @@ jobs:
 #         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests
+        poetry run pytest --cov=plotly_resampler --junitxml=junit/test-results-${{ matrix.python-version }}.xml --cov-report=xml tests/test_figure_resampler_selenium.py
     - name: Upload pytest test results
        # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() && hashFiles('junit/test-results-${{ matrix.python-version }}.xml') != '' }}

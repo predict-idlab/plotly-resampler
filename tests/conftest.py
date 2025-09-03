@@ -66,12 +66,21 @@ def driver():
         options.add_argument("--disable-gpu")
         # options.add_argument("--no=sandbox")
 
-    # macOS-specific options for better stability
-    if platform.system() == "Darwin":  # macOS
-        options.add_argument("--disable-web-security")
-        options.add_argument("--disable-features=VizDisplayCompositor")
-        options.add_argument("--window-size=1920,1080")
-        options.add_argument("--remote-debugging-port=9222")
+        # macOS-specific options for better stability
+        if platform.system() == "Darwin":  # macOS
+            options.add_argument("--disable-web-security")
+            options.add_argument("--disable-features=VizDisplayCompositor")
+            options.add_argument("--window-size=1920,1080")
+            options.add_argument("--remote-debugging-port=9222")
+            # Additional stability options for macOS CI
+            options.add_argument("--disable-background-timer-throttling")
+            options.add_argument("--disable-backgrounding-occluded-windows")
+            options.add_argument("--disable-renderer-backgrounding")
+            options.add_argument("--disable-ipc-flooding-protection")
+            options.add_argument("--single-process")  # This can help with CI stability
+            options.add_argument("--disable-extensions")
+            options.add_argument("--disable-default-apps")
+        
 
         driver = webdriver.Chrome(
             options=options,
