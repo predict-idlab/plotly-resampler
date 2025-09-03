@@ -60,6 +60,9 @@ def driver():
     if not TESTING_LOCAL:
         if headless:
             options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
         # options.add_argument("--no=sandbox")
         driver = webdriver.Chrome(
             options=options,
