@@ -9,8 +9,10 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.graph_objects as go
 import pytest
+from packaging import version
 from plotly.subplots import make_subplots
 
 from plotly_resampler import EveryNthPoint, FigureWidgetResampler, MinMaxLTTB
@@ -140,6 +142,23 @@ def test_add_not_a_hf_trace(float_series):
         row=2,
         col=1,
     )
+
+
+def test_add_not_scatter():
+    fw_fig = FigureWidgetResampler(
+        go.Figure(go.Bar(x=[1, 2, 3, 4], y=[1, 2, 3, 4])), verbose=True
+    )
+
+    # we do not want to have an relayout update
+    assert len(fw_fig._relayout_hist) == 0
+
+    # zoom in on both traces
+    fw_fig.layout.update(
+        {"xaxis": {"range": [0, 1]}},
+        overwrite=False,
+    )
+    # reset axes
+    fw_fig.reset_axes()
 
 
 def test_box_histogram(float_series):
@@ -1731,6 +1750,14 @@ def test_fwr_from_trace_dict():
     assert fwr_fig.data[0].uid in fwr_fig._hf_data
 
 
+@pytest.mark.skipif(
+    version.parse(plotly.__version__) >= version.parse("6.0.0"),
+    reason="""
+    Plotly>=6 converts data to base64 instead of keeping the data as (numpy) arrays
+    Moreover, deepcopies are performed when using to_dict (or to_plotly_json), making
+    this approach highly unscalable.
+    """,
+)
 def test_fwr_from_figure_dict():
     y = np.array([1] * 10_000)
     base_fig = go.Figure()

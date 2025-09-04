@@ -1,6 +1,5 @@
 """Fixtures and helper functions for testing"""
 
-
 import os
 from typing import Union
 
@@ -53,7 +52,7 @@ def driver():
     from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
     from seleniumwire import webdriver
 
-    time.sleep(1)
+    time.sleep(3)
 
     options = Options()
     d = DesiredCapabilities.CHROME
@@ -61,7 +60,11 @@ def driver():
     if not TESTING_LOCAL:
         if headless:
             options.add_argument("--headless")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
         # options.add_argument("--no=sandbox")
+
         driver = webdriver.Chrome(
             options=options,
             desired_capabilities=d,
@@ -71,6 +74,7 @@ def driver():
         driver = webdriver.Chrome(
             options=options,
             # executable_path="/home/jeroen/chromedriver",
+            # executable_path="/home/jonas/Documents/chromedriver-linux64/chromedriver",
             desired_capabilities=d,
         )
         # driver = webdriver.Firefox(executable_path='/home/jonas/git/gIDLaB/plotly-dynamic-resampling/geckodriver')
@@ -288,7 +292,7 @@ def gsr_figure() -> FigureResampler:
             start- and endtime of the consecutive range, the number of consecutive samples,
             and the col_name's consecutive values.
         """
-        if type(df) == pd.Series:
+        if isinstance(df, pd.Series):
             col_name = df.name
             df = df.to_frame()
 

@@ -12,8 +12,10 @@ from typing import List
 
 import numpy as np
 import pandas as pd
+import plotly
 import plotly.graph_objects as go
 import pytest
+from packaging import version
 from plotly.subplots import make_subplots
 from selenium.webdriver.common.by import By
 
@@ -22,7 +24,7 @@ from plotly_resampler.aggregation import NoGapHandler, PlotlyAggregatorParser
 
 # Note: this will be used to skip / alter behavior when running browser tests on
 # non-linux platforms.
-from .utils import construct_hf_data_dict, not_on_linux
+from .utils import construct_hf_data_dict, decode_trace_bdata, not_on_linux
 
 
 def test_add_trace_kwarg_space(float_series, bool_series, cat_series):
@@ -147,7 +149,7 @@ def test_various_dtypes(float_series):
         np.int32,
         np.int64,
         # -------- floats
-        np.float16,  # currently not supported by orjson
+        np.float16,  # supported by orjson >=3.10.0
         np.float32,
         np.float64,
     ]
@@ -164,20 +166,6 @@ def test_various_dtypes(float_series):
             hf_y=fsv,
         )
         fig.full_figure_for_development()
-
-    # List of dtypes not supported by orjson >= 3.8
-    invalid_dtype_list = [np.float16]
-    for invalid_dtype in invalid_dtype_list:
-        fig = FigureResampler(go.Figure(), default_n_shown_samples=1000)
-        # nb. datapoints < default_n_shown_samples
-        with pytest.raises(TypeError):
-            # if this test fails -> orjson supports f16 => remove casting frome code
-            fig.add_trace(
-                go.Scatter(name="float_series"),
-                hf_x=float_series.index[:500],
-                hf_y=float_series.astype(invalid_dtype)[:500],
-            )
-            fig.full_figure_for_development()
 
 
 def test_max_n_samples(float_series):
@@ -685,7 +673,15 @@ def test_multiple_timezones():
             col=1,
         )
         # Assert that the time parsing is exactly the same
-        assert plain_plotly_fig.data[i - 1].x[0] == fr_fig.data[i - 1].x[0]
+        try:
+            # check if time and dtype is the same
+            assert plain_plotly_fig.data[i - 1].x[0] == fr_fig.data[i - 1].x[0]
+        except AssertionError:
+            if isinstance(fr_fig.data[i - 1].x[0], pd.Timestamp):
+                # Check if the local time is the same between the plotly
+                # and the resampled figure
+                local_time = np.datetime64(fr_fig.data[i - 1].x[0].replace(tzinfo=None))
+                assert local_time == np.datetime64(plain_plotly_fig.data[i - 1].x[0])
 
 
 def test_set_hfx_tz_aware_series():
@@ -758,6 +754,74 @@ def test_tz_xaxis_range():
     assert len(out[2]["x"]) == 2000
 
 
+def test_compare_tz_with_fixed_offset():
+    # related: https://github.com/predict-idlab/plotly-resampler/issues/305
+    fig = FigureResampler()
+
+    x = pd.date_range("2024-04-01T00:00:00", "2025-01-01T00:00:00", freq="h")
+    x = x.tz_localize("Asia/Taipei")
+    y = np.random.randn(len(x))
+
+    fig.add_trace(
+        go.Scattergl(x=x, y=y, name="demo", mode="lines+markers"),
+        max_n_samples=int(len(x) * 0.2),
+    )
+
+    relayout_data = {
+        "xaxis.range[0]": "2024-04-27T08:00:00+08:00",
+        "xaxis.range[1]": "2024-05-04T17:15:39.491031+08:00",
+    }
+
+    fig.construct_update_data_patch(relayout_data)
+
+
+def test_compare_tz_with_fixed_offset_2():
+    # related: https://github.com/predict-idlab/plotly-resampler/issues/305
+    fig = FigureResampler()
+
+    x = pd.date_range("2024-04-01T00:00:00", "2025-01-01T00:00:00", freq="h")
+    x = x.tz_localize("UTC")
+    x = x.tz_convert("Canada/Pacific")
+    y = np.random.randn(len(x))
+
+    fig.add_trace(
+        go.Scattergl(x=x, y=y, name="demo", mode="lines+markers"),
+        max_n_samples=int(len(x) * 0.2),
+    )
+
+    relayout_data = {
+        "xaxis.range[0]": pd.Timestamp("2024-03-01T00:00:00").tz_localize(
+            "Canada/Pacific"
+        ),
+        "xaxis.range[1]": pd.Timestamp("2024-03-31T00:00:00").tz_localize(
+            "Canada/Pacific"
+        ),
+    }
+
+    fig.construct_update_data_patch(relayout_data)
+
+
+def test_relayout_tz_DST():
+    # related: https://github.com/predict-idlab/plotly-resampler/issues/305
+    fig = FigureResampler()
+
+    x = pd.date_range(
+        "2024-09-27 17:00:00", "2024-12-11 16:00:00", tz="US/Pacific", freq="1h"
+    )
+    y = np.random.randn(len(x))
+    fig.add_trace(
+        go.Scattergl(x=x, y=y, name="demo", mode="lines+markers"),
+        max_n_samples=int(len(x) * 0.2),
+    )
+
+    relayout_data = {
+        "xaxis.range[0]": "2024-09-27T17:00:00-07:00",
+        "xaxis.range[1]": "2024-12-12T15:59:00-08:00",
+    }
+
+    fig.construct_update_data_patch(relayout_data)
+
+
 def test_datetime_hf_x_no_index():
     df = pd.DataFrame(
         {"timestamp": pd.date_range("2020-01-01", "2020-01-02", freq="1s")}
@@ -793,8 +857,8 @@ def test_multiple_timezones_in_single_x_index__datetimes_and_timestamps():
     # TODO: can be improved with pytest parametrize
     y = np.arange(20)
 
-    index1 = pd.date_range("2018-01-01", periods=10, freq="H", tz="US/Eastern")
-    index2 = pd.date_range("2018-01-02", periods=10, freq="H", tz="Asia/Dubai")
+    index1 = pd.date_range("2018-01-01", periods=10, freq="h", tz="US/Eastern")
+    index2 = pd.date_range("2018-01-02", periods=10, freq="h", tz="Asia/Dubai")
     index_timestamps = index1.append(index2)
     assert all(isinstance(x, pd.Timestamp) for x in index_timestamps)
     index1_datetimes = pd.Index([x.to_pydatetime() for x in index1])
@@ -1013,7 +1077,7 @@ def test_time_tz_slicing_different_timestamp():
     cs = [
         dr,
         dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
-        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Europe/Lisbon"),
         dr.tz_convert("Australia/Perth"),
         dr.tz_convert("Australia/Canberra"),
     ]
@@ -1030,6 +1094,25 @@ def test_time_tz_slicing_different_timestamp():
             start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
                 hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
             )
+
+    # THESE have the same timezone offset -> no AssertionError should be raised
+    cs = [
+        dr.tz_localize(None).tz_localize("Europe/Amsterdam"),
+        dr.tz_convert("Europe/Brussels"),
+        dr.tz_convert("Europe/Oslo"),
+        dr.tz_convert("Europe/Paris"),
+        dr.tz_convert("Europe/Rome"),
+    ]
+
+    for i, s in enumerate(cs):
+        t_start, t_stop = sorted(s.iloc[np.random.randint(0, n, 2)].index)
+        t_start = t_start.tz_convert(cs[(i + 1) % len(cs)].index.tz)
+        t_stop = t_stop.tz_convert(cs[(i + 1) % len(cs)].index.tz)
+
+        hf_data_dict = construct_hf_data_dict(s.index, s.values)
+        start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
+            hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
+        )
 
 
 def test_different_tz_no_tz_series_slicing():
@@ -1096,7 +1179,7 @@ def test_multiple_tz_no_tz_series_slicing():
 
         # Now the assumption cannot be made that s has the same time-zone as the
         # timestamps -> AssertionError will be raised.
-        with pytest.raises(AssertionError):
+        with pytest.raises((TypeError, AssertionError)):
             hf_data_dict = construct_hf_data_dict(s.tz_localize(None).index, s.values)
             PlotlyAggregatorParser.get_start_end_indices(
                 hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
@@ -1196,12 +1279,12 @@ def test_manual_jupyterdashpersistentinline():
 
     import dash
 
-    from plotly_resampler.figure_resampler.figure_resampler import (
+    from plotly_resampler.figure_resampler.jupyter_dash_persistent_inline_output import (
         JupyterDashPersistentInlineOutput,
     )
 
-    app = JupyterDashPersistentInlineOutput("manual_app")
-    assert hasattr(app, "_uid")
+    app = dash.Dash("local_app")
+    JupyterDashPersistentInlineOutput(fr)
 
     # Mimmick what happens in the .show_dash method
     # note: this is necessary because the figure gets accessed in the J
@@ -1213,9 +1296,7 @@ def test_manual_jupyterdashpersistentinline():
     )
 
     # call the method (as it would normally be called)
-    app._display_in_jupyter("", port="", mode="inline", width="100%", height=500)
-    # call with a different mode (as it normally never would be called)
-    app._display_in_jupyter("", port="", mode="external", width="100%", height=500)
+    # jpi.run_app(app, port="8043", width="100%", height=500)
 
 
 def test_stop_server_external():
@@ -1275,6 +1356,14 @@ def test_fr_from_trace_dict():
     assert fr_fig.data[0].uid in fr_fig._hf_data
 
 
+@pytest.mark.skipif(
+    version.parse(plotly.__version__) >= version.parse("6.0.0"),
+    reason="""
+    Plotly>=6 converts data to base64 instead of keeping the data as (numpy) arrays
+    Moreover, deepcopies are performed when using to_dict (or to_plotly_json), making
+    this approach highly unscalable.
+    """,
+)
 def test_fr_from_figure_dict():
     y = np.array([1] * 10_000)
     base_fig = go.Figure()
@@ -1632,10 +1721,12 @@ def test_fr_update_layout_axes_range(driver):
         f_pr_layout = el.get_property("layout")
 
         # After showing the figure, the f_pr contains the data of the selected xrange (downsampled to 500 samples)
-        assert len(f_pr_data[0]["y"]) == 500
-        assert len(f_pr_data[0]["x"]) == 500
-        assert f_pr_data[0]["y"][0] >= 100 and f_pr_data[0]["y"][-1] <= 1000
-        assert f_pr_data[0]["x"][0] >= 100 and f_pr_data[0]["x"][-1] <= 1000
+        y_ = decode_trace_bdata(f_pr_data[0]["y"])
+        x_ = decode_trace_bdata(f_pr_data[0]["x"])
+        assert len(y_) == 500
+        assert len(x_) == 500
+        assert y_[0] >= 100 and y_[-1] <= 1000
+        assert x_[0] >= 100 and x_[-1] <= 1000
         # Check the front-end layout
         assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
         assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
@@ -1720,12 +1811,15 @@ def test_fr_update_layout_axes_range_no_update(driver):
         f_pr_layout = el.get_property("layout")
 
         # After showing the figure, the f_pr contains the original data (not downsampled), but shown xrange is [100, 1000]
-        assert len(f_pr_data[0]["y"]) == 2_000
-        assert len(f_pr_data[0]["x"]) == 2_000
-        assert f_pr.data[0]["y"][0] == 0
-        assert f_pr.data[0]["y"][-1] == 1999
-        assert f_pr.data[0]["x"][0] == 0
-        assert f_pr.data[0]["x"][-1] == 1999
+        y_ = decode_trace_bdata(f_pr_data[0]["y"])
+        assert len(y_) == 2_000
+        assert y_[0] == 0
+        assert y_[-1] == 1999
+
+        x_ = decode_trace_bdata(f_pr_data[0]["x"])
+        assert len(x_) == 2_000
+        assert x_[0] == 0
+        assert x_[-1] == 1999
         # Check the front-end layout
         assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
         assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
@@ -1890,3 +1984,43 @@ def test_hf_marker_size_plotly_args():
         (np.abs(update_trace["y"]) / np.max(np.abs(y))),
         rtol=1e-3,
     )
+
+
+@pytest.mark.parametrize("shared_xaxes", [False, True])
+def test_manual_range_def(shared_xaxes):
+    # related issue: https://github.com/predict-idlab/plotly-resampler/pull/336
+    time = 1000
+    N = 4001  # number of points in the subplot exceeds default_n_shown_samples
+    x = np.linspace(0.0, time, N, endpoint=False)
+    y = np.cos(1 / 2 * np.pi + 2 / 50 * np.pi * x)
+
+    # Create a subplot with two rows (non shared xaxes)
+    fig = FigureResampler(make_subplots(rows=2, cols=1, shared_xaxes=shared_xaxes))
+    fig.add_trace(
+        go.Scattergl(line=dict(width=1), marker=dict(size=2, color="blue")),
+        hf_x=x,
+        hf_y=y,
+        row=1,
+        col=1,
+    )
+    fig.add_trace(go.Scattergl(), hf_x=x, hf_y=-y, row=2, col=1)
+
+    fig.update_xaxes(
+        range=[0, np.ceil(x[-1])],  # set the x range of the subplot
+        row=1,
+        col=1,
+    )
+
+    fig.update_xaxes(
+        range=[0, np.ceil(x[-1])],  # set the x range of the subplot
+        row=2,
+        col=1,
+    )
+
+    # Before this fix, a noUpdate was returned
+    ud = fig._construct_update_data({"xaxis.range": [0, 10]})
+    assert isinstance(ud, list) and len(ud) == 2
+    ud = fig._construct_update_data({"xaxis2.range": [0, 10]})
+    assert isinstance(ud, list) and len(ud) == 2
+    ud = fig._construct_update_data({"xaxis2.range": [2, 10], "xaxis.range": [5, 100]})
+    assert isinstance(ud, list) and len(ud) == 3

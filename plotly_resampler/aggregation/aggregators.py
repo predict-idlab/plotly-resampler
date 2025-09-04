@@ -99,7 +99,7 @@ class MinMaxOverlapAggregator(DataPointSelector):
     """Aggregation method which performs binned min-max aggregation over 50% overlapping
     windows.
 
-    ![minmax operator image](https://github.com/predict-idlab/plotly-resampler/blob/main/docs/sphinx/_static/minmax_operator.png)
+    ![minmax operator image](https://github.com/predict-idlab/plotly-resampler/blob/main/mkdocs/static/minmax_operator.png)
 
     In the above image, **bin_size**: represents the size of *(len(series) / n_out)*.
     As the windows have 50% overlap and are consecutive, the min & max values are

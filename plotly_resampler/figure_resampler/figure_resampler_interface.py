@@ -29,14 +29,31 @@ from ..aggregation.gap_handler_interface import AbstractGapHandler
 from ..aggregation.plotly_aggregator_parser import PlotlyAggregatorParser
 from .utils import round_number_str, round_td_str
 
+# Configuration for properties that can be downsampled
+# Each entry is a tuple of (property_name, trace_path, hf_param_name)
+# - property_name: the name in the _hf_data_container
+# - trace_path: the path to access the property in a trace (e.g., "marker.color" -> ["marker", "color"])
+# - hf_param_name: the parameter name for high-frequency data (e.g., "hf_marker_color")
+DOWNSAMPLABLE_PROPERTIES = [
+    ("text", ["text"], "hf_text"),
+    ("hovertext", ["hovertext"], "hf_hovertext"),
+    ("marker_angle", ["marker", "angle"], "hf_marker_angle"),
+    ("marker_opacity", ["marker", "opacity"], "hf_marker_opacity"),
+    ("marker_size", ["marker", "size"], "hf_marker_size"),
+    ("marker_color", ["marker", "color"], "hf_marker_color"),
+    ("marker_symbol", ["marker", "symbol"], "hf_marker_symbol"),
+    ("customdata", ["customdata"], "hf_customdata"),
+]
+
 # A high-frequency data container
 # NOTE: the attributes must all be valid trace attributes, with attribute levels
 # separated by an '_' (e.g., 'marker_color' is valid) as the
 # `_hf_data_container._asdict()` function is used in
 #  `AbstractFigureAggregator._construct_hf_data_dict`.
+# Create the _hf_data_container dynamically from the configuration
 _hf_data_container = namedtuple(
     "DataContainer",
-    ["x", "y", "text", "hovertext", "marker_size", "marker_color", "customdata"],
+    ["x", "y"] + [prop[0] for prop in DOWNSAMPLABLE_PROPERTIES],
 )
 
 
@@ -219,8 +236,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             "data": [
                 {
                     k: copy(trace[k])
-                    # TODO: why not "text" as well? -> we can use _hf_data_container.fields then
-                    for k in set(trace.keys()).difference({"x", "y", "hovertext"})
+                    for k in set(trace.keys()).difference({_hf_data_container._fields})
                 }
                 for trace in self._data
             ],
@@ -371,10 +387,8 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         )
 
         # -------------------- Set the hf_trace_data_props -------------------
-        # Parse the data types to an orjson compatible format
-        # NOTE: this can be removed once orjson supports f16
-        trace["x"] = self._parse_dtype_orjson(agg_x)
-        trace["y"] = self._parse_dtype_orjson(agg_y)
+        trace["x"] = agg_x
+        trace["y"] = agg_y
         trace["name"] = self._parse_trace_name(
             hf_trace_data, end_idx - start_idx, agg_x
         )
@@ -387,16 +401,18 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else:
                 out[k] = v
 
-        # Check if (hover)text also needs to be downsampled
-        for k in ["text", "hovertext", "marker_size", "marker_color", "customdata"]:
-            k_val = hf_trace_data.get(k)
+        # Check if downsamplable properties also need to be downsampled
+        for prop_name, _, _ in DOWNSAMPLABLE_PROPERTIES:
+            k_val = hf_trace_data.get(prop_name)
             if isinstance(k_val, (np.ndarray, pd.Series)):
                 assert isinstance(
                     hf_trace_data["downsampler"], DataPointSelector
                 ), "Only DataPointSelector can downsample non-data trace array props."
-                _nest_dict_rec(k, k_val[start_idx + indices], trace)
+                # Use the same indices that were used for x and y aggregation
+                # indices are relative to the slice, so we need to add start_idx
+                _nest_dict_rec(prop_name, k_val[start_idx + indices], trace)
             elif k_val is not None:
-                trace[k] = k_val
+                trace[prop_name] = k_val
 
         return trace
 
@@ -551,10 +567,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         trace: BaseTraceType,
         hf_x: Iterable = None,
         hf_y: Iterable = None,
-        hf_text: Iterable = None,
-        hf_hovertext: Iterable = None,
-        hf_marker_size: Iterable = None,
-        hf_marker_color: Iterable = None,
+        **hf_properties,
     ) -> _hf_data_container:
         """Parse and capture the possibly high-frequency trace-props in a datacontainer.
 
@@ -578,7 +591,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             A namedtuple which serves as a datacontainer.
 
         """
-        hf_x: np.ndarray = (
+        hf_x: np.ndarray | pd.Index = (
             # fmt: off
             (np.asarray(trace["x"]) if trace["x"] is not None else None)
             if hasattr(trace, "x") and hf_x is None
@@ -593,55 +606,31 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             else np.asarray(hf_x)
             # fmt: on
         )
+        if pd.core.dtypes.common.is_datetime64_any_dtype(hf_x):
+            hf_x = pd.Index(hf_x)
 
         hf_y = (
             trace["y"]
             if hasattr(trace, "y") and hf_y is None
-            else hf_y.values
-            if isinstance(hf_y, (pd.Series, pd.Index))
-            else hf_y
+            else hf_y.values if isinstance(hf_y, (pd.Series, pd.Index)) else hf_y
         )
         # NOTE: the if will not be triggered for a categorical series its values
         if not hasattr(hf_y, "dtype"):
             hf_y: np.ndarray = np.asarray(hf_y)
 
-        hf_text = (
-            hf_text
-            if hf_text is not None
-            else trace["text"]
-            if hasattr(trace, "text") and trace["text"] is not None
-            else None
-        )
+        # Parse downsamplable properties dynamically
+        parsed_properties = {}
+        for prop_name, trace_path, hf_param_name in DOWNSAMPLABLE_PROPERTIES:
+            # Get the high-frequency value from parameters if provided
+            hf_value = hf_properties.get(hf_param_name)
 
-        hf_hovertext = (
-            hf_hovertext
-            if hf_hovertext is not None
-            else trace["hovertext"]
-            if hasattr(trace, "hovertext") and trace["hovertext"] is not None
-            else None
-        )
-
-        hf_marker_size = (
-            trace["marker"]["size"]
-            if (
-                hf_marker_size is None
-                and hasattr(trace, "marker")
-                and "size" in trace["marker"]
-            )
-            else hf_marker_size
-        )
-
-        hf_marker_color = (
-            trace["marker"]["color"]
-            if (
-                hf_marker_color is None
-                and hasattr(trace, "marker")
-                and "color" in trace["marker"]
-            )
-            else hf_marker_color
-        )
-
-        hf_customdata = trace["customdata"] if hasattr(trace, "customdata") else None
+            if hf_value is not None:
+                # Use the provided high-frequency value
+                parsed_properties[prop_name] = hf_value
+            else:
+                # Try to get the value from the trace
+                trace_value = self._get_trace_property(trace, trace_path)
+                parsed_properties[prop_name] = trace_value
 
         if trace["type"].lower() in self._high_frequency_traces:
             if hf_x is None:  # if no data as x or hf_x is passed
@@ -662,15 +651,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                 "(i.e., x and y, or hf_x and hf_y) to be <= 1 dimensional!"
             )
 
-            # Note: this converts the hf property to a np.ndarray
-            if isinstance(hf_text, (tuple, list, np.ndarray, pd.Series)):
-                hf_text = np.asarray(hf_text)
-            if isinstance(hf_hovertext, (tuple, list, np.ndarray, pd.Series)):
-                hf_hovertext = np.asarray(hf_hovertext)
-            if isinstance(hf_marker_size, (tuple, list, np.ndarray, pd.Series)):
-                hf_marker_size = np.asarray(hf_marker_size)
-            if isinstance(hf_marker_color, (tuple, list, np.ndarray, pd.Series)):
-                hf_marker_color = np.asarray(hf_marker_color)
+            # Note: this converts the hf properties to np.ndarray
+            for prop_name, _, _ in DOWNSAMPLABLE_PROPERTIES:
+                prop_value = parsed_properties.get(prop_name)
+                if isinstance(prop_value, (tuple, list, np.ndarray, pd.Series)):
+                    parsed_properties[prop_name] = np.asarray(prop_value)
 
             # Try to parse the hf_x data if it is of object type or
             if len(hf_x) and (hf_x.dtype.type is np.str_ or hf_x.dtype == "object"):
@@ -717,26 +702,77 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             if hasattr(trace, "y"):
                 trace["y"] = hf_y
 
-            if hasattr(trace, "text"):
-                trace["text"] = hf_text
+            # Set downsamplable properties if they exist
+            for prop_name, trace_path, _ in DOWNSAMPLABLE_PROPERTIES:
+                prop_value = parsed_properties.get(prop_name)
+                if prop_value is not None:
+                    self._set_trace_property(trace, trace_path, prop_value)
 
-            if hasattr(trace, "hovertext"):
-                trace["hovertext"] = hf_hovertext
-            if hasattr(trace, "marker"):
-                if hasattr(trace.marker, "size"):
-                    trace.marker.size = hf_marker_size
-                if hasattr(trace.marker, "color"):
-                    trace.marker.color = hf_marker_color
+        # Build the container with all properties
+        container_args = [hf_x, hf_y]
+        for prop_name, _, _ in DOWNSAMPLABLE_PROPERTIES:
+            container_args.append(parsed_properties.get(prop_name))
 
-        return _hf_data_container(
-            hf_x,
-            hf_y,
-            hf_text,
-            hf_hovertext,
-            hf_marker_size,
-            hf_marker_color,
-            hf_customdata,
-        )
+        return _hf_data_container(*container_args)
+
+    def _get_trace_property(self, trace: BaseTraceType, trace_path: List[str]) -> any:
+        """Get a property from a trace using a path.
+
+        Parameters
+        ----------
+        trace : BaseTraceType
+            The trace to get the property from.
+        trace_path : List[str]
+            The path to the property (e.g., ["marker", "color"]).
+
+        Returns
+        -------
+        any
+            The property value or None if not found.
+        """
+        current = trace
+        for path_component in trace_path:
+            if hasattr(current, path_component):
+                current = getattr(current, path_component)
+            elif isinstance(current, dict) and path_component in current:
+                current = current[path_component]
+            else:
+                return None
+        return current
+
+    def _set_trace_property(
+        self, trace: BaseTraceType, trace_path: List[str], value: any
+    ) -> None:
+        """Set a property on a trace using a path.
+
+        Parameters
+        ----------
+        trace : BaseTraceType
+            The trace to set the property on.
+        trace_path : List[str]
+            The path to the property (e.g., ["marker", "color"]).
+        value : any
+            The value to set.
+        """
+        current = trace
+        for path_component in trace_path[:-1]:
+            if hasattr(current, path_component):
+                current = getattr(current, path_component)
+            elif isinstance(current, dict):
+                if path_component not in current:
+                    current[path_component] = {}
+                current = current[path_component]
+            else:
+                # Create the path if it doesn't exist
+                setattr(current, path_component, {})
+                current = getattr(current, path_component)
+
+        # Set the final property
+        final_component = trace_path[-1]
+        if hasattr(current, final_component):
+            setattr(current, final_component, value)
+        elif isinstance(current, dict):
+            current[final_component] = value
 
     def _construct_hf_data_dict(
         self,
@@ -851,10 +887,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         # Use these if you want some speedups (and are working with really large data)
         hf_x: Iterable = None,
         hf_y: Iterable = None,
-        hf_text: Union[str, Iterable] = None,
-        hf_hovertext: Union[str, Iterable] = None,
-        hf_marker_size: Union[str, Iterable] = None,
-        hf_marker_color: Union[str, Iterable] = None,
         **trace_kwargs,
     ):
         """Add a trace to the figure.
@@ -898,21 +930,20 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         hf_y: Iterable, optional
             The original high frequency values. If set, this has priority over the
             trace its data.
-        hf_text: Iterable, optional
-            The original high frequency text. If set, this has priority over the trace
-            its ``text`` argument.
-        hf_hovertext: Iterable, optional
-            The original high frequency hovertext. If set, this has priority over the
-            trace its ```hovertext`` argument.
-        hf_marker_size: Iterable, optional
-            The original high frequency marker size. If set, this has priority over the
-            trace its ``marker.size`` argument.
-        hf_marker_color: Iterable, optional
-            The original high frequency marker color. If set, this has priority over the
-            trace its ``marker.color`` argument.
         **trace_kwargs: dict
             Additional trace related keyword arguments.
             e.g.: row=.., col=..., secondary_y=...
+
+            High-frequency property parameters can also be passed:
+            - hf_text: High-frequency text data
+            - hf_hovertext: High-frequency hovertext data
+            - hf_marker_size: High-frequency marker size data
+            - hf_marker_color: High-frequency marker color data
+            - hf_marker_symbol: High-frequency marker symbol data
+            - hf_marker_angle: High-frequency marker angle data
+            - hf_customdata: High-frequency customdata
+
+            These have priority over the corresponding trace properties.
 
             !!! info "See Also"
                 [`Figure.add_trace`](https://plotly.com/python-api-reference/generated/plotly.graph_objects.Figure.html#plotly.graph_objects.Figure.add_trace>) docs.
@@ -980,21 +1011,18 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         uuid_str = str(uuid4()) if trace.uid is None else trace.uid
         trace.uid = uuid_str
 
-        # construct the hf_data_container
-        # TODO in future version -> maybe regex on kwargs which start with `hf_`
-        dc = self._parse_get_trace_props(
-            trace,
-            hf_x,
-            hf_y,
-            hf_text,
-            hf_hovertext,
-            hf_marker_size,
-            hf_marker_color,
-        )
-
         # These traces will determine the autoscale its RANGE!
         #   -> so also store when `limit_to_view` is set.
         if trace["type"].lower() in self._high_frequency_traces:
+            # Extract hf_* parameters from trace_kwargs
+            hf_properties = {}
+            for _, _, hf_param_name in DOWNSAMPLABLE_PROPERTIES:
+                if hf_param_name in trace_kwargs:
+                    hf_properties[hf_param_name] = trace_kwargs.pop(hf_param_name)
+
+            # construct the hf_data_container
+            dc = self._parse_get_trace_props(trace, hf_x, hf_y, **hf_properties)
+
             n_samples = len(dc.x)
             if n_samples > max_out_s or limit_to_view:
                 self._print(
@@ -1037,7 +1065,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
                     [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
                 )
 
-        return super(self._figure_class, self).add_traces(
+        return super().add_traces(
             [trace], **self._add_trace_to_add_traces_kwargs(trace_kwargs)
         )
 
@@ -1114,9 +1142,11 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
         # Convert each trace into a BaseTraceType object
         data = [
-            self._data_validator.validate_coerce(trace)[0]
-            if not isinstance(trace, BaseTraceType)
-            else trace
+            (
+                self._data_validator.validate_coerce(trace)[0]
+                if not isinstance(trace, BaseTraceType)
+                else trace
+            )
             for trace in data
         ]
 
@@ -1137,7 +1167,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             limit_to_views = [limit_to_views] * len(data)
 
         zipped = zip(data, max_n_samples, downsamplers, gap_handlers, limit_to_views)
-        for (i, (trace, max_out, downsampler, gap_handler, limit_to_view)) in enumerate(
+        for i, (trace, max_out, downsampler, gap_handler, limit_to_view) in enumerate(
             zipped
         ):
             if (
@@ -1169,7 +1199,7 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             assert trace is not None
             data[i] = trace
 
-        return super(self._figure_class, self).add_traces(data, **traces_kwargs)
+        return super().add_traces(data, **traces_kwargs)
 
     def _clear_figure(self):
         """Clear the current figure object its data and layout."""
@@ -1259,47 +1289,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             extra_layout_updates[f"{axis}.autorange"] = None
         return extra_layout_updates
 
-    def construct_update_data_patch(
-        self, relayout_data: dict
-    ) -> Union[dash.Patch, dash.no_update]:
-        """Construct the Patch of the to-be-updated front-end data, based on the layout
-        change.
-
-        Attention
-        ---------
-        This method is tightly coupled with Dash app callbacks. It takes the front-end
-        figure its ``relayoutData`` as input and returns the ``dash.Patch`` which needs
-        to be sent to the ``figure`` property for the corresponding ``dcc.Graph``.
-
-        Parameters
-        ----------
-        relayout_data: dict
-            A dict containing the ``relayoutData`` (i.e., the changed layout data) of
-            the corresponding front-end graph.
-
-        Returns
-        -------
-        dash.Patch:
-            The Patch object containing the figure updates which needs to be sent to
-            the front-end.
-
-        """
-        update_data = self._construct_update_data(relayout_data)
-        if not isinstance(update_data, list) or len(update_data) <= 1:
-            return dash.no_update
-
-        patched_figure = dash.Patch()  # create patch
-        for trace in update_data[1:]:  # skip first item as it contains the relayout
-            trace_index = trace.pop("index")  # the index of the corresponding trace
-            # All the other items are the trace properties which needs to be updated
-            for k, v in trace.items():
-                # NOTE: we need to use the `patched_figure` as a dict, and not
-                # `patched_figure.data` as the latter will replace **all** the
-                # data for the corresponding trace, and we just want to update the
-                # specific trace its properties.
-                patched_figure["data"][trace_index][k] = v
-        return patched_figure
-
     def _construct_update_data(
         self,
         relayout_data: dict,
@@ -1336,6 +1325,25 @@ class AbstractFigureAggregator(BaseFigure, ABC):
             # 1. Base case - there is an x-range specified in the front-end
             start_matches = self._re_matches(re.compile(r"xaxis\d*.range\[0]"), cl_k)
             stop_matches = self._re_matches(re.compile(r"xaxis\d*.range\[1]"), cl_k)
+
+            # related issue: https://github.com/predict-idlab/plotly-resampler/pull/336
+            # When the user sets x range via update_xaxes and the number of points in
+            # data exceeds the default_n_shown_samples, then after resetting the axes
+            # the relayout may only have "xaxis.range", instead of "xaxis.range[0]" and
+            # "xaxis.range[1]". If this happens, we need to manually add "xaxis.range[0]"
+            # and "xaxis.range[1]", otherwise resetting axes wouldn't work.
+            if not (start_matches and stop_matches):
+                range_matches = self._re_matches(re.compile(r"xaxis\d*.range"), cl_k)
+                for range_match in range_matches:
+                    x_range = relayout_data[range_match]
+                    start, stop = x_range
+                    start_match = range_match + "[0]"
+                    stop_match = range_match + "[1]"
+                    relayout_data[start_match] = start
+                    relayout_data[stop_match] = stop
+                    start_matches.append(start_match)
+                    stop_matches.append(stop_match)
+                    del x_range, start, stop, start_match, stop_match
             if start_matches and stop_matches:  # when both are not empty
                 for t_start_key, t_stop_key in zip(start_matches, stop_matches):
                     # Check if the xaxis<NUMB> part of xaxis<NUMB>.[0-1] matches
@@ -1386,10 +1394,14 @@ class AbstractFigureAggregator(BaseFigure, ABC):
         layout_traces_list: List[dict] = [relayout_data]
 
         # 2. Create the additional trace data for the frond-end
-        relevant_keys = list(_hf_data_container._fields) + ["name", "marker"]
+        relevant_keys = ["name", "marker", "x", "y"] + [
+            prop_name for prop_name, _, _ in DOWNSAMPLABLE_PROPERTIES
+        ]
+        # self._print("relevant keys", relevant_keys)
         # Note that only updated trace-data will be sent to the client
         for idx in updated_trace_indices:
             trace = current_graph["data"][idx]
+            # self._print("trace keys", dict(trace).keys())
             # TODO: check if we can reduce even more
             trace_reduced = {k: trace[k] for k in relevant_keys if k in trace}
 
@@ -1399,17 +1411,6 @@ class AbstractFigureAggregator(BaseFigure, ABC):
 
             layout_traces_list.append(trace_reduced)
         return layout_traces_list
-
-    @staticmethod
-    def _parse_dtype_orjson(series: np.ndarray) -> np.ndarray:
-        """Verify the orjson compatibility of the series and convert it if needed."""
-        # NOTE:
-        #    * float16 and float128 aren't supported with latest orjson versions (3.8.1)
-        #    * this method assumes that the it will not get a float128 series
-        # -> this method can be removed if orjson supports float16
-        if series.dtype == np.float16:
-            return series.astype(np.float32)
-        return series
 
     @staticmethod
     def _re_matches(regex: re.Pattern, strings: Iterable[str]) -> List[str]:

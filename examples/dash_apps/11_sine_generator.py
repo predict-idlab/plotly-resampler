@@ -182,6 +182,7 @@ def construct_display_graph(n, exp, n_added_graphs) -> FigureResampler:
 
 # --- FigureResampler update callback ---
 
+
 # The plotly-resampler callback to update the graph after a relayout event (= zoom/pan)
 # As we use the figure again as output, we need to set: allow_duplicate=True
 @app.callback(
