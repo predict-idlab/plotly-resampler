@@ -69,7 +69,7 @@ pyarrow = [
 ]
 ipywidgets = "^7.7.1" # needs to be v7 in order to support serialization
 memory-profiler = "^0.60.0"
-line-profiler = "^4.0"
+line-profiler = ">=4.2.1"
 ruff = ">=0.9.6"
 black = "^24.3.0"
 pytest-lazy-fixture = "^0.6.3"
@@ -89,6 +89,7 @@ anywidget = "^0.9.13"
 # Linting
 py = "^1.11.0"
 pytest-variables = ">=1.5.0,<2.0.0"
+webdriver-manager = "^4.0.2"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
