@@ -22,7 +22,6 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -34,7 +33,7 @@ classifiers = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.9"
 plotly = ">=5.5.0,<7.0.0"
 dash = ">=2.11.0"  # from dash 2.11, jupyter support is included
 pandas = [
@@ -60,7 +59,7 @@ inline_persistent = ["kaleido", "Flask-Cors", "ipython"]
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.2.0"
 pytest-cov = "^3.0.0"
-selenium = "4.2.0"
+selenium = "^4.2.0"
 pytest-selenium = "^2.0.1"
 blinker= "1.7.0"   # we need version 1.7.0  (otherwise we get a blinker._saferef module not found error
 selenium-wire = "^5.0"
@@ -88,6 +87,12 @@ cffi = ">=1.17"
 anywidget = "^0.9.13"
 
 # Linting
+py = "^1.11.0"
+pytest-variables = ">=1.5.0,<2.0.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
 [tool.ruff]
 line-length = 88
 
