@@ -2024,3 +2024,11 @@ def test_manual_range_def(shared_xaxes):
     assert isinstance(ud, list) and len(ud) == 2
     ud = fig._construct_update_data({"xaxis2.range": [2, 10], "xaxis.range": [5, 100]})
     assert isinstance(ud, list) and len(ud) == 3
+
+
+def test_show_dash_with_default_mode():
+    x = np.arange(100)
+    y = np.sin(x)
+    fig = FigureResampler(go.Figure())
+    fig.add_trace(go.Scattergl(), hf_x=x, hf_y=y)
+    fig.show_dash(config={"scrollZoom": True})  # mode defaults to None
