@@ -18,6 +18,20 @@
 
 > `plotly_resampler`: visualize large sequential data by **adding resampling functionality to Plotly figures**
 
+<table>
+<tr><td>
+
+## <a href="https://github.com/flex-analytics/flexviz?utm_source=plotly-resampler">FlexViz</a> is our successor project.
+
+`plotly-resampler` makes <i>one</i> Plotly trace fast (i.e., line trace). `flexviz` applies the same principle (never ship the raw data to the browser) to a <b>whole dashboard</b>: <b>linked cross-filtering</b>, <b>10 trace types</b> (lines, histograms, bars, pies, box plots, treemaps, 2D histograms, correlation heatmaps and maps) that all re-aggregate on zoom and brush, and a <b>drag-and-resize grid</b>. `flexviz` stays interactive at <b>100M+ rows</b> and <b>1B+ points per chart</b>, with peak backend memory around 25 MB at 200M rows.
+
+`plotly-resampler` remains maintained (bug fixes, Plotly compatibility), but new development happens in `flexviz`.
+
+*👉 Try the live demo on 2 x 100M rows: <a href="https://flexviz.tech/demo?utm_source=plotly-resampler">flexviz.tech/demo</a>*
+
+</td></tr>
+</table>
+
 `plotly-resampler` improves the scalability of [Plotly](https://github.com/plotly/plotly.py) for visualizing large time series datasets. Specifically, our library _dynamically_ **aggregates time-series data respective to the current graph view**, ensuring efficient and responsive updates during user interactions like panning or zooming via callbacks.
 
 This core aggregation functionality is achieved by utilizing by _time-series data point selection algorithms_, for which `plotly-resampler` leverages the highly optimized implementations available in [tsdownsample](https://github.com/predict-idlab/tsdownsample). Our default data aggregation method is `MinMaxLTTB` (and selects 1000 data points for plotting). For a deeper understanding of this method, you can consult to the algorithm's dedicated [MinMaxLTTB repository](https://github.com/predict-idlab/MinMaxLTTB) and the associated [research paper](https://arxiv.org/abs/2305.00332).
@@ -150,6 +164,35 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 > **Note**:
 > Any plotly Figure can be wrapped with `FigureResampler` and `FigureWidgetResampler`! 🎉
 > But **only** the `go.Scatter`/`go.Scattergl` **traces are resampled**.
+
+## 🔭 The successor: FlexViz
+
+plotly-resampler does one thing well: it makes a single large trace fast inside
+an existing Plotly figure. The features asked for most often over the years are
+the ones this design cannot deliver: linked charts, cross-filtering,
+histograms and heatmaps that re-aggregate on zoom, and reading straight from
+Parquet instead of from an in-memory array.
+
+[**FlexViz**](https://github.com/flex-analytics/flexviz?utm_source=plotly-resampler)
+is our answer, built by the same authors. Every zoom, pan, and brush is
+answered by a lazy Polars aggregation with Rust kernels behind it, so a whole
+dashboard stays interactive at 100M+ rows.
+
+|  | plotly-resampler | FlexViz |
+|---|---|---|
+| Drop into an existing Plotly / Dash figure | ✅ | ❌ (own `Figure` / `Dashboard` API) |
+| Large line traces | ✅ MinMaxLTTB | ✅ Rust min-max kernels |
+| Linked charts and cross-filtering | ❌ | ✅ |
+| Trace types that re-aggregate on interaction | `Scatter` / `Scattergl` only | 10: line, histogram, bar, pie, box, treemap, 2D histogram, correlation heatmap, maps |
+| Dashboard layout | you build it (Dash) | drag-and-resize grid, built in |
+| Where the data lives | in the Python process | lazy Polars scan (Parquet, …) |
+| Status | stable, maintained | pre-1.0, moving fast |
+
+If plotly-resampler covers your needs, keep using it. If you have hit its
+ceiling, FlexViz is where our new development goes:
+[live demo](https://flexviz.tech/demo?utm_source=plotly-resampler) ·
+[GitHub](https://github.com/flex-analytics/flexviz?utm_source=plotly-resampler) ·
+[docs](https://docs.flexviz.tech/?utm_source=plotly-resampler)
 
 ## 💭 Important considerations & tips
 
