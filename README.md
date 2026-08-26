@@ -167,16 +167,9 @@ In [this Plotly-Resampler demo](https://github.com/predict-idlab/plotly-resample
 
 ## 🔭 The successor: FlexViz
 
-plotly-resampler does one thing well: it makes a single large trace fast inside
-an existing Plotly figure. The features asked for most often over the years are
-the ones this design cannot deliver: linked charts, cross-filtering,
-histograms and heatmaps that re-aggregate on zoom, and reading straight from
-Parquet instead of from an in-memory array.
+plotly-resampler does one thing well: it makes a line trace fast inside an existing Plotly figure. The features asked for most often over the years are the ones this design cannot deliver: linked charts, cross-filtering, histograms and heatmaps that re-aggregate on zoom, and reading straight from Parquet instead of from an in-memory array.
 
-[**FlexViz**](https://github.com/flex-analytics/flexviz?utm_source=plotly-resampler)
-is our answer, built by the same authors. Every zoom, pan, and brush is
-answered by a lazy Polars aggregation with Rust kernels behind it, so a whole
-dashboard stays interactive at 100M+ rows.
+[**FlexViz**](https://github.com/flex-analytics/flexviz) is our answer, built by the same authors. Every zoom, pan, and brush is answered by a lazy Polars aggregation with Rust kernels behind it, so a whole dashboard stays interactive at 100M+ rows.
 
 |  | plotly-resampler | FlexViz |
 |---|---|---|
@@ -191,7 +184,7 @@ dashboard stays interactive at 100M+ rows.
 If plotly-resampler covers your needs, keep using it. If you have hit its
 ceiling, FlexViz is where our new development goes:
 [live demo](https://flexviz.tech/demo?utm_source=plotly-resampler) ·
-[GitHub](https://github.com/flex-analytics/flexviz?utm_source=plotly-resampler) ·
+[GitHub](https://github.com/flex-analytics/flexviz) ·
 [docs](https://docs.flexviz.tech/?utm_source=plotly-resampler)
 
 ## 💭 Important considerations & tips
