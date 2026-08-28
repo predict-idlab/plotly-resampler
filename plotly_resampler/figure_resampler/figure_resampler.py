@@ -530,9 +530,9 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         available_modes = list(dash._jupyter.JupyterDisplayMode.__args__) + [
             "inline_persistent"
         ]
-        assert (
-            mode is None or mode in available_modes
-        ), f"mode must be one of {available_modes}"
+        if mode is None:
+            mode = "external"
+        assert mode in available_modes, f"mode must be one of {available_modes}"
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties  # There is a param for config
         if self["layout"]["autosize"] is True and self["layout"]["height"] is None:
