@@ -14,6 +14,7 @@ __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt"
 import json
 import time
 from typing import List, Union
+from urllib.parse import urlparse
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
@@ -42,7 +43,8 @@ class RequestParser:
                 # note; the `_reload_hash` GET request will thus be filtered out
                 continue
 
-            if not r.url.endswith("_dash-update-component"):
+            # Chrome variants may append query params to the callback URL.
+            if not urlparse(r.url).path.endswith("/_dash-update-component"):
                 continue
 
             valid_requests.append(r)
@@ -144,10 +146,28 @@ class RequestParser:
                 fetch_data_request = requests[0]
 
         elif "chrome" in browser_name:
-            # for some, yet unknown reason, chrome does not seem to capture the
-            # second front-end request.
-            assert len(requests) == 1, f"len(requests) = {len(requests)}"
-            fetch_data_request = requests[0]
+            # Chrome and ChromeDriver versions may capture additional callback
+            # requests. Select the first request that matches the expected
+            # relayout keys and number of updated traces.
+            assert len(requests) >= 1, f"len(requests) = {len(requests)}"
+
+            matching_request = None
+            for request in requests:
+                try:
+                    RequestParser.assert_fetch_data_request(
+                        request,
+                        relayout_keys=relayout_keys,
+                        n_updated_traces=n_updated_traces,
+                    )
+                    matching_request = request
+                    break
+                except (AssertionError, KeyError, json.JSONDecodeError, TypeError):
+                    continue
+
+            assert (
+                matching_request is not None
+            ), f"Could not find matching callback request in {len(requests)} requests"
+            fetch_data_request = matching_request
         else:
             raise ValueError(f"invalid browser name {browser_name}")
 

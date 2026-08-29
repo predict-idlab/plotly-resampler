@@ -47,6 +47,7 @@ numpy = [
     { version = ">=2.0", python = ">=3.13" }
 ]
 orjson = "^3.10.0"  # Faster json serialization (from 3.10 onwards f16 is supported)
+pytz = ">=2020.1"
 # Optional dependencies
 Flask-Cors = { version = "^4.0.2", optional = true }
 # Lock kaleido dependency until https://github.com/plotly/Kaleido/issues/156 is resolved
