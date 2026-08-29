@@ -284,8 +284,8 @@ def test_log_axis():
         assert len(out) == 2
         assert (x1 - x0) < 10
         assert len(out[1]["x"]) == 1000
-        assert out[-1]["x"][0] >= 100
-        assert out[-1]["x"][-1] <= 50_000
+        assert out[-1]["x"][0] >= 99
+        assert out[-1]["x"][-1] <= 50_001
 
 
 def test_add_traces_from_other_figure():
@@ -1061,8 +1061,8 @@ def test_time_tz_slicing():
         start_idx, end_idx = PlotlyAggregatorParser.get_start_end_indices(
             hf_data_dict, hf_data_dict["axis_type"], t_start, t_stop
         )
-        assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=1)
-        assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=1)
+        assert (s.index[start_idx] - t_start) <= pd.Timedelta(seconds=2)
+        assert (s.index[min(end_idx, n - 1)] - t_stop) <= pd.Timedelta(seconds=2)
 
 
 def test_time_tz_slicing_different_timestamp():
@@ -1147,10 +1147,10 @@ def test_different_tz_no_tz_series_slicing():
         )
         assert (
             s.tz_localize(None).index[start_idx].tz_localize(t_start.tz) - t_start
-        ) <= pd.Timedelta(seconds=1)
+        ) <= pd.Timedelta(seconds=2)
         assert (
             s.tz_localize(None).index[end_idx].tz_localize(t_stop.tz) - t_stop
-        ) <= pd.Timedelta(seconds=1)
+        ) <= pd.Timedelta(seconds=2)
 
 
 def test_multiple_tz_no_tz_series_slicing():
@@ -1725,8 +1725,10 @@ def test_fr_update_layout_axes_range(driver):
         x_ = decode_trace_bdata(f_pr_data[0]["x"])
         assert len(y_) == 500
         assert len(x_) == 500
-        assert y_[0] >= 100 and y_[-1] <= 1000
-        assert x_[0] >= 100 and x_[-1] <= 1000
+        # Since https://github.com/predict-idlab/plotly-resampler/pull/343
+        # the data range is left-right expanded with 1 sample
+        assert y_[0] >= 99 and y_[-1] <= 1000
+        assert x_[0] >= 99 and x_[-1] <= 1000
         # Check the front-end layout
         assert list(f_pr_layout["xaxis"]["range"]) == [100, 1000]
         assert list(f_pr_layout["yaxis"]["range"]) == [100, 1000]
