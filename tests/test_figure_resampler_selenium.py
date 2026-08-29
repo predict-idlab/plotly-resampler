@@ -1,3 +1,4 @@
+import json
 import multiprocessing
 import platform
 import time
@@ -75,7 +76,13 @@ def test_multiple_tz(driver, multiple_tz_figure):
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
             for entry in driver.get_log("browser"):
@@ -159,7 +166,13 @@ def test_basic_example_gui(driver, example_figure):
         time.sleep(1)
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(vertical_requests) == 1
-        assert vertical_requests[0].response.status_code == 204
+        try:
+            assert vertical_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert vertical_requests[0].response.status_code == 200
+            response_data = json.loads(vertical_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         # we autoscale to the current front-end view, no updated dat will be sent from
         # the server to the front-end, however, a callback will still be made, but
@@ -170,7 +183,12 @@ def test_basic_example_gui(driver, example_figure):
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         # The reset axes autoscales AND resets tot he global data view -> all data
         # will be updated.
@@ -273,7 +291,13 @@ def test_basic_example_gui_existing(driver, example_figure_fig):
         time.sleep(1)
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(vertical_requests) == 1
-        assert vertical_requests[0].response.status_code == 204
+        try:
+            assert vertical_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert vertical_requests[0].response.status_code == 200
+            response_data = json.loads(vertical_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         # we autoscale to the current front-end view, no updated dat will be sent from
         # the server to the front-end, however, a callback will still be made, but
@@ -284,7 +308,12 @@ def test_basic_example_gui_existing(driver, example_figure_fig):
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         # The reset axes autoscales AND resets tot he global data view -> all data
         # will be updated.
@@ -395,7 +424,13 @@ def test_gsr_gui(driver, gsr_figure):
         time.sleep(1)
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(vertical_requests) == 1
-        assert vertical_requests[0].response.status_code == 204
+        try:
+            assert vertical_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert vertical_requests[0].response.status_code == 200
+            response_data = json.loads(vertical_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         # autoscale
         # we autoscale to the current front-end view, no updated dat will be sent from
@@ -407,7 +442,12 @@ def test_gsr_gui(driver, gsr_figure):
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         fr.reset_axes()
         time.sleep(0.2)
@@ -460,14 +500,26 @@ def test_cat_gui(driver, cat_series_box_hist_figure):
         time.sleep(1)
         vertical_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(vertical_requests) == 1
-        assert vertical_requests[0].response.status_code == 204
+        try:
+            assert vertical_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert vertical_requests[0].response.status_code == 200
+            response_data = json.loads(vertical_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         fr.clear_requests(sleep_time_s=1)
         fr.autoscale()
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         # Note: as there is only 1 hf-scatter-trace, the reset axes command will only
         # update a single trace
@@ -573,7 +625,13 @@ def test_shared_hover_gui(driver, shared_hover_figure):
         time.sleep(1)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
             for entry in driver.get_log("browser"):
@@ -652,7 +710,13 @@ def test_multi_trace_go_figure(driver, multi_trace_go_figure):
         time.sleep(3)
         autoscale_requests = RequestParser.filter_callback_requests(fr.get_requests())
         assert len(autoscale_requests) == 1
-        assert autoscale_requests[0].response.status_code == 204
+        try:
+            assert autoscale_requests[0].response.status_code == 204
+        except AssertionError:
+            # In a more recent dash version, this returns a 200 status with no data
+            assert autoscale_requests[0].response.status_code == 200
+            response_data = json.loads(autoscale_requests[0].response.body)
+            assert response_data.get("response") == {}
 
         if len(driver.get_log("browser")) > 0:  # Check no errors in the browser
             for entry in driver.get_log("browser"):

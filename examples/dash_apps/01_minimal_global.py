@@ -70,4 +70,4 @@ fig.register_update_graph_callback(app=app, graph_id="graph-id")
 
 # --------------------------------- Running the app ---------------------------------
 if __name__ == "__main__":
-    app.run_server(debug=True, port=9023)
+    app.run(debug=True, port=9023)
