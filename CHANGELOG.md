@@ -1,6 +1,8 @@
 # Latest
 
 ## What's Changed
+* :bug: fix blank `show_dash` app with dash>=4 (`dcc.Graph` crashed on a `None` config) (#367)
+* :bug: fix `TypeError` in `show_dash()` when no `mode` is passed (#367)
 * :bug: drop the unused `pytz` import, so `import plotly_resampler` works with pandas>=3 without `pytz` (#365) by @hdh7485 in https://github.com/predict-idlab/plotly-resampler/pull/366
 
 
