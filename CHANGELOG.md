@@ -1,5 +1,8 @@
 # Latest
 
+## What's Changed
+* :bug: drop the unused `pytz` import, so `import plotly_resampler` works with pandas>=3 without `pytz` (#365) by @hdh7485 in https://github.com/predict-idlab/plotly-resampler/pull/366
+
 
 # v0.10.0
 ## New Features

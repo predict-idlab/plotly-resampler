@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import pandas as pd
 import plotly.graph_objects as go
 import pytest
@@ -137,3 +140,9 @@ def test_round_int_str():
     # negative case
     assert round_number_str(-0.951) == "-1"
     assert round_number_str(-0.95) == "-0.9"
+
+
+def test_import_without_pytz():
+    # pandas>=3 no longer depends on pytz, so we must not import it (#365)
+    code = "import sys, pandas; sys.modules['pytz'] = None; import plotly_resampler"
+    subprocess.run([sys.executable, "-c", code], check=True)
