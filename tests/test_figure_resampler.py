@@ -1235,6 +1235,21 @@ def test_stop_server_inline_persistent():
     proc.terminate()
 
 
+def test_show_dash_graph_config_not_null(monkeypatch):
+    # dash>=4's dcc.Graph crashes on a null config -> blank app (see #367)
+    import dash
+
+    monkeypatch.setattr(dash.Dash, "run", lambda *args, **kwargs: None)
+    fr = FigureResampler(go.Figure(), create_overview=True)
+    fr.add_trace(go.Scattergl(name="test"), hf_y=np.arange(10_000))
+    fr.show_dash(mode="inline")
+
+    layout = fr._app.server.test_client().get("/_dash-layout").get_json()
+    graphs = layout["props"]["children"]
+    assert [g["props"]["id"] for g in graphs] == ["resample-figure", "overview-figure"]
+    assert all(isinstance(g["props"]["config"], dict) for g in graphs)
+
+
 def test_showdash_not_hanging_when_port_in_use():
     if not_on_linux():
         pytest.skip("This test is currently only supported on linux")

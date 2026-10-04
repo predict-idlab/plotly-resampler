@@ -1,5 +1,8 @@
 # Latest
 
+## What's Changed
+* :bug: fix blank `show_dash` app with dash>=4 (`dcc.Graph` crashed on a `None` config) (#367)
+
 
 # v0.10.0
 ## New Features

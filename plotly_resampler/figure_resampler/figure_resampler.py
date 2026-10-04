@@ -533,6 +533,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         assert (
             mode is None or mode in available_modes
         ), f"mode must be one of {available_modes}"
+        # dash>=4's dcc.Graph crashes on `config=None` (blank app), so pass a dict
+        config = {} if config is None else config
         graph_properties = {} if graph_properties is None else graph_properties
         assert "config" not in graph_properties  # There is a param for config
         if self["layout"]["autosize"] is True and self["layout"]["height"] is None:
@@ -584,8 +586,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         )
         # fmt: on
         if self._create_overview:
-            overview_config = config.copy() if config is not None else {}
-            overview_config["displayModeBar"] = False
+            overview_config = {**config, "displayModeBar": False}
             coarse_fig = self._create_overview_figure()
             div.children += [
                 dash.dcc.Graph(
