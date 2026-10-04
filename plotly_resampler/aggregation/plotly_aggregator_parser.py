@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import bisect
+from datetime import tzinfo
 from typing import Tuple, Union
 
 import numpy as np
 import pandas as pd
-import pytz
 
 from .aggregation_interface import DataAggregator, DataPointSelector
 from .gap_handler_interface import AbstractGapHandler
@@ -31,7 +31,7 @@ class PlotlyAggregatorParser:
 
     @staticmethod
     def to_same_tz(
-        ts: Union[pd.Timestamp, None], reference_tz: Union[pytz.BaseTzInfo, None]
+        ts: Union[pd.Timestamp, None], reference_tz: Union[tzinfo, None]
     ) -> Union[pd.Timestamp, None]:
         """Adjust `ts` its timezone to the `reference_tz`."""
         if ts is None:
