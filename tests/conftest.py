@@ -20,7 +20,11 @@ from plotly_resampler import (
 _nb_samples = 10_000
 data_dir = "examples/data/"
 headless = True
-TESTING_LOCAL = False  # SET THIS TO TRUE IF YOU ARE TESTING LOCALLY
+# Automatically detect if running in CI (GitHub Actions, etc.)
+TESTING_LOCAL = (
+    os.environ.get("CI") not in ("true", "1", "True")
+    and os.environ.get("GITHUB_ACTIONS") != "true"
+)
 
 
 @pytest.fixture
@@ -46,38 +50,67 @@ def pickle_figure():
 
 @pytest.fixture
 def driver():
+    import os
+    import shutil
     import time
 
     from selenium.webdriver.chrome.options import Options
-    from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+    from selenium.webdriver.chrome.service import Service
     from seleniumwire import webdriver
+    from webdriver_manager.chrome import ChromeDriverManager
 
     time.sleep(3)
 
     options = Options()
-    d = DesiredCapabilities.CHROME
-    d["goog:loggingPrefs"] = {"browser": "ALL"}
+    # Set logging preferences via options (replaces DesiredCapabilities in Selenium 4.x)
+    options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
+
     if not TESTING_LOCAL:
+        # CI environment (GitHub Actions)
         if headless:
             options.add_argument("--headless")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
         options.add_argument("--disable-gpu")
-        # options.add_argument("--no=sandbox")
 
-        driver = webdriver.Chrome(
-            options=options,
-            desired_capabilities=d,
-        )
+        # In CI, try ChromeDriver from PATH first (set by setup-chromedriver action)
+        # The setup-chromedriver action adds chromedriver to PATH
+        # Strategy: Try PATH first, then CHROMEDRIVER_PATH env var, then webdriver-manager
+        # Check if chromedriver is available in PATH
+        chromedriver_in_path = shutil.which("chromedriver")
+        if chromedriver_in_path:
+            # Use chromedriver from PATH (installed by setup-chromedriver action)
+            service = Service(chromedriver_in_path)
+        else:
+            # Try CHROMEDRIVER_PATH environment variable
+            chromedriver_path = os.environ.get("CHROMEDRIVER_PATH")
+            if chromedriver_path and os.path.exists(chromedriver_path):
+                service = Service(chromedriver_path)
+            else:
+                # Fall back to webdriver-manager to auto-download correct version
+                service = Service(ChromeDriverManager().install())
     else:
+        # Local development environment
         options.add_argument("--remote-debugging-port=9222")
-        driver = webdriver.Chrome(
-            options=options,
-            # executable_path="/home/jeroen/chromedriver",
-            # executable_path="/home/jonas/Documents/chromedriver-linux64/chromedriver",
-            desired_capabilities=d,
-        )
-        # driver = webdriver.Firefox(executable_path='/home/jonas/git/gIDLaB/plotly-dynamic-resampling/geckodriver')
+
+        # Try hardcoded path first (for backward compatibility)
+        hardcoded_path = "/home/jonas/Documents/chromedriver-linux64/chromedriver"
+        if os.path.exists(hardcoded_path):
+            try:
+                # Try the hardcoded path first
+                service = Service(executable_path=hardcoded_path)
+                # Test if it works by attempting to create driver (will raise if version mismatch)
+                test_driver = webdriver.Chrome(options=options, service=service)
+                test_driver.quit()
+                # If we get here, the hardcoded path works
+            except Exception:
+                # Version mismatch or other error, use webdriver-manager
+                service = Service(ChromeDriverManager().install())
+        else:
+            # Use webdriver-manager to auto-download correct version
+            service = Service(ChromeDriverManager().install())
+
+    driver = webdriver.Chrome(options=options, service=service)
     return driver
 
 
