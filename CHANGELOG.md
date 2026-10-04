@@ -5,6 +5,7 @@
 The README now points to [FlexViz](https://github.com/flex-analytics/flexviz), our successor project for whole-dashboard cross-filtering at scale.
 
 ## What's Changed
+* :sparkles: downsample `marker_symbol` (`hf_marker_symbol`) and handle high-frequency properties generically by @jonasvdd in https://github.com/predict-idlab/plotly-resampler/pull/355
 * :bug: fix blank `show_dash` app with dash>=4 (`dcc.Graph` crashed on a `None` config) (#367) by @jvdd in https://github.com/predict-idlab/plotly-resampler/pull/369
 * :bug: fix `TypeError` in `show_dash()` when no `mode` is passed (#367), first reported and fixed by @yzhaoinuw in https://github.com/predict-idlab/plotly-resampler/pull/360
 * :bug: drop the unused `pytz` import, so `import plotly_resampler` works with pandas>=3 without `pytz` (#365) by @hdh7485 in https://github.com/predict-idlab/plotly-resampler/pull/366
