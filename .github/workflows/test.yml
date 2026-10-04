@@ -37,6 +37,7 @@ jobs:
       with:
         lfs: true
     - name: Set up Python ${{ matrix.python-version }}
+      id: setup-python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
@@ -46,10 +47,12 @@ jobs:
         # Optional: do not specify to match Chrome's version
         # chromedriver-version: '114.0.5735.90'
 
+    # pipx runs Poetry on the runner's own Python: the Poetry installer fails to
+    # create its venv with Python 3.8 on Windows
     - name: Install Poetry
-      uses: snok/install-poetry@v1
-      with:
-        version: 1.8.5
+      run: |
+        pipx install poetry==1.8.5
+        poetry env use "${{ steps.setup-python.outputs.python-path }}"
     - name: Cache poetry
       id: cached-poetry-dependencies
       uses: actions/cache@v3
