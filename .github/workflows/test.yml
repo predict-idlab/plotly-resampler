@@ -48,10 +48,12 @@ jobs:
         # chromedriver-version: '114.0.5735.90'
 
     # pipx runs Poetry on the runner's own Python: the Poetry installer fails to
-    # create its venv with Python 3.8 on Windows
+    # create its venv with Python 3.8 on Windows. Poetry runs its `packaging` in
+    # the project venv, and packaging>=26.3 needs Python>=3.9.
     - name: Install Poetry
       run: |
         pipx install poetry==1.8.5
+        pipx runpip poetry install "packaging<26.3"
         poetry env use "${{ steps.setup-python.outputs.python-path }}"
     - name: Cache poetry
       id: cached-poetry-dependencies
