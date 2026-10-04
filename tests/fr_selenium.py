@@ -223,7 +223,14 @@ class FigureResamplerGUITests:
     def get_requests(self, delete: bool = True):
         if not_on_linux():
             time.sleep(2)  # bcs slower browser
-        requests = self.driver.requests
+        # wait (max 10s) until each callback request got its response
+        for _ in range(20):
+            requests = self.driver.requests
+            if all(
+                r.response for r in RequestParser.filter_callback_requests(requests)
+            ):
+                break
+            time.sleep(0.5)
         if delete:
             self.clear_requests()
 
