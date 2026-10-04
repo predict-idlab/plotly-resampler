@@ -496,7 +496,8 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
               * ``"jupyterlab"``: The app will be displayed in a dedicated tab in the
                 JupyterLab interface. Requires JupyterLab and the ``jupyterlab-dash``
                 extension.
-            By default None, which will result in the same behavior as ``"external"``.
+            By default None, which uses dash its default: ``"inline"`` in a notebook,
+            ``"external"`` otherwise.
         config: dict, optional
             The configuration options for displaying this figure, by default None.
             This ``config`` parameter is the same as the dict that you would pass as
@@ -608,7 +609,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
 
         # 2. Run the app
         height_param = "height" if mode == "inline_persistent" else "jupyter_height"
-        if "inline" in mode and height_param not in kwargs:
+        if mode is not None and "inline" in mode and height_param not in kwargs:
             # If app height is not specified -> re-use figure height for inline dash app
             #  Note: default layout height is 450 (whereas default app height is 650)
             #  See: https://plotly.com/python/reference/layout/#layout-height

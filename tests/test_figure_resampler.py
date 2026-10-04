@@ -1250,6 +1250,13 @@ def test_show_dash_graph_config_not_null(monkeypatch):
     assert all(isinstance(g["props"]["config"], dict) for g in graphs)
 
 
+def test_show_dash_default_mode(monkeypatch):
+    import dash
+
+    monkeypatch.setattr(dash.Dash, "run", lambda *args, **kwargs: None)
+    FigureResampler(go.Figure()).show_dash()  # mode=None should not raise
+
+
 def test_showdash_not_hanging_when_port_in_use():
     if not_on_linux():
         pytest.skip("This test is currently only supported on linux")

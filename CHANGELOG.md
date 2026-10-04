@@ -2,6 +2,7 @@
 
 ## What's Changed
 * :bug: fix blank `show_dash` app with dash>=4 (`dcc.Graph` crashed on a `None` config) (#367)
+* :bug: fix `TypeError` in `show_dash()` when no `mode` is passed (#367)
 
 
 # v0.10.0
