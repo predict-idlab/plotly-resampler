@@ -10,7 +10,6 @@ from __future__ import annotations
 
 __author__ = "Jonas Van Der Donckt, Jeroen Van Der Donckt, Emiel Deprost"
 
-import os
 import warnings
 from pathlib import Path
 from typing import List, Optional, Tuple, Union
@@ -568,7 +567,7 @@ class FigureResampler(AbstractFigureAggregator, go.Figure):
         if self._create_overview:
             # fmt: off
             # Add the assets folder to the init_dash_kwargs
-            init_dash_kwargs["assets_folder"] = os.path.relpath(ASSETS_FOLDER, os.getcwd())
+            init_dash_kwargs["assets_folder"] = ASSETS_FOLDER
             # Also include the lodash script, as the client-side callbacks uses this
             init_dash_kwargs["external_scripts"] = ["https://cdn.jsdelivr.net/npm/lodash/lodash.min.js" ]
             # fmt: on

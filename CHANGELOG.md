@@ -1,5 +1,8 @@
 # Latest
 
+## What's Changed
+* :bug: `show_dash()` no longer fails with a `ValueError` on Windows when the working directory is on another drive than plotly-resampler (#362) by @raashish1601
+
 
 # v0.11.1 (2026-10-04)
 The README now points to [FlexViz](https://github.com/flex-analytics/flexviz), our successor project for whole-dashboard cross-filtering at scale.
