@@ -1,5 +1,3 @@
-from inspect import isfunction
-
 import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
@@ -9,6 +7,7 @@ from plotly_resampler.figure_resampler.figure_resampler_interface import (
     AbstractFigureAggregator,
 )
 from plotly_resampler.registering import (
+    _already_wrapped,
     _get_plotly_constr,
     register_plotly_resampler,
     unregister_plotly_resampler,
@@ -23,14 +22,14 @@ def test_get_plotly_const(registering_cleanup):
     assert issubclass(FigureWidgetResampler, AbstractFigureAggregator)
 
     # Is unregistered now
-    assert not (isfunction(go.Figure) or isfunction(go.FigureWidget))
+    assert not (_already_wrapped(go.Figure) or _already_wrapped(go.FigureWidget))
     assert not issubclass(go.Figure, AbstractFigureAggregator)
     assert not issubclass(go.FigureWidget, AbstractFigureAggregator)
     assert not issubclass(_get_plotly_constr(go.Figure), AbstractFigureAggregator)
     assert not issubclass(_get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
 
     register_plotly_resampler()
-    assert isfunction(go.Figure) and isfunction(go.FigureWidget)
+    assert _already_wrapped(go.Figure) and _already_wrapped(go.FigureWidget)
     assert isinstance(go.Figure(), AbstractFigureAggregator)
     assert isinstance(go.FigureWidget(), AbstractFigureAggregator)
     assert issubclass(FigureResampler, AbstractFigureAggregator)
@@ -39,25 +38,44 @@ def test_get_plotly_const(registering_cleanup):
     assert not issubclass(_get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
 
     unregister_plotly_resampler()
-    assert not (isfunction(go.Figure) or isfunction(go.FigureWidget))
+    assert not (_already_wrapped(go.Figure) or _already_wrapped(go.FigureWidget))
     assert not issubclass(go.Figure, AbstractFigureAggregator)
     assert not issubclass(go.FigureWidget, AbstractFigureAggregator)
     assert not issubclass(_get_plotly_constr(go.Figure), AbstractFigureAggregator)
     assert not issubclass(_get_plotly_constr(go.FigureWidget), AbstractFigureAggregator)
 
 
+def test_isinstance_when_registered(registering_cleanup):
+    register_plotly_resampler(mode="figure")
+    fig = go.Figure()
+    assert isinstance(fig, FigureResampler)
+    assert isinstance(fig, go.Figure)
+    assert not isinstance(fig, go.FigureWidget)
+    assert issubclass(FigureResampler, go.Figure)
+    assert not issubclass(FigureResampler, go.FigureWidget)
+
+    register_plotly_resampler(mode="widget")
+    fig = go.FigureWidget()
+    assert isinstance(fig, FigureWidgetResampler)
+    assert isinstance(fig, go.FigureWidget)
+    assert isinstance(fig, go.Figure) is isinstance(fig, _get_plotly_constr(go.Figure))
+
+    unregister_plotly_resampler()
+    assert isinstance(fig, go.FigureWidget)
+
+
 def test_register_and_unregister_graph_objects(registering_cleanup):
     import plotly.graph_objects as go_
 
     # Is unregistered now
-    assert not (isfunction(go_.Figure) or isfunction(go_.FigureWidget))
+    assert not (_already_wrapped(go_.Figure) or _already_wrapped(go_.FigureWidget))
     fig = go_.Figure()
     assert not isinstance(fig, AbstractFigureAggregator)
     fig = go_.FigureWidget()
     assert not isinstance(fig, AbstractFigureAggregator)
 
     register_plotly_resampler()
-    assert isfunction(go_.Figure) and isfunction(go_.FigureWidget)
+    assert _already_wrapped(go_.Figure) and _already_wrapped(go_.FigureWidget)
     fig = go_.Figure()
     assert isinstance(fig, AbstractFigureAggregator)
     assert isinstance(fig, FigureResampler)
@@ -68,7 +86,7 @@ def test_register_and_unregister_graph_objects(registering_cleanup):
     assert not isinstance(fig, FigureResampler)
 
     unregister_plotly_resampler()
-    assert not (isfunction(go_.Figure) or isfunction(go_.FigureWidget))
+    assert not (_already_wrapped(go_.Figure) or _already_wrapped(go_.FigureWidget))
     fig = go_.Figure()
     assert not isinstance(fig, AbstractFigureAggregator)
     fig = go_.FigureWidget()
@@ -79,14 +97,14 @@ def test_register_and_unregister_graph_objs(registering_cleanup):
     import plotly.graph_objs as go_
 
     # Is unregistered now
-    assert not (isfunction(go_.Figure) or isfunction(go_.FigureWidget))
+    assert not (_already_wrapped(go_.Figure) or _already_wrapped(go_.FigureWidget))
     fig = go_.Figure()
     assert not isinstance(fig, AbstractFigureAggregator)
     fig = go_.FigureWidget()
     assert not isinstance(fig, AbstractFigureAggregator)
 
     register_plotly_resampler()
-    assert isfunction(go_.Figure) and isfunction(go_.FigureWidget)
+    assert _already_wrapped(go_.Figure) and _already_wrapped(go_.FigureWidget)
     fig = go_.Figure()
     assert isinstance(fig, AbstractFigureAggregator)
     assert isinstance(fig, FigureResampler)
@@ -97,7 +115,7 @@ def test_register_and_unregister_graph_objs(registering_cleanup):
     assert not isinstance(fig, FigureResampler)
 
     unregister_plotly_resampler()
-    assert not (isfunction(go_.Figure) or isfunction(go_.FigureWidget))
+    assert not (_already_wrapped(go_.Figure) or _already_wrapped(go_.FigureWidget))
     fig = go_.Figure()
     assert not isinstance(fig, AbstractFigureAggregator)
     fig = go_.FigureWidget()

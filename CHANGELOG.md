@@ -1,5 +1,8 @@
 # Latest
 
+## What's Changed
+* :bug: keep `isinstance(fig, go.Figure)` and `isinstance(fig, go.FigureWidget)` working after `register_plotly_resampler()` (#364) by @raashish1601
+
 
 # v0.11.1 (2026-10-04)
 The README now points to [FlexViz](https://github.com/flex-analytics/flexviz), our successor project for whole-dashboard cross-filtering at scale.

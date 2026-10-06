@@ -2,8 +2,6 @@
 
 __author__ = "Jeroen Van Der Donckt, Jonas Van Der Donckt, Emiel Deprost"
 
-from functools import wraps
-
 import plotly
 
 from plotly_resampler import FigureResampler, FigureWidgetResampler
@@ -59,6 +57,24 @@ def _is_ipython_env():
         return False
 
 
+class _WrappedConstrMeta(type):
+    """Metaclass of the wrapped constructors.
+
+    Delegates ``isinstance`` and ``issubclass`` checks to the original plotly class, so
+    that e.g. ``isinstance(fig, go.Figure)`` keeps working once registered.
+    """
+
+    def __instancecheck__(cls, instance):
+        return isinstance(instance, cls.__wrapped__)
+
+    def __subclasscheck__(cls, subclass):
+        return issubclass(subclass, cls.__wrapped__)
+
+    def __getattr__(cls, name):
+        # Look up class attributes (e.g., static methods) on the original class
+        return getattr(cls.__wrapped__, name)
+
+
 def _register_wrapper(
     module: type,
     constr_name: str,
@@ -68,14 +84,20 @@ def _register_wrapper(
     constr = getattr(module, constr_name)
     constr = _get_plotly_constr(constr)  # get the original plotly constructor
 
-    # print(f"Wrapping {constr_name} with {pr_class}")
-
-    @wraps(constr)
-    def wrapped_constr(*args, **kwargs):
-        # print(f"Executing constructor wrapper for {constr_name}", constr)
+    def __new__(cls, *args, **kwargs):
+        # The returned object is not an instance of `cls`, so `__init__` is not called
         return pr_class(constr(*args, **kwargs), **aggregator_kwargs)
 
-    wrapped_constr.__name__ = WRAPPED_PREFIX + constr_name
+    wrapped_constr = _WrappedConstrMeta(
+        WRAPPED_PREFIX + constr_name,
+        (),
+        {
+            "__new__": __new__,
+            "__wrapped__": constr,
+            "__doc__": constr.__doc__,
+            "__module__": constr.__module__,
+        },
+    )
     setattr(module, constr_name, wrapped_constr)
 
 
