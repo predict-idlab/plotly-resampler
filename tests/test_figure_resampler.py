@@ -1250,6 +1250,23 @@ def test_show_dash_graph_config_not_null(monkeypatch):
     assert all(isinstance(g["props"]["config"], dict) for g in graphs)
 
 
+def test_show_dash_assets_folder_outside_cwd(monkeypatch, tmp_path):
+    # The assets folder must not depend on the cwd, which can be on another drive
+    # than plotly-resampler on Windows (see #362)
+    import dash
+
+    from plotly_resampler import ASSETS_FOLDER
+
+    monkeypatch.setattr(dash.Dash, "run", lambda *args, **kwargs: None)
+    monkeypatch.chdir(tmp_path)
+    fr = FigureResampler(go.Figure(), create_overview=True)
+    fr.add_trace(go.Scattergl(name="test"), hf_y=np.arange(10_000))
+    fr.show_dash(mode="inline")
+
+    assert fr._app.config.assets_folder == ASSETS_FOLDER
+    assert fr._app.server.test_client().get("/assets/coarse_fine.js").status_code == 200
+
+
 def test_show_dash_default_mode(monkeypatch):
     import dash
 
