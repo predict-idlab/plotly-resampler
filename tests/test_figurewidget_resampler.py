@@ -813,7 +813,7 @@ def test_hf_data_property_reload_data():
     assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reload_data()
-    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
+    assert (fwr.data[0]["x"][0] >= 9_999) & (fwr.data[0]["x"][-1] <= 20_001)
     assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
     assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
 
@@ -888,8 +888,8 @@ def test_hf_data_property_subplots_reload_data():
     assert np.all(fwr.hf_data[0]["y"] == new_y)
 
     fwr.reload_data()
-    assert (fwr.data[0]["x"][0] >= 10_000) & (fwr.data[0]["x"][-1] <= 20_000)
-    assert (fwr.data[1]["x"][0] >= 40_000) & (fwr.data[1]["x"][-1] <= 60_000)
+    assert (fwr.data[0]["x"][0] >= 9_999) & (fwr.data[0]["x"][-1] <= 20_001)
+    assert (fwr.data[1]["x"][0] >= 39_999) & (fwr.data[1]["x"][-1] <= 60_001)
     assert np.all(fwr.data[0]["y"] == new_y[fwr.data[0]["x"]])
     assert np.all(fwr.data[1]["y"] == new_y[fwr.data[1]["x"]])
     assert (fwr.layout["yaxis"].range[0] == -20) & (fwr.layout["yaxis"].range[-1] == 3)
@@ -919,8 +919,8 @@ def test_hf_data_subplots_non_shared_xaxes():
     assert 0 <= x_0[0] <= (n / 1000)
     assert (n - 1000) <= x_0[-1] <= n - 1
     x_1 = fwr.data[1]["x"]
-    assert 40_000 <= x_1[0] <= 40_000 + (20_000 / 1000)
-    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_000
+    assert 39_999 <= x_1[0] <= 40_001 + (20_000 / 1000)
+    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_001
 
 
 def test_hf_data_subplots_non_shared_xaxes_row_col_none():
@@ -944,8 +944,8 @@ def test_hf_data_subplots_non_shared_xaxes_row_col_none():
     assert 0 <= x_0[0] <= (n / 1000)
     assert (n - 1000) <= x_0[-1] <= n - 1
     x_1 = fwr.data[1]["x"]
-    assert 40_000 <= x_1[0] <= 40_000 + (20_000 / 1000)
-    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_000
+    assert 39_999 <= x_1[0] <= 40_001 + (20_000 / 1000)
+    assert (60_000 - 20_000 / 1_000) <= x_1[-1] <= 60_001
 
 
 def test_updates_two_traces():
@@ -2077,7 +2077,9 @@ def test_fwr_update_layout_axes_range():
     assert f_pr.layout.yaxis.autorange is None
 
     # Now the f_pr contains the data of the selected xrange (downsampled to 500 samples)
-    check_data(f_pr, 100, 1_000 - 1)
+    # Since https://github.com/predict-idlab/plotly-resampler/pull/343
+    # the data range is left-right expanded with 1 sample
+    check_data(f_pr, min_v=100 - 1, max_v=1_000)
 
 
 def test_fwr_update_layout_axes_range_no_update():
